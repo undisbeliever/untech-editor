@@ -10,6 +10,7 @@
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/untech-editor.h"
+#include "models/common/iterators.h"
 #include "models/enums.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project.h"
@@ -222,9 +223,8 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
                 ImGui::PushID(int(type));
                 ImGui::Indent();
 
-                for (unsigned index = 0; index < resources.size(); index++) {
-                    const ItemIndex itemIndex{ type, index };
-                    const auto& item = resources.at(index);
+                for (auto [index, item] : enumerate(resources)) {
+                    const ItemIndex itemIndex{ type, unsigned(index) };
 
                     ImGui::PushID(index);
 
@@ -266,8 +266,7 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
 void ProjectListWindow::processMenu()
 {
     if (ImGui::BeginMenu("Add Resource")) {
-        for (unsigned i = 0; i < addResourceSettings.size(); i++) {
-            const auto& s = addResourceSettings.at(i);
+        for (auto [i, s] : enumerate(addResourceSettings)) {
             ImGui::PushID(i);
             if (ImGui::MenuItem(s.menuTitle)) {
                 _state = State::ADD_RESOURCE_DIALOG;

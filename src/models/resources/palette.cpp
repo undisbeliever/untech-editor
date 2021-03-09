@@ -8,6 +8,7 @@
 #include "models/common/bytevectorhelper.h"
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
+#include "models/common/iterators.h"
 #include "models/lz4/lz4.h"
 #include <cassert>
 
@@ -124,8 +125,8 @@ Resources::convertPalette(const PaletteInput& input, ErrorList& err)
     };
 
     ret->paletteFrames.resize(nFrames);
-    for (unsigned frameId = 0; frameId < nFrames; frameId++) {
-        extractPalette(ret->paletteFrames.at(frameId), frameId + firstFrame);
+    for (auto [frameId, pf] : enumerate(ret->paletteFrames)) {
+        extractPalette(pf, frameId + firstFrame);
     }
 
     if (input.skipFirstFrame) {

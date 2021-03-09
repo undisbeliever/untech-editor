@@ -5,6 +5,7 @@
  */
 
 #include "references.h"
+#include "models/common/iterators.h"
 
 namespace UnTech {
 namespace MetaSprite {
@@ -18,18 +19,17 @@ void writeFrameSetReferences(const ProjectFile& project, std::ostream& out)
 {
     out << "namespace MSFS {\n";
 
-    for (unsigned i = 0; i < project.frameSets.size(); i++) {
-        auto writeRef = [&](const auto& fs) {
-            out << "\tconstant " << fs->name << " = " << i << "\n";
-            out << "\tdefine " << fs->name << ".type = " << fs->exportOrder << "\n";
-        };
+    auto writeRef = [&](const auto& fs, unsigned i) {
+        out << "\tconstant " << fs->name << " = " << i << "\n";
+        out << "\tdefine " << fs->name << ".type = " << fs->exportOrder << "\n";
+    };
 
-        const auto& fs = project.frameSets.at(i);
+    for (auto [i, fs] : const_enumerate(project.frameSets)) {
         if (fs.siFrameSet) {
-            writeRef(fs.siFrameSet);
+            writeRef(fs.siFrameSet, i);
         }
         else if (fs.msFrameSet) {
-            writeRef(fs.msFrameSet);
+            writeRef(fs.msFrameSet, i);
         }
     }
 
@@ -111,9 +111,7 @@ void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& action
     if (hasManuallyInvokedFunction) {
         out << "\n";
 
-        for (unsigned i = 0; i < actionPointFunctions.size(); i++) {
-            const ActionPointFunction& ap = actionPointFunctions.at(i);
-
+        for (auto [i, ap] : const_enumerate(actionPointFunctions)) {
             if (ap.manuallyInvoked) {
                 unsigned romValue = (i + 1) * 2;
                 assert(romValue <= 255 - 2);

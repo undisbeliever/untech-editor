@@ -5,6 +5,7 @@
  */
 
 #include "common.h"
+#include "models/common/iterators.h"
 #include <cassert>
 
 using namespace UnTech;
@@ -53,11 +54,9 @@ MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apF
 
     ret->reserve(apFunctions.size());
 
-    for (unsigned i = 0; i < apFunctions.size(); i++) {
+    for (auto [i, apf] : const_enumerate(apFunctions)) {
         const unsigned romValue = (i + 1) * 2;
         assert(romValue <= 255 - 2);
-
-        const ActionPointFunction& apf = apFunctions.at(i);
 
         if (not apf.name.isValid()) {
             addApfError(apf, "Missing action point function name");

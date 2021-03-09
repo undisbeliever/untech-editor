@@ -6,6 +6,7 @@
 
 #include "combinesmalltiles.h"
 #include "tilesetlayout.h"
+#include "models/common/iterators.h"
 #include <algorithm>
 #include <climits>
 #include <list>
@@ -100,9 +101,9 @@ static std::vector<TileGraphItem> buildSmallTileGraph(const MetaSprite::FrameSet
     std::vector<TileGraphItem> smallTileGraph;
     smallTileGraph.reserve(int((frameSet.smallTileset.size() + 3) / 4) * 4);
 
-    for (unsigned i = 0; i < tileFrames.size(); i++) {
-        if (not tileFrames.at(i).empty()) {
-            smallTileGraph.emplace_back(i, std::move(tileFrames.at(i)));
+    for (auto [i, tf] : enumerate(tileFrames)) {
+        if (not tf.empty()) {
+            smallTileGraph.emplace_back(i, std::move(tf));
         }
     }
 

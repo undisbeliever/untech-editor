@@ -8,6 +8,7 @@
 #include "background-image.h"
 #include "scene-bgmode.hpp"
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
 #include <numeric>
@@ -114,9 +115,7 @@ static std::optional<NameIndexMap> sceneSettingsIndexMap(const NamedList<SceneSe
 
     NameIndexMap nameIndexMap;
 
-    for (unsigned id = 0; id < settings.size(); id++) {
-        const SceneSettingsInput& ssi = settings.at(id);
-
+    for (auto [id, ssi] : const_enumerate(settings)) {
         if (ssi.name.isValid()) {
             const auto r = nameIndexMap.try_emplace(ssi.name, id);
             if (r.second == false) {
@@ -384,9 +383,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
 
 inline std::optional<uint8_t> SceneLayoutsData::findOrAdd(const std::array<SceneLayoutsData::LayerInput, N_LAYERS>& input)
 {
-    for (unsigned layoutId = 0; layoutId < _sceneLayouts.size(); layoutId++) {
-        const auto& layout = _sceneLayouts.at(layoutId);
-
+    for (const auto [layoutId, layout] : const_enumerate(_sceneLayouts)) {
         bool match = true;
         for (unsigned i = 0; i < N_LAYERS; i++) {
             match &= layout.at(i).mapSizeBits == input.at(i).mapSizeBits;
@@ -587,9 +584,7 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
     out->nameIndexMap.reserve(resourceScenes.scenes.size());
     out->sceneSnesData.resize(resourceScenes.scenes.size() * SCENE_DATA_ENTRY_SIZE, 0);
 
-    for (unsigned sceneIndex = 0; sceneIndex < resourceScenes.scenes.size(); sceneIndex++) {
-        const SceneInput& scene = resourceScenes.scenes.at(sceneIndex);
-
+    for (auto [sceneIndex, scene] : const_enumerate(resourceScenes.scenes)) {
         out->scenes.emplace_back(
             readSceneData(scene, resourceScenes, *sceneSettingsMap, projectData, err));
 

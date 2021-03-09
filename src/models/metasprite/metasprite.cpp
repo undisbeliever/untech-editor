@@ -7,6 +7,7 @@
 #include "metasprite.h"
 #include "errorlisthelpers.h"
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/common/validateunique.h"
 #include <algorithm>
 
@@ -40,9 +41,7 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorL
         addError("Too many entity hitboxes");
     }
 
-    for (unsigned i = 0; i < objects.size(); i++) {
-        const FrameObject& obj = objects.at(i);
-
+    for (auto [i, obj] : const_enumerate(objects)) {
         size_t tsSize = obj.size == ObjectSize::SMALL ? fs.smallTileset.size()
                                                       : fs.largeTileset.size();
         if (obj.tileId > tsSize) {
@@ -51,18 +50,14 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorL
         }
     }
 
-    for (unsigned i = 0; i < actionPoints.size(); i++) {
-        const ActionPoint& ap = actionPoints.at(i);
-
+    for (auto [i, ap] : const_enumerate(actionPoints)) {
         if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
             errorList.addError(actionPointError(*this, i, "Unknown action point type ", ap.type));
             valid = false;
         }
     }
 
-    for (unsigned i = 0; i < entityHitboxes.size(); i++) {
-        const EntityHitbox& eh = entityHitboxes.at(i);
-
+    for (auto [i, eh] : const_enumerate(entityHitboxes)) {
         if (eh.aabb.width == 0 || eh.aabb.height == 0) {
             errorList.addError(entityHitboxError(*this, i, "aabb has no size"));
             valid = false;

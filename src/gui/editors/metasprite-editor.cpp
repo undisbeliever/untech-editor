@@ -291,9 +291,8 @@ void MetaSpriteEditorData::updateTileSelection()
         ObjectSize objSize = ObjectSize::SMALL;
 
         if (frameObjectsSel.hasSelection()) {
-            for (unsigned i = 0; i < frame.objects.size(); i++) {
+            for (auto [i, obj] : enumerate(frame.objects)) {
                 if (frameObjectsSel.isSelected(i)) {
-                    const auto& obj = frame.objects.at(i);
                     if (tileId == INT_MAX) {
                         tileId = obj.tileId;
                         objSize = obj.size;
@@ -515,9 +514,7 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                     const unsigned nSmallTiles = fs.smallTileset.size();
                     const unsigned nLargeTiles = fs.smallTileset.size();
 
-                    for (unsigned i = 0; i < frame.objects.size(); i++) {
-                        auto& obj = frame.objects.at(i);
-
+                    for (auto [i, obj] : enumerate(frame.objects)) {
                         bool edited = false;
 
                         ImGui::PushID(i);
@@ -564,9 +561,7 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                     ImGui::Columns(3);
                     ImGui::PushID("AP");
 
-                    for (unsigned i = 0; i < frame.actionPoints.size(); i++) {
-                        auto& ap = frame.actionPoints.at(i);
-
+                    for (auto [i, ap] : enumerate(frame.actionPoints)) {
                         bool edited = false;
 
                         ImGui::PushID(i);
@@ -607,9 +602,7 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                     ImGui::Columns(3);
                     ImGui::PushID("EH");
 
-                    for (unsigned i = 0; i < frame.entityHitboxes.size(); i++) {
-                        auto& eh = frame.entityHitboxes.at(i);
-
+                    for (auto [i, eh] : enumerate(frame.entityHitboxes)) {
                         bool edited = false;
 
                         ImGui::PushID(i);
@@ -701,7 +694,7 @@ void MetaSpriteEditorGui::palettesWindow()
         ImGui::Spacing();
 
         if (_data->palettesSel.selectedIndex() < fs.palettes.size()) {
-            auto& colors = fs.palettes.at(_data->palettesSel.selectedIndex()).colors();
+            const auto& colors = fs.palettes.at(_data->palettesSel.selectedIndex()).colors();
 
             const ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha;
 
@@ -714,11 +707,12 @@ void MetaSpriteEditorGui::palettesWindow()
                 _paletteState = PaletteState::DRAW_TILES;
             }
 
-            for (unsigned i = 0; i < colors.size(); i++) {
+            for (auto [i, color] : enumerate(colors)) {
                 ImGui::PushID(i);
 
                 bool buttonClicked = false;
-                const ImColor c(colors.at(i).rgb().rgb());
+                const ImColor c(color.rgb().rgb());
+
                 if (i != _colorSel) {
                     buttonClicked = ImGui::ColorButton("##color", c, flags, buttonSize);
                 }
@@ -865,9 +859,7 @@ void MetaSpriteEditorGui::tilesetButtons()
         auto tileRemoved = [this](const unsigned tileId, const ObjectSize size) {
             auto& fs = _data->data;
 
-            for (unsigned i = 0; i < fs.frames.size(); i++) {
-                auto& frame = fs.frames.at(i);
-
+            for (auto [i, frame] : enumerate(fs.frames)) {
                 bool edited = false;
                 for (auto& obj : frame.objects) {
                     if (obj.tileId >= tileId && obj.size == size) {
@@ -906,9 +898,8 @@ void MetaSpriteEditorGui::setSelectedFrameObjectsTile(const unsigned tileId, con
         auto& frame = fs.frames.at(_data->framesSel.selectedIndex());
 
         if (_data->frameObjectsSel.hasSelection()) {
-            for (unsigned i = 0; i < frame.objects.size(); i++) {
+            for (auto [i, obj] : enumerate(frame.objects)) {
                 if (_data->frameObjectsSel.isSelected(i)) {
-                    auto& obj = frame.objects.at(i);
                     obj.tileId = tileId;
                     obj.size = objSize;
                 }
@@ -1104,11 +1095,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
     if (showFrameObjects) {
         const ImTextureID textureId = _tilesetTexture.imguiTextureId();
 
-        unsigned i = frame.objects.size();
-        while (i > 0) {
-            i--;
-            auto& obj = frame.objects.at(i);
-
+        for (auto [i, obj] : reverse_enumerate(frame.objects)) {
             bool valid = false;
             ImVec2 uv0, uv1;
             if (obj.size == ObjectSize::SMALL) {
@@ -1153,11 +1140,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
     }
 
     if (showEntityHitboxes) {
-        unsigned i = frame.entityHitboxes.size();
-        while (i > 0) {
-            i--;
-            auto& eh = frame.entityHitboxes.at(i);
-
+        for (auto [i, eh] : reverse_enumerate(frame.entityHitboxes)) {
             ImVec2 p1(pos.x + eh.aabb.x * zoom.x, pos.y + eh.aabb.y * zoom.y);
             ImVec2 p2(p1.x + eh.aabb.width * zoom.x, p1.y + eh.aabb.height * zoom.y);
             drawList->AddRect(p1, p2, Style::entityHitboxOutlineColor, lineThickness);
@@ -1165,11 +1148,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
     }
 
     if (showActionPoints) {
-        unsigned i = frame.actionPoints.size();
-        while (i > 0) {
-            i--;
-            auto& ap = frame.actionPoints.at(i);
-
+        for (auto [i, ap] : reverse_enumerate(frame.actionPoints)) {
             ImVec2 p1(pos.x + ap.location.x * zoom.x, pos.y + ap.location.y * zoom.y);
             ImVec2 p2(p1.x + zoom.x, p1.y + zoom.y);
             drawList->AddRect(p1, p2, Style::actionPointOutlineColor, lineThickness);
@@ -1228,11 +1207,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
         const ImTextureID textureId = _tilesetTexture.imguiTextureId();
 
         if (showFrameObjects) {
-            unsigned i = frame->objects.size();
-            while (i > 0) {
-                i--;
-                auto& obj = frame->objects.at(i);
-
+            for (auto [i, obj] : reverse_enumerate(frame->objects)) {
                 bool valid = false;
                 ImVec2 uv0, uv1;
                 if (obj.size == ObjectSize::SMALL) {
@@ -1266,7 +1241,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
 
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
-                    ImGui::Text("Object %u", i);
+                    ImGui::Text("Object %u", unsigned(i));
                     ImGui::EndTooltip();
                 }
             }
@@ -1284,34 +1259,28 @@ void MetaSpriteEditorGui::frameEditorWindow()
         }
 
         if (showEntityHitboxes) {
-            unsigned i = frame->entityHitboxes.size();
-            while (i > 0) {
-                i--;
-                auto& eh = frame->entityHitboxes.at(i);
+            for (auto [i, eh] : reverse_enumerate(frame->entityHitboxes)) {
                 _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor, &_data->entityHitboxesSel, i);
 
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
-                    ImGui::Text("Entity Hitbox %u (%s)", i, eh.hitboxType.to_string().c_str());
+                    ImGui::Text("Entity Hitbox %u (%s)", unsigned(i), eh.hitboxType.to_string().c_str());
                     ImGui::EndTooltip();
                 }
             }
         }
 
         if (showActionPoints) {
-            unsigned i = frame->actionPoints.size();
-            while (i > 0) {
-                i--;
-                auto& ap = frame->actionPoints.at(i);
+            for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
                 _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_data->actionPointsSel, i);
 
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
                     if (ap.type.isValid()) {
-                        ImGui::Text("Action Point %u (%s)", i, ap.type.c_str());
+                        ImGui::Text("Action Point %u (%s)", unsigned(i), ap.type.c_str());
                     }
                     else {
-                        ImGui::Text("Action Point %u", i);
+                        ImGui::Text("Action Point %u", unsigned(i));
                     }
                     ImGui::EndTooltip();
                 }
@@ -1376,8 +1345,8 @@ void MetaSpriteEditorGui::viewMenu()
     ImGui::Separator();
 
     if (ImGui::BeginMenu("Background Color")) {
-        for (unsigned i = 0; i < backgroundColorNames.size(); i++) {
-            if (ImGui::MenuItem(backgroundColorNames.at(i), nullptr, _selectedEditorBgColor == int(i))) {
+        for (auto [i, bcn] : enumerate(backgroundColorNames)) {
+            if (ImGui::MenuItem(bcn, nullptr, _selectedEditorBgColor == int(i))) {
                 _selectedEditorBgColor = i;
             }
         }
@@ -1478,8 +1447,7 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     unsigned x = 0;
     unsigned y = 0;
     auto drawTiles = [&](const auto& tileset) {
-        for (unsigned i = 0; i < tileset.size(); i++) {
-            const auto& tile = tileset.at(i);
+        for (auto [i, tile] : const_enumerate(tileset)) {
             tile.draw(_tilesetImage, palette, x, y);
 
             x += tile.TILE_SIZE;

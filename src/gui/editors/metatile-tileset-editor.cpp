@@ -15,6 +15,7 @@
 #include "gui/list-actions.h"
 #include "gui/style.h"
 #include "gui/texture.h"
+#include "models/common/iterators.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project-data.h"
 #include <cmath>
@@ -251,9 +252,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
             ImGui::PushID("Palettes");
 
-            for (unsigned i = 0; i < tileset.palettes.size(); i++) {
-                auto& palette = tileset.palettes.at(i);
-
+            for (auto [i, palette] : enumerate(tileset.palettes)) {
                 ImGui::PushID(i);
 
                 ImGui::Selectable(&_data->paletteSel, i);
@@ -287,9 +286,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
             ImGui::PushID("FrameImages");
 
-            for (unsigned i = 0; i < tileset.animationFrames.frameImageFilenames.size(); i++) {
-                auto& imageFilename = tileset.animationFrames.frameImageFilenames.at(i);
-
+            for (auto [i, imageFilename] : enumerate(tileset.animationFrames.frameImageFilenames)) {
                 ImGui::PushID(i);
 
                 ImGui::Selectable(&_data->tilesetFrameSel, i);
@@ -319,8 +316,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
             bool edited = false;
 
-            for (unsigned i = 0; i < tileset.crumblingTiles.size(); i++) {
-                auto& ct = tileset.crumblingTiles.at(i);
+            for (auto [i, ct] : enumerate(tileset.crumblingTiles)) {
                 bool thirdTransition = ct.hasThirdTransition();
 
                 ImGui::PushID(labels.at(i));
@@ -616,8 +612,7 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
             constexpr std::array<const char*, 4> labels = { "##TP_TL", "##TP_TR", "##TP_BL", "##TP_BR" };
             constexpr std::array<const char*, 4> toolTips = { "Top Left", "Top Right", "Bottom Left", "Bottom Right" };
 
-            for (unsigned i = 0; i < _tileProperties->tilePriorities.size(); i++) {
-                const bool sel = _tileProperties->tilePriorities.at(i);
+            for (auto [i, sel] : const_enumerate(_tileProperties->tilePriorities)) {
                 const bool allSame = _tileProperties->tilePrioritiesSame.at(i);
 
                 if (!allSame) {

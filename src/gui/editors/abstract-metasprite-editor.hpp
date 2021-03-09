@@ -14,6 +14,7 @@
 #include "gui/list-helpers.h"
 #include "gui/selection.h"
 #include "gui/style.h"
+#include "models/common/iterators.h"
 #include "models/metasprite/animation/animation.h"
 #include <cmath>
 
@@ -96,9 +97,7 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
                 ImGui::NextColumn();
                 ImGui::Separator();
 
-                for (unsigned i = 0; i < animation.frames.size(); i++) {
-                    auto& aFrame = animation.frames.at(i);
-
+                for (auto [i, aFrame] : enumerate(animation.frames)) {
                     bool edited = false;
 
                     ImGui::PushID(i);
@@ -354,9 +353,7 @@ inline void buildExportOrderTree(std::vector<AbstractMetaSpriteEditorGui::Export
 {
     assert(tree->empty());
 
-    for (unsigned i = 0; i < exportNames.size(); i++) {
-        const auto& en = exportNames.at(i);
-
+    for (auto [i, en] : const_enumerate(exportNames)) {
         bool valid = bool(data.find(en.name));
         if (!valid) {
             valid = std::any_of(en.alternatives.cbegin(), en.alternatives.cend(),

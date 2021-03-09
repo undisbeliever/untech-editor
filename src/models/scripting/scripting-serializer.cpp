@@ -6,6 +6,7 @@
 
 #include "scripting-serializer.h"
 #include "models/common/enummap.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Scripting {
 
@@ -89,22 +90,20 @@ void writeGameState(Xml::XmlWriter& xml, const GameState& gameState)
     xml.writeTagAttribute("starting-entrance", gameState.startingEntrance);
     xml.writeTagAttribute("starting-player", gameState.startingPlayer);
 
-    for (unsigned i = 0; i < gameState.flags.size(); i++) {
-        auto& f = gameState.flags.at(i);
+    for (auto [i, f] : const_enumerate(gameState.flags)) {
         if (f.name.isValid()) {
             xml.writeTag("flag");
-            xml.writeTagAttribute("index", i);
+            xml.writeTagAttribute("index", unsigned(i));
             xml.writeTagAttributeOptional("name", f.name);
             xml.writeTagAttributeOptional("room", f.room);
             xml.writeCloseTag();
         }
     }
 
-    for (unsigned i = 0; i < gameState.words.size(); i++) {
-        auto& w = gameState.words.at(i);
+    for (auto [i, w] : const_enumerate(gameState.words)) {
         if (w.name.isValid()) {
             xml.writeTag("word");
-            xml.writeTagAttribute("index", i);
+            xml.writeTagAttribute("index", unsigned(i));
             xml.writeTagAttributeOptional("name", w.name);
             xml.writeTagAttributeOptional("room", w.room);
             xml.writeTagAttribute("value", w.initialValue);
@@ -185,8 +184,8 @@ static void readScriptNode(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml, 
         auto& s = std::get<Statement>(nodes.emplace_back(Statement{}));
 
         s.opcode = tag->getAttributeOptionalId("opcode"s);
-        for (unsigned i = 0; i < s.arguments.size(); i++) {
-            s.arguments.at(i) = tag->getAttributeOrEmpty(attributeTagNames.at(i));
+        for (auto [i, arg] : enumerate(s.arguments)) {
+            arg = tag->getAttributeOrEmpty(attributeTagNames.at(i));
         }
     }
     else if (tag->name == "if"s) {
@@ -385,10 +384,9 @@ public:
     {
         xml.writeTag("statement"s);
         xml.writeTagAttribute("opcode"s, s.opcode);
-        for (unsigned i = 0; i < s.arguments.size(); i++) {
-            auto& arg = s.arguments.at(i);
+        for (auto [i, arg] : const_enumerate(s.arguments)) {
             if (!arg.empty()) {
-                xml.writeTagAttribute(attributeTagNames.at(i), s.arguments.at(i));
+                xml.writeTagAttribute(attributeTagNames.at(i), arg);
             }
         }
         xml.writeCloseTag();

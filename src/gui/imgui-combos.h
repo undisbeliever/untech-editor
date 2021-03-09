@@ -8,6 +8,7 @@
 
 #include "gui/imgui.h"
 #include "gui/selection.h"
+#include "models/common/iterators.h"
 #include "models/project/project.h"
 
 namespace ImGui {
@@ -31,8 +32,9 @@ bool IdStringComboSelection(UnTech::idstring* value, const ListT& list, bool inc
             }
         }
     }
-    for (unsigned i = 0; i < list.size(); i++) {
-        const UnTech::idstring* name = getter(list.at(i));
+
+    for (auto [i, item] : enumerate(list)) {
+        const UnTech::idstring* name = getter(item);
 
         if (name && name->isValid()) {
             ImGui::PushID(i);
@@ -78,7 +80,7 @@ bool IdStringCombo(const char* label, UnTech::idstring* value, const UnTech::Nam
                    bool includeBlank = false)
 {
     return IdStringCombo(label, value, list, includeBlank,
-                         [](const T& item) { return &item.name; });
+                         [](const T& item) -> const UnTech::idstring* { return &item.name; });
 }
 
 template <class T>
@@ -86,7 +88,7 @@ bool IdStringCombo(const char* label, UnTech::idstring* value, const UnTech::Ext
                    bool includeBlank = false)
 {
     return IdStringCombo(label, value, list, includeBlank,
-                         [](const T* item) { return item ? &item->name : nullptr; });
+                         [](const UnTech::ExternalFileItem<T>& efi) -> const UnTech::idstring* { return efi.value ? &efi.value->name : nullptr; });
 }
 
 template <class ListT>
@@ -110,8 +112,9 @@ bool SingleSelectionNamedListCombo(const char* label, unsigned* selectedIndexPtr
                 entryClicked = true;
             }
         }
-        for (unsigned i = 0; i < list.size(); i++) {
-            const char* name = list.at(i).name.c_str();
+
+        for (auto [i, item] : enumerate(list)) {
+            const char* name = item.name.c_str();
 
             ImGui::PushID(i);
 
@@ -147,8 +150,9 @@ void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelecti
                 sel->clearSelection();
             }
         }
-        for (unsigned i = 0; i < list.size(); i++) {
-            const char* name = list.at(i).name.c_str();
+
+        for (auto [i, item] : enumerate(list)) {
+            const char* name = item.name.c_str();
 
             ImGui::PushID(i);
 

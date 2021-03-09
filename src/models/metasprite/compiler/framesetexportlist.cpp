@@ -41,6 +41,8 @@ processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& ani
     }
 
     // Include the animations referenced in the nextAnimation field
+
+    // Must use an old-style for loop, ret is resized inside this loop.
     for (unsigned toTestIndex = 0; toTestIndex < ret.size(); toTestIndex++) {
         const auto& ani = ret[toTestIndex];
 

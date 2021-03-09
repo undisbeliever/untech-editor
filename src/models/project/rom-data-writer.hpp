@@ -8,6 +8,7 @@
 
 #include "memorymap.h"
 #include "rom-bank-data.h"
+#include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include <cassert>
 #include <filesystem>
@@ -169,10 +170,9 @@ public:
 
         incData << "\nnamespace " << _blockName << " {\n";
         unsigned offset = 0;
-        for (unsigned bankId = 0; bankId < _romBanks.size(); bankId++) {
-            unsigned bSize = _romBanks.at(bankId).data().size();
-
-            if (bSize > 0) {
+        for (auto [bankId, bank] : const_enumerate(_romBanks)) {
+            const auto bSize = bank.data().size();
+            if (bSize > 0U) {
                 assert(bSize <= _bankSize);
 
                 // std::filesystem::path operator<< will automatically add quotes to relativeBinFilename

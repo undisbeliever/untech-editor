@@ -7,6 +7,7 @@
 #include "project-data.h"
 #include "project.h"
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/common/type-traits.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include <cassert>
@@ -189,8 +190,8 @@ void ResourceListStatus::clearAllAndPopulateNames(const ListT& list)
     _resources.clear();
     _resources.resize(list.size());
 
-    for (unsigned i = 0; i < list.size(); i++) {
-        _resources.at(i).name = itemNameString(list, i);
+    for (auto [i, resource] : enumerate(_resources)) {
+        resource.name = itemNameString(list, i);
     }
 
     _state = ResourceState::Unchecked;
@@ -371,8 +372,7 @@ inline void ProjectDependencies::createDependencyGraph(const ProjectFile& projec
         mappings.preresquite.clear();
         mappings.preresquite.reserve(list.size());
 
-        for (unsigned i = 0; i < list.size(); i++) {
-            const auto& item = list.at(i);
+        for (auto [i, item] : const_enumerate(list)) {
             const idstring name = f(item);
 
             mappings.dependants.emplace(name, i);
@@ -386,7 +386,7 @@ inline void ProjectDependencies::createDependencyGraph(const ProjectFile& projec
            [](auto& bi) { return bi.conversionPlette; });
 
     update(_palette_metaTileTilesets, project.metaTileTilesets,
-           [](auto* t) { return t ? t->animationFrames.conversionPalette : idstring{}; });
+           [](auto& efi) { return efi.value ? efi.value->animationFrames.conversionPalette : idstring{}; });
 }
 
 inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index)

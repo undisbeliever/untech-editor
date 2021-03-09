@@ -6,6 +6,7 @@
 
 #include "abstract-metasprite-editor.h"
 #include "gui/style.h"
+#include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 
 namespace UnTech::Gui {
@@ -46,9 +47,7 @@ static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::Expor
 {
     static unsigned contextMenuIndex = INT_MAX;
 
-    for (unsigned i = 0; i < tree.size(); i++) {
-        auto& eo = tree.at(i);
-
+    for (auto [i, eo] : enumerate(tree)) {
         ImGui::PushStyleColor(ImGuiCol_Text, Style::successFailColor(eo.valid));
         ImGui::TextUnformatted(eo.valid ? u8"·" : u8"X");
         ImGui::PopStyleColor();
@@ -76,9 +75,7 @@ static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::Expor
             };
             menuItem(eo.name);
 
-            for (unsigned i = 0; i < eo.alternatives.size(); i++) {
-                const auto& alt = eo.alternatives.at(i);
-
+            for (auto [i, alt] : const_enumerate(eo.alternatives)) {
                 ImGui::PushID(i);
                 menuItem(alt);
                 ImGui::PopID();

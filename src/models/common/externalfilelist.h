@@ -7,6 +7,7 @@
 #pragma once
 
 #include "idstring.h"
+#include "iterators.h"
 #include <cassert>
 #include <climits>
 #include <filesystem>
@@ -95,9 +96,7 @@ public:
     // returns INT_MAX if name is not found
     size_type indexOf(const std::string& name) const
     {
-        for (size_type i = 0; i < _list.size(); i++) {
-            const auto& item = _list.at(i);
-
+        for (const auto [i, item] : const_enumerate(_list)) {
             if (item.value && item.value->name == name) {
                 return i;
             }

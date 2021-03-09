@@ -8,6 +8,7 @@
 #include "combinesmalltiles.h"
 #include "tilesetinserter.h"
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/common/vectorset.h"
 #include "models/metasprite/errorlisthelpers.h"
 
@@ -61,9 +62,7 @@ static std::vector<DynamicTileset> tilesForEachFrame(const std::vector<FrameList
 {
     std::vector<DynamicTileset> ret;
 
-    for (unsigned frameId = 0; frameId < frameEntries.size(); frameId++) {
-        const auto& entry = frameEntries.at(frameId);
-
+    for (auto [frameId, entry] : const_enumerate(frameEntries)) {
         vectorset<Tile16> tileset;
         addFrameToTileset(tileset, *entry.frame, smallTileMap);
 

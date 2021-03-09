@@ -6,6 +6,7 @@
 
 #include "imgui-combos.h"
 #include "imgui.h"
+#include "models/common/iterators.h"
 
 namespace ImGui {
 
@@ -103,8 +104,8 @@ bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxTy
 
     bool changed = false;
     if (ImGui::BeginCombo(label, value->to_string())) {
-        for (unsigned i = 0; i < EHT::SHORT_STRING_VALUES.size(); i++) {
-            if (ImGui::Selectable(EHT::SHORT_STRING_VALUES.at(i).c_str(), i == currentIndex)) {
+        for (auto [i, ssv] : enumerate(EHT::SHORT_STRING_VALUES)) {
+            if (ImGui::Selectable(ssv.c_str(), i == currentIndex)) {
                 if (i != currentIndex) {
                     *value = EHT::from_romValue(i);
                     changed = true;

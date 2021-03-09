@@ -14,6 +14,7 @@
 #include "gui/list-actions-variant.h"
 #include "gui/list-actions.h"
 #include "gui/style.h"
+#include "models/common/iterators.h"
 #include "models/project/project-data.h"
 #include "models/rooms/rooms-serializer.h"
 
@@ -403,9 +404,7 @@ void RoomEditorGui::entrancesWindow()
 
         const usize bounds(room.mapRight(), room.mapBottom());
 
-        for (unsigned i = 0; i < room.entrances.size(); i++) {
-            auto& en = room.entrances.at(i);
-
+        for (auto [i, en] : enumerate(room.entrances)) {
             bool edited = false;
 
             ImGui::PushID(i);
@@ -499,9 +498,7 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
                 }
                 ImGui::Spacing();
 
-                for (unsigned i = 0; i < group.entities.size(); i++) {
-                    auto& entity = group.entities.at(i);
-
+                for (auto [i, entity] : enumerate(group.entities)) {
                     bool edited = false;
 
                     ImGui::PushID(i);
@@ -567,9 +564,7 @@ void RoomEditorGui::scriptTriggersWindow()
 
         const usize bounds(room.mapRight(), room.mapBottom());
 
-        for (unsigned i = 0; i < room.scriptTriggers.size(); i++) {
-            auto& st = room.scriptTriggers.at(i);
-
+        for (auto [i, st] : enumerate(room.scriptTriggers)) {
             bool edited = false;
 
             ImGui::PushID(i);
@@ -643,9 +638,7 @@ void RoomEditorGui::entitiesWindow()
         const ImVec2 size{ buttonSize, buttonSize };
 
         unsigned counter = 0;
-        for (unsigned i = 0; i < _entityGraphics->entities.size(); i++) {
-            const auto& eg = _entityGraphics->entities.at(i);
-
+        for (auto [i, eg] : const_enumerate(_entityGraphics->entities)) {
             if (filter.PassFilter(eg.name.c_str())) {
                 ImGui::PushID(i);
 
@@ -783,9 +776,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
     // NOTE: Cannot push textureId to drawList - it prevents me from drawing filled rects.
 
     if (showEntrances) {
-        for (unsigned i = 0; i < room.entrances.size(); i++) {
-            auto& entrance = room.entrances.at(i);
-
+        for (auto [i, entrance] : enumerate(room.entrances)) {
             _graphics.addEntity(drawList, &entrance.position,
                                 textureId, _entityGraphics->settingsForPlayer(playerId),
                                 Style::entranceFillColor, Style::entranceOutlineColor, IM_COL32_WHITE,
@@ -793,7 +784,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
-                ImGui::Text("Extrance %u %s", i, entrance.name.c_str());
+                ImGui::Text("Extrance %u %s", unsigned(i), entrance.name.c_str());
                 ImGui::EndTooltip();
             }
         }
@@ -808,16 +799,14 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
             if (_data->entityGroupsSel.selectedIndex() > nGroups || _data->entityGroupsSel.selectedIndex() == groupIndex) {
                 // No entity groups are selected or the  groupIndex is the selected group
 
-                for (unsigned i = 0; i < group.entities.size(); i++) {
-                    auto& entity = group.entities.at(i);
-
+                for (auto [i, entity] : enumerate(group.entities)) {
                     _graphics.addEntity(drawList, &entity.position,
                                         textureId, _entityGraphics->settingsForEntity(entity.entityId),
                                         Style::entityFillColor, Style::entityOutlineColor, IM_COL32_WHITE,
                                         &childSel, i);
                     if (_graphics.isHoveredAndNotEditing()) {
                         ImGui::BeginTooltip();
-                        ImGui::Text("Entity %u (%s)", i, entity.entityId.c_str());
+                        ImGui::Text("Entity %u (%s)", unsigned(i), entity.entityId.c_str());
                         ImGui::Indent();
                         if (entity.name.isValid()) {
                             ImGui::Text("Name: %s", entity.name.c_str());
@@ -846,9 +835,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
     if (showScriptTriggers) {
         const TwoPointRect bounds(0, room.map.width() * METATILE_SIZE_PX, 0, room.map.height() * METATILE_SIZE_PX);
 
-        for (unsigned i = 0; i < room.scriptTriggers.size(); i++) {
-            auto& st = room.scriptTriggers.at(i);
-
+        for (auto [i, st] : enumerate(room.scriptTriggers)) {
             _graphics.addScriptTriggerRect(drawList, &st.aabb, bounds,
                                            Style::scriptTriggerFillColor, Style::scriptTriggerOutlineColor,
                                            &_data->scriptTriggersSel, i);
@@ -856,10 +843,10 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 if (!st.once) {
-                    ImGui::Text("Script Trigger %u: %s", i, st.script.c_str());
+                    ImGui::Text("Script Trigger %u: %s", unsigned(i), st.script.c_str());
                 }
                 else {
-                    ImGui::Text("Script Trigger %u: %s (once)", i, st.script.c_str());
+                    ImGui::Text("Script Trigger %u: %s (once)", unsigned(i), st.script.c_str());
                 }
                 ImGui::EndTooltip();
             }
@@ -1081,8 +1068,8 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
             paletteIndex = projectFile.palettes.indexOf(scene->palette);
 
             if (auto sceneSettings = projectFile.resourceScenes.settings.find(scene->sceneSettings)) {
-                for (unsigned layerId = 0; layerId < sceneSettings->layerTypes.size(); layerId++) {
-                    if (sceneSettings->layerTypes.at(layerId) == UnTech::Resources::LayerType::MetaTileTileset) {
+                for (auto [layerId, layerType] : const_enumerate(sceneSettings->layerTypes)) {
+                    if (layerType == UnTech::Resources::LayerType::MetaTileTileset) {
                         const auto& mt = scene->layers.at(layerId);
                         if (mt.isValid()) {
                             tilesetIndex = projectFile.metaTileTilesets.indexOf(mt);
@@ -1569,8 +1556,8 @@ private:
 
         const float selSpacing = ImGui::GetCursorPosX() + INDENT_SPACING;
 
-        for (index = 0; index < statements.size(); index++) {
-            auto& s = statements.at(index);
+        for (auto [i, s] : enumerate(statements)) {
+            index = i;
 
             ImGui::PushID(index);
 
@@ -1685,9 +1672,7 @@ static void tempVariableList(RoomEditorData* data)
 
     auto& sel = data->*AP::SelectionPtr;
 
-    for (unsigned i = 0; i < list->size(); i++) {
-        auto& name = list->at(i);
-
+    for (auto [i, var] : enumerate(*list)) {
         bool edited = false;
 
         ImGui::PushID(i);
@@ -1696,7 +1681,7 @@ static void tempVariableList(RoomEditorData* data)
         ImGui::SameLine(30);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::InputIdstring("##Name", &name);
+        ImGui::InputIdstring("##Name", &var);
         edited |= ImGui::IsItemDeactivatedAfterEdit();
         ImGui::NextColumn();
 
@@ -1756,14 +1741,12 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
             ImGui::SameLine();
             ImGui::TextUnformatted("Startup Script");
 
-            for (unsigned i = 0; i < roomScripts.scripts.size(); i++) {
-                const auto& item = roomScripts.scripts.at(i);
-
+            for (auto [i, script] : enumerate(roomScripts.scripts)) {
                 ImGui::PushID(i);
 
                 ImGui::Selectable("##sel", &sel, i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);
                 ImGui::SameLine();
-                ImGui::TextUnformatted(item.name);
+                ImGui::TextUnformatted(script.name);
 
                 ImGui::PopID();
             }

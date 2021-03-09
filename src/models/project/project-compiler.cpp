@@ -9,6 +9,7 @@
 #include "rom-data-writer.hpp"
 #include "version.h"
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/metasprite/compiler/compiler.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include "models/metasprite/compiler/references.h"
@@ -35,7 +36,7 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     MetaSprite::Compiler::CompiledRomData msData(memoryMap);
 
     for (unsigned i = 0; i < fsData.size(); i++) {
-        auto fs = fsData.at(i);
+        const auto fs = fsData.at(i);
         assert(fs);
         msData.addFrameSetData(*fs);
     }
@@ -85,8 +86,7 @@ static void writeIncList(std::stringstream& incData, const std::string& typeName
 
         assert(state == ResourceState::Valid);
 
-        for (unsigned id = 0; id < resources.size(); id++) {
-            const auto& s = resources.at(id);
+        for (auto [id, s] : const_enumerate(resources)) {
             assert(s.state == ResourceState::Valid);
             incData << "  constant " << s.name << " = " << id << '\n';
         }

@@ -6,6 +6,7 @@
 
 #include "rooms.h"
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/common/string.h"
 #include "models/common/validateunique.h"
 #include "models/entity/entityromdata.h"
@@ -151,33 +152,30 @@ static bool validateScriptTriggers(const std::vector<ScriptTrigger>& scriptTrigg
         err.addErrorString(msg...);
         valid = false;
     };
+    const auto addStError = [&](const ScriptTrigger& st, unsigned i, const auto... msg) {
+        err.addError(std::make_unique<ListItemError>(&st, "Script Trigger ", i, ": ", msg...));
+        valid = false;
+    };
 
     if (scriptTriggers.size() > MAX_SCRIPT_TRIGGERS) {
         addError("Too many Entity Groups (", scriptTriggers.size(), ", max: ", MAX_SCRIPT_TRIGGERS, ")");
     }
 
-    for (unsigned i = 0; i < scriptTriggers.size(); i++) {
-        const auto& st = scriptTriggers.at(i);
-
-        const auto addStError = [&](const ScriptTrigger& st, const auto... msg) {
-            err.addError(std::make_unique<ListItemError>(&st, "Script Trigger ", i, ": ", msg...));
-            valid = false;
-        };
-
+    for (auto [i, st] : const_enumerate(scriptTriggers)) {
         if (st.script.isValid()) {
             if (!room.roomScripts.scripts.find(st.script)) {
-                addStError(st, "Cannot find script: ", st.script);
+                addStError(st, i, "Cannot find script: ", st.script);
             }
         }
         else {
-            addStError(st, "Expected script");
+            addStError(st, i, "Expected script");
         }
 
         if (st.aabb.width <= 0 || st.aabb.height <= 0) {
-            addStError(st, "Invalid AABB");
+            addStError(st, i, "Invalid AABB");
         }
         if (!room.map.size().contains(st.aabb)) {
-            addStError(st, "AABB must be inside the room");
+            addStError(st, i, "AABB must be inside the room");
         }
     }
 
@@ -318,9 +316,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
     {
         entityGroupIndexMap.reserve(input.entityGroups.size());
 
-        for (unsigned egIndex = 0; egIndex < input.entityGroups.size(); egIndex++) {
-            auto& eg = input.entityGroups.at(egIndex);
-
+        for (auto [egIndex, eg] : const_enumerate(input.entityGroups)) {
             bool s = entityGroupIndexMap.emplace(eg.name, egIndex).second;
             if (!s) {
                 addEntityGroupError(eg, "Duplicate Entity Group id: ", eg.name);

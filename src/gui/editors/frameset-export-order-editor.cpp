@@ -184,9 +184,7 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label)
         auto* list = ExportNameAP::getList(exportOrder);
         assert(list);
 
-        for (size_t i = 0; i < list->size(); i++) {
-            ExportName& en = list->at(i);
-
+        for (auto [i, en] : enumerate(*list)) {
             ImGui::PushID(i);
 
             if (ImGui::Selectable(&sel, i)) {
@@ -207,9 +205,7 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label)
             }
             ImGui::NextColumn();
 
-            for (size_t j = 0; j < en.alternatives.size(); j++) {
-                NameReference& alt = en.alternatives.at(j);
-
+            for (auto [j, alt] : enumerate(en.alternatives)) {
                 bool edited = false;
 
                 ImGui::PushID(j);

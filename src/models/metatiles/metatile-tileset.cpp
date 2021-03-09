@@ -9,6 +9,7 @@
 #include "models/common/bytevectorhelper.h"
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
+#include "models/common/iterators.h"
 #include "models/lz4/lz4.h"
 #include <climits>
 
@@ -108,9 +109,7 @@ convertTileset(const MetaTileTilesetInput& input,
     }
 
     // Set Tile Function Tables
-    for (unsigned i = 0; i < N_METATILES; i++) {
-        const auto& ft = input.tileFunctionTables.at(i);
-
+    for (const auto [i, ft] : const_enumerate(input.tileFunctionTables)) {
         const auto it = interactiveTilesData.tileFunctionMap.find(ft);
         if (it != interactiveTilesData.tileFunctionMap.end()) {
             ret->tileFunctionTables.at(i) = it->second;

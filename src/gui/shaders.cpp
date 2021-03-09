@@ -5,6 +5,7 @@
  */
 
 #include "shaders.h"
+#include "models/common/iterators.h"
 #include "models/metatiles/interactive-tiles.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
@@ -26,8 +27,7 @@ static Image drawPaletteImage(const Resources::PaletteData& palette)
     Image image(UINT8_MAX, palette.paletteFrames.size());
     image.fill(rgba(255, 0, 255, 255));
 
-    for (unsigned palIndex = 0; palIndex < palette.paletteFrames.size(); palIndex++) {
-        const auto& palFrame = palette.paletteFrames.at(palIndex);
+    for (auto [palIndex, palFrame] : enumerate(palette.paletteFrames)) {
         const unsigned nColors = std::min<unsigned>(palFrame.size(), UINT8_MAX);
 
         rgba* imgBits = image.scanline(palIndex);

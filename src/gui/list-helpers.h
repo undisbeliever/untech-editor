@@ -179,9 +179,7 @@ void NamedListSidebar(typename ActionPolicy::EditorT* editor, float width = 200)
         if (list) {
             SelectionT& sel = editor->*ActionPolicy::SelectionPtr;
 
-            for (unsigned i = 0; i < list->size(); i++) {
-                const auto& item = list->at(i);
-
+            for (auto [i, item] : enumerate(*list)) {
                 ImGui::PushID(i);
 
                 ImGui::Selectable("##sel", &sel, i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);

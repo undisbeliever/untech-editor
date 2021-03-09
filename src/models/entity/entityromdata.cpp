@@ -6,6 +6,7 @@
 
 #include "entityromdata.h"
 #include "entityromdata-error.h"
+#include "models/common/iterators.h"
 #include "models/common/string.h"
 #include "models/project/project.h"
 #include <algorithm>
@@ -650,8 +651,8 @@ static void writeIncFile_EntryIds(std::ostream& out,
     out << "namespace " << label << " {\n";
     out << "\tconstant\tcount = " << entries.size() << "\n\n";
 
-    for (unsigned i = 0; i < entries.size(); i++) {
-        out << "\tconstant\t" << entries.at(i).name << " = " << i << '\n';
+    for (auto [i, entry] : const_enumerate(entries)) {
+        out << "\tconstant\t" << entry.name << " = " << i << '\n';
     }
 
     out << "}\n"
@@ -814,9 +815,7 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     ret->defines = defines.str();
     ret->functionTableData = functionTableData.str();
 
-    for (unsigned i = 0; i < data.entities.size(); i++) {
-        const auto& entity = data.entities.at(i);
-
+    for (auto [i, entity] : const_enumerate(data.entities)) {
         const auto it = ftMap.find(entity.functionTable);
         assert(it != ftMap.end());
         const EntityFunctionTable* ft = it->second.first;

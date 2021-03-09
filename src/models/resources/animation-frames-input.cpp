@@ -9,6 +9,7 @@
 #include "models/common/bytevectorhelper.h"
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
+#include "models/common/iterators.h"
 #include "models/lz4/lz4.h"
 #include "models/project/project-data.h"
 #include "models/snes/animatedtilesetinserter.h"
@@ -42,11 +43,10 @@ static std::vector<std::vector<TileAndPalette>> tilesFromFrameImages(const Anima
     std::vector<std::vector<TileAndPalette>> frameTiles;
     frameTiles.reserve(input.frameImageFilenames.size());
 
-    const unsigned nFrames = input.frameImageFilenames.size();
-    for (unsigned frameId = 0; frameId < nFrames; frameId++) {
+    for (const auto [frameId, fn] : const_enumerate(input.frameImageFilenames)) {
         auto imageErr = std::make_unique<InvalidImageError>(frameId);
 
-        const auto& image = ImageCache::loadPngImage(input.frameImageFilenames.at(frameId));
+        const auto& image = ImageCache::loadPngImage(fn);
         frameTiles.emplace_back(
             tilesFromImage(*image, input.bitDepth, palette, 0, 8, *imageErr));
 
@@ -83,10 +83,8 @@ static AnimatedTilesetIntermediate combineFrameTiles(
     ret.animatedTiles.reserve(64);
     ret.tileMap.resize(nTiles);
 
-    for (unsigned tileId = 0; tileId < nTiles; tileId++) {
+    for (auto [tileId, tm] : enumerate(ret.tileMap)) {
         const static unsigned TS = Tile8px::TILE_SIZE;
-
-        auto& tm = ret.tileMap.at(tileId);
 
         unsigned palette = getPalette(0, tileId);
         for (unsigned frameId = 1; frameId < nFrames; frameId++) {
@@ -115,9 +113,9 @@ static AnimatedTilesetIntermediate combineFrameTiles(
             tm.tile = ret.animatedTiles.size();
 
             ret.animatedTiles.emplace_back(nFrames);
-            auto& animatedTile = ret.animatedTiles.back();
-            for (unsigned frameId = 0; frameId < nFrames; frameId++) {
-                animatedTile.at(frameId) = getTile(frameId, tileId);
+
+            for (auto [frameId, aTile] : enumerate(ret.animatedTiles.back())) {
+                aTile = getTile(frameId, tileId);
             }
         }
     }
@@ -206,8 +204,7 @@ bool AnimationFramesInput::validate(ErrorList& err) const
 
     std::vector<usize> imageSizes(frameImageFilenames.size());
 
-    for (unsigned i = 0; i < frameImageFilenames.size(); i++) {
-        const auto& imageFilename = frameImageFilenames.at(i);
+    for (auto [i, imageFilename] : const_enumerate(frameImageFilenames)) {
         const auto& image = ImageCache::loadPngImage(imageFilename);
         imageSizes.at(i) = image->size();
 

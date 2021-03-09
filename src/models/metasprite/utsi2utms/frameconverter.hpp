@@ -7,6 +7,7 @@
 #pragma once
 
 #include "tileextractor.hpp"
+#include "models/common/iterators.h"
 #include "models/metasprite/errorlisthelpers.h"
 #include <algorithm>
 #include <array>
@@ -102,8 +103,7 @@ static void processFrameExcludingTiles(MS::Frame& msFrame, const SI::Frame& siFr
 
     const auto& siFrameOrigin = siFrame.location.origin;
 
-    for (unsigned objId = 0; objId < siFrame.objects.size(); objId++) {
-        const SI::FrameObject& siObj = siFrame.objects.at(objId);
+    for (const SI::FrameObject& siObj : siFrame.objects) {
         MS::FrameObject msObj;
 
         msObj.size = siObj.size;
@@ -144,11 +144,10 @@ static void processNotOverlappingTiles(MS::Frame& msFrame, TileExtractor& tileEx
 {
     assert(msFrame.objects.size() == siFrame.objects.size());
 
-    for (unsigned objectId = 0; objectId < siFrame.objects.size(); objectId++) {
+    for (auto [objectId, siObj] : const_enumerate(siFrame.objects)) {
         auto& msObj = msFrame.objects.at(objectId);
 
         if (sieve.at(objectId) == false) {
-            const auto& siObj = siFrame.objects.at(objectId);
             const auto to = tileExtractor.getTilesetOutputFromImage(siFrame, siObj);
             applyTilesetOutput(to, msObj);
         }
@@ -261,9 +260,8 @@ static void processFrames(NamedList<MS::Frame>& msFrames, TileExtractor& tileExt
 
     std::vector<OverlappingObjectFrame> overlappingObjectFrames;
 
-    for (unsigned frameId = 0; frameId < siFrames.size(); frameId++) {
+    for (auto [frameId, siFrame] : const_enumerate(siFrames)) {
         const auto frameOldErrorCount = errorList.errorCount();
-        auto& siFrame = siFrames.at(frameId);
 
         msFrames.insert_back();
         auto& msFrame = msFrames.back();
@@ -279,7 +277,7 @@ static void processFrames(NamedList<MS::Frame>& msFrames, TileExtractor& tileExt
         processNotOverlappingTiles(msFrame, tileExtractor, siFrame, sieve);
 
         if (not overlappingObjects.empty()) {
-            overlappingObjectFrames.emplace_back(OverlappingObjectFrame{ frameId, std::move(overlappingObjects) });
+            overlappingObjectFrames.emplace_back(OverlappingObjectFrame{ unsigned(frameId), std::move(overlappingObjects) });
         }
     }
 

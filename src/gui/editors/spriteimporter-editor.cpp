@@ -528,9 +528,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                     ImGui::Columns(3);
                     ImGui::PushID("Obj");
 
-                    for (unsigned i = 0; i < frame.objects.size(); i++) {
-                        auto& obj = frame.objects.at(i);
-
+                    for (auto [i, obj] : enumerate(frame.objects)) {
                         bool edited = false;
 
                         ImGui::PushID(i);
@@ -564,9 +562,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                     ImGui::Columns(3);
                     ImGui::PushID("AP");
 
-                    for (unsigned i = 0; i < frame.actionPoints.size(); i++) {
-                        auto& ap = frame.actionPoints.at(i);
-
+                    for (auto [i, ap] : enumerate(frame.actionPoints)) {
                         bool edited = false;
 
                         ImGui::PushID(i);
@@ -607,9 +603,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                     ImGui::Columns(3);
                     ImGui::PushID("EH");
 
-                    for (unsigned i = 0; i < frame.entityHitboxes.size(); i++) {
-                        auto& eh = frame.entityHitboxes.at(i);
-
+                    for (auto [i, eh] : enumerate(frame.entityHitboxes)) {
                         bool edited = false;
 
                         ImGui::PushID(i);
@@ -676,11 +670,7 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
 
         const ImVec2 uv(1.0f / _imageTexture.width(), 1.0f / _imageTexture.height());
 
-        unsigned i = frame.objects.size();
-        while (i > 0) {
-            i--;
-            auto& obj = frame.objects.at(i);
-
+        for (auto [i, obj] : reverse_enumerate(frame.objects)) {
             const unsigned x = frame.location.aabb.x + obj.location.x;
             const unsigned y = frame.location.aabb.y + obj.location.y;
 
@@ -702,11 +692,7 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
     }
 
     if (showEntityHitboxes) {
-        unsigned i = frame.entityHitboxes.size();
-        while (i > 0) {
-            i--;
-            auto& eh = frame.entityHitboxes.at(i);
-
+        for (auto [i, eh] : reverse_enumerate(frame.entityHitboxes)) {
             ImVec2 p1(pos.x + eh.aabb.x * zoom.x, pos.y + eh.aabb.y * zoom.y);
             ImVec2 p2(p1.x + eh.aabb.width * zoom.x, p1.y + eh.aabb.height * zoom.y);
             drawList->AddRect(p1, p2, Style::entityHitboxOutlineColor, lineThickness);
@@ -714,11 +700,7 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
     }
 
     if (showActionPoints) {
-        unsigned i = frame.actionPoints.size();
-        while (i > 0) {
-            i--;
-            auto& ap = frame.actionPoints.at(i);
-
+        for (auto [i, ap] : reverse_enumerate(frame.actionPoints)) {
             ImVec2 p1(pos.x + ap.location.x * zoom.x, pos.y + ap.location.y * zoom.y);
             ImVec2 p2(p1.x + zoom.x, p1.y + zoom.y);
             drawList->AddRect(p1, p2, Style::actionPointOutlineColor, lineThickness);
@@ -731,11 +713,7 @@ void SpriteImporterEditorGui::drawFrame(ImDrawList* drawList, const MetaSprite::
     assert(_data);
 
     if (showFrameObjects) {
-        unsigned i = frame->objects.size();
-        while (i > 0) {
-            i--;
-            auto& obj = frame->objects.at(i);
-
+        for (auto [i, obj] : reverse_enumerate(frame->objects)) {
             _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), Style::frameObjectOutlineColor);
         }
     }
@@ -747,19 +725,13 @@ void SpriteImporterEditorGui::drawFrame(ImDrawList* drawList, const MetaSprite::
     }
 
     if (showEntityHitboxes) {
-        unsigned i = frame->entityHitboxes.size();
-        while (i > 0) {
-            i--;
-            auto& eh = frame->entityHitboxes.at(i);
+        for (auto [i, eh] : reverse_enumerate(frame->entityHitboxes)) {
             _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor);
         }
     }
 
     if (showActionPoints) {
-        unsigned i = frame->actionPoints.size();
-        while (i > 0) {
-            i--;
-            auto& ap = frame->actionPoints.at(i);
+        for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
             _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor);
         }
     }
@@ -770,15 +742,11 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
     assert(_data);
 
     if (showFrameObjects) {
-        unsigned i = frame->objects.size();
-        while (i > 0) {
-            i--;
-            auto& obj = frame->objects.at(i);
-
+        for (auto [i, obj] : reverse_enumerate(frame->objects)) {
             _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), Style::frameObjectOutlineColor, &_data->frameObjectsSel, i);
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
-                ImGui::Text("Object %u", i);
+                ImGui::Text("Object %u", unsigned(i));
                 ImGui::EndTooltip();
             }
         }
@@ -796,34 +764,28 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
     }
 
     if (showEntityHitboxes) {
-        unsigned i = frame->entityHitboxes.size();
-        while (i > 0) {
-            i--;
-            auto& eh = frame->entityHitboxes.at(i);
+        for (auto [i, eh] : reverse_enumerate(frame->entityHitboxes)) {
             _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor, &_data->entityHitboxesSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
-                ImGui::Text("Entity Hitbox %u (%s)", i, eh.hitboxType.to_string().c_str());
+                ImGui::Text("Entity Hitbox %u (%s)", unsigned(i), eh.hitboxType.to_string().c_str());
                 ImGui::EndTooltip();
             }
         }
     }
 
     if (showActionPoints) {
-        unsigned i = frame->actionPoints.size();
-        while (i > 0) {
-            i--;
-            auto& ap = frame->actionPoints.at(i);
+        for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
             _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_data->actionPointsSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 if (ap.type.isValid()) {
-                    ImGui::Text("Action Point %u (%s)", i, ap.type.c_str());
+                    ImGui::Text("Action Point %u (%s)", unsigned(i), ap.type.c_str());
                 }
                 else {
-                    ImGui::Text("Action Point %u", i);
+                    ImGui::Text("Action Point %u", unsigned(i));
                 }
                 ImGui::EndTooltip();
             }
@@ -887,9 +849,7 @@ void SpriteImporterEditorGui::frameEditorWindow()
                     _data->framesSel.clearSelection();
                 }
 
-                for (unsigned frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
-                    auto& frame = frames.at(frameIndex);
-
+                for (auto [frameIndex, frame] : const_enumerate(frames)) {
                     if (frame.location.aabb.contains(mousePos)) {
                         ImGui::BeginTooltip();
                         ImGui::TextUnformatted(frame.name);
@@ -917,9 +877,7 @@ void SpriteImporterEditorGui::frameEditorWindow()
             _graphics.addRect(drawList, &aabb, Style::frameOutlineColor);
         }
 
-        for (unsigned frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
-            auto& frame = frames.at(frameIndex);
-
+        for (auto [frameIndex, frame] : enumerate(frames)) {
             _graphics.setOrigin(frame.location.aabb.x, frame.location.aabb.y);
 
             if (_data->framesSel.selectedIndex() != frameIndex) {

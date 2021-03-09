@@ -6,6 +6,7 @@
 
 #include "entity-graphics.h"
 
+#include "models/common/iterators.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include "models/project/project-data.h"
 #include "models/project/project.h"
@@ -168,8 +169,8 @@ static std::vector<EntityFrame> buildEntityFrameList(const Project::ProjectFile&
     frames.reserve(erd.entities.size() + erd.players.size());
 
     auto addFrames = [&](const auto& list, const bool isPlayer) {
-        for (unsigned i = 0; i < list.size(); i++) {
-            auto ef = findMetaSprite(list.at(i), projectFile, projectData);
+        for (auto [i, entry] : enumerate(list)) {
+            auto ef = findMetaSprite(entry, projectFile, projectData);
 
             if (ef) {
                 ef->isEntity = isPlayer;
@@ -285,8 +286,7 @@ packEntityFrames(const std::vector<EntityFrame>& entityFrames)
             it++;
         }
 
-        for (unsigned i = 0; i < entityFrames.size(); i++) {
-            const auto& ef = entityFrames.at(i);
+        for (auto [i, ef] : enumerate(entityFrames)) {
             const auto bounds = frameBounds(ef.frame);
 
             assert(bounds.x2 > bounds.x1 && bounds.y2 > bounds.y1);

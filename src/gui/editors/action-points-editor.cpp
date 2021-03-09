@@ -8,6 +8,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Gui {
 
@@ -103,9 +104,7 @@ void ActionPointsEditorGui::actionPointsWindow()
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < actionPointFunctions.size(); i++) {
-            auto& ap = actionPointFunctions.at(i);
-
+        for (auto [i, ap] : enumerate(actionPointFunctions)) {
             bool edited = false;
 
             ImGui::PushID(i);

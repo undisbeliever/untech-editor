@@ -8,6 +8,7 @@
 
 #include "models/common/aabb.h"
 #include "models/common/idstring.h"
+#include "models/common/iterators.h"
 #include "models/common/ms8aabb.h"
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/misc/cpp/imgui_stdlib.h"
@@ -103,8 +104,8 @@ template <class T>
 void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, const UnTech::NamedList<T>& list, int heightInItems = -1)
 {
     if (ImGui::ListBoxHeader(label, list.size(), heightInItems)) {
-        for (unsigned i = 0; i < list.size(); i++) {
-            const char* name = list.at(i).name.c_str();
+        for (const auto [i, item] : enumerate(list)) {
+            const char* name = item.name.c_str();
 
             ImGui::PushID(i);
             ImGui::Selectable(name, sel, i);

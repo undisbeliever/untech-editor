@@ -9,6 +9,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/common/iterators.h"
 #include "models/resources/scene-bgmode.hpp"
 
 namespace UnTech::Gui {
@@ -132,9 +133,7 @@ void ScenesEditorGui::settingsWindow()
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < scenes.settings.size(); i++) {
-            auto& sceneSettings = scenes.settings.at(i);
-
+        for (auto [i, sceneSettings] : enumerate(scenes.settings)) {
             bool edited = false;
 
             ImGui::PushID(i);
@@ -152,9 +151,11 @@ void ScenesEditorGui::settingsWindow()
             ImGui::NextColumn();
 
             static const std::array<const char*, 4> layerLabels = { "##LT0", "##LT1", "##LT2", "##LT3" };
-            for (unsigned l = 0; l < sceneSettings.layerTypes.size(); l++) {
+            assert(layerLabels.size() == sceneSettings.layerTypes.size());
+
+            for (auto [l, layerType] : enumerate(sceneSettings.layerTypes)) {
                 ImGui::SetNextItemWidth(-1);
-                edited |= ImGui::EnumCombo(layerLabels.at(l), &sceneSettings.layerTypes.at(l));
+                edited |= ImGui::EnumCombo(layerLabels.at(l), &layerType);
                 ImGui::NextColumn();
             }
 
@@ -210,7 +211,8 @@ bool ScenesEditorGui::sceneLayerCombo(const char* label, idstring* value,
         const unsigned bitDepth = Resources::bitDepthForLayer(sceneSettings.bgMode, layerId);
 
         bool e = ImGui::IdStringCombo(label, value, projectFile.metaTileTilesets, false,
-                                      [&](const MetaTiles::MetaTileTilesetInput* mt) {
+                                      [&](const auto& efi) {
+                                          const auto& mt = efi.value;
                                           return (mt->animationFrames.bitDepth == bitDepth) ? &mt->name : nullptr;
                                       });
         if (ImGui::IsItemHovered()) {
@@ -255,9 +257,7 @@ void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < scenes.scenes.size(); i++) {
-            auto& scene = scenes.scenes.at(i);
-
+        for (auto [i, scene] : enumerate(scenes.scenes)) {
             bool edited = false;
 
             ImGui::PushID(i);
@@ -281,10 +281,11 @@ void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
             const auto sceneSettings = scenes.settings.find(scene.sceneSettings);
 
             static const std::array<const char*, 4> layerLabels = { "##LT0", "##LT1", "##LT2", "##LT3" };
-            for (unsigned l = 0; l < scene.layers.size(); l++) {
+            assert(layerLabels.size() == scene.layers.size());
+            for (auto [l, layer] : enumerate(scene.layers)) {
                 if (sceneSettings) {
                     ImGui::SetNextItemWidth(-1);
-                    edited |= sceneLayerCombo(layerLabels.at(l), &scene.layers.at(l), projectFile, *sceneSettings, l);
+                    edited |= sceneLayerCombo(layerLabels.at(l), &layer, projectFile, *sceneSettings, l);
                 }
                 ImGui::NextColumn();
             }

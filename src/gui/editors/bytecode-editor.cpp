@@ -9,6 +9,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Gui {
 
@@ -132,9 +133,7 @@ void BytecodeEditorGui::instructionsWindow()
 
         ImGui::Separator();
 
-        for (unsigned i = 0; i < bytecode.instructions.size(); i++) {
-            auto& inst = bytecode.instructions.at(i);
-
+        for (auto [i, inst] : enumerate(bytecode.instructions)) {
             bool edited = false;
 
             ImGui::PushID(i);

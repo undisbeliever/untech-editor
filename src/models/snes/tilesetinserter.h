@@ -7,6 +7,7 @@
 #pragma once
 
 #include "tileset.h"
+#include "models/common/iterators.h"
 #include <unordered_map>
 
 namespace UnTech {
@@ -67,13 +68,13 @@ public:
         const uint8_t* underTileData = underTile.rawData();
 
         // Using _tileset instead of _map to ensure the tiles are tested in a deterministic order.
-        for (unsigned tileId = 0; tileId < _tileset.size(); tileId++) {
+        for (const auto [tileId, tile] : const_enumerate(_tileset)) {
             for (unsigned flip = 0; flip < 4; flip++) {
                 bool hFlip = flip & 1;
                 bool vFlip = flip & 2;
 
-                const TileT toTest = tileId == 0 ? _tileset.at(tileId)
-                                                 : _tileset.at(tileId).flip(hFlip, vFlip);
+                const TileT toTest = tileId == 0 ? tile
+                                                 : tile.flip(hFlip, vFlip);
                 const uint8_t* toTestData = toTest.rawData();
 
                 unsigned score = 0;
@@ -91,7 +92,7 @@ public:
 
                 if (found && score > bestScore) {
                     bestScore = score;
-                    ret = { tileId, hFlip, vFlip };
+                    ret = { unsigned(tileId), hFlip, vFlip };
                 }
             }
         }

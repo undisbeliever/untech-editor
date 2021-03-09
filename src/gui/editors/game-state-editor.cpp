@@ -10,6 +10,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Gui {
 
@@ -153,9 +154,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
             ImGui::NextColumn();
             ImGui::Separator();
 
-            for (unsigned i = 0; i < gameState.flags.size(); i++) {
-                auto& f = gameState.flags.at(i);
-
+            for (auto [i, f] : enumerate(gameState.flags)) {
                 bool edited = false;
 
                 ImGui::PushID(i);
@@ -208,9 +207,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
             ImGui::NextColumn();
             ImGui::Separator();
 
-            for (unsigned i = 0; i < gameState.words.size(); i++) {
-                auto& w = gameState.words.at(i);
-
+            for (auto [i, w] : enumerate(gameState.words)) {
                 bool edited = false;
 
                 ImGui::PushID(i);

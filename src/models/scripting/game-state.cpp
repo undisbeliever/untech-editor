@@ -6,6 +6,7 @@
 
 #include "game-state.h"
 #include "models/common/externalfilelist.h"
+#include "models/common/iterators.h"
 #include "models/entity/entityromdata.h"
 #include "models/lz4/lz4.h"
 #include "models/rooms/rooms.h"
@@ -67,12 +68,11 @@ compileGameState(const GameState& input,
 
         unsigned lastIndex = 0;
 
-        for (unsigned i = 0; i < list.size(); i++) {
-            const auto& item = list.at(i);
+        for (auto [i, item] : const_enumerate(list)) {
             if (item.name.isValid()) {
                 lastIndex = i;
 
-                const auto [it, inserted] = map.emplace(item.name, GameStateData::Value{ i, item.room });
+                const auto [it, inserted] = map.emplace(item.name, GameStateData::Value{ unsigned(i), item.room });
                 if (!inserted) {
                     addError("Duplicate ", typeName, " detected: ", item.name);
                 }
@@ -129,9 +129,7 @@ void writeGameStateConstants(const GameState& input, const GameStateData& inputD
            "\n"
            "namespace Project.GameState.Words {";
 
-    for (unsigned i = 0; i < input.words.size(); i++) {
-        const auto& word = input.words.at(i);
-
+    for (auto [i, word] : const_enumerate(input.words)) {
         // Only add global words to game state constants
         if (word.name.isValid() && !word.room.isValid()) {
             out << "\n  constant " << word.name << " = GameState.wordData + " << (i * 2);

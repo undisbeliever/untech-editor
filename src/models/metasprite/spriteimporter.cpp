@@ -9,6 +9,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/file.h"
 #include "models/common/imagecache.h"
+#include "models/common/iterators.h"
 #include "models/common/validateunique.h"
 #include <algorithm>
 
@@ -192,18 +193,14 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, const 
 
     const usize frameSize = location.aabb.size();
 
-    for (unsigned i = 0; i < objects.size(); i++) {
-        const FrameObject& obj = objects.at(i);
-
+    for (auto [i, obj] : const_enumerate(objects)) {
         if (frameSize.contains(obj.location, obj.sizePx()) == false) {
             errorList.addError(frameObjectError(*this, i, "Frame Object not inside frame"));
             valid = false;
         }
     }
 
-    for (unsigned i = 0; i < actionPoints.size(); i++) {
-        const ActionPoint& ap = actionPoints.at(i);
-
+    for (auto [i, ap] : const_enumerate(actionPoints)) {
         if (frameSize.contains(ap.location) == false) {
             errorList.addError(actionPointError(*this, i, "location not inside frame"));
             valid = false;
@@ -217,9 +214,7 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, const 
         }
     }
 
-    for (unsigned i = 0; i < entityHitboxes.size(); i++) {
-        const EntityHitbox& eh = entityHitboxes.at(i);
-
+    for (auto [i, eh] : const_enumerate(entityHitboxes)) {
         if (eh.aabb.width == 0 || eh.aabb.height == 0) {
             errorList.addError(entityHitboxError(*this, i, "aabb has no size"));
             valid = false;

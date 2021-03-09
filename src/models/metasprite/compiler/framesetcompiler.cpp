@@ -11,6 +11,7 @@
 #include "tilesetinserter.h"
 #include "tilesetlayout.h"
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/metasprite/utsi2utms/utsi2utms.h"
 #include "models/project/project.h"
 
@@ -211,8 +212,7 @@ static std::vector<FrameData> processFrameList(const FrameSetExportList& exportL
     std::vector<FrameData> frames;
     frames.reserve(frameList.size());
 
-    for (unsigned frameId = 0; frameId < frameList.size(); frameId++) {
-        const auto& fle = frameList.at(frameId);
+    for (auto [frameId, fle] : const_enumerate(frameList)) {
         assert(fle.frame);
 
         const auto& tilesetIndex = tilesetData.tilesetIndexForFrameId(frameId);

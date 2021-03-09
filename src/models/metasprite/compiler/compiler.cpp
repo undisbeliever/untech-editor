@@ -8,6 +8,7 @@
 #include "animationcompiler.h"
 #include "framesetcompiler.h"
 #include "palettecompiler.h"
+#include "models/common/iterators.h"
 
 namespace UnTech {
 namespace MetaSprite {
@@ -57,8 +58,7 @@ saveTilesetData(const TilesetData& tileset, CompiledRomData& out)
     assert(!tileset.tiles.empty());
 
     std::vector<uint16_t> tiles;
-    for (unsigned i = 0; i < tileset.tiles.size(); i++) {
-        const auto& t = tileset.tiles.at(i);
+    for (auto [i, t] : const_enumerate(tileset.tiles)) {
         tiles.push_back(out.tileData.addLargeTile(t));
     }
 

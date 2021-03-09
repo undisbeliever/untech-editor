@@ -9,6 +9,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Gui {
 
@@ -192,9 +193,7 @@ void EntityRomDataEditorGui::listIdsWindow()
         ImGui::Text("Name");
         ImGui::NextColumn();
 
-        for (unsigned i = 0; i < entityRomData.listIds.size(); i++) {
-            auto& listId = entityRomData.listIds.at(i);
-
+        for (auto [i, listId] : enumerate(entityRomData.listIds)) {
             bool edited = false;
 
             ImGui::PushID(i);
@@ -300,9 +299,7 @@ void EntityRomDataEditorGui::structsWindow()
                         const unsigned parentIndex = *it;
                         const auto& parent = entityRomData.structs.at(parentIndex);
 
-                        for (unsigned i = 0; i < parent.fields.size(); i++) {
-                            auto& field = parent.fields.at(i);
-
+                        for (auto [i, field] : enumerate(parent.fields)) {
                             ImGui::NextColumn();
 
                             ImGui::TextUnformatted(field.name);
@@ -319,9 +316,7 @@ void EntityRomDataEditorGui::structsWindow()
                         }
                     }
 
-                    for (unsigned i = 0; i < st.fields.size(); i++) {
-                        auto& field = st.fields.at(i);
-
+                    for (auto [i, field] : enumerate(st.fields)) {
                         bool edited = false;
 
                         ImGui::PushID(i);
@@ -399,9 +394,7 @@ void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::Project
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < entityRomData.functionTables.size(); i++) {
-            auto& ft = entityRomData.functionTables.at(i);
-
+        for (auto [i, ft] : enumerate(entityRomData.functionTables)) {
             bool edited = false;
 
             ImGui::PushID(i);
@@ -530,9 +523,7 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
                     for (auto it = structChain.rbegin(); it != structChain.rend(); it++) {
                         auto& st = entityRomData.structs.at(*it);
 
-                        for (unsigned i = 0; i < st.fields.size(); i++) {
-                            auto& field = st.fields.at(i);
-
+                        for (auto [i, field] : enumerate(st.fields)) {
                             std::string& value = entry.fields[field.name];
 
                             ImGui::PushID(id++);

@@ -8,6 +8,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Gui {
 
@@ -119,9 +120,7 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
 
         ImGui::Separator();
 
-        for (unsigned i = 0; i < interactiveTiles.functionTables.size(); i++) {
-            auto& ft = interactiveTiles.functionTables.at(i);
-
+        for (auto [i, ft] : enumerate(interactiveTiles.functionTables)) {
             bool edited = false;
 
             ImGui::PushID(i);

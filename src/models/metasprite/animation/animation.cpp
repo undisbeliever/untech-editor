@@ -5,6 +5,7 @@
  */
 
 #include "animation.h"
+#include "models/common/iterators.h"
 #include "models/metasprite/errorlisthelpers.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
@@ -46,9 +47,7 @@ bool Animation::_validate(const FrameSetT& frameSet, ErrorList& err) const
         err.addError(animationError(*this, "Expected at least one animation frame"));
     }
 
-    for (unsigned i = 0; i < frames.size(); i++) {
-        const AnimationFrame& aFrame = frames.at(i);
-
+    for (auto [i, aFrame] : const_enumerate(frames)) {
         if (aFrame.testFrameValid(frameSet) == false) {
             err.addError(animationFrameError(*this, i, "Cannot find frame ", aFrame.frame.name));
         }

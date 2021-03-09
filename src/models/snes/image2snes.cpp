@@ -6,6 +6,7 @@
 
 #include "image2snes.h"
 #include "tilesetinserter.h"
+#include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <array>
@@ -210,6 +211,7 @@ private:
 
     void removeDuplicateColors()
     {
+        // Must use an old-style for loop, palette is resized inside this loop.
         for (unsigned i = 0; i < palette.size(); i++) {
             unsigned j = i + 1;
             while (j < palette.size()) {
@@ -339,7 +341,7 @@ private:
         for (unsigned c = 0; c < TileColors::MAX_PALETTE_COLORS + 1; c++) {
             unsigned colorToTest = TileColors::MAX_PALETTE_COLORS - c;
 
-            for (unsigned i = 0; i < tiles.size(); i++) {
+            for (const auto [i, cpt] : enumerate(colorsPerTile)) {
                 if (colorsPerTile[i].nColors == colorToTest) {
                     processOrder.push_back(i);
                 }
@@ -364,9 +366,7 @@ private:
             int bestMatch = -1;
             unsigned bestIndex = 0;
 
-            for (unsigned i = 0; i < newPalette.size(); i++) {
-                const auto& toTest = newPalette[i];
-
+            for (auto [i, toTest] : const_enumerate(newPalette)) {
                 int nMatching = tileColors.countMatchingColors(toTest);
                 int nMissing = tileColors.nColors - nMatching;
 
@@ -407,8 +407,7 @@ private:
         std::vector<uint16_t> oldPalette = palette;
         palette.assign(newPalette.size() * colorsPerPalette, 0);
 
-        for (unsigned p = 0; p < newPalette.size(); p++) {
-            auto& pal = newPalette[p];
+        for (auto [p, pal] : const_enumerate(newPalette)) {
             unsigned startingColor = p * colorsPerPalette;
 
             palette[startingColor] = oldPalette[0];
