@@ -216,7 +216,7 @@ bool EnumCombo(const char* label, UnTech::Scripting::ComparisonType* v, UnTech::
         assert(start < end);
         assert(end <= IM_ARRAYSIZE(items));
 
-        for (unsigned i = start; i < end; i++) {
+        for (const auto i : range(start, end)) {
             if (ImGui::Selectable(items[i], i == index)) {
                 *v = UnTech::Scripting::ComparisonType(i);
                 edited = true;

@@ -10,6 +10,7 @@
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/style.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Gui {
 
@@ -189,7 +190,8 @@ void PaletteEditorGui::paletteWindow()
                 const float x2 = x1 + imageSize.x + 2 * zoom;
                 float y = screenOffset.y;
                 const float yStep = rowsPerFrame * zoom;
-                for (unsigned i = 0; i < nFrames; i++) {
+
+                for ([[maybe_unused]] const auto i : range(nFrames)) {
                     drawList->AddLine(ImVec2(x1, y), ImVec2(x2, y), Style::paletteRowLineColor, lineWidth);
                     y += yStep;
                 }

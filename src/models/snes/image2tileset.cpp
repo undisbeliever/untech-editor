@@ -6,6 +6,7 @@
 
 #include "image2tileset.h"
 #include "models/common/file.h"
+#include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include <stdexcept>
 
@@ -89,16 +90,16 @@ void ImageToTileset::processTileset(const IndexedImage& image)
     unsigned tileWidth = image.size().width / TILE_SIZE;
     unsigned tileHeight = image.size().height / TILE_SIZE;
 
-    for (unsigned tileY = 0; tileY < tileHeight; tileY++) {
-        for (unsigned tileX = 0; tileX < tileWidth; tileX++) {
+    for (const auto tileY : range(tileHeight)) {
+        for (const auto tileX : range(tileWidth)) {
             Tile8px tile;
             uint8_t* tData = tile.rawData();
 
-            for (unsigned py = 0; py < TILE_SIZE; py++) {
+            for (const auto py : range(TILE_SIZE)) {
                 const uint8_t* imgData = image.scanline(tileY * TILE_SIZE + py) + tileX * TILE_SIZE;
 
-                for (unsigned px = 0; px < TILE_SIZE; px++) {
-                    *tData++ = *imgData++ & pixelMask;
+                for (const auto px : range(TILE_SIZE)) {
+                    *tData++ = imgData[px] & pixelMask;
                 }
             }
 

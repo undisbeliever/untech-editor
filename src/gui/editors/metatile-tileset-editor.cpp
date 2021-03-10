@@ -422,7 +422,7 @@ void MetaTileTilesetEditorGui::updateTileProperties()
     tp.functionTableSame = true;
 
     const auto firstTile = selected.front();
-    for (unsigned subTile = 0; subTile < tp.tilePriorities.size(); subTile++) {
+    for (const auto subTile : range(tp.tilePriorities.size())) {
         tp.tilePriorities.at(subTile) = tileset.tilePriorities.getTilePriority(firstTile, subTile);
     }
     tp.tilePrioritiesSame.fill(true);
@@ -435,7 +435,7 @@ void MetaTileTilesetEditorGui::updateTileProperties()
             tp.tileCollisionSame = false;
         }
 
-        for (unsigned subTile = 0; subTile < tp.tilePriorities.size(); subTile++) {
+        for (const auto subTile : range(tp.tilePriorities.size())) {
             const auto c = tileset.tilePriorities.getTilePriority(tile, subTile);
             if (tp.tilePriorities.at(subTile) != c) {
                 tp.tilePrioritiesSame.at(subTile) = false;

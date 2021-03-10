@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <iterator>
 #include <limits>
 #include <utility>
@@ -82,6 +83,32 @@ public:
     }
 };
 
+template <typename T>
+class range_iterator {
+public:
+    using value_type = T;
+
+private:
+    T i;
+
+public:
+    range_iterator(const T v)
+        : i(v)
+    {
+    }
+
+    value_type operator*() const { return i; }
+
+    bool operator==(const range_iterator& o) const { return i == o.i; }
+    bool operator!=(const range_iterator& o) const { return i != o.i; }
+
+    range_iterator& operator++()
+    {
+        i++;
+        return *this;
+    }
+};
+
 template <typename It>
 class iterator_wrapper {
 private:
@@ -145,4 +172,32 @@ auto const_reverse_enumerate(const C& c)
     using EI = reverse_enumerate_iterator<typename C::const_reverse_iterator, typename C::size_type>;
     return iterator_wrapper(EI(c.size() - 1, c.crbegin()),
                             EI(c.crend()));
+}
+
+inline auto range(const size_t end)
+{
+    return iterator_wrapper(range_iterator<size_t>(0),
+                            range_iterator<size_t>(end));
+}
+
+inline auto range(const size_t start, const size_t end)
+{
+    assert(start <= end);
+
+    return iterator_wrapper(range_iterator<size_t>(start),
+                            range_iterator<size_t>(end));
+}
+
+inline auto irange(const int end)
+{
+    return iterator_wrapper(range_iterator<int>(0),
+                            range_iterator<int>(end > 0 ? end : 0));
+}
+
+inline auto irange(const int start, const int end)
+{
+    assert(start <= end);
+
+    return iterator_wrapper(range_iterator<int>(start),
+                            range_iterator<int>(end));
 }

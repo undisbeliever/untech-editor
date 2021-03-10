@@ -8,6 +8,7 @@
 
 #include "aabb.h"
 #include "stringbuilder.h"
+#include "models/common/iterators.h"
 #include <cassert>
 #include <stdexcept>
 #include <vector>
@@ -107,10 +108,11 @@ public:
 
         const auto startIt = _grid.begin() + yPos * _width + xPos;
         auto vIt = values.cbegin();
-        for (unsigned y = 0; y < values.height(); y++) {
+        for (const auto y : range(values.height())) {
             auto gridIt = startIt + _width * y;
-            for (unsigned x = 0; x < values.width(); x++) {
-                *gridIt++ = *vIt++;
+
+            for (const auto x : range(values.width())) {
+                gridIt[x] = *vIt++;
             }
         }
         assert(vIt == values.cend());
@@ -131,10 +133,11 @@ public:
 
         const auto startIt = _grid.cbegin() + yPos * _width + xPos;
         auto retIt = ret.begin();
-        for (unsigned y = 0; y < sgHeight; y++) {
+
+        for (const auto y : range(sgHeight)) {
             auto gridIt = startIt + _width * y;
-            for (unsigned x = 0; x < sgWidth; x++) {
-                *retIt++ = *gridIt++;
+            for (const auto x : range(sgWidth)) {
+                *retIt++ = gridIt[x];
             }
         }
         assert(retIt == ret.end());
@@ -162,12 +165,12 @@ public:
         unsigned widthToCopy = std::min(newWidth, _width);
         unsigned heightToCopy = std::min(newHeight, _height);
 
-        for (unsigned y = 0; y < heightToCopy; y++) {
+        for (const auto y : range(heightToCopy)) {
             auto gridIt = this->_grid.cbegin() + this->_width * y;
             auto retIt = ret._grid.begin() + ret._width * y;
 
-            for (unsigned x = 0; x < widthToCopy; x++) {
-                *retIt++ = *gridIt++;
+            for (const auto x : range(widthToCopy)) {
+                retIt[x] = gridIt[x];
             }
         }
 

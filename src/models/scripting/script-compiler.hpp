@@ -10,6 +10,7 @@
 #include "game-state.h"
 #include "script.h"
 #include "models/common/externalfilelist.h"
+#include "models/common/iterators.h"
 #include "models/common/string.h"
 #include "models/rooms/rooms.h"
 
@@ -326,7 +327,7 @@ private:
         }
         else {
             assert(bc.arguments.size() == arguments.size());
-            for (unsigned i = 0; i < bc.arguments.size(); i++) {
+            for (const auto i : range(bc.arguments.size())) {
                 statementArgument(bc.arguments.at(i), arguments.at(i), bytecodePos);
             }
         }

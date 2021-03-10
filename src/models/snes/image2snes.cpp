@@ -101,7 +101,7 @@ public:
 
         // tiles/tilePaletteId are in the same order as the tilemap
         unsigned tileId = 0;
-        for (unsigned mapId = 0; mapId < tilemap.nMaps(); mapId++) {
+        for (const auto mapId : range(tilemap.nMaps())) {
             for (auto& cell : tilemap.map(mapId)) {
                 tile.setData(tiles[tileId]);
                 auto to = tilesetInserter.getOrInsert(tile);
@@ -157,10 +157,10 @@ private:
         tiles.clear();
         tiles.reserve(mapWidth * mapHeight * MAP_SIZE * MAP_SIZE);
 
-        for (unsigned mapY = 0; mapY < mapHeight; mapY++) {
-            for (unsigned mapX = 0; mapX < mapWidth; mapX++) {
-                for (unsigned ty = 0; ty < MAP_SIZE; ty++) {
-                    for (unsigned tx = 0; tx < MAP_SIZE; tx++) {
+        for (const auto mapY : range(mapHeight)) {
+            for (const auto mapX : range(mapWidth)) {
+                for (const auto ty : range(MAP_SIZE)) {
+                    for (const auto tx : range(MAP_SIZE)) {
                         unsigned x = (mapX * MAP_SIZE + tx) * TILE_SIZE;
                         unsigned y = (mapY * MAP_SIZE + ty) * TILE_SIZE;
 
@@ -181,11 +181,11 @@ private:
         std::array<uint8_t, TILE_DATA_SIZE> tile;
         uint8_t* tData = tile.data();
 
-        for (unsigned py = 0; py < TILE_SIZE; py++) {
+        for (const auto py : range(TILE_SIZE)) {
             const uint8_t* imgData = image.scanline(y + py) + x;
 
-            for (unsigned px = 0; px < TILE_SIZE; px++) {
-                *tData++ = *imgData++;
+            for (const auto px : range(TILE_SIZE)) {
+                *tData++ = imgData[px];
             }
         }
 
@@ -268,8 +268,8 @@ private:
         {
             unsigned nMatches = 0;
 
-            for (unsigned i = 0; i < this->nColors; i++) {
-                for (unsigned j = 0; j < cmp.nColors; j++) {
+            for (const auto i : range(this->nColors)) {
+                for (const auto j : range(cmp.nColors)) {
                     if (this->colors[i] == cmp.colors[j]) {
                         nMatches++;
                         break;
@@ -282,8 +282,8 @@ private:
 
         void addMissingColors(const TileColors& toAdd)
         {
-            for (unsigned i = 0; i < toAdd.nColors; i++) {
-                unsigned c = toAdd.colors[i];
+            for (const auto i : range(toAdd.nColors)) {
+                const unsigned c = toAdd.colors[i];
 
                 if (this->containsColor(c) == false) {
                     this->addColor(c);
@@ -412,7 +412,7 @@ private:
 
             palette[startingColor] = oldPalette[0];
 
-            for (unsigned c = 0; c < pal.nColors; c++) {
+            for (const auto c : range(pal.nColors)) {
                 palette[startingColor + c + 1] = oldPalette.at(pal.colors[c]);
             }
         }
@@ -427,7 +427,7 @@ private:
             auto& map = paletteMap[i];
             auto& pal = newPalette[i];
 
-            for (unsigned c = 0; c < pal.nColors; c++) {
+            for (const auto c : range(pal.nColors)) {
                 map[pal.colors[c]] = c + 1;
             }
         }

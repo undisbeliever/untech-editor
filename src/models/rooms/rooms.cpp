@@ -383,7 +383,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
 
         // entityGroups array
         unsigned egPos = 0;
-        for (unsigned eg = 0; eg < MAX_ENTITY_GROUPS; eg++) {
+        for (const auto eg : range(MAX_ENTITY_GROUPS)) {
             if (eg < input.entityGroups.size()) {
                 egPos += input.entityGroups.at(eg).entities.size();
                 *it++ = egPos;
@@ -437,8 +437,8 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
     {
         const auto begin = it;
 
-        for (unsigned x = 0; x < input.map.width(); x++) {
-            for (unsigned y = 0; y < input.map.height(); y++) {
+        for (const auto x : range(input.map.width())) {
+            for (const auto y : range(input.map.height())) {
                 *it++ = input.map.at(x, y);
             }
             if (input.map.height() < mapHeight) {

@@ -86,11 +86,10 @@ convertTileset(const MetaTileTilesetInput& input,
     // Set tile priorities
     {
         auto it = aniFrames->tileMap.begin();
-        for (uint8_t tpData : input.tilePriorities.data) {
-            for (unsigned bit = 0; bit < 8; bit++) {
-                it->setOrder(tpData & 1);
+        for (const uint8_t tpData : input.tilePriorities.data) {
+            for (const auto bit : range(8)) {
+                it->setOrder(tpData & (1 << bit));
                 it++;
-                tpData >>= 1;
             }
         }
         assert(it == aniFrames->tileMap.end());
@@ -191,13 +190,13 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileset() const
     assert(animatedTileset.tileMap.cellCount() == TILEMAP_SIZE / 2);
 
     // tileset data
-    for (unsigned q = 0; q < 4; q++) {
+    for (const auto q : range(4)) {
         const unsigned xOffset = (q & 1) ? 1 : 0;
         const unsigned yOffset = (q & 2) ? 1 : 0;
 
         auto outIt = out.begin() + N_METATILES * q * 2;
-        for (unsigned y = 0; y < TILESET_HEIGHT; y++) {
-            for (unsigned x = 0; x < TILESET_WIDTH; x++) {
+        for (const auto y : range(TILESET_HEIGHT)) {
+            for (const auto x : range(TILESET_HEIGHT)) {
                 auto& tmCell = animatedTileset.tileMap.at(x * 2 + xOffset, y * 2 + yOffset);
 
                 *outIt++ = tmCell.data & 0xff;

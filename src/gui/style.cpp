@@ -6,6 +6,7 @@
 
 #include "style.h"
 #include "imgui-drawing.h"
+#include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include "vendor/imgui/imgui_internal.h"
 
@@ -142,7 +143,7 @@ void Zoom::processMouseWheel()
             }
             else if (io.MouseWheel > 0.0f) {
                 unsigned z = zoomComboItems.back().first;
-                for (unsigned i = 0; i < zoomComboItems.size() - 1; i++) {
+                for (const auto i : range(zoomComboItems.size() - 1)) {
                     if (zoomComboItems.at(i).first >= zoomInt()) {
                         z = zoomComboItems.at(i + 1).first;
                         break;

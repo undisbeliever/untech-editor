@@ -718,7 +718,7 @@ inline bool ProjectData::validateList(const ValidateFunction validateFunction, R
 
     bool valid = true;
 
-    for (unsigned index = 0; index < inputList.size(); index++) {
+    for (const auto index : range(inputList.size())) {
         if (statusList.state(index) == ResourceState::Unchecked) {
             const auto* input = inputList.at(index);
 
@@ -768,7 +768,7 @@ inline bool ProjectData::compileList(ConvertFunction convertFunction, DataStore<
     bool valid = true;
 
     if ((checkPrerequisite(prerequisites) && ...)) {
-        for (unsigned index = 0; index < inputList.size(); index++) {
+        for (const auto index : range(inputList.size())) {
             if (dataStore.state(index) == ResourceState::Unchecked) {
                 auto [status, data] = compileListItem<DataT>(convertFunction, inputList, index, prerequisites...);
                 valid &= status.state == ResourceState::Valid;
@@ -779,7 +779,7 @@ inline bool ProjectData::compileList(ConvertFunction convertFunction, DataStore<
         }
     }
     else {
-        for (unsigned index = 0; index < inputList.size(); index++) {
+        for (const auto index : range(inputList.size())) {
             if (dataStore.state(index) == ResourceState::Unchecked) {
                 ResourceStatus status;
                 status.state = ResourceState::Invalid;

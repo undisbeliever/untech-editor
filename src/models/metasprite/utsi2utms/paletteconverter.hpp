@@ -6,6 +6,7 @@
 
 #pragma once
 #include "models/common/errorlist.h"
+#include "models/common/iterators.h"
 #include "models/common/vectorset.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
@@ -39,11 +40,11 @@ static vectorset<rgba> getColorsFromImage(const SI::FrameSet& siFrameSet, const 
             assert(lx + obj.sizePx() <= image.size().width);
             assert(ly + obj.sizePx() <= image.size().height);
 
-            for (unsigned y = 0; y < obj.sizePx(); y++) {
+            for (const auto y : range(obj.sizePx())) {
                 const rgba* p = image.scanline(ly + y) + lx;
 
-                for (unsigned x = 0; x < obj.sizePx(); x++) {
-                    const bool newColor = colors.insert(*p++);
+                for (const auto x : range(obj.sizePx())) {
+                    const bool newColor = colors.insert(p[x]);
                     if (newColor) {
                         if (colors.size() > PALETTE_COLORS) {
                             throw std::runtime_error("Too many colors, expected a maximum of 16 colors");
@@ -102,13 +103,14 @@ static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Im
     const unsigned xPos = uspPos.x;
     const unsigned yPos = uspPos.y + pal * colorSize;
 
+    assert(colorSize >= 1);
     assert(xPos + colorSize * PALETTE_COLORS <= image.size().width);
     assert(yPos + colorSize <= image.size().height);
 
     const rgba* startOfPalette = image.scanline(yPos) + xPos;
 
     // ensure the pixel columns of the palette are equal
-    for (unsigned l = 1; l < colorSize; l++) {
+    for (const auto l : range(1, colorSize)) {
         const rgba* imgBitstoTest = image.scanline(yPos + l) + xPos;
 
         if (std::memcmp(startOfPalette, imgBitstoTest, sizeof(rgba) * colorSize * PALETTE_COLORS) != 0) {
@@ -117,10 +119,10 @@ static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Im
     }
 
     // ensure each of the palette colors are equally colored squares
-    for (unsigned c = 0; c <= PALETTE_COLORS; c++) {
+    for (const auto c : range(PALETTE_COLORS)) {
         const rgba* imgBits = startOfPalette + c * colorSize;
 
-        for (unsigned i = 1; i < colorSize; i++) {
+        for (const auto i : range(1, colorSize)) {
             if (imgBits[0] != imgBits[i]) {
                 throw std::runtime_error("Custom Palette is invalid");
             }
@@ -142,7 +144,7 @@ static void validateUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const I
         throw std::runtime_error("Cannot load custom palette, image is too small");
     }
 
-    for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
+    for (const auto pal : range(siFrameSet.palette.nPalettes)) {
         validateUserSuppliedPalette(siFrameSet, image, pal);
     }
 }
@@ -191,7 +193,7 @@ buildUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image, ve
     unsigned bestMatch = 0;
     unsigned bestMatchCount = 0;
 
-    for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
+    for (const auto pal : range(siFrameSet.palette.nPalettes)) {
         palettes.emplace_back();
         Snes::Palette4bpp& palette = palettes.back();
 
@@ -200,7 +202,7 @@ buildUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image, ve
 
         unsigned nMatching = 0;
 
-        for (unsigned i = 0; i < PALETTE_COLORS; i++) {
+        for (const auto i : range(PALETTE_COLORS)) {
             const rgba c = image.getPixel(xPos, yPos);
             xPos += colorSize;
 
@@ -222,7 +224,7 @@ buildUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image, ve
         unsigned xPos = uspPos.x;
         const unsigned yPos = uspPos.y + bestMatch * colorSize;
 
-        for (unsigned i = 0; i < PALETTE_COLORS; i++) {
+        for (const auto i : range(PALETTE_COLORS)) {
             const rgba c = image.getPixel(xPos, yPos);
             xPos += colorSize;
 

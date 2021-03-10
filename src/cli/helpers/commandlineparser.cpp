@@ -6,6 +6,7 @@
 
 #include "commandlineparser.h"
 #include "version.h"
+#include "models/common/iterators.h"
 #include "models/common/string.h"
 #include <cstdlib>
 #include <iostream>
@@ -292,7 +293,7 @@ void Parser::printHelpText()
         }
 
         if (!a.helpText.empty()) {
-            for (int i = 0; i < spacing; i++) {
+            for ([[maybe_unused]] const auto i : irange(spacing)) {
                 std::cout << ' ';
             }
             std::cout << a.helpText;

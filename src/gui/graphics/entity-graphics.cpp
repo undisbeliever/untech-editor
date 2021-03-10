@@ -43,13 +43,13 @@ static void drawInvalidSymbol(Image& image, const unsigned xPos, const unsigned 
 
     bool lineToggle = false;
 
-    for (unsigned iy = yPos; iy < (yPos + height); iy++) {
+    for (const auto iy : range(yPos, yPos + height)) {
         rgba* imgBits = image.scanline(iy);
 
         lineToggle = !lineToggle;
         bool toggle = lineToggle;
 
-        for (unsigned ix = xPos; ix < (xPos + width); ix++) {
+        for (const auto ix : range(xPos, xPos + width)) {
             imgBits[ix] = toggle ? color1 : color2;
             toggle = !toggle;
         }

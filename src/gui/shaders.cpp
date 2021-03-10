@@ -31,7 +31,7 @@ static Image drawPaletteImage(const Resources::PaletteData& palette)
         const unsigned nColors = std::min<unsigned>(palFrame.size(), UINT8_MAX);
 
         rgba* imgBits = image.scanline(palIndex);
-        for (unsigned c = 0; c < nColors; c++) {
+        for (const auto c : range(nColors)) {
             imgBits[c] = palFrame.at(c).rgb();
         }
         assert(imgBits <= image.data() + image.dataSize());
@@ -78,12 +78,12 @@ static void drawAnimatedTileset(grid<uint8_t>& image, const Resources::AnimatedT
             const uint8_t palOffset = tm.palette() * nPaletteColors;
             auto tileIt = tile.data().begin();
 
-            for (unsigned ty = 0; ty < tile.TILE_SIZE; ty++) {
+            for (const auto ty : range(tile.TILE_SIZE)) {
                 unsigned fty = (tm.vFlip() == false) ? ty : TILE_SIZE - 1 - ty;
 
                 auto imageBits = imageScanline + fty * image.width();
 
-                for (unsigned tx = 0; tx < tile.TILE_SIZE; tx++) {
+                for (const auto tx : range(tile.TILE_SIZE)) {
                     unsigned ftx = (tm.hFlip() == false) ? tx : TILE_SIZE - 1 - tx;
 
                     const auto tc = *tileIt & pixelMask;
@@ -149,7 +149,7 @@ void MtTileset::setTilesetData(const MetaTiles::MetaTileTilesetInput& input,
             }
             _nTilesetFrames = nFrames;
 
-            for (unsigned i = 0; i < nFrames; i++) {
+            for (const auto i : range(nFrames)) {
                 drawAnimatedTileset(image, _tilesetData->animatedTileset, i);
                 _tilesetFrames.at(i).setData(image);
             }

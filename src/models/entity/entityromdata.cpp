@@ -676,7 +676,7 @@ static void processEntry(const EntityType entityType,
         static_assert(static_cast<uint64_t>(int64_t{ -1 }) == 0xffffffffffffffff);
 
         const uint64_t v = static_cast<uint64_t>(value);
-        for (unsigned i = 0; i < length; i++) {
+        for (const auto i : range(length)) {
             romData.push_back(v >> (i * 8));
         }
     };

@@ -233,7 +233,7 @@ void RoomEditorData::updateSelection()
 
     if (entityGroupsSel.hasSelection()) {
         // Disable entity selection if the group is not selected.
-        for (unsigned groupIndex = 0; groupIndex < entityEntriesSel.MAX_GROUP_SIZE; groupIndex++) {
+        for (const auto groupIndex : range(entityEntriesSel.MAX_GROUP_SIZE)) {
             if (groupIndex != entityGroupsSel.selectedIndex()) {
                 entityEntriesSel.childSel(groupIndex).clearSelection();
             }
@@ -482,7 +482,7 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
         unsigned entityId = 0;
 
         const unsigned nGroups = std::min(room.entityGroups.size(), entityGroupNames.size());
-        for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
+        for (const auto groupIndex : range(nGroups)) {
             auto& group = room.entityGroups.at(groupIndex);
 
             if (ImGui::TreeNodeToggleSelection(entityGroupNames.at(groupIndex), &_data->entityGroupsSel, groupIndex)) {
@@ -736,7 +736,7 @@ void RoomEditorGui::drawObjects(ImDrawList* drawList)
 
     if (showEntities) {
         const unsigned nGroups = std::min<size_t>(_data->entityEntriesSel.MAX_GROUP_SIZE, room.entityGroups.size());
-        for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
+        for (const auto groupIndex : range(nGroups)) {
             const auto& group = room.entityGroups.at(groupIndex);
 
             const bool groupEnabled = _data->entityGroupsSel.selectedIndex() > nGroups || _data->entityGroupsSel.selectedIndex() == groupIndex;
@@ -792,7 +792,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 
     if (showEntities) {
         const unsigned nGroups = std::min<size_t>(_data->entityEntriesSel.MAX_GROUP_SIZE, room.entityGroups.size());
-        for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
+        for (const auto groupIndex : range(nGroups)) {
             auto& group = room.entityGroups.at(groupIndex);
             auto& childSel = _data->entityEntriesSel.childSel(groupIndex);
 
@@ -811,7 +811,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
                         if (entity.name.isValid()) {
                             ImGui::Text("Name: %s", entity.name.c_str());
                         }
-                        ImGui::Text("Group: %u (%s)", groupIndex, group.name.c_str());
+                        ImGui::Text("Group: %u (%s)", unsigned(groupIndex), group.name.c_str());
                         if (!entity.parameter.empty()) {
                             ImGui::Text("Parameter: %s", entity.parameter.c_str());
                         }
@@ -1325,7 +1325,7 @@ public:
             bool edited = false;
 
             assert(bc.arguments.size() == arguments.size());
-            for (unsigned i = 0; i < arguments.size(); i++) {
+            for (const auto i : range(arguments.size())) {
                 edited |= statementArgument(argLabels.at(i), bc.arguments.at(i), &arguments.at(i));
             }
 

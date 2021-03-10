@@ -144,13 +144,13 @@ static void readTileProperties(const XmlTag* tag, MetaTileTilesetInput& tilesetI
 
 static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tilesetInput)
 {
-    for (unsigned i = 0; i < N_METATILES; i++) {
+    for (const auto i : range(N_METATILES)) {
         const auto& tc = tilesetInput.tileCollisions.at(i);
         const auto& ft = tilesetInput.tileFunctionTables.at(i);
 
         if (tc != TileCollisionType::EMPTY || ft.isValid()) {
             xml.writeTag("tile");
-            xml.writeTagAttribute("t", i);
+            xml.writeTagAttribute("t", unsigned(i));
             if (tc != TileCollisionType::EMPTY) {
                 xml.writeTagAttributeEnum("collision", tc, tileCollisonTypeEnumMap);
             }

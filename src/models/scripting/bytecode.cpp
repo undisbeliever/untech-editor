@@ -6,6 +6,7 @@
 
 #include "bytecode.h"
 #include "game-state.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Scripting {
 
@@ -259,7 +260,7 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
         }
     });
 
-    for (unsigned i = currentOpcode; i < MAX_OPCODES; i++) {
+    for ([[maybe_unused]] const auto i : range(currentOpcode, MAX_OPCODES)) {
         out << "  dw Scripting.Bytecode.InvalidOpcode\n";
     }
 
@@ -271,7 +272,7 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
 
     const char* const blankResumeLine = "  dw Scripting.Bytecode.End_Script___Resume\n";
 
-    for (unsigned i = 0; i < N_SPECIAL_RESUME_OPCODES; i++) {
+    for (const auto i : range(N_SPECIAL_RESUME_OPCODES)) {
         out << "  dw Scripting.Bytecode._Special___Resume_" << i * 2 << '\n';
     }
 
@@ -299,14 +300,14 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
         }
         else {
             const unsigned nOpcodes = numberOfOpcodes(inst);
-            for (unsigned i = 0; i < nOpcodes; i++) {
+            for ([[maybe_unused]] const auto i : range(nOpcodes)) {
                 out << blankResumeLine;
             }
             currentOpcode += nOpcodes;
         }
     });
 
-    for (unsigned i = currentOpcode; i < MAX_OPCODES; i++) {
+    for ([[maybe_unused]] const auto i : range(currentOpcode, MAX_OPCODES)) {
         out << blankResumeLine;
     }
 

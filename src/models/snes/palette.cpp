@@ -5,6 +5,7 @@
  */
 
 #include "palette.h"
+#include "models/common/iterators.h"
 #include <cassert>
 #include <stdexcept>
 
@@ -30,7 +31,7 @@ auto Palette<BIT_DEPTH>::paletteData() const -> std::array<uint8_t, N_COLORS * 2
 template <size_t BIT_DEPTH>
 void Palette<BIT_DEPTH>::readPaletteData(const std::array<uint8_t, N_COLORS * 2>& data)
 {
-    for (unsigned i = 0; i < N_COLORS; i++) {
+    for (const auto i : range(N_COLORS)) {
         _colors[i].setData((data[i * 2 + 1] << 8) | data[i * 2]);
     }
 }

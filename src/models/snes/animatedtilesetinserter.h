@@ -35,8 +35,8 @@ public:
 
         std::vector<TileT> tiles(tilesets.size());
 
-        for (unsigned t = 0; t < tilesets.front().size(); t++) {
-            for (unsigned f = 0; f < nFrames(); f++) {
+        for (const auto t : range(tilesets.front().size())) {
+            for (const auto f : range(nFrames())) {
                 tiles.at(f) = tilesets.at(f).tile(t);
             }
             addToMap(tiles, t);
@@ -66,7 +66,7 @@ private:
 
         unsigned tileId = _tilesets.front().size();
 
-        for (unsigned f = 0; f < _tilesets.size(); f++) {
+        for (const auto f : range(_tilesets.size())) {
             _tilesets.at(f).addTile(tiles.at(f));
         }
 

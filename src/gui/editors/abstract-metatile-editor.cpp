@@ -10,6 +10,7 @@
 #include "gui/imgui.h"
 #include "gui/style.h"
 #include "gui/texture.h"
+#include "models/common/iterators.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/project/project-data.h"
 #include <algorithm>
@@ -102,8 +103,8 @@ private:
         const unsigned minY = std::min(p1.y, p2.y);
         const unsigned maxY = std::max(p1.y, p2.y);
 
-        for (unsigned y = minY; y <= maxY; y++) {
-            for (unsigned x = minX; x <= maxX; x++) {
+        for (const auto y : range(minY, maxY)) {
+            for (const auto x : range(minX, maxX)) {
                 const auto tile = toTarget(x, y);
                 if (selected) {
                     sel->insert(tile);
@@ -774,8 +775,8 @@ void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, con
         ImVec2 p = startingPos;
 
         auto it = tiles.cbegin();
-        for (unsigned y = 0; y < tiles.height(); y++) {
-            for (unsigned x = 0; x < tiles.width(); x++) {
+        for (const auto y : range(tiles.height())) {
+            for (const auto x : range(tiles.width())) {
                 const auto tileId = *it++;
 
                 if (tileId < N_METATILES) {
@@ -801,8 +802,8 @@ void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, con
         ImVec2 p = startingPos;
 
         auto it = tiles.cbegin();
-        for (unsigned y = 0; y < tiles.height(); y++) {
-            for (unsigned x = 0; x < tiles.width(); x++) {
+        for (const auto y : range(tiles.height())) {
+            for (const auto x : range(tiles.width())) {
                 const auto& tileId = *it++;
 
                 if (tileId < N_METATILES) {
@@ -846,10 +847,10 @@ void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const po
     bool changed = false;
 
     auto it = tiles.cbegin();
-    for (unsigned y = 0; y < tiles.height(); y++) {
+    for (const auto y : range(tiles.height())) {
         int mapY = cursorPos.y + int(y);
         if (mapY >= mapBounds.top() && mapY < mapBounds.bottom()) {
-            for (unsigned x = 0; x < tiles.width(); x++) {
+            for (const auto x : range(tiles.width())) {
                 const auto tileId = *it++;
 
                 if (tileId < N_METATILES) {

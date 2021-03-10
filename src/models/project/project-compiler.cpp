@@ -35,7 +35,7 @@ static void writeMetaSpriteData(RomDataWriter& writer,
 
     MetaSprite::Compiler::CompiledRomData msData(memoryMap);
 
-    for (unsigned i = 0; i < fsData.size(); i++) {
+    for (const auto i : range(fsData.size())) {
         const auto fs = fsData.at(i);
         assert(fs);
         msData.addFrameSetData(*fs);

@@ -9,6 +9,7 @@
 #include "abstract-editor.h"
 #include "list-helpers.h"
 #include "selection.h"
+#include "models/common/iterators.h"
 #include "models/common/type-traits.h"
 
 namespace UnTech::Gui {
@@ -56,7 +57,7 @@ indexesForMultipleSelection(const ListT& list, const SelectionT& sel)
 
     std::vector<size_type> values;
     const size_type end = std::min<size_type>(list.size(), SelectionT::MAX_SIZE);
-    for (size_t i = 0; i < end; i++) {
+    for (const auto i : range(end)) {
         if (sel.isSelected(i)) {
             values.emplace_back(i);
         }
@@ -74,7 +75,7 @@ indexesAndDataForMultipleSelection(const ListT& list, const SelectionT& sel)
     std::vector<std::pair<size_type, value_type>> values;
 
     const size_type end = std::min<size_type>(list.size(), SelectionT::MAX_SIZE);
-    for (size_t i = 0; i < end; i++) {
+    for (const auto i : range(end)) {
         if (sel.isSelected(i)) {
             values.emplace_back(i, list.at(i));
         }
@@ -1279,7 +1280,7 @@ public:
 
         case EditListAction::CLONE: {
             editor->startMacro();
-            for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const auto& childSel = sel.childSel(groupIndex);
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = getEditorListPtr(editor, listArgs)) {
@@ -1292,7 +1293,7 @@ public:
 
         case EditListAction::REMOVE: {
             editor->startMacro();
-            for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = getEditorListPtr(editor, listArgs)) {
                     auto& childSel = sel.childSel(groupIndex);
@@ -1311,7 +1312,7 @@ public:
         case EditListAction::LOWER:
         case EditListAction::LOWER_TO_BOTTOM: {
             editor->startMacro();
-            for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = getEditorListPtr(editor, listArgs)) {
                     auto& childSel = sel.childSel(groupIndex);
@@ -1439,7 +1440,7 @@ public:
         std::vector<index_type> indexes;
         indexes.reserve(end);
 
-        for (size_t i = 0; i < end; i++) {
+        for (const auto i : range(end)) {
             if (sel.isSelected(i)) {
                 indexes.push_back(i);
             }
@@ -1459,7 +1460,7 @@ public:
 
         std::vector<typename EditMultipleNestedItems::IndexAndValues> values;
 
-        for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+        for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
             const ListArgsT listArgs = std::make_tuple(groupIndex);
             if (const ListT* list = getEditorListPtr(editor, listArgs)) {
                 const auto& childSel = sel.childSel(groupIndex);

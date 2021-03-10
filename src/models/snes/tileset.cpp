@@ -6,6 +6,7 @@
 
 #include "tileset.h"
 #include "tile.hpp"
+#include "models/common/iterators.h"
 #include <cstring>
 
 namespace UnTech {
@@ -20,15 +21,15 @@ static void writeSnesTile8px(uint8_t* out, const Tile<8>& tile, const unsigned b
     unsigned pos = 0;
 
     for (unsigned b = 0; b < bitDepth; b += 2) {
-        for (unsigned y = 0; y < TILE_SIZE; y++) {
+        for (const auto y : range(TILE_SIZE)) {
             const uint8_t* tileRow = tile.rawData() + y * 8;
 
             const unsigned biEnd = (b < bitDepth - 1) ? 2 : 1;
-            for (unsigned bi = 0; bi < biEnd; bi++) {
+            for (const auto bi : range(biEnd)) {
                 uint_fast8_t byte = 0;
                 uint_fast8_t mask = 1 << (b + bi);
 
-                for (unsigned x = 0; x < TILE_SIZE; x++) {
+                for (const auto x : range(TILE_SIZE)) {
                     byte <<= 1;
 
                     if (tileRow[x] & mask) {
@@ -51,15 +52,15 @@ static void readSnesTile8px(Tile<8>& tile, const uint8_t* data, const unsigned b
     memset(tile.rawData(), 0, tile.TILE_ARRAY_SIZE);
 
     for (unsigned b = 0; b < bitDepth; b += 2) {
-        for (unsigned y = 0; y < TILE_SIZE; y++) {
+        for (const auto y : range(TILE_SIZE)) {
             uint8_t* tileRow = tile.rawData() + y * 8;
 
             const unsigned biEnd = (b < bitDepth - 1) ? 2 : 1;
-            for (unsigned bi = 0; bi < biEnd; bi++) {
+            for (const auto bi : range(biEnd)) {
                 unsigned byte = *dataPos++;
                 unsigned bits = 1 << (b + bi);
 
-                for (unsigned x = 0; x < TILE_SIZE; x++) {
+                for (const auto x : range(TILE_SIZE)) {
                     if (byte & 0x80) {
                         tileRow[x] |= bits;
                     }
@@ -137,12 +138,12 @@ void Tileset8px::readSnesData(const std::vector<uint8_t>& in)
     const unsigned snesTileSize = this->snesTileSize();
 
     const uint8_t* inData = in.data();
-    size_t toAdd = in.size() / snesTileSize;
+    const size_t toAdd = in.size() / snesTileSize;
 
-    size_t oldSize = _tiles.size();
+    const size_t oldSize = _tiles.size();
     _tiles.resize(oldSize + toAdd);
 
-    for (size_t i = 0; i < toAdd; i++) {
+    for (const auto i : range(toAdd)) {
         TileT& tile = _tiles[i + oldSize];
         readSnesTile8px(tile, inData, unsigned(_bitDepth));
 
@@ -184,12 +185,12 @@ std::vector<uint8_t> TilesetTile16::snesData() const
 void TilesetTile16::readSnesData(const std::vector<uint8_t>& in)
 {
     const uint8_t* inData = in.data();
-    size_t toAdd = in.size() / SNES_TILE_SIZE;
+    const size_t toAdd = in.size() / SNES_TILE_SIZE;
 
-    size_t oldSize = _tiles.size();
+    const size_t oldSize = _tiles.size();
     _tiles.resize(oldSize + toAdd);
 
-    for (size_t i = 0; i < toAdd; i++) {
+    for (const auto i : range(toAdd)) {
         std::array<Tile<8>, 4> smallTiles;
 
         for (Tile<8>& tile8 : smallTiles) {

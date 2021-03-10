@@ -36,7 +36,7 @@ public:
         : _tileset(tileset)
         , _map()
     {
-        for (unsigned t = 0; t < tileset.size(); t++) {
+        for (const auto t : range(tileset.size())) {
             addToMap(t);
         }
     }
@@ -69,7 +69,7 @@ public:
 
         // Using _tileset instead of _map to ensure the tiles are tested in a deterministic order.
         for (const auto [tileId, tile] : const_enumerate(_tileset)) {
-            for (unsigned flip = 0; flip < 4; flip++) {
+            for (const auto flip : range(4)) {
                 bool hFlip = flip & 1;
                 bool vFlip = flip & 2;
 
@@ -80,7 +80,7 @@ public:
                 unsigned score = 0;
                 bool found = true;
 
-                for (unsigned i = 0; i < TileT::TILE_ARRAY_SIZE; i++) {
+                for (const auto i : range(TileT::TILE_ARRAY_SIZE)) {
                     if (underTileData[i] == toTestData[i]) {
                         score++;
                     }

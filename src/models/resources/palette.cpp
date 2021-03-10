@@ -114,10 +114,10 @@ Resources::convertPalette(const PaletteInput& input, ErrorList& err)
         auto frameIt = frame.begin();
 
         const unsigned frameYOffset = frameId * input.rowsPerFrame;
-        for (unsigned fy = 0; fy < input.rowsPerFrame; fy++) {
+        for (const auto fy : range(input.rowsPerFrame)) {
             const auto* imgBits = paletteImage->scanline(frameYOffset + fy);
 
-            for (unsigned fx = 0; fx < imgSize.width; fx++) {
+            for (const auto fx : range(imgSize.width)) {
                 *frameIt++ = imgBits[fx];
             }
         }

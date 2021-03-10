@@ -678,7 +678,7 @@ void MetaSpriteEditorGui::palettesWindow()
             ImVec2 palUv0(0, 0);
             ImVec2 palUv1 = _paletteUvSize;
 
-            for (unsigned i = 0; i < fs.palettes.size(); i++) {
+            for (const auto i : range(fs.palettes.size())) {
                 ImGui::Selectable(&_data->palettesSel, i, ImGuiSelectableFlags_SpanAllColumns);
                 ImGui::NextColumn();
 
@@ -961,7 +961,7 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
         const float partialEndY = fullEndY - tileSize;
         float xPos = offset.x + tileSize;
 
-        for (unsigned x = 0; x < TILES_PER_ROW - 1; x++) {
+        for (const auto x : range(TILES_PER_ROW - 1)) {
             if (x < nFullLines) {
                 drawList->AddLine(ImVec2(xPos, startY), ImVec2(xPos, fullEndY), Style::gridColor);
             }
@@ -980,7 +980,7 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
 
         float yPos = offset.y + tileSize;
         if (completeRows > 0) {
-            for (unsigned y = 0; y < completeRows - 1; y++) {
+            for ([[maybe_unused]] const auto y : range(completeRows - 1)) {
                 drawList->AddLine(ImVec2(startX, yPos), ImVec2(endX, yPos), Style::gridColor);
                 yPos += tileSize;
             }
@@ -1394,7 +1394,7 @@ void MetaSpriteEditorGui::updatePaletteTexture()
     for (const auto& palette : fs.palettes) {
         static_assert(PALETTE_TEXTURE_WIDTH == std::remove_reference_t<decltype(palette)>::N_COLORS);
 
-        for (unsigned c = 0; c < palette.N_COLORS; c++) {
+        for (const auto c : range(palette.N_COLORS)) {
             *imgBits++ = palette.color(c).rgb();
         }
     }

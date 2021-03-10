@@ -87,7 +87,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(
         const static unsigned TS = Tile8px::TILE_SIZE;
 
         unsigned palette = getPalette(0, tileId);
-        for (unsigned frameId = 1; frameId < nFrames; frameId++) {
+        for (const auto frameId : range(nFrames)) {
             if (getPalette(frameId, tileId) != palette) {
                 imageErr->addInvalidTile(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, InvalidImageError::NOT_SAME_PALETTE);
                 break;
@@ -97,7 +97,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(
 
         const Tile8px& firstTile = getTile(0, tileId);
         bool isAnimated = false;
-        for (unsigned frameId = 1; frameId < nFrames; frameId++) {
+        for (const auto frameId : range(nFrames)) {
             if (getTile(frameId, tileId) != firstTile) {
                 isAnimated = true;
                 break;
@@ -153,7 +153,7 @@ static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const usize&
 
     if (!input.animatedTiles.empty()) {
         unsigned nAnimatedFrames = input.animatedTiles.front().size();
-        for (unsigned i = 0; i < nAnimatedFrames; i++) {
+        for ([[maybe_unused]] const auto i : range(nAnimatedFrames)) {
             aniTileset.animatedTiles.emplace_back(aniTileset.staticTiles.bitDepth());
         }
 

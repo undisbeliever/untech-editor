@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include "models/common/iterators.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
 #include "models/snes/tileset.h"
@@ -65,11 +66,12 @@ public:
 
         Snes::Tile<TILE_SIZE> tile;
         uint8_t* tData = tile.rawData();
-        for (unsigned y = 0; y < TILE_SIZE; y++) {
-            const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
 
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                *tData++ = colorMap.at(*imgBits++);
+        for (const auto y : range(TILE_SIZE)) {
+            const rgba* const imgBits = image.scanline(yOffset + y) + xOffset;
+
+            for (const auto x : range(TILE_SIZE)) {
+                *tData++ = colorMap.at(imgBits[x]);
             }
         }
 
@@ -105,11 +107,11 @@ markOverlappedPixels(const Snes::Tile<OVER_SIZE>& overTile,
 
     std::array<bool, underSize* underSize> ret = {};
 
-    for (int oY = 0; oY < overSize; oY++) {
+    for (const auto oY : irange(overSize)) {
         int uY = oY + yOffset;
 
         if (uY >= 0 && uY < underSize) {
-            for (int oX = 0; oX < overSize; oX++) {
+            for (const auto oX : irange(overSize)) {
                 int uX = oX + xOffset;
 
                 if (uX >= 0 && uX < underSize) {
@@ -139,11 +141,11 @@ static void clearCommonOverlappedTiles(Snes::Tile<OVER_SIZE>& overTile,
     uint8_t* overTileData = overTile.rawData();
     uint8_t* underTileData = underTile.rawData();
 
-    for (int oY = 0; oY < overSize; oY++) {
+    for (const auto oY : irange(overSize)) {
         int uY = oY + yOffset;
 
         if (uY >= 0 && uY < underSize) {
-            for (int oX = 0; oX < overSize; oX++) {
+            for (const auto oX : irange(overSize)) {
                 int uX = oX + xOffset;
 
                 if (uX >= 0 && uX < underSize) {

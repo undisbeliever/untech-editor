@@ -7,6 +7,7 @@
 #include "texture.h"
 #include "models/common/image.h"
 #include "models/common/imagecache.h"
+#include "models/common/iterators.h"
 
 namespace UnTech::Gui {
 
@@ -14,7 +15,7 @@ const UnTech::Image Texture::missingImageSymbol = []() {
     const rgba red(255, 0, 0);
 
     UnTech::Image img(32, 32);
-    for (unsigned i = 1; i < 32; i++) {
+    for (const auto i : range(1, 32)) {
         if (i < 31) {
             img.setPixel(i, i, red);
             img.setPixel(i, 31 - i, red);

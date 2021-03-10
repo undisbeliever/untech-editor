@@ -206,7 +206,7 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
 
         std::optional<ItemIndex> pendingIndex = _selectedIndex;
 
-        for (unsigned rtIndex = 0; rtIndex < N_RESOURCE_TYPES; rtIndex++) {
+        for (const auto rtIndex : range(N_RESOURCE_TYPES)) {
             const ResourceType type = static_cast<ResourceType>(rtIndex);
             const Project::ResourceListStatus& list = projectData.resourceListStatus(type);
 

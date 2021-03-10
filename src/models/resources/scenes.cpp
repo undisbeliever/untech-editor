@@ -154,7 +154,7 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
         }
 
         unsigned layerTypes = 0;
-        for (unsigned i = 0; i < N_LAYERS; i++) {
+        for (const auto i : range(N_LAYERS)) {
             const auto& lt = ssi.layerTypes.at(i);
             layerTypes |= (unsigned(lt) & 0x7) << (i * 4 + 1);
         }
@@ -182,7 +182,7 @@ static void confirmLayoutIsValid(const std::array<SceneLayoutsData::LayerLayout,
     usedBlocks.fill(false);
 
     auto testBlock = [&](const unsigned start, const unsigned size) {
-        for (unsigned i = start; i < (start + size); i++) {
+        for (const auto i : range(start, start + size)) {
             if (usedBlocks.at(i)) {
                 throw std::logic_error("Layout invalid");
             }
@@ -275,7 +275,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         return std::nullopt;
     };
 
-    for (unsigned layerId = 0; layerId < N_LAYERS; layerId++) {
+    for (const auto layerId : range(N_LAYERS)) {
         auto b = findFreeSpaceForwards(input.at(layerId).nTileBlocks, TILE_ALIGN);
         if (b == std::nullopt) {
             return std::nullopt;
@@ -285,7 +285,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
 
     // ::TODO sort layers by size of maps (insertation sort)::
 
-    for (unsigned layerId = 0; layerId < N_LAYERS; layerId++) {
+    for (const auto layerId : range(N_LAYERS)) {
         // Search backwards through vram to increase the amount of free tiles available for BG 1 and BG 2
         auto b = findFreeSpaceBackwards(input.at(layerId).nTileBlocks, MAP_ALIGN);
         if (b == std::nullopt) {
@@ -304,7 +304,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
 
     static_assert(SCENE_LAYOUT_DATA_ENTRY_SIZE == 2 * N_LAYERS);
 
-    for (unsigned layerId = 0; layerId < N_LAYERS; layerId++) {
+    for (const auto layerId : range(N_LAYERS)) {
         const auto& source = input.at(layerId);
         const auto& base = layerBases.at(layerId);
         auto& dest = layout.at(layerId);
@@ -385,7 +385,7 @@ inline std::optional<uint8_t> SceneLayoutsData::findOrAdd(const std::array<Scene
 {
     for (const auto [layoutId, layout] : const_enumerate(_sceneLayouts)) {
         bool match = true;
-        for (unsigned i = 0; i < N_LAYERS; i++) {
+        for (const auto i : range(N_LAYERS)) {
             match &= layout.at(i).mapSizeBits == input.at(i).mapSizeBits;
             match &= layout.at(i).nMapBlocks >= input.at(i).nMapBlocks;
             match &= layout.at(i).nTileBlocks >= input.at(i).nTileBlocks;
@@ -540,7 +540,7 @@ static SceneData readSceneData(const SceneInput& scene, const ResourceScenes& re
 
     out.mtTileset = {};
     out.vramUsed = 0;
-    for (unsigned layerId = 0; layerId < N_LAYERS; layerId++) {
+    for (const auto layerId : range(N_LAYERS)) {
         auto& layer = out.layers.at(layerId);
         const auto& sceneLayer = sceneSettings.layerTypes.at(layerId);
 

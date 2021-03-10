@@ -99,7 +99,7 @@ void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& action
     }
     assert(nextPowerOf2 < 256 / WORD_SIZE);
 
-    for (unsigned i = nFunctions; i < nextPowerOf2; i++) {
+    for ([[maybe_unused]] const auto i : range(nFunctions, nextPowerOf2)) {
         out << "\tdw ActionPoints.Null\n";
     }
 

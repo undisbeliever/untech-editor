@@ -5,6 +5,7 @@
  */
 
 #include "tile.h"
+#include "models/common/iterators.h"
 #include <cstring>
 
 namespace UnTech {
@@ -24,11 +25,11 @@ void Tile<TS>::draw(Image& image, const PaletteT& palette,
 
     rgba* imgBits;
     const uint8_t* tilePos = rawData();
-    for (unsigned y = 0; y < TILE_SIZE; y++) {
+    for (const auto y : range(TILE_SIZE)) {
         unsigned fy = (vFlip == false) ? y : TILE_SIZE - 1 - y;
         imgBits = image.scanline(yOffset + fy) + xOffset;
 
-        for (unsigned x = 0; x < TILE_SIZE; x++) {
+        for (const auto x : range(TILE_SIZE)) {
             unsigned fx = (hFlip == false) ? x : TILE_SIZE - 1 - x;
 
             auto p = *tilePos & palette.PIXEL_MASK;
@@ -54,11 +55,11 @@ void Tile<TS>::drawOpaque(Image& image, const PaletteT& palette,
 
     rgba* imgBits;
     const uint8_t* tilePos = rawData();
-    for (unsigned y = 0; y < TILE_SIZE; y++) {
+    for (const auto y : range(TILE_SIZE)) {
         unsigned fy = (vFlip == false) ? y : TILE_SIZE - 1 - y;
         imgBits = image.scanline(yOffset + fy) + xOffset;
 
-        for (unsigned x = 0; x < TILE_SIZE; x++) {
+        for (const auto x : range(TILE_SIZE)) {
             unsigned fx = (hFlip == false) ? x : TILE_SIZE - 1 - x;
             auto p = *tilePos & palette.PIXEL_MASK;
             imgBits[fx] = palette.color(p).rgb();

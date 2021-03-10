@@ -5,6 +5,7 @@
  */
 
 #include "tile.h"
+#include "models/common/iterators.h"
 #include <cstring>
 
 namespace UnTech::Snes {
@@ -15,11 +16,11 @@ Tile<TS> Tile<TS>::flip(bool hFlip, bool vFlip) const
     Tile<TS> ret;
     const uint8_t* pixelData = this->rawData();
 
-    for (unsigned y = 0; y < TS; y++) {
+    for (const auto y : range(TS)) {
         unsigned fy = (vFlip == false) ? y : TS - 1 - y;
         uint8_t* retRow = ret.rawData() + fy * TS;
 
-        for (unsigned x = 0; x < TS; x++) {
+        for (const auto x : range(TS)) {
             unsigned fx = (hFlip == false) ? x : TS - 1 - x;
             retRow[fx] = *pixelData++;
         }
@@ -59,7 +60,7 @@ std::array<Tile8px, 4> splitLargeTile(const Tile16px& largeTile)
         const uint8_t* t16 = tile16 + (yPos * 16 + xPos);
         uint8_t* t8 = tile8.rawData();
 
-        for (unsigned y = 0; y < 8; y++) {
+        for ([[maybe_unused]] const auto y : range(8)) {
             memcpy(t8, t16, 8);
             t16 += 16;
             t8 += 8;
@@ -84,7 +85,7 @@ Tile16px combineSmallTiles(const std::array<Tile8px, 4>& tiles)
         const uint8_t* t8 = tile8.rawData();
         uint8_t* t16 = tile16 + (yPos * 16 + xPos);
 
-        for (unsigned y = 0; y < 8; y++) {
+        for ([[maybe_unused]] const auto y : range(8)) {
             memcpy(t16, t8, 8);
             t8 += 8;
             t16 += 16;

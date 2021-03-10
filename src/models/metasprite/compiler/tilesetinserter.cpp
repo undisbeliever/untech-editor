@@ -6,6 +6,7 @@
 
 #include "tilesetinserter.h"
 #include "tilesetlayout.h"
+#include "models/common/iterators.h"
 #include "models/snes/tilesetinserter.h"
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
@@ -102,7 +103,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
 
             std::array<Snes::Tile8px, 4> smallTiles = {};
 
-            for (unsigned i = 0; i < 4; i++) {
+            for (const auto i : range(4)) {
                 unsigned tId = tile16.smallTileIds[i];
                 if (tId < smallTileset.size()) {
                     smallTiles[i] = smallTileset.tile(tId);
@@ -110,7 +111,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             }
             const auto a = addTile(combineSmallTiles(smallTiles));
 
-            for (unsigned i = 0; i < 4; i++) {
+            for (const auto i : range(4)) {
                 auto tId = tile16.smallTileIds[i];
 
                 if (tId >= INVALID_SMALL_TILE) {

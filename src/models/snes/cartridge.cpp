@@ -5,6 +5,7 @@
  */
 
 #include "cartridge.h"
+#include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include <array>
 #include <cassert>
@@ -109,7 +110,7 @@ uint16_t Cartridge::calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap
 
     int part1 = 0;
     assert(part1Size <= rom.size());
-    for (unsigned i = 0; i < part1Size; i++) {
+    for (const auto i : range(part1Size)) {
         part1 += rom[i];
     }
 
@@ -123,7 +124,7 @@ uint16_t Cartridge::calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap
             throw std::runtime_error("Invalid ROM size.");
         }
 
-        for (unsigned i = part1Size; i < rom.size(); i++) {
+        for (const auto i : range(part1Size, rom.size())) {
             part2 += rom[i];
         }
     }
@@ -131,7 +132,7 @@ uint16_t Cartridge::calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap
     int oldSum = 0;
     static_assert(CHECKSUM_ADDR == CHECKSUM_COMPLEMENT_ADDR + 2, "assumption failed");
     unsigned ccAddr = checksumCompelementAddress(memoryMap);
-    for (unsigned i = 0; i < 4; i++) {
+    for (const auto i : range(4)) {
         oldSum += rom[i + ccAddr];
     }
 

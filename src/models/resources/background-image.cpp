@@ -196,8 +196,8 @@ static void convertBackgroundMap(std::vector<uint8_t>& out, const grid<Snes::Til
     const unsigned endY = std::min<unsigned>(BG_MAP_HEIGHT, grid.height() - yOffset);
 
     auto it = out.begin() + startIndex;
-    for (unsigned y = 0; y < endY; y++) {
-        for (unsigned x = 0; x < endX; x++) {
+    for (const auto y : range(endY)) {
+        for (const auto x : range(endX)) {
             const auto& tm = grid.at(x + xOffset, y + yOffset);
 
             *it++ = tm.data & 0xff;

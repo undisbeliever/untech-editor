@@ -72,7 +72,8 @@ public:
         , _blockRodata(blockRodata)
     {
         _romBanks.reserve(memoryMap.nBanks);
-        for (unsigned i = 0; i < memoryMap.nBanks; i++) {
+
+        for (const auto i : range(memoryMap.nBanks)) {
             _romBanks.emplace_back(memoryMap.bankAddress(i), memoryMap.bankSize());
         }
     }
@@ -145,7 +146,7 @@ public:
         std::vector<uint8_t> longAddressTable(dataStore.size() * 3);
         auto it = longAddressTable.begin();
 
-        for (unsigned i = 0; i < dataStore.size(); i++) {
+        for (const auto i : range(dataStore.size())) {
             auto data = dataStore.at(i);
             assert(data);
             const auto addr = addData(data->exportSnesData());
