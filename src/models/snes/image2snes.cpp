@@ -128,10 +128,12 @@ public:
     std::vector<SnesColor> buildSnesColorPalette()
     {
         std::vector<SnesColor> out(palette.size());
+        auto outIt = out.begin();
 
-        for (unsigned i = 0; i < palette.size(); i++) {
-            out[i].setData(palette[i]);
+        for (const auto& c : palette) {
+            (outIt++)->setData(c);
         }
+        assert(outIt == out.end());
 
         return out;
     }
@@ -203,10 +205,12 @@ private:
         const auto& sourcePalette = image.palette();
 
         palette.resize(image.palette().size());
+        auto palIt = palette.begin();
 
-        for (unsigned i = 0; i < sourcePalette.size(); i++) {
-            palette[i] = SnesColor(sourcePalette[i]).data();
+        for (const auto& sp : sourcePalette) {
+            *palIt++ = SnesColor(sp).data();
         }
+        assert(palIt == palette.end());
     }
 
     void removeDuplicateColors()
@@ -248,8 +252,8 @@ private:
 
         bool containsColor(unsigned pixel)
         {
-            for (unsigned i = 0; i < nColors; i++) {
-                if (colors[i] == pixel) {
+            for (const auto& c : colors) {
+                if (c == pixel) {
                     return true;
                 }
             }
@@ -310,10 +314,10 @@ private:
     inline std::vector<TileColors> rearrangePalette_colorsPerTile()
     {
         std::vector<TileColors> tileColors(tiles.size());
+        auto it = tileColors.begin();
 
-        for (unsigned tileId = 0; tileId < tiles.size(); tileId++) {
-            const auto& tile = tiles[tileId];
-            TileColors& tp = tileColors[tileId];
+        for (const auto& tile : tiles) {
+            TileColors& tp = *it++;
 
             for (const uint8_t pixel : tile) {
                 if (pixel != 0 && tp.containsColor(pixel) == false) {
@@ -326,6 +330,7 @@ private:
                 }
             }
         }
+        assert(it == tileColors.end());
 
         return tileColors;
     }
@@ -422,25 +427,28 @@ private:
     {
         // mapping of tile data to palette color.
         std::vector<std::array<uint8_t, 256>> paletteMap(newPalette.size());
+        auto pIt = paletteMap.begin();
 
-        for (unsigned i = 0; i < newPalette.size(); i++) {
-            auto& map = paletteMap[i];
-            auto& pal = newPalette[i];
+        for (const auto& pal : newPalette) {
+            auto& map = *pIt++;
 
             for (const auto c : range(pal.nColors)) {
                 map[pal.colors[c]] = c + 1;
             }
         }
+        assert(pIt == paletteMap.end());
 
-        for (unsigned i = 0; i < tiles.size(); i++) {
-            auto& tile = tiles[i];
-            unsigned pal = tilePaletteId[i];
-            auto& map = paletteMap.at(pal);
+        auto tIt = tiles.begin();
+
+        for (const auto& pal : tilePaletteId) {
+            const auto& map = paletteMap.at(pal);
+            auto& tile = *tIt++;
 
             for (auto& c : tile) {
                 c = map[c];
             }
         }
+        assert(tIt == tiles.end());
     }
 
     inline bool containsTransparentTile()

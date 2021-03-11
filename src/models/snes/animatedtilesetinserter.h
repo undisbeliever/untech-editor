@@ -29,8 +29,8 @@ public:
 
         unsigned nTiles = tilesets.front().size();
 
-        for (unsigned f = 0; f < nFrames(); f++) {
-            assert(tilesets.at(f).size() == nTiles);
+        for (const auto& tileset : tilesets) {
+            assert(tileset.size() == nTiles);
         }
 
         std::vector<TileT> tiles(tilesets.size());
