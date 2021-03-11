@@ -343,9 +343,7 @@ private:
 
         std::vector<unsigned> processOrder;
         processOrder.reserve(tiles.size());
-        for (unsigned c = 0; c < TileColors::MAX_PALETTE_COLORS + 1; c++) {
-            unsigned colorToTest = TileColors::MAX_PALETTE_COLORS - c;
-
+        for (const auto colorToTest : reverse_range(TileColors::MAX_PALETTE_COLORS)) {
             for (const auto [i, cpt] : enumerate(colorsPerTile)) {
                 if (colorsPerTile[i].nColors == colorToTest) {
                     processOrder.push_back(i);

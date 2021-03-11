@@ -109,6 +109,32 @@ public:
     }
 };
 
+template <typename T>
+class reverse_range_iterator {
+public:
+    using value_type = T;
+
+private:
+    T i;
+
+public:
+    reverse_range_iterator(const T v)
+        : i(v)
+    {
+    }
+
+    value_type operator*() const { return i; }
+
+    bool operator==(const reverse_range_iterator& o) const { return i == o.i; }
+    bool operator!=(const reverse_range_iterator& o) const { return i != o.i; }
+
+    reverse_range_iterator& operator++()
+    {
+        i--;
+        return *this;
+    }
+};
+
 template <typename It>
 class iterator_wrapper {
 private:
@@ -200,4 +226,18 @@ inline auto irange(const int start, const int end)
 
     return iterator_wrapper(range_iterator<int>(start),
                             range_iterator<int>(end));
+}
+
+// Output is range(end) but in reverse order
+inline auto reverse_range(const size_t end)
+{
+    return iterator_wrapper(reverse_range_iterator<size_t>(end - 1),
+                            reverse_range_iterator<size_t>(-1));
+}
+
+// Output is irange(end) but in reverse order
+inline auto reverse_irange(const int end)
+{
+    return iterator_wrapper(reverse_range_iterator<int>(end >= 0 ? end - 1 : -1),
+                            reverse_range_iterator<int>(-1));
 }
