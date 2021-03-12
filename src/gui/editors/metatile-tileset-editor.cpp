@@ -427,9 +427,7 @@ void MetaTileTilesetEditorGui::updateTileProperties()
     }
     tp.tilePrioritiesSame.fill(true);
 
-    for (auto it = selected.begin() + 1; it != selected.end(); it++) {
-        const auto tile = *it;
-
+    for (const auto& tile : skip_first_element(selected)) {
         const auto& tc = tileset.tileCollisions.at(tile);
         if (tc != tp.tileCollision) {
             tp.tileCollisionSame = false;

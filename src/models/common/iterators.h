@@ -241,3 +241,14 @@ inline auto reverse_irange(const int end)
     return iterator_wrapper(reverse_range_iterator<int>(end >= 0 ? end - 1 : -1),
                             reverse_range_iterator<int>(-1));
 }
+
+template <class C>
+inline auto skip_first_element(const C& c)
+{
+    auto it = c.cbegin();
+    if (it != c.cend()) {
+        it++;
+    }
+
+    return iterator_wrapper(it, c.cend());
+}

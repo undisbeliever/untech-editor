@@ -175,9 +175,10 @@ struct RoomEditorData::AP {
                 parent = &data.roomScripts.startupScript.statements;
             }
 
-            for (auto it = parentIndex.cbegin() + 1; it < parentIndex.cend(); it++) {
-                const unsigned i = *it & 0x7fff;
-                const bool elseFlag = *it & 0x8000;
+            // parent node index data format: eiii iiii iiii iiii (i = list index, e = else branch)
+            for (const auto& node : skip_first_element(parentIndex)) {
+                const unsigned i = node & 0x7fff;
+                const bool elseFlag = node & 0x8000;
 
                 if (i >= parent->size()) {
                     return parent;

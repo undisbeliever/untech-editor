@@ -109,6 +109,8 @@ public:
 
     const_iterator begin() const { return _vector.cbegin(); }
     const_iterator end() const { return _vector.cend(); }
+    const_iterator cbegin() const { return _vector.cbegin(); }
+    const_iterator cend() const { return _vector.cend(); }
 
     const_reverse_iterator rbegin() const { return _vector.crbegin(); }
     const_reverse_iterator rend() const { return _vector.crend(); }

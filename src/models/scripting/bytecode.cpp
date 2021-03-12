@@ -129,9 +129,8 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     out->branchIfFlagClearOpcode = out->branchIfFlagSetOpcode + N_FLAG_INSTRUCTIONS;
     currentOpcode = out->branchIfFlagClearOpcode + N_FLAG_INSTRUCTIONS;
 
-    // Add the rest of the base instructions
-    for (auto it = input.BASE_INSTRUCTIONS.begin() + 1; it != input.BASE_INSTRUCTIONS.end(); it++) {
-        addInstruction(*it);
+    for (const auto& inst : skip_first_element(input.BASE_INSTRUCTIONS)) {
+        addInstruction(inst);
     }
 
     // Add custom instructions
@@ -192,8 +191,8 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
     unsigned currentOpcode = 0;
 
     auto processInstructions = [&](auto f) {
-        for (auto it = input.BASE_INSTRUCTIONS.begin() + 1; it != input.BASE_INSTRUCTIONS.end(); it++) {
-            f(*it);
+        for (const auto& inst : skip_first_element(input.BASE_INSTRUCTIONS)) {
+            f(inst);
         }
         for (auto& inst : input.instructions) {
             f(inst);
