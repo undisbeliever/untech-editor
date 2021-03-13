@@ -11,7 +11,6 @@
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/idstring.h"
-#include "models/common/image.h"
 #include "models/common/ms8aabb.h"
 #include "models/common/namedlist.h"
 #include "models/snes/tileset.h"
@@ -119,9 +118,6 @@ struct Frame {
     }
 
     Frame flip(bool hFlip, bool vFlip) const;
-
-    void draw(Image& image, const FrameSet& frameSet, size_t paletteId,
-              unsigned xOffset, unsigned yOffset) const;
 
     bool operator==(const Frame& o) const;
     bool operator!=(const Frame& o) const { return !(*this == o); }

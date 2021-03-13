@@ -8,10 +8,13 @@
 
 #include "models/common/iterators.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
+#include "models/metasprite/drawing.hpp"
 #include "models/project/project-data.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
+
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 static std::shared_ptr<const EntityGraphics> blankEntityGraphics();
 
@@ -383,7 +386,8 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
                 ds.hitboxRect = NOT_SOLID_HITBOX_RECT;
             }
 
-            ef.frame.draw(eg->image, ef.frameSet, ef.palette, node.x - node.originX, node.y - node.originY);
+            MS::drawFrame(eg->image, ef.frameSet, ef.palette, ef.frame,
+                          node.x - node.originX, node.y - node.originY);
 
             if (ef.isEntity) {
                 eg->entityNameMap.emplace(ds.name, ef.entityIndex);

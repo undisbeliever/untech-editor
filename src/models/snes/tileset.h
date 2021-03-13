@@ -115,12 +115,6 @@ public:
 
     size_t snesDataSize() const { return snesTileSize() * size(); }
 
-    // fails silently
-    template <size_t BD>
-    void drawTile(Image& image, const Palette<BD>& palette,
-                  unsigned xOffset, unsigned yOffset,
-                  unsigned tileId, bool hFlip = false, bool vFlip = false) const;
-
     std::vector<uint8_t> snesData() const;
     void readSnesData(const std::vector<uint8_t>& data);
 
@@ -147,11 +141,6 @@ public:
     constexpr static unsigned SNES_TILE_SIZE = SNES_SMALL_TILE_SIZE * 4;
 
     TilesetTile16() = default;
-
-    // fails silently
-    void drawTile(Image& image, const Palette<4>& palette,
-                  unsigned xOffset, unsigned yOffset,
-                  unsigned tileId, bool hFlip = false, bool vFlip = false) const;
 
     std::vector<uint8_t> snesData() const;
     void readSnesData(const std::vector<uint8_t>& data);

@@ -105,25 +105,6 @@ Frame Frame::flip(bool hFlip, bool vFlip) const
     return ret;
 }
 
-void Frame::draw(Image& image, const FrameSet& frameSet, size_t paletteId,
-                 unsigned xOffset, unsigned yOffset) const
-{
-    const Snes::Palette4bpp& palette = frameSet.palettes[paletteId];
-
-    for (const auto& obj : reverse(objects)) {
-        if (obj.size == ObjectSize::SMALL) {
-            frameSet.smallTileset.drawTile(image, palette,
-                                           xOffset + obj.location.x, yOffset + obj.location.y,
-                                           obj.tileId, obj.hFlip, obj.vFlip);
-        }
-        else {
-            frameSet.largeTileset.drawTile(image, palette,
-                                           xOffset + obj.location.x, yOffset + obj.location.y,
-                                           obj.tileId, obj.hFlip, obj.vFlip);
-        }
-    }
-}
-
 bool Frame::operator==(const Frame& o) const
 {
     return objects == o.objects

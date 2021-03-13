@@ -5,7 +5,6 @@
  */
 
 #include "tileset.h"
-#include "tile.hpp"
 #include "models/common/iterators.h"
 #include <cstring>
 
@@ -99,22 +98,6 @@ Tileset8px::BitDepth Tileset8px::depthFromInt(int bd)
     throw std::invalid_argument("Unknown bit-depth, expected 1, 2, 3, 4 or 8");
 }
 
-template <size_t BD>
-void Tileset8px::drawTile(Image& image, const Palette<BD>& palette,
-                          unsigned xOffset, unsigned yOffset,
-                          unsigned tileId, const bool hFlip, const bool vFlip) const
-{
-    if (_tiles.size() <= tileId) {
-        return;
-    }
-
-    _tiles[tileId].draw(image, palette, xOffset, yOffset, hFlip, vFlip);
-}
-
-template void Tileset8px::drawTile<2>(Image&, const Palette<2>&, unsigned, unsigned, unsigned, const bool, const bool) const;
-template void Tileset8px::drawTile<4>(Image&, const Palette<4>&, unsigned, unsigned, unsigned, const bool, const bool) const;
-template void Tileset8px::drawTile<8>(Image&, const Palette<8>&, unsigned, unsigned, unsigned, const bool, const bool) const;
-
 std::vector<uint8_t> Tileset8px::snesData() const
 {
     const unsigned snesTileSize = this->snesTileSize();
@@ -151,17 +134,6 @@ void Tileset8px::readSnesData(const std::vector<uint8_t>& in)
     }
 
     assert(inData == in.data() + toAdd * snesTileSize);
-}
-
-void TilesetTile16::drawTile(Image& image, const Palette<4>& palette,
-                             unsigned xOffset, unsigned yOffset,
-                             unsigned tileId, const bool hFlip, const bool vFlip) const
-{
-    if (_tiles.size() <= tileId) {
-        return;
-    }
-
-    _tiles[tileId].draw(image, palette, xOffset, yOffset, hFlip, vFlip);
 }
 
 std::vector<uint8_t> TilesetTile16::snesData() const

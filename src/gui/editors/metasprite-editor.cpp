@@ -13,7 +13,7 @@
 #include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "models/common/bit.h"
-#include "models/snes/tile.hpp"
+#include "models/snes/drawing.hpp"
 #include <algorithm>
 
 namespace UnTech::Gui {
@@ -1443,26 +1443,17 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     _smallTilesetUVmax = ImVec2(1.0f, _smallTilesetUvSize.y * nSmallRows);
     _largeTilesetUVmax = ImVec2(1.0f, _smallTilesetUVmax.y + _largeTilesetUvSize.y * nLargeRows);
 
-    // ::TODO optimize this (write a specific draw Tileset routine that uses _paletteImage for palette data)::
-    unsigned x = 0;
-    unsigned y = 0;
-    auto drawTiles = [&](const auto& tileset) {
-        for (auto [i, tile] : const_enumerate(tileset)) {
-            tile.draw(_tilesetImage, palette, x, y);
+    {
+        const auto* imgBitsEnd = _tilesetImage.data() + _tilesetImage.dataSize();
+        const size_t stride = _tilesetImage.pixelsPerScanline();
+        assert(stride == TILESET_IMAGE_WIDTH);
 
-            x += tile.TILE_SIZE;
-            if (x >= TILESET_IMAGE_WIDTH) {
-                x = 0;
-                y += tile.TILE_SIZE;
-            }
-        }
-    };
+        auto* imgBits = _tilesetImage.data();
+        Snes::drawTileset_transparent(fs.smallTileset, imgBits, imgBitsEnd, stride, palette);
 
-    drawTiles(fs.smallTileset);
-
-    x = 0;
-    y = nSmallRows * fs.smallTileset.TILE_SIZE;
-    drawTiles(fs.largeTileset);
+        imgBits = _tilesetImage.scanline(nSmallRows * fs.smallTileset.TILE_SIZE);
+        Snes::drawTileset_transparent(fs.largeTileset, imgBits, imgBitsEnd, stride, palette);
+    }
 
     _tilesetTexture.replace(_tilesetImage);
 

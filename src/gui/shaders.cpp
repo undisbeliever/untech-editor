@@ -10,6 +10,7 @@
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
 #include "models/project/project.h"
+#include "models/resources/drawing.h"
 #include <cassert>
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
@@ -38,66 +39,6 @@ static Image drawPaletteImage(const Resources::PaletteData& palette)
     }
 
     return image;
-}
-
-static void drawAnimatedTileset(grid<uint8_t>& image, const Resources::AnimatedTilesetData& animatedTileset, unsigned frameIndex)
-{
-    constexpr unsigned TILE_SIZE = Snes::Tile8px::TILE_SIZE;
-
-    const static Snes::Tile8px blankTile{};
-
-    assert(image.size() == usize(animatedTileset.tileMap.width() * 8, animatedTileset.tileMap.height() * 8));
-
-    const auto& animatedTilesFrames = animatedTileset.animatedTiles;
-
-    const auto& staticTiles = animatedTileset.staticTiles;
-    const auto& animatedTiles = frameIndex < animatedTilesFrames.size() ? animatedTilesFrames.at(frameIndex) : animatedTileset.staticTiles;
-    const auto& map = animatedTileset.tileMap;
-    const unsigned nPaletteColors = 1 << animatedTileset.staticTiles.bitDepthInt();
-    const unsigned pixelMask = staticTiles.pixelMask();
-
-    auto mapIt = map.cbegin();
-
-    for (unsigned y = 0; y < image.height(); y += TILE_SIZE) {
-        auto imageScanline = image.begin() + y * image.width();
-
-        for (unsigned x = 0; x < image.height(); x += TILE_SIZE) {
-            Snes::TilemapEntry tm = *mapIt++;
-
-            const Snes::Tile8px& tile = [&]() {
-                const auto c = tm.character();
-                if (c < staticTiles.size()) {
-                    return staticTiles.at(c);
-                }
-                else if (c < staticTiles.size() + animatedTiles.size()) {
-                    return animatedTiles.at(c - staticTiles.size());
-                }
-                return blankTile;
-            }();
-
-            const uint8_t palOffset = tm.palette() * nPaletteColors;
-            auto tileIt = tile.data().begin();
-
-            for (const auto ty : range(tile.TILE_SIZE)) {
-                unsigned fty = (tm.vFlip() == false) ? ty : TILE_SIZE - 1 - ty;
-
-                auto imageBits = imageScanline + fty * image.width();
-
-                for (const auto tx : range(tile.TILE_SIZE)) {
-                    unsigned ftx = (tm.hFlip() == false) ? tx : TILE_SIZE - 1 - tx;
-
-                    const auto tc = *tileIt & pixelMask;
-                    imageBits[ftx] = tc != 0 ? (tc + palOffset) & 0xff : 0;
-
-                    tileIt++;
-                }
-            }
-            assert(tileIt == tile.data().end());
-
-            imageScanline += TILE_SIZE;
-        }
-    }
-    assert(mapIt == map.cend());
 }
 
 void MtTileset::reset()

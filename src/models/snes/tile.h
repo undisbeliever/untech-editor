@@ -29,18 +29,6 @@ public:
     Tile() = default;
 
 public:
-    // fails silently
-    template <class PaletteT>
-    void draw(Image& image, const PaletteT& palette,
-              unsigned xOffset, unsigned yOffset,
-              bool hFlip = false, bool vFlip = false) const;
-
-    // fails silently
-    template <class PaletteT>
-    void drawOpaque(Image& image, const PaletteT& palette,
-                    unsigned xOffset, unsigned yOffset,
-                    bool hFlip = false, bool vFlip = false) const;
-
     inline uint8_t* rawData() { return _data.data(); }
     inline const uint8_t* rawData() const { return _data.data(); }
 
