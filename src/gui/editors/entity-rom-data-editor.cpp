@@ -295,8 +295,7 @@ void EntityRomDataEditorGui::structsWindow()
 
                     const auto parentChain = generateStructChain(st.parent);
 
-                    for (auto it = parentChain.rbegin(); it != parentChain.rend(); it++) {
-                        const unsigned parentIndex = *it;
+                    for (const auto& parentIndex : reverse(parentChain)) {
                         const auto& parent = entityRomData.structs.at(parentIndex);
 
                         for (auto [i, field] : enumerate(parent.fields)) {
@@ -520,8 +519,8 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
 
                     unsigned id = 0;
 
-                    for (auto it = structChain.rbegin(); it != structChain.rend(); it++) {
-                        auto& st = entityRomData.structs.at(*it);
+                    for (const auto& sIndex : reverse(structChain)) {
+                        auto& st = entityRomData.structs.at(sIndex);
 
                         for (auto [i, field] : enumerate(st.fields)) {
                             std::string& value = entry.fields[field.name];

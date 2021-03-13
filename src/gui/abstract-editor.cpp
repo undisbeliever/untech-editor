@@ -6,6 +6,7 @@
 
 #include "abstract-editor.h"
 #include "imgui.h"
+#include "models/common/iterators.h"
 #include "models/enums.h"
 #include "models/project/project.h"
 
@@ -60,8 +61,7 @@ public:
 
     virtual void undo(Project::ProjectFile& projectFile) const final
     {
-        for (auto it = actions.rbegin(); it != actions.rend(); it++) {
-            auto& a = *it;
+        for (const auto& a : reverse(actions)) {
             if (a) {
                 a->undo(projectFile);
             }

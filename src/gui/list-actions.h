@@ -407,16 +407,14 @@ struct ListActions {
 
             assert(projectList.size() == editorList.size());
 
-            for (auto it = _values.rbegin(); it != _values.rend(); it++) {
-                const index_type& index = it->first;
+            for (const auto& [index, value] : reverse(_values)) {
                 assert(index >= 0 && index < projectList.size());
 
                 projectList.erase(projectList.begin() + index);
                 editorList.erase(editorList.begin() + index);
             }
 
-            for (auto it = _values.rbegin(); it != _values.rend(); it++) {
-                const index_type& index = it->first;
+            for (const auto& [index, value] : reverse(_values)) {
                 this->updateSelection_itemRemoved(index);
             }
         }
@@ -533,8 +531,7 @@ struct ListActions {
                 assert(listSize >= indexes.size());
 
                 index_type from = indexes.size() - 1;
-                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
-                    const index_type to = *it;
+                for (const index_type& to : reverse(indexes)) {
                     if (from != to) {
                         moveItem(projectList, editorList, from, to);
                     }
@@ -546,8 +543,7 @@ struct ListActions {
                 assert(indexes.front() > 0);
                 assert(indexes.back() < listSize);
 
-                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
-                    const index_type i = *it;
+                for (const index_type& i : reverse(indexes)) {
                     moveItem(projectList, editorList, i - 1, i);
                 }
             } break;
@@ -619,8 +615,7 @@ struct ListActions {
                 assert(indexes.front() >= 0);
                 assert(indexes.back() + 1 < listSize);
 
-                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
-                    const index_type i = *it;
+                for (const index_type& i : reverse(indexes)) {
                     moveItem(projectList, editorList, i, i + 1);
                 }
 
@@ -632,8 +627,7 @@ struct ListActions {
                 assert(listSize >= indexes.size());
 
                 index_type to = listSize - 1;
-                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
-                    const index_type from = *it;
+                for (const index_type& from : reverse(indexes)) {
                     if (from != to) {
                         moveItem(projectList, editorList, from, to);
                     }

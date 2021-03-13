@@ -252,3 +252,9 @@ inline auto skip_first_element(const C& c)
 
     return iterator_wrapper(it, c.cend());
 }
+
+template <class C>
+inline auto reverse(const C& c)
+{
+    return iterator_wrapper(c.crbegin(), c.crend());
+}

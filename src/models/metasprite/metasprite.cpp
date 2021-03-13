@@ -110,9 +110,7 @@ void Frame::draw(Image& image, const FrameSet& frameSet, size_t paletteId,
 {
     const Snes::Palette4bpp& palette = frameSet.palettes[paletteId];
 
-    for (auto it = objects.rbegin(); it != objects.rend(); ++it) {
-        const FrameObject& obj = *it;
-
+    for (const auto& obj : reverse(objects)) {
         if (obj.size == ObjectSize::SMALL) {
             frameSet.smallTileset.drawTile(image, palette,
                                            xOffset + obj.location.x, yOffset + obj.location.y,
