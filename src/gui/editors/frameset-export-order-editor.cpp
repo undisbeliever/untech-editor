@@ -154,7 +154,6 @@ template <typename ExportNameAP>
 void FrameSetExportOrderEditorGui::exportNameTree(const char* label)
 {
     using ExportName = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
-    using NameReference = UnTech::MetaSprite::NameReference;
 
     static_assert(std::is_same_v<ExportNameAP, AP::Frames> || std::is_same_v<ExportNameAP, AP::Animations>);
     using AltAP = std::conditional_t<std::is_same_v<ExportNameAP, AP::Frames>, AP::FrameAlternatives, AP::AnimationsAlternatives>;
