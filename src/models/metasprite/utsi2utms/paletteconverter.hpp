@@ -10,6 +10,7 @@
 #include "models/common/vectorset.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
+#include "models/snes/convert-snescolor.h"
 #include <cstring>
 #include <iomanip>
 #include <map>
@@ -206,7 +207,7 @@ buildUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image, ve
             const rgba c = image.getPixel(xPos, yPos);
             xPos += colorSize;
 
-            palette.at(i).setRgb(c);
+            palette.at(i) = Snes::toSnesColor(c);
 
             if (colorsInImage.contains(c)) {
                 nMatching++;
@@ -251,12 +252,12 @@ static std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> buildAutomaticPalett
 
     // Store palette in MetaSprite
     colorMap.insert({ transparentColor, 0 });
-    palette.at(0).setRgb(transparentColor);
+    palette.at(0) = Snes::toSnesColor(transparentColor);
 
     int i = 1;
     for (auto& c : colors) {
         colorMap.insert({ c, i });
-        palette.at(i).setRgb(c);
+        palette.at(i) = Snes::toSnesColor(c);
         i++;
     }
 

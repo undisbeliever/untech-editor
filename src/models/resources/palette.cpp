@@ -10,6 +10,7 @@
 #include "models/common/imagecache.h"
 #include "models/common/iterators.h"
 #include "models/lz4/lz4.h"
+#include "models/snes/convert-snescolor.h"
 #include <cassert>
 
 using namespace UnTech;
@@ -118,7 +119,7 @@ Resources::convertPalette(const PaletteInput& input, ErrorList& err)
             const auto* imgBits = paletteImage->scanline(frameYOffset + fy);
 
             for (const auto fx : range(imgSize.width)) {
-                *frameIt++ = imgBits[fx];
+                *frameIt++ = Snes::toSnesColor(imgBits[fx]);
             }
         }
         assert(frameIt == frame.end());

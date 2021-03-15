@@ -13,6 +13,7 @@
 #include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "models/common/bit.h"
+#include "models/snes/convert-snescolor.h"
 #include "models/snes/drawing.hpp"
 #include <algorithm>
 
@@ -29,6 +30,7 @@ enum class MetaSpriteEditorGui::PaletteState {
 constexpr static unsigned SMALL_TILE_SIZE = 8;
 constexpr static unsigned LARGE_TILE_SIZE = 16;
 
+constexpr static unsigned N_PALETTE_COLORS = 16;
 constexpr static unsigned PALETTE_TEXTURE_WIDTH = 16;
 constexpr static unsigned TILESET_IMAGE_WIDTH = 16 * SMALL_TILE_SIZE;
 constexpr static unsigned SMALL_TILES_PER_ROW = TILESET_IMAGE_WIDTH / SMALL_TILE_SIZE;
@@ -694,7 +696,10 @@ void MetaSpriteEditorGui::palettesWindow()
         ImGui::Spacing();
 
         if (_data->palettesSel.selectedIndex() < fs.palettes.size()) {
-            const auto& colors = fs.palettes.at(_data->palettesSel.selectedIndex());
+            assert(_paletteImage.size().width == N_PALETTE_COLORS);
+            assert(_paletteImage.size().height >= fs.palettes.size());
+
+            const rgba* colors = _paletteImage.scanline(_data->palettesSel.selectedIndex());
 
             const ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha;
 
@@ -707,11 +712,11 @@ void MetaSpriteEditorGui::palettesWindow()
                 _paletteState = PaletteState::DRAW_TILES;
             }
 
-            for (auto [i, color] : enumerate(colors)) {
+            for (const auto i : range(N_PALETTE_COLORS)) {
                 ImGui::PushID(i);
 
                 bool buttonClicked = false;
-                const ImColor c(color.rgb().rgb());
+                const ImColor c(colors[i].rgb());
 
                 if (i != _colorSel) {
                     buttonClicked = ImGui::ColorButton("##color", c, flags, buttonSize);
@@ -763,8 +768,9 @@ void MetaSpriteEditorGui::colorPopup()
         if (_colorSel < MetaSprite::PALETTE_COLORS
             && _data->palettesSel.selectedIndex() < fs.palettes.size()) {
 
-            auto& color = fs.palettes.at(_data->palettesSel.selectedIndex()).at(_colorSel);
-            ImVec4 colorVec = ImGui::ColorConvertU32ToFloat4(color.rgb().rgb());
+            auto& snesColor = fs.palettes.at(_data->palettesSel.selectedIndex()).at(_colorSel);
+            const rgba color = Snes::toRgb(snesColor);
+            ImVec4 colorVec = ImGui::ColorConvertU32ToFloat4(color.rgb());
 
             if (!_popupOpen) {
                 _oldColor = colorVec;
@@ -794,20 +800,20 @@ void MetaSpriteEditorGui::colorPopup()
             ImGui::SetCursorPosY(colorPickerCursorY - (ImGui::GetFrameHeight() + style.ItemSpacing.y) * 3);
             ImGui::PushItemWidth(itemWidth);
 
-            unsigned blue = color.blue();
-            unsigned green = color.green();
-            unsigned red = color.red();
+            unsigned blue = snesColor.blue();
+            unsigned green = snesColor.green();
+            unsigned red = snesColor.red();
 
             if (ImGui::InputUnsigned("Blue", &blue)) {
-                color.setBlue(std::clamp<unsigned>(blue, 0, 31));
+                snesColor.setBlue(std::clamp<unsigned>(blue, 0, 31));
                 colorChanged = true;
             }
             if (ImGui::InputUnsigned("Green", &green)) {
-                color.setGreen(std::clamp<unsigned>(green, 0, 31));
+                snesColor.setGreen(std::clamp<unsigned>(green, 0, 31));
                 colorChanged = true;
             }
             if (ImGui::InputUnsigned("Red", &red)) {
-                color.setRed(std::clamp<unsigned>(red, 0, 31));
+                snesColor.setRed(std::clamp<unsigned>(red, 0, 31));
                 colorChanged = true;
             }
 
@@ -815,7 +821,7 @@ void MetaSpriteEditorGui::colorPopup()
             ImGui::EndGroup();
 
             if (colorVecChanged) {
-                color.setRgb(rgba::fromRgba(ImGui::ColorConvertFloat4ToU32(colorVec)));
+                snesColor = Snes::toSnesColor(rgba::fromRgba(ImGui::ColorConvertFloat4ToU32(colorVec)));
                 colorChanged = true;
             }
         }
@@ -1395,7 +1401,7 @@ void MetaSpriteEditorGui::updatePaletteTexture()
         assert(PALETTE_TEXTURE_WIDTH == palette.size());
 
         for (const auto c : range(palette.size())) {
-            *imgBits++ = palette.at(c).rgb();
+            *imgBits++ = Snes::toRgb(palette.at(c));
         }
     }
     assert(imgBits <= imgBitsEnd);
@@ -1417,15 +1423,15 @@ void MetaSpriteEditorGui::updateTilesetTexture()
         return;
     }
 
-    const Snes::Palette4bpp& palette = [&]() -> const auto&
+    const rgba* palette = nullptr;
     {
-        if (fs.palettes.empty()) {
-            return BLANK_PALETTE;
+        const auto palIndex = _data->palettesSel.selectedIndex();
+
+        if (palIndex < _paletteImage.size().height) {
+            assert(_paletteImage.size().width == N_PALETTE_COLORS);
+            palette = _paletteImage.scanline(palIndex);
         }
-        const auto index = _data->palettesSel.selectedIndex();
-        return index < fs.palettes.size() ? fs.palettes.at(index) : fs.palettes.at(0);
     }
-    ();
 
     const unsigned nSmallRows = (std::max<unsigned>(1, fs.smallTileset.size()) - 1) / SMALL_TILES_PER_ROW + 1;
     const unsigned nLargeRows = (std::max<unsigned>(1, fs.largeTileset.size()) - 1) / LARGE_TILES_PER_ROW + 1;
@@ -1443,22 +1449,27 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     _smallTilesetUVmax = ImVec2(1.0f, _smallTilesetUvSize.y * nSmallRows);
     _largeTilesetUVmax = ImVec2(1.0f, _smallTilesetUVmax.y + _largeTilesetUvSize.y * nLargeRows);
 
-    {
+    if (palette) {
         const auto* imgBitsEnd = _tilesetImage.data() + _tilesetImage.dataSize();
-        const size_t stride = _tilesetImage.pixelsPerScanline();
-        assert(stride == TILESET_IMAGE_WIDTH);
+        constexpr size_t stride = TILESET_IMAGE_WIDTH;
+        assert(stride == _tilesetImage.pixelsPerScanline());
 
         auto* imgBits = _tilesetImage.data();
-        Snes::drawTileset_transparent(fs.smallTileset, imgBits, imgBitsEnd, stride, palette);
+        Snes::drawTileset_transparent(fs.smallTileset, imgBits, imgBitsEnd, stride, palette, N_PALETTE_COLORS);
 
         imgBits = _tilesetImage.scanline(nSmallRows * SMALL_TILE_SIZE);
-        Snes::drawTileset_transparent(fs.largeTileset, imgBits, imgBitsEnd, stride, palette);
+        Snes::drawTileset_transparent(fs.largeTileset, imgBits, imgBitsEnd, stride, palette, N_PALETTE_COLORS);
     }
 
     _tilesetTexture.replace(_tilesetImage);
 
     // ALso update background color
-    _paletteBackgroundColor = palette.at(0).rgb().rgbaValue();
+    if (palette) {
+        _paletteBackgroundColor = palette[0].rgbaValue();
+    }
+    else {
+        _paletteBackgroundColor = 0;
+    }
 
     _tilesetValid = true;
 }

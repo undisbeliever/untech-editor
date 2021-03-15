@@ -10,10 +10,12 @@
 #include <array>
 #include <cstdint>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 class SnesColor {
+private:
+    uint16_t _data;
+
 public:
     ~SnesColor() = default;
     SnesColor(const SnesColor&) = default;
@@ -22,33 +24,21 @@ public:
     SnesColor& operator=(SnesColor&&) = default;
 
     SnesColor()
-        : _rgb(0, 0, 0, 0xFF)
-        , _data(0)
+        : _data(0)
     {
-    }
-
-    SnesColor(const rgba& color)
-        : _rgb(0, 0, 0, 0xFF)
-        , _data(0)
-    {
-        setRgb(color);
     }
 
     SnesColor(const uint16_t value)
-        : _rgb(0, 0, 0, 0xFF)
-        , _data(0)
+        : _data(value & 0x7FFF)
     {
-        setData(value);
     }
 
-    inline const rgba& rgb() const { return _rgb; }
     inline const uint16_t& data() const { return _data; }
 
     inline uint8_t blue() const { return (_data >> 10) & 31; }
     inline uint8_t green() const { return (_data >> 5) & 31; }
     inline uint8_t red() const { return _data & 31; }
 
-    void setRgb(const rgba color);
     void setData(const uint16_t data);
 
     void setBlue(const uint8_t blue);
@@ -57,16 +47,8 @@ public:
 
     inline bool operator==(const SnesColor& o) const { return _data == o._data; }
     inline bool operator!=(const SnesColor& o) const { return _data != o._data; }
-
-private:
-    void updateRgb();
-
-private:
-    rgba _rgb;
-    uint16_t _data;
 };
 
 using Palette4bpp = std::array<SnesColor, 16>;
 
-}
 }

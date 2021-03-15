@@ -10,6 +10,7 @@
 #include "models/common/file.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
+#include "models/snes/convert-snescolor.h"
 #include <stdexcept>
 
 using namespace UnTech;
@@ -76,7 +77,7 @@ void ImageToTileset::processPalette(const IndexedImage& image)
     assert(image.palette().size() <= _palette.size());
     std::transform(image.palette().begin(), image.palette().end(),
                    _palette.begin(),
-                   [](const rgba& c) { return SnesColor(c); });
+                   [](const rgba& c) { return Snes::toSnesColor(c); });
 }
 
 void ImageToTileset::processTileset(const IndexedImage& image)

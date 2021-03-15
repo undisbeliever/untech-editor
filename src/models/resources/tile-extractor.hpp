@@ -7,6 +7,7 @@
 #include "invalid-image-error.h"
 #include "models/common/image.h"
 #include "models/common/iterators.h"
+#include "models/snes/convert-snescolor.h"
 #include "models/snes/tile.h"
 #include <vector>
 
@@ -28,7 +29,7 @@ inline bool extractTile8px(Snes::Tile8px& tile, const rgba* imgBits, unsigned pi
         const rgba* scanline = imgBits + y * pixelsPerScanline;
 
         for (const auto x : range(TS)) {
-            const Snes::SnesColor c(scanline[x]);
+            const Snes::SnesColor c = Snes::toSnesColor(scanline[x]);
 
             auto pIt = std::find(pBegin, pEnd, c);
             if (pIt == pEnd) {

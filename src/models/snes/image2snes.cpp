@@ -9,6 +9,7 @@
 #include "tilesetinserter.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
+#include "models/snes/convert-snescolor.h"
 #include <algorithm>
 #include <array>
 #include <vector>
@@ -209,7 +210,7 @@ private:
         auto palIt = palette.begin();
 
         for (const auto& sp : sourcePalette) {
-            *palIt++ = SnesColor(sp).data();
+            *palIt++ = Snes::toSnesColor(sp).data();
         }
         assert(palIt == palette.end());
     }

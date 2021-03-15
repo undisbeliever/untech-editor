@@ -12,15 +12,9 @@
 namespace UnTech::MetaSprite::MetaSprite {
 
 inline void drawFrame(Image& image,
-                      const FrameSet& frameSet, size_t paletteId,
+                      const FrameSet& frameSet, const std::array<rgba, 16>& palette,
                       const Frame& frame, unsigned xOffset, unsigned yOffset)
 {
-    if (paletteId >= frameSet.palettes.size()) {
-        return;
-    }
-
-    const Snes::Palette4bpp& palette = frameSet.palettes.at(paletteId);
-
     for (const auto& obj : reverse(frame.objects)) {
         if (obj.size == ObjectSize::SMALL) {
             Snes::drawTile_transparent(frameSet.smallTileset, obj.tileId, obj.hFlip, obj.vFlip,

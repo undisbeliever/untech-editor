@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "snescolor.h"
 #include "tile.h"
 #include "models/common/bit.h"
 #include "models/common/image.h"
@@ -120,7 +119,7 @@ inline void drawTile(const Tile<TS>& tile, const bool hFlip, const bool vFlip,
 template <size_t TS, size_t PS>
 void drawTile_transparent(const Tile<TS>& tile,
                           rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
-                          const std::array<SnesColor, PS>& palette)
+                          const std::array<rgba, PS>& palette)
 {
     constexpr unsigned PIXEL_MASK = pixelMaskForPaletteSize(PS);
 
@@ -129,7 +128,7 @@ void drawTile_transparent(const Tile<TS>& tile,
                     [&](rgba& img, uint8_t p) {
                         p &= PIXEL_MASK;
                         if (p != 0) {
-                            img = palette.at(p).rgb();
+                            img = palette.at(p);
                         }
                     });
 }
@@ -137,7 +136,7 @@ void drawTile_transparent(const Tile<TS>& tile,
 template <size_t TS, size_t PS>
 void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const bool vFlip,
                           rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
-                          const std::array<SnesColor, PS>& palette)
+                          const std::array<rgba, PS>& palette)
 {
     constexpr unsigned PIXEL_MASK = pixelMaskForPaletteSize(PS);
 
@@ -146,15 +145,32 @@ void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const bool vFl
              [&](rgba& img, uint8_t p) {
                  p &= PIXEL_MASK;
                  if (p != 0) {
-                     img = palette.at(p).rgb();
+                     img = palette.at(p);
                  }
              });
+}
+
+template <size_t TS>
+inline void drawTile_transparent(const Tile<TS>& tile,
+                                 rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
+                                 const rgba* palette, const unsigned nColors)
+{
+    const unsigned PIXEL_MASK = pixelMaskForPaletteSize(nColors);
+
+    drawTile_noFlip(tile,
+                    imgBits, imgBitsEnd, stride,
+                    [&](rgba& img, uint8_t p) {
+                        p &= PIXEL_MASK;
+                        if (p != 0) {
+                            img = palette[p];
+                        }
+                    });
 }
 
 // Fails silently if offset is invalid
 template <size_t TS, size_t PS>
 inline void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const bool vFlip,
-                                 const std::array<SnesColor, PS>& palette,
+                                 const std::array<rgba, PS>& palette,
                                  Image& image, unsigned xOffset, unsigned yOffset)
 {
     if ((xOffset + TS) < image.size().width
@@ -171,7 +187,7 @@ inline void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const b
 // Fails silently if tileId or offset is invalid
 template <size_t TS, size_t PS>
 inline void drawTile_transparent(const std::vector<Tile<TS>>& tileset, unsigned tileId, const bool hFlip, const bool vFlip,
-                                 const std::array<SnesColor, PS>& palette,
+                                 const std::array<rgba, PS>& palette,
                                  Image& image, unsigned xOffset, unsigned yOffset)
 {
     if (tileId < tileset.size()) {
@@ -181,10 +197,10 @@ inline void drawTile_transparent(const std::vector<Tile<TS>>& tileset, unsigned 
 
 // NOTE: Image MUST be large enough to hold tileset.
 // ASSUMES `imgBits` points to the start of an image scanline.
-template <size_t TS, size_t PS>
+template <size_t TS>
 void drawTileset_transparent(const std::vector<Tile<TS>>& tileset,
                              rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
-                             const std::array<SnesColor, PS>& palette)
+                             const rgba* palette, const unsigned nColors)
 {
     if (tileset.empty()) {
         return;
@@ -202,7 +218,7 @@ void drawTileset_transparent(const std::vector<Tile<TS>>& tileset,
     unsigned x = 0;
 
     for (const Tile<TS>& tile : tileset) {
-        Snes::drawTile_transparent(tile, imgBits, imgBitsEnd, stride, palette);
+        drawTile_transparent(tile, imgBits, imgBitsEnd, stride, palette, nColors);
 
         imgBits += TS;
 

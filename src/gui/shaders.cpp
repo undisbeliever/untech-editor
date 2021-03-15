@@ -11,6 +11,7 @@
 #include "models/project/project-data.h"
 #include "models/project/project.h"
 #include "models/resources/drawing.h"
+#include "models/snes/convert-snescolor.h"
 #include <cassert>
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
@@ -32,8 +33,8 @@ static Image drawPaletteImage(const Resources::PaletteData& palette)
         const unsigned nColors = std::min<unsigned>(palFrame.size(), UINT8_MAX);
 
         rgba* imgBits = image.scanline(palIndex);
-        for (const auto c : range(nColors)) {
-            imgBits[c] = palFrame.at(c).rgb();
+        for (const auto i : range(nColors)) {
+            *imgBits++ = Snes::toRgb(palFrame.at(i));
         }
         assert(imgBits <= image.data() + image.dataSize());
     }

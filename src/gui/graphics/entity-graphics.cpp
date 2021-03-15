@@ -11,6 +11,7 @@
 #include "models/metasprite/drawing.hpp"
 #include "models/project/project-data.h"
 #include "models/project/project.h"
+#include "models/snes/convert-snescolor.h"
 
 namespace UnTech::Gui {
 
@@ -386,7 +387,18 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
                 ds.hitboxRect = NOT_SOLID_HITBOX_RECT;
             }
 
-            MS::drawFrame(eg->image, ef.frameSet, ef.palette, ef.frame,
+            std::array<rgba, 16> palette;
+            if (ef.palette < ef.frameSet.palettes.size()) {
+                auto msPalette = ef.frameSet.palettes.at(ef.palette);
+                std::transform(msPalette.begin(), msPalette.end(), palette.begin(),
+                               Snes::toRgb);
+                ;
+            }
+            else {
+                palette.fill(rgba(255, 0, 0));
+            }
+
+            MS::drawFrame(eg->image, ef.frameSet, palette, ef.frame,
                           node.x - node.originX, node.y - node.originY);
 
             if (ef.isEntity) {
