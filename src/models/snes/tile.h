@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "palette.h"
 #include "../common/image.h"
 #include "models/common/attributes.h"
 #include <array>

@@ -25,8 +25,8 @@ std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp
 
         // Color 0 is always transparent and thus not saved to ROM
         auto pIt = pData.begin();
-        for (const auto i : range(1, palette.N_COLORS)) {
-            uint16_t cData = palette.color(i).data();
+        for (const auto i : range(1, palette.size())) {
+            uint16_t cData = palette.at(i).data();
             *pIt++ = cData & 0xff;
             *pIt++ = cData >> 8;
         }

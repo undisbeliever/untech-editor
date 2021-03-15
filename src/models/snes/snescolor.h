@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/rgba.h"
+#include <array>
 #include <cstdint>
 
 namespace UnTech {
@@ -73,5 +74,8 @@ private:
     rgba _rgb;
     uint16_t _data;
 };
+
+using Palette4bpp = std::array<SnesColor, 16>;
+
 }
 }

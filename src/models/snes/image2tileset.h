@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "palette.h"
+#include "snescolor.h"
 #include "tile.h"
 #include "models/common/indexedimage.h"
 #include <filesystem>

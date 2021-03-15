@@ -7,7 +7,7 @@
 #pragma once
 
 #include "models/common/idstring.h"
-#include "models/snes/palette.h"
+#include "models/snes/snescolor.h"
 #include <filesystem>
 #include <memory>
 #include <string>

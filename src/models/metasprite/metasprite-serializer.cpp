@@ -11,6 +11,7 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include "models/snes/bit-depth.h"
+#include "models/snes/palette-data.hpp"
 #include "models/snes/tile-data.h"
 #include <cassert>
 #include <fstream>
@@ -220,7 +221,7 @@ private:
 
         xml.parseBase64ToByteArray(data);
 
-        frameSet.palettes.emplace_back(data);
+        frameSet.palettes.push_back(Snes::readSnesPaletteData(data));
     }
 };
 
@@ -318,7 +319,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     for (const Snes::Palette4bpp& p : frameSet.palettes) {
         xml.writeTag("palette");
-        xml.writeBase64(p.paletteData());
+        xml.writeBase64(snesPaletteData(p));
         xml.writeCloseTag();
     }
 

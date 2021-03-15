@@ -206,7 +206,7 @@ buildUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image, ve
             const rgba c = image.getPixel(xPos, yPos);
             xPos += colorSize;
 
-            palette.color(i).setRgb(c);
+            palette.at(i).setRgb(c);
 
             if (colorsInImage.contains(c)) {
                 nMatching++;
@@ -251,12 +251,12 @@ static std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> buildAutomaticPalett
 
     // Store palette in MetaSprite
     colorMap.insert({ transparentColor, 0 });
-    palette.color(0).setRgb(transparentColor);
+    palette.at(0).setRgb(transparentColor);
 
     int i = 1;
     for (auto& c : colors) {
         colorMap.insert({ c, i });
-        palette.color(i).setRgb(c);
+        palette.at(i).setRgb(c);
         i++;
     }
 

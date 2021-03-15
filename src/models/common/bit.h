@@ -10,7 +10,7 @@
 
 namespace UnTech {
 
-inline bool isPowerOfTwo(int64_t v)
+inline constexpr bool isPowerOfTwo(int64_t v)
 {
     return v && (v & (v - 1)) == 0;
 }

@@ -17,7 +17,6 @@
 #include "models/metatiles/interactive-tiles.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/resources/background-image.h"
-#include "models/resources/palette.h"
 #include "models/resources/scenes.h"
 #include "models/rooms/rooms.h"
 #include "models/scripting/bytecode.h"

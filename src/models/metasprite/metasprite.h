@@ -13,6 +13,7 @@
 #include "models/common/idstring.h"
 #include "models/common/ms8aabb.h"
 #include "models/common/namedlist.h"
+#include "models/snes/snescolor.h"
 #include "models/snes/tile.h"
 #include <filesystem>
 #include <string>
