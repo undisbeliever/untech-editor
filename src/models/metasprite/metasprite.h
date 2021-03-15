@@ -13,7 +13,7 @@
 #include "models/common/idstring.h"
 #include "models/common/ms8aabb.h"
 #include "models/common/namedlist.h"
-#include "models/snes/tileset.h"
+#include "models/snes/tile.h"
 #include <filesystem>
 #include <string>
 
@@ -136,8 +136,8 @@ struct FrameSet {
     NamedList<Frame> frames;
     NamedList<Animation::Animation> animations;
 
-    Snes::Tileset8px smallTileset;
-    Snes::TilesetTile16 largeTileset;
+    std::vector<Snes::Tile8px> smallTileset;
+    std::vector<Snes::Tile16px> largeTileset;
     std::vector<Snes::Palette4bpp> palettes;
 
     FrameSet()
@@ -146,7 +146,7 @@ struct FrameSet {
         , exportOrder()
         , frames()
         , animations()
-        , smallTileset(Snes::Tileset8px::BitDepth::BD_4BPP)
+        , smallTileset()
         , largeTileset()
         , palettes()
     {

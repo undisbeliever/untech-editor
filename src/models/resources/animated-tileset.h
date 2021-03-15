@@ -7,8 +7,8 @@
 #pragma once
 
 #include "models/common/grid.h"
+#include "models/snes/tile.h"
 #include "models/snes/tilemap.h"
-#include "models/snes/tileset.h"
 #include <vector>
 
 namespace UnTech {
@@ -24,13 +24,9 @@ struct AnimatedTilesetData {
 
     const static int ANIMATED_TILESET_FORMAT_VERSION;
 
-    AnimatedTilesetData(int bitDepth)
-        : staticTiles(bitDepth)
-    {
-    }
-
-    Snes::Tileset8px staticTiles;
-    std::vector<Snes::Tileset8px> animatedTiles;
+    std::vector<Snes::Tile8px> staticTiles;
+    std::vector<std::vector<Snes::Tile8px>> animatedTiles;
+    unsigned bitDepth;
 
     unsigned conversionPaletteIndex;
 

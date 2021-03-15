@@ -9,6 +9,8 @@
 #include "models/common/errorlist.h"
 #include "models/lz4/lz4.h"
 #include "models/snes/animatedtilesetinserter.h"
+#include "models/snes/bit-depth.h"
+#include "models/snes/tile-data.h"
 #include "models/snes/tilesetinserter.h"
 #include <algorithm>
 #include <cassert>
@@ -38,17 +40,17 @@ unsigned AnimatedTilesetData::nAnimatedTiles() const
 
 unsigned AnimatedTilesetData::animatedTilesFrameSize() const
 {
-    return nAnimatedTiles() * staticTiles.snesTileSize();
+    return nAnimatedTiles() * Snes::snesTileSizeForBitdepth(bitDepth);
 }
 
 unsigned AnimatedTilesetData::animatedTilesBlockSize() const
 {
-    return animatedTiles.size() * nAnimatedTiles() * staticTiles.snesTileSize();
+    return animatedTiles.size() * nAnimatedTiles() * Snes::snesTileSizeForBitdepth(bitDepth);
 }
 
 unsigned AnimatedTilesetData::vramTileSize() const
 {
-    return (staticTiles.size() + nAnimatedTiles()) * staticTiles.snesTileSize();
+    return (staticTiles.size() + nAnimatedTiles()) * Snes::snesTileSizeForBitdepth(bitDepth);
 }
 
 bool AnimatedTilesetData::validate(ErrorList& err) const
@@ -56,8 +58,7 @@ bool AnimatedTilesetData::validate(ErrorList& err) const
     bool valid = true;
 
     for (const auto& at : animatedTiles) {
-        if (at.size() != nAnimatedTiles()
-            || at.bitDepth() != staticTiles.bitDepth()) {
+        if (at.size() != nAnimatedTiles()) {
 
             err.addErrorString("animatedTiles is invalid");
             valid = false;
@@ -86,14 +87,13 @@ const int AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION = 2;
 
 std::vector<uint8_t> AnimatedTilesetData::exportAnimatedTileset() const
 {
-    std::vector<uint8_t> block = staticTiles.snesData();
+    std::vector<uint8_t> block = Snes::snesTileData(staticTiles, bitDepth);
     block.reserve(block.size() + animatedTilesBlockSize());
 
     for (const auto& at : animatedTiles) {
         assert(at.size() == animatedTiles.front().size());
-        assert(at.bitDepth() == staticTiles.bitDepth());
 
-        const std::vector<uint8_t> atData = at.snesData();
+        const std::vector<uint8_t> atData = Snes::snesTileData(at, bitDepth);
         block.insert(block.end(), atData.begin(), atData.end());
     }
     block = lz4HcCompress(block);

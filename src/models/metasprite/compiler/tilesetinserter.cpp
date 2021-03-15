@@ -57,7 +57,7 @@ const uint16_t CharAttrPos::SMALL_TILE_OFFSETS[4] = { 0x0000, 0x0001, 0x0010, 0x
 static FrameTilesetData
 insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             const unsigned tileOffset, const FrameTilesetData& staticTileset, const bool dynamicTileset,
-            const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
+            const std::vector<Snes::Tile16px>& largeTileset, const std::vector<Snes::Tile8px>& smallTileset,
             Snes::TilesetInserter16px& tileInserter)
 {
     assert(tiles.empty() == false);
@@ -81,7 +81,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
     for (const Tile16& tile16 : tiles) {
         if (tile16.isLarge()) {
             unsigned tId = tile16.largeTileId;
-            const Snes::Tile16px& tile = largeTileset.tile(tId);
+            const Snes::Tile16px& tile = largeTileset.at(tId);
 
             const auto a = addTile(tile);
 
@@ -106,7 +106,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             for (const auto i : range(4)) {
                 unsigned tId = tile16.smallTileIds[i];
                 if (tId < smallTileset.size()) {
-                    smallTiles[i] = smallTileset.tile(tId);
+                    smallTiles[i] = smallTileset.at(tId);
                 }
             }
             const auto a = addTile(combineSmallTiles(smallTiles));
@@ -141,7 +141,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
 static FrameTilesetData
 insertStaticTileset(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
                     const unsigned tileOffset,
-                    const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
+                    const std::vector<Snes::Tile16px>& largeTileset, const std::vector<Snes::Tile8px>& smallTileset,
                     Snes::TilesetInserter16px& tileInserter)
 {
     constexpr uint16_t nullTile = FrameTilesetData::NULL_CHAR_ATTR;
@@ -162,7 +162,7 @@ insertStaticTileset(const vectorset<Tile16>& tiles, const TilesetType tilesetTyp
 static FrameTilesetData
 insertDynamicTileset(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
                      const FrameTilesetData& staticTileset,
-                     const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
+                     const std::vector<Snes::Tile16px>& largeTileset, const std::vector<Snes::Tile8px>& smallTileset,
                      Snes::TilesetInserter16px& tileInserter)
 {
     return insertTiles(tiles, tilesetType, 0, staticTileset, true,

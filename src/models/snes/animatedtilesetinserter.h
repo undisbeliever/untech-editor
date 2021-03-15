@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "tileset.h"
+#include "tile.h"
 #include "tilesetinserter.h"
 #include <algorithm>
 #include <unordered_map>
@@ -15,10 +15,14 @@
 namespace UnTech {
 namespace Snes {
 
-template <class T>
+template <unsigned TILE_SIZE>
 class AnimatedTilesetInserter {
-    using TilesetT = T;
-    using TileT = typename T::TileT;
+    using TileT = Tile<TILE_SIZE>;
+    using TilesetT = std::vector<TileT>;
+
+private:
+    std::vector<TilesetT>& _tilesets;
+    std::unordered_map<std::vector<TileT>, TilesetInserterOutput> _map;
 
 public:
     AnimatedTilesetInserter(std::vector<TilesetT>& tilesets)
@@ -37,7 +41,7 @@ public:
 
         for (const auto t : range(tilesets.front().size())) {
             for (const auto f : range(nFrames())) {
-                tiles.at(f) = tilesets.at(f).tile(t);
+                tiles.at(f) = tilesets.at(f).at(t);
             }
             addToMap(tiles, t);
         }
@@ -67,7 +71,7 @@ private:
         unsigned tileId = _tilesets.front().size();
 
         for (const auto f : range(_tilesets.size())) {
-            _tilesets.at(f).addTile(tiles.at(f));
+            _tilesets.at(f).push_back(tiles.at(f));
         }
 
         addToMap(tiles, tileId);
@@ -99,10 +103,6 @@ private:
         _map.insert({ vFliped, { tileId, false, true } });
         _map.insert({ hvFliped, { tileId, true, true } });
     }
-
-private:
-    std::vector<TilesetT>& _tilesets;
-    std::unordered_map<std::vector<TileT>, TilesetInserterOutput> _map;
 };
 }
 }

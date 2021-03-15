@@ -16,6 +16,7 @@
 #include "models/metatiles/metatile-tileset.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project.h"
+#include "models/snes/tile-data.h"
 
 namespace UnTech {
 namespace Project {
@@ -44,7 +45,8 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     // Tiles are written first so they are always aligned with
     // the start of the data
     for (const auto& tileBank : msData.tileData.tileBanks()) {
-        writer.addBankData(tileBank.bankId, tileBank.startingAddress, tileBank.tiles.snesData());
+        writer.addBankData(tileBank.bankId, tileBank.startingAddress,
+                           Snes::snesTileData4bppTile16(tileBank.tiles));
     }
 
     writeData(msData.frameSetData);

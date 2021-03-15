@@ -151,15 +151,16 @@ static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const usize&
         assert(tmIt == input.tileMap.end());
     }
 
+    assert(aniTileset.animatedTiles.empty());
+
     if (!input.animatedTiles.empty()) {
         unsigned nAnimatedFrames = input.animatedTiles.front().size();
-        for ([[maybe_unused]] const auto i : range(nAnimatedFrames)) {
-            aniTileset.animatedTiles.emplace_back(aniTileset.staticTiles.bitDepth());
-        }
+
+        aniTileset.animatedTiles.resize(nAnimatedFrames);
 
         unsigned aniTileOffset = aniTileset.staticTiles.size();
 
-        Snes::AnimatedTilesetInserter<Snes::Tileset8px> aniTilesetInserter(aniTileset.animatedTiles);
+        Snes::AnimatedTilesetInserter<8> aniTilesetInserter(aniTileset.animatedTiles);
         auto tmIt = input.tileMap.begin();
         for (auto& tmEntry : aniTileset.tileMap) {
             const auto& tm = *tmIt++;
@@ -248,7 +249,8 @@ convertAnimationFrames(const AnimationFramesInput& input,
     const auto& firstImageFilename = input.frameImageFilenames.front();
     const auto& imgSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
-    AnimatedTilesetData ret(input.bitDepth);
+    AnimatedTilesetData ret;
+    ret.bitDepth = input.bitDepth;
     ret.animationDelay = input.animationDelay;
 
     const usize mapSize(imgSize.width / 8, imgSize.height / 8);
@@ -269,7 +271,7 @@ convertAnimationFrames(const AnimationFramesInput& input,
     const auto tilesetIntermediate = combineFrameTiles(frameTiles, mapSize.width, err);
 
     if (input.addTransparentTile) {
-        ret.staticTiles.addTile();
+        ret.staticTiles.emplace_back();
     }
 
     buildTilesetAndTilemap(ret, mapSize, tilesetIntermediate);

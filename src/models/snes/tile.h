@@ -64,8 +64,8 @@ protected:
     std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};
 };
 
-typedef Tile<8> Tile8px;
-typedef Tile<16> Tile16px;
+using Tile8px = Tile<8>;
+using Tile16px = Tile<16>;
 
 std::array<Tile8px, 4> splitLargeTile(const Tile16px& largeTile);
 Tile16px combineSmallTiles(const std::array<Tile8px, 4>& tiles);

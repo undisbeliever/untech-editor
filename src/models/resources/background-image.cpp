@@ -10,6 +10,7 @@
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include "models/project/project-data.h"
+#include "models/snes/bit-depth.h"
 #include "models/snes/tilesetinserter.h"
 #include <algorithm>
 #include <cassert>
@@ -112,8 +113,9 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
         return nullptr;
     }
 
-    auto ret = std::make_shared<BackgroundImageData>(input.bitDepth);
+    auto ret = std::make_shared<BackgroundImageData>();
 
+    ret->bitDepth = input.bitDepth;
     ret->conversionPaletteIndex = *paletteIndex;
 
     Snes::TilesetInserter8px staticTilesetInserter(ret->tiles);
@@ -179,7 +181,12 @@ unsigned BackgroundImageData::nTilemaps() const
 
 unsigned BackgroundImageData::uncompressedDataSize() const
 {
-    return tilemapDataSize() + tiles.snesDataSize();
+    return tilemapDataSize() + tilesetDataSize();
+}
+
+unsigned BackgroundImageData::tilesetDataSize() const
+{
+    return tiles.size() * Snes::snesTileSizeForBitdepth(bitDepth);
 }
 
 unsigned BackgroundImageData::tilemapDataSize() const
@@ -229,7 +236,7 @@ std::vector<uint8_t> BackgroundImageData::exportSnesData() const
     }
 
     // tileData
-    std::vector<uint8_t> tileData = tiles.snesData();
+    std::vector<uint8_t> tileData = Snes::snesTileData(tiles, bitDepth);
     mapAndTileData.insert(mapAndTileData.end(), tileData.begin(), tileData.end());
 
     assert(mapAndTileData.size() == dataSize);

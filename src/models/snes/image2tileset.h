@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "palette.h"
+#include "tile.h"
 #include "models/common/indexedimage.h"
-#include "models/snes/palette.h"
-#include "models/snes/tileset.h"
 #include <filesystem>
 
 namespace UnTech {
@@ -27,12 +27,19 @@ public:
         const IndexedImage& image, int bitDepth,
         const std::filesystem::path& tilesetFile, const std::filesystem::path& paletteFile);
 
+private:
+    const unsigned _bitDepth;
+    std::vector<Tile8px> _tileset;
+    std::vector<SnesColor> _palette;
+
 public:
     ImageToTileset(int bitDepth);
     ImageToTileset(const ImageToTileset&) = delete;
 
     void writeTileset(const std::filesystem::path& filename) const;
     void writePalette(const std::filesystem::path& filename) const;
+
+    unsigned bitDepth() const { return _bitDepth; }
 
     auto& tileset() { return _tileset; }
     const auto& tileset() const { return _tileset; }
@@ -45,10 +52,6 @@ public:
 private:
     void processPalette(const IndexedImage& image);
     void processTileset(const IndexedImage& image);
-
-private:
-    Tileset8px _tileset;
-    std::vector<SnesColor> _palette;
 };
 }
 }

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "tileset.h"
+#include "tile.h"
 #include "models/common/iterators.h"
 #include <unordered_map>
 
@@ -28,8 +28,8 @@ struct TilesetInserterOutput {
 
 template <size_t TS>
 class TilesetInserter {
-    using TilesetT = BaseTileset<TS>;
     using TileT = Tile<TS>;
+    using TilesetT = std::vector<TileT>;
 
 public:
     TilesetInserter(TilesetT& tileset)
@@ -55,7 +55,7 @@ public:
 
     const TileT getTile(const TilesetInserterOutput& tio) const
     {
-        return _tileset.tile(tio.tileId).flip(tio.hFlip, tio.vFlip);
+        return _tileset.at(tio.tileId).flip(tio.hFlip, tio.vFlip);
     }
 
     const std::pair<TilesetInserterOutput, bool>
@@ -109,7 +109,7 @@ private:
     TilesetInserterOutput insertNewTile(const TileT& tile)
     {
         unsigned tileId = _tileset.size();
-        _tileset.addTile(tile);
+        _tileset.push_back(tile);
 
         addToMap(tileId);
 
@@ -121,7 +121,7 @@ private:
         // unordered_map will ignore insert if tile pattern already exists
         // Thus symmetrical tiles will prefer the unflipped tile.
 
-        const auto& tile = _tileset.tile(tileId);
+        const auto& tile = _tileset.at(tileId);
 
         _map.insert({ tile, { tileId, false, false } });
         _map.insert({ tile.hFlip(), { tileId, true, false } });

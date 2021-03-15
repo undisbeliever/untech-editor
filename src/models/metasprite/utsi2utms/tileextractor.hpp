@@ -8,7 +8,7 @@
 #include "models/common/iterators.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
-#include "models/snes/tileset.h"
+#include "models/snes/tile-data.h"
 #include "models/snes/tilesetinserter.h"
 #include <array>
 #include <map>

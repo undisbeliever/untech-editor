@@ -4,7 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "tileset.h"
+#include "tile-data.h"
+#include "tile.h"
 #include "models/common/iterators.h"
 #include <cstring>
 
@@ -302,48 +303,6 @@ std::vector<Tile8px> readSnesTileData(const std::vector<uint8_t>& in, const unsi
     }
 
     throw std::runtime_error("Invalid bitdepth");
-}
-
-Tileset8px::BitDepth Tileset8px::depthFromInt(int bd)
-{
-    switch (bd) {
-    case 1:
-        return BitDepth::BD_1BPP;
-
-    case 2:
-        return BitDepth::BD_2BPP;
-
-    case 3:
-        return BitDepth::BD_3BPP;
-
-    case 4:
-        return BitDepth::BD_4BPP;
-
-    case 8:
-        return BitDepth::BD_8BPP;
-    }
-
-    throw std::invalid_argument("Unknown bit-depth, expected 1, 2, 3, 4 or 8");
-}
-
-std::vector<uint8_t> Tileset8px::snesData() const
-{
-    return Snes::snesTileData(_tiles, bitDepthInt());
-}
-
-void Tileset8px::readSnesData(const std::vector<uint8_t>& data)
-{
-    _tiles = Snes::readSnesTileData(data, bitDepthInt());
-}
-
-std::vector<uint8_t> TilesetTile16::snesData() const
-{
-    return Snes::snesTileData4bppTile16(_tiles);
-}
-
-void TilesetTile16::readSnesData(const std::vector<uint8_t>& data)
-{
-    _tiles = Snes::readSnesTileData4bppTile16(data);
 }
 
 }

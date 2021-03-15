@@ -10,6 +10,8 @@
 #include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
+#include "models/snes/bit-depth.h"
+#include "models/snes/tile-data.h"
 #include <cassert>
 #include <fstream>
 #include <stdexcept>
@@ -185,12 +187,13 @@ private:
 
         const auto data = xml.parseBase64OfUnknownSize();
 
-        assert(frameSet.smallTileset.snesTileSize() == 32);
-        if ((data.size() % 32) != 0) {
+        constexpr unsigned smallTileSize = Snes::snesTileSizeForBitdepth(4);
+        assert(smallTileSize == 32);
+        if ((data.size() % smallTileSize) != 0) {
             throw xml_error(*tag, "Small Tileset data must be a multiple of 32 bytes");
         }
 
-        frameSet.smallTileset.readSnesData(data);
+        frameSet.smallTileset = Snes::readSnesTileData4bpp(data);
     }
 
     inline void readLargeTileset(const XmlTag* tag)
@@ -199,12 +202,14 @@ private:
 
         const auto data = xml.parseBase64OfUnknownSize();
 
-        static_assert(Snes::TilesetTile16::SNES_TILE_SIZE == 128, "Bad assumption");
-        if ((data.size() % 128) != 0) {
+        constexpr unsigned largeTileSize = Snes::snesTileSizeForBitdepth(4) * 4;
+
+        static_assert(largeTileSize == 128, "Bad assumption");
+        if ((data.size() % largeTileSize) != 0) {
             throw xml_error(*tag, "Large Tileset data must be a multiple of 128 bytes");
         }
 
-        frameSet.largeTileset.readSnesData(data);
+        frameSet.largeTileset = Snes::readSnesTileData4bppTile16(data);
     }
 
     inline void readPalette(const XmlTag* tag)
@@ -301,13 +306,13 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     if (frameSet.smallTileset.size() > 0) {
         xml.writeTag("smalltileset");
-        xml.writeBase64(frameSet.smallTileset.snesData());
+        xml.writeBase64(Snes::snesTileData4bpp(frameSet.smallTileset));
         xml.writeCloseTag();
     }
 
     if (frameSet.largeTileset.size() > 0) {
         xml.writeTag("largetileset");
-        xml.writeBase64(frameSet.largeTileset.snesData());
+        xml.writeBase64(Snes::snesTileData4bppTile16(frameSet.largeTileset));
         xml.writeCloseTag();
     }
 

@@ -8,8 +8,9 @@
 
 #include "models/common/indexedimage.h"
 #include "models/snes/snescolor.h"
+#include "models/snes/tile-data.h"
+#include "models/snes/tile.h"
 #include "models/snes/tilemap.h"
-#include "models/snes/tileset.h"
 
 #include <vector>
 
@@ -26,10 +27,12 @@ public:
     void setMaxPalettes(unsigned m) { _maxPalettes = m; }
     void setOrder(bool o) { _order = o; }
 
+    unsigned bitDepth() const { return _bitDepth; }
     const auto& tileset() const { return _tileset; }
     const auto& palette() const { return _palette; }
     const auto& tilemap() const { return _tilemap; }
 
+    std::vector<uint8_t> tilesetSnesData() const { return Snes::snesTileData(_tileset, _bitDepth); };
     std::vector<uint8_t> paletteSnesData() const;
 
     void process(const IndexedImage& image);
@@ -41,7 +44,8 @@ private:
     unsigned _maxPalettes = 8;
     bool _order = 0;
 
-    Tileset8px _tileset;
+    const unsigned _bitDepth;
+    std::vector<Tile8px> _tileset;
     std::vector<SnesColor> _palette;
     Tilemap _tilemap;
 };

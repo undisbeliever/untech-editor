@@ -5,6 +5,7 @@
  */
 
 #include "image2snes.h"
+#include "bit-depth.h"
 #include "tilesetinserter.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
@@ -82,7 +83,7 @@ public:
     }
 
     // `process()` MUST be called before calling `buildTilesetAndTilemap`
-    Tilemap buildTilemapAndTileset(Tileset8px& tileset)
+    Tilemap buildTilemapAndTileset(std::vector<Tile8px>& tileset)
     {
         assert(mapWidth >= 1);
         assert(mapHeight >= 1);
@@ -466,7 +467,7 @@ private:
  */
 
 Image2Snes::Image2Snes(int bitDepth)
-    : _tileset(bitDepth)
+    : _bitDepth(bitDepth)
     , _palette()
     , _tilemap()
 {
@@ -474,12 +475,12 @@ Image2Snes::Image2Snes(int bitDepth)
 
 void Image2Snes::process(const IndexedImage& image)
 {
-    if (_tileset.bitDepthInt() > 4) {
+    if (_bitDepth > 4) {
         _maxPalettes = 1;
         _paletteOffset = 0;
     }
 
-    Image2SnesConverter converter(_tileset.colorsPerTile(),
+    Image2SnesConverter converter(colorsForBitDepth(_bitDepth),
                                   _tileOffset, _maxTiles,
                                   _paletteOffset, _maxPalettes,
                                   _order);

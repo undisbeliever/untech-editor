@@ -7,7 +7,6 @@
 #pragma once
 
 #include "tile.h"
-#include "tileset.h"
 #include "models/common/image.h"
 #include "models/common/iterators.h"
 
@@ -158,7 +157,7 @@ inline void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const b
 
 // Fails silently if tileId or offset is invalid
 template <size_t TS, size_t BD>
-inline void drawTile_transparent(const BaseTileset<TS>& tileset, unsigned tileId, const bool hFlip, const bool vFlip,
+inline void drawTile_transparent(const std::vector<Tile<TS>>& tileset, unsigned tileId, const bool hFlip, const bool vFlip,
                                  const Palette<BD>& palette,
                                  Image& image, unsigned xOffset, unsigned yOffset)
 {
@@ -170,7 +169,7 @@ inline void drawTile_transparent(const BaseTileset<TS>& tileset, unsigned tileId
 // NOTE: Image MUST be large enough to hold tileset.
 // ASSUMES `imgBits` points to the start of an image scanline.
 template <size_t TS, size_t BD>
-void drawTileset_transparent(const BaseTileset<TS>& tileset,
+void drawTileset_transparent(const std::vector<Tile<TS>>& tileset,
                              rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
                              const Palette<BD>& palette)
 {
@@ -179,25 +178,25 @@ void drawTileset_transparent(const BaseTileset<TS>& tileset,
     }
 
     static_assert(TS > 1);
-    assert(stride % tileset.TILE_SIZE == 0);
+    assert(stride % TS == 0);
 
-    const size_t tilesPerLine = stride / tileset.TILE_SIZE;
+    const size_t tilesPerLine = stride / TS;
     const size_t nLines = (tileset.size() - 1) / tilesPerLine + 1;
 
     assert(imgBitsEnd > imgBits);
-    assert(size_t(imgBitsEnd - imgBits) >= stride * nLines * tileset.TILE_SIZE);
+    assert(size_t(imgBitsEnd - imgBits) >= stride * nLines * TS);
 
     unsigned x = 0;
 
     for (const Tile<TS>& tile : tileset) {
         Snes::drawTile_transparent(tile, imgBits, imgBitsEnd, stride, palette);
 
-        imgBits += tile.TILE_SIZE;
+        imgBits += TS;
 
         x++;
         if (x >= tilesPerLine) {
             x = 0;
-            imgBits += stride * (tileset.TILE_SIZE - 1);
+            imgBits += stride * (TS - 1);
         }
     }
 }

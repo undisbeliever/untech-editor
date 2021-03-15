@@ -8,6 +8,7 @@
 #include "models/common/file.h"
 #include "models/common/indexedimage.h"
 #include "models/snes/image2snes.h"
+#include "models/snes/tile-data.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -108,7 +109,7 @@ int process(const CommandLine::Parser& args)
     const std::string& tilemapFile = args.options().at("tilemap").string();
     const std::string& paletteFile = args.options().at("palette").string();
 
-    File::atomicWrite(tilesetFile, image2Snes.tileset().snesData());
+    File::atomicWrite(tilesetFile, image2Snes.tilesetSnesData());
     File::atomicWrite(tilemapFile, image2Snes.tilemap().snesData());
     File::atomicWrite(paletteFile, image2Snes.paletteSnesData());
 

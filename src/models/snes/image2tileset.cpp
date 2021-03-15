@@ -5,6 +5,8 @@
  */
 
 #include "image2tileset.h"
+#include "bit-depth.h"
+#include "tile-data.h"
 #include "models/common/file.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
@@ -14,7 +16,8 @@ using namespace UnTech;
 using namespace UnTech::Snes;
 
 ImageToTileset::ImageToTileset(int bitDepth)
-    : _tileset(bitDepth)
+    : _bitDepth(bitDepth)
+    , _tileset()
     , _palette()
 {
 }
@@ -35,7 +38,7 @@ void ImageToTileset::convertAndSave(const IndexedImage& image, int bitDepth,
 
 void ImageToTileset::writeTileset(const std::filesystem::path& filename) const
 {
-    std::vector<uint8_t> data = _tileset.snesData();
+    const std::vector<uint8_t> data = snesTileData(_tileset, _bitDepth);
     File::atomicWrite(filename, data);
 }
 
@@ -62,7 +65,7 @@ void ImageToTileset::process(const IndexedImage& image)
 
 void ImageToTileset::processPalette(const IndexedImage& image)
 {
-    const unsigned nColors = _tileset.colorsPerTile();
+    const unsigned nColors = colorsForBitDepth(_bitDepth);
 
     if (image.palette().size() > nColors) {
         throw std::runtime_error(stringBuilder("Too many colors in image, maximum allowed is ", nColors));
@@ -79,7 +82,7 @@ void ImageToTileset::processPalette(const IndexedImage& image)
 void ImageToTileset::processTileset(const IndexedImage& image)
 {
     constexpr unsigned TILE_SIZE = Tile8px::TILE_SIZE;
-    const uint8_t pixelMask = _tileset.pixelMask();
+    const uint8_t pixelMask = pixelMaskForBitdepth(_bitDepth);
 
     if (image.size().width % TILE_SIZE != 0
         || image.size().height % TILE_SIZE != 0) {
@@ -90,9 +93,12 @@ void ImageToTileset::processTileset(const IndexedImage& image)
     unsigned tileWidth = image.size().width / TILE_SIZE;
     unsigned tileHeight = image.size().height / TILE_SIZE;
 
+    _tileset.resize(tileWidth * tileHeight);
+    auto tilesetIt = _tileset.begin();
+
     for (const auto tileY : range(tileHeight)) {
         for (const auto tileX : range(tileWidth)) {
-            Tile8px tile;
+            Tile8px& tile = *tilesetIt++;
             uint8_t* tData = tile.rawData();
 
             for (const auto py : range(TILE_SIZE)) {
@@ -102,8 +108,7 @@ void ImageToTileset::processTileset(const IndexedImage& image)
                     *tData++ = imgData[px] & pixelMask;
                 }
             }
-
-            _tileset.addTile(tile);
         }
     }
+    assert(tilesetIt == _tileset.end());
 }

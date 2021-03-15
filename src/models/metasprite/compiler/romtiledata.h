@@ -8,7 +8,7 @@
 
 #include "romdata.h"
 #include "models/project/memorymap.h"
-#include "models/snes/tileset.h"
+#include "models/snes/tile.h"
 #include <cassert>
 #include <cstdint>
 #include <memory>
@@ -25,7 +25,7 @@ namespace Compiler {
 
 class RomTileData {
 public:
-    constexpr static unsigned SNES_TILE16_SIZE = Snes::TilesetTile16::SNES_TILE_SIZE;
+    constexpr static unsigned SNES_TILE16_SIZE = Snes::Tile16px::TILE_ARRAY_SIZE * 4 / 8;
 
     constexpr static unsigned TILE16_ADDR_SHIFT = 7;
     constexpr static unsigned TILE16_ADDR_MASK = 0xffff << TILE16_ADDR_SHIFT;
@@ -36,7 +36,7 @@ public:
         const unsigned bankId;
         const unsigned startingAddress;
         const uint16_t startingTile16Addr;
-        Snes::TilesetTile16 tiles;
+        std::vector<Snes::Tile16px> tiles;
 
         TileBank(unsigned bId, unsigned addr)
             : bankId(bId)
@@ -74,7 +74,7 @@ private:
 
         const uint16_t tile16Addr = tileBank.startingTile16Addr + tileBank.tiles.size();
 
-        tileBank.tiles.addTile(tile);
+        tileBank.tiles.push_back(tile);
 
         return tile16Addr;
     }

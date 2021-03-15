@@ -34,7 +34,7 @@ struct FrameTilesetData {
 struct TilesetData {
     TilesetType tilesetType;
 
-    Snes::TilesetTile16 tiles;
+    std::vector<Snes::Tile16px> tiles;
 
     FrameTilesetData staticTileset;
     std::vector<FrameTilesetData> dynamicTilesets;

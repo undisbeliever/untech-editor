@@ -8,8 +8,8 @@
 
 #include "palette.h"
 #include "models/common/grid.h"
+#include "models/snes/tile-data.h"
 #include "models/snes/tilemap.h"
-#include "models/snes/tileset.h"
 #include <filesystem>
 #include <vector>
 
@@ -62,19 +62,16 @@ struct BackgroundImageData {
 
     unsigned conversionPaletteIndex;
 
-    Snes::Tileset8px tiles;
+    unsigned bitDepth;
+    std::vector<Snes::Tile8px> tiles;
     grid<Snes::TilemapEntry> tileMap;
-
-    BackgroundImageData(int bitDepth)
-        : tiles(bitDepth)
-    {
-    }
 
     bool validate(ErrorList& err) const;
 
     unsigned nTilemaps() const;
 
     unsigned uncompressedDataSize() const;
+    unsigned tilesetDataSize() const;
     unsigned tilemapDataSize() const;
 
     bool tilemapHorizontalMirroring() const { return tileMap.width() > 32; }

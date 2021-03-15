@@ -457,13 +457,13 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
 
         // ::SHOULDDO add warning if palette conversion colours do not match::
 
-        if (bi->tiles.bitDepthInt() != int(bitDepth)) {
-            addError("Invalid bit depth, expected ", bitDepth, " got ", bi->tiles.bitDepthInt());
+        if (bi->bitDepth != bitDepth) {
+            addError("Invalid bit depth, expected ", bitDepth, " got ", bi->bitDepth);
             break;
         }
 
         out.layerIndex = *index;
-        out.tileSize = bi->tiles.snesDataSize();
+        out.tileSize = bi->tilesetDataSize();
         out.nMaps = bi->nTilemaps();
         out.mapHorizontalMirroring = bi->tilemapHorizontalMirroring();
         out.mapVerticalMirroring = bi->tilemapVerticalMirroring();

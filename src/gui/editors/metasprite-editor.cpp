@@ -88,7 +88,7 @@ struct MetaSpriteEditorData::AP {
     };
 
     struct SmallTileset final : public FrameSet {
-        using ListT = UnTech::Snes::Tileset8px;
+        using ListT = std::vector<UnTech::Snes::Tile8px>;
         using ListArgsT = std::tuple<>;
         using SelectionT = SingleSelection;
 
@@ -101,7 +101,7 @@ struct MetaSpriteEditorData::AP {
     };
 
     struct LargeTileset final : public FrameSet {
-        using ListT = UnTech::Snes::TilesetTile16;
+        using ListT = std::vector<UnTech::Snes::Tile16px>;
         using ListArgsT = std::tuple<>;
         using SelectionT = SingleSelection;
 
@@ -915,7 +915,7 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
                                       ImDrawList* drawList, const int z, const ImVec2 uv0, const ImVec2 uv1)
 {
     constexpr unsigned N_COLORS = 16;
-    constexpr unsigned TILE_SIZE = TilesetPolicy::ListT::TILE_SIZE;
+    constexpr unsigned TILE_SIZE = TilesetPolicy::ListT::value_type::TILE_SIZE;
     constexpr unsigned TILES_PER_ROW = TILESET_IMAGE_WIDTH / TILE_SIZE;
     const float tileSize = TILE_SIZE * z;
 
@@ -1451,7 +1451,7 @@ void MetaSpriteEditorGui::updateTilesetTexture()
         auto* imgBits = _tilesetImage.data();
         Snes::drawTileset_transparent(fs.smallTileset, imgBits, imgBitsEnd, stride, palette);
 
-        imgBits = _tilesetImage.scanline(nSmallRows * fs.smallTileset.TILE_SIZE);
+        imgBits = _tilesetImage.scanline(nSmallRows * SMALL_TILE_SIZE);
         Snes::drawTileset_transparent(fs.largeTileset, imgBits, imgBitsEnd, stride, palette);
     }
 

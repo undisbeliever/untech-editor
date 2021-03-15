@@ -5,12 +5,13 @@
  */
 
 #include "drawing.h"
+#include "models/snes/bit-depth.h"
 #include "models/snes/drawing.hpp"
 
 namespace UnTech::Resources {
 
-static const Snes::Tile8px blankTile{};
-static const Snes::Tileset8px blankTileset(4);
+static const Snes::Tile8px blankTile;
+static const std::vector<Snes::Tile8px> blankTileset;
 
 void drawAnimatedTileset(grid<uint8_t>& image, const Resources::AnimatedTilesetData& animatedTileset, unsigned frameIndex)
 {
@@ -21,8 +22,8 @@ void drawAnimatedTileset(grid<uint8_t>& image, const Resources::AnimatedTilesetD
     const auto& staticTiles = animatedTileset.staticTiles;
     const auto& animatedTiles = frameIndex < animatedTileset.animatedTiles.size() ? animatedTileset.animatedTiles.at(frameIndex) : blankTileset;
     const auto& tileMap = animatedTileset.tileMap;
-    const unsigned colorsPerTile = staticTiles.colorsPerTile();
-    const unsigned pixelMask = staticTiles.pixelMask();
+    const unsigned colorsPerTile = Snes::colorsForBitDepth(animatedTileset.bitDepth);
+    const unsigned pixelMask = Snes::pixelMaskForBitdepth(animatedTileset.bitDepth);
 
     assert(image.size() == usize(tileMap.width() * TILE_SIZE, tileMap.height() * TILE_SIZE));
 
