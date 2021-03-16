@@ -58,6 +58,13 @@ bool SceneSettingsInput::validate(ErrorList& err) const
         addError("Missing name");
     }
 
+    for (const auto l : range(numberOfLayers(bgMode), N_LAYERS)) {
+        if (layerTypes.at(l) != LayerType::None) {
+            const unsigned bgModeInt = bgModeByte(bgMode) & 7;
+            addError("Layer ", l, " must be empty in BG Mode ", bgModeInt);
+        }
+    }
+
     std::array<unsigned, N_LAYER_TYPES> layerTypeCount;
     layerTypeCount.fill(0);
 
