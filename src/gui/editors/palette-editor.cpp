@@ -10,6 +10,7 @@
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/style.h"
+#include "models/common/clamp.h"
 #include "models/common/iterators.h"
 
 namespace UnTech::Gui {
@@ -130,8 +131,7 @@ void PaletteEditorGui::paletteWindow()
         ImGui::Separator();
         ImGui::Spacing();
 
-        // Cannot use std::clamp as palette.rowsPerFrame may be 0.
-        const unsigned rowsPerFrame = std::max<unsigned>(1, std::min<unsigned>(_imageTexture.height(), palette.rowsPerFrame));
+        const unsigned rowsPerFrame = clamp<unsigned>(palette.rowsPerFrame, 1, _imageTexture.height());
         const unsigned firstFrame = palette.skipFirstFrame ? 1 : 0;
         const unsigned nFrames = std::max<unsigned>(1, _imageTexture.height() / rowsPerFrame - firstFrame);
 

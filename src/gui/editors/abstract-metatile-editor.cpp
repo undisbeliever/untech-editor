@@ -10,6 +10,7 @@
 #include "gui/imgui.h"
 #include "gui/style.h"
 #include "gui/texture.h"
+#include "models/common/clamp.h"
 #include "models/common/iterators.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/project/project-data.h"
@@ -78,8 +79,8 @@ private:
     upoint clampPoint(const point& p)
     {
         return upoint{
-            unsigned(std::clamp<int>(p.x, 0, _mapSize.width - 1)),
-            unsigned(std::clamp<int>(p.y, 0, _mapSize.height - 1))
+            unsigned(clamp<int>(p.x, 0, _mapSize.width - 1)),
+            unsigned(clamp<int>(p.y, 0, _mapSize.height - 1))
         };
     }
 
@@ -835,10 +836,10 @@ void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const po
     const rect mapBounds(0, 0, map.width(), map.height());
 
     // Get draw tile cursor boundary
-    unsigned tiles_x1 = std::clamp<int>(cursorPos.x, mapBounds.left(), mapBounds.right());
-    unsigned tiles_y1 = std::clamp<int>(cursorPos.y, mapBounds.top(), mapBounds.bottom());
-    unsigned tiles_x2 = std::clamp<int>(cursorPos.x + int(tiles.width()), mapBounds.left(), mapBounds.right());
-    unsigned tiles_y2 = std::clamp<int>(cursorPos.y + int(tiles.height()), mapBounds.top(), mapBounds.bottom());
+    unsigned tiles_x1 = clamp<int>(cursorPos.x, mapBounds.left(), mapBounds.right());
+    unsigned tiles_y1 = clamp<int>(cursorPos.y, mapBounds.top(), mapBounds.bottom());
+    unsigned tiles_x2 = clamp<int>(cursorPos.x + int(tiles.width()), mapBounds.left(), mapBounds.right());
+    unsigned tiles_y2 = clamp<int>(cursorPos.y + int(tiles.height()), mapBounds.top(), mapBounds.bottom());
 
     if (tiles_x1 >= tiles_x2 || tiles_y1 >= tiles_y2) {
         return;

@@ -14,6 +14,7 @@
 #include "gui/list-helpers.h"
 #include "gui/selection.h"
 #include "gui/style.h"
+#include "models/common/clamp.h"
 #include "models/common/iterators.h"
 #include "models/metasprite/animation/animation.h"
 #include <cmath>
@@ -300,8 +301,8 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
                 if (ImGui::IsItemActive()) {
                     if (ImGui::IsMouseDragging(0)) {
                         const ImVec2 mousePos = ImGui::GetMousePos() - centerOffset;
-                        pos.x = std::clamp<int>((mousePos.x + zoom.x / 2) / zoom.x, -maxX + 1, maxX - 1);
-                        pos.y = std::clamp<int>((mousePos.y + zoom.y / 2) / zoom.y, -maxY + 1, maxY - 1);
+                        pos.x = clamp<int>((mousePos.x + zoom.x / 2) / zoom.x, -maxX + 1, maxX - 1);
+                        pos.y = clamp<int>((mousePos.y + zoom.y / 2) / zoom.y, -maxY + 1, maxY - 1);
 
                         posChanged = true;
                     }

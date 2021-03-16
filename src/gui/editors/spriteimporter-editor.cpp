@@ -438,7 +438,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
 
                 unsigned spriteOrder = frame.spriteOrder;
                 if (ImGui::InputUnsigned("Sprite Order", &spriteOrder)) {
-                    frame.spriteOrder = std::clamp<unsigned>(spriteOrder, 0, frame.spriteOrder.MASK);
+                    frame.spriteOrder = clamp<unsigned>(spriteOrder, 0, frame.spriteOrder.MASK);
                 }
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<

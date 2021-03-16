@@ -6,6 +6,7 @@
 
 #include "style.h"
 #include "imgui-drawing.h"
+#include "models/common/clamp.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include "vendor/imgui/imgui_internal.h"
@@ -58,7 +59,7 @@ Zoom::Zoom(unsigned z)
 
 void Zoom::setZoom(unsigned z)
 {
-    z = std::clamp<unsigned>(z, 5, 1800);
+    z = clamp<unsigned>(z, 5, 1800);
 
     _zoomInt = z;
 

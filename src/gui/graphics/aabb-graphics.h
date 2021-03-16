@@ -12,6 +12,7 @@
 #include "gui/selection.h"
 #include "gui/texture.h"
 #include "models/common/aabb.h"
+#include "models/common/clamp.h"
 #include "models/common/image.h"
 #include "models/common/ms8aabb.h"
 
@@ -448,8 +449,8 @@ public:
 
         case State::MOVE_DRAG: {
             if (selected) {
-                point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - 1);
-                point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - 1);
+                point->x = clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - 1);
+                point->y = clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - 1);
             }
         } break;
 
@@ -504,13 +505,16 @@ public:
             if (selected) {
                 if constexpr (std::is_unsigned_v<decltype(PointT::x)>) {
                     static_assert(std::is_unsigned_v<decltype(PointT::y)>);
-                    point->x = std::max(0, std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - 1));
-                    point->y = std::max(0, std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - 1));
+                    const int minX = std::max(0, _bounds.x1);
+                    const int minY = std::max(0, _bounds.y1);
+
+                    point->x = clamp<int>(point->x + _dragMove.x, minX, _bounds.x2 - 1);
+                    point->y = clamp<int>(point->y + _dragMove.y, minY, _bounds.y2 - 1);
                 }
                 else {
                     static_assert(std::is_signed_v<decltype(PointT::y)>);
-                    point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - 1);
-                    point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - 1);
+                    point->x = clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - 1);
+                    point->y = clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - 1);
                 }
             }
         } break;
@@ -671,8 +675,8 @@ public:
 
         case State::MOVE_DRAG: {
             if (selected) {
-                rect->x = std::clamp<int>(r.x1 + _tileDragMove.x, bounds.x1, bounds.x2 - rect->width * TILE_SIZE) / TILE_SIZE;
-                rect->y = std::clamp<int>(r.y1 + _tileDragMove.y, bounds.y1, bounds.y2 - rect->height * TILE_SIZE) / TILE_SIZE;
+                rect->x = clamp<int>(r.x1 + _tileDragMove.x, bounds.x1, bounds.x2 - rect->width * TILE_SIZE) / TILE_SIZE;
+                rect->y = clamp<int>(r.y1 + _tileDragMove.y, bounds.y1, bounds.y2 - rect->height * TILE_SIZE) / TILE_SIZE;
             }
         } break;
 
@@ -681,23 +685,23 @@ public:
                 setResizeNodeMouseCursor(_resizeNodes);
 
                 if (_resizeNodes & Resize_Left) {
-                    int newX = std::clamp<int>(_mousePos.x, bounds.x1, r.x2 - 1);
+                    int newX = clamp<int>(_mousePos.x, bounds.x1, r.x2 - 1);
                     assert(newX < r.x2);
                     rect->width = ((r.x2 - newX) + TILE_SIZE - 1) / TILE_SIZE;
                     rect->x = newX / TILE_SIZE;
                 }
                 else if (_resizeNodes & Resize_Right) {
-                    rect->width = std::clamp<int>(_mousePos.x - r.x1, TILE_SIZE, bounds.x2 - r.x1) / TILE_SIZE;
+                    rect->width = clamp<int>(_mousePos.x - r.x1, TILE_SIZE, bounds.x2 - r.x1) / TILE_SIZE;
                 }
 
                 if (_resizeNodes & Resize_Top) {
-                    int newY = std::clamp<int>(_mousePos.y, bounds.y1, r.y2 - 1);
+                    int newY = clamp<int>(_mousePos.y, bounds.y1, r.y2 - 1);
                     assert(newY < r.y2);
                     rect->height = ((r.y2 - newY) + TILE_SIZE - 1) / TILE_SIZE;
                     rect->y = newY / TILE_SIZE;
                 }
                 else if (_resizeNodes & Resize_Bottom) {
-                    rect->height = std::clamp<int>(_mousePos.y - r.y1, TILE_SIZE, bounds.y2 - r.y1) / TILE_SIZE;
+                    rect->height = clamp<int>(_mousePos.y - r.y1, TILE_SIZE, bounds.y2 - r.y1) / TILE_SIZE;
                 }
             }
         } break;
@@ -759,8 +763,8 @@ public:
 
         case State::MOVE_DRAG: {
             if (selected) {
-                rect->x = std::clamp<int>(rect->x + _dragMove.x, _bounds.x1, _bounds.x2 - rect->width);
-                rect->y = std::clamp<int>(rect->y + _dragMove.y, _bounds.y1, _bounds.y2 - rect->height);
+                rect->x = clamp<int>(rect->x + _dragMove.x, _bounds.x1, _bounds.x2 - rect->width);
+                rect->y = clamp<int>(rect->y + _dragMove.y, _bounds.y1, _bounds.y2 - rect->height);
             }
         } break;
 
@@ -769,23 +773,23 @@ public:
                 setResizeNodeMouseCursor(_resizeNodes);
 
                 if (_resizeNodes & Resize_Left) {
-                    int newX = std::clamp<int>(_mousePos.x, _bounds.x1, r.x2 - 1);
+                    int newX = clamp<int>(_mousePos.x, _bounds.x1, r.x2 - 1);
                     assert(newX < r.x2);
                     rect->width = r.x2 - newX;
                     rect->x = newX;
                 }
                 else if (_resizeNodes & Resize_Right) {
-                    rect->width = std::clamp<int>(_mousePos.x - r.x1, 1, _bounds.x2 - r.x1);
+                    rect->width = clamp<int>(_mousePos.x - r.x1, 1, _bounds.x2 - r.x1);
                 }
 
                 if (_resizeNodes & Resize_Top) {
-                    int newY = std::clamp<int>(_mousePos.y, _bounds.y1, r.y2 - 1);
+                    int newY = clamp<int>(_mousePos.y, _bounds.y1, r.y2 - 1);
                     assert(newY < r.y2);
                     rect->height = r.y2 - newY;
                     rect->y = newY;
                 }
                 else if (_resizeNodes & Resize_Bottom) {
-                    rect->height = std::clamp<int>(_mousePos.y - r.y1, 1, _bounds.y2 - r.y1);
+                    rect->height = clamp<int>(_mousePos.y - r.y1, 1, _bounds.y2 - r.y1);
                 }
             }
         } break;
@@ -848,8 +852,8 @@ public:
 
         case State::MOVE_DRAG: {
             if (selected) {
-                point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - squareSize);
-                point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - squareSize);
+                point->x = clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - squareSize);
+                point->y = clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - squareSize);
             }
         } break;
 
@@ -935,8 +939,8 @@ public:
 
         case State::MOVE_DRAG: {
             if (selected) {
-                point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - imageSize);
-                point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - imageSize);
+                point->x = clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - imageSize);
+                point->y = clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - imageSize);
             }
         } break;
 

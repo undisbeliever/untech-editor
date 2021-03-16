@@ -10,6 +10,7 @@
 
 #include "vendor/imgui/imgui_internal.h"
 
+#include "models/common/clamp.h"
 #include "models/common/rgba.h"
 #include "models/snes/snescolor.h"
 #include <algorithm>
@@ -169,14 +170,14 @@ bool InputPoint(const char* label, UnTech::point* point, const UnTech::rect& bou
         [&]() {
             bool edited = InputInt("##x", &point->x, 0, 0);
             if (edited) {
-                point->x = std::clamp<int>(point->x, bounds.left(), bounds.right() - 1);
+                point->x = UnTech::clamp<int>(point->x, bounds.left(), bounds.right() - 1);
             }
             return edited;
         },
         [&]() {
             bool edited = InputInt("##y", &point->y, 0, 0);
             if (edited) {
-                point->y = std::clamp<int>(point->y, bounds.top(), bounds.bottom() - 1);
+                point->y = UnTech::clamp<int>(point->y, bounds.top(), bounds.bottom() - 1);
             }
             return edited;
         });

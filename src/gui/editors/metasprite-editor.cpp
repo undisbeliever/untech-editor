@@ -472,7 +472,7 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
 
                 unsigned spriteOrder = frame.spriteOrder;
                 if (ImGui::InputUnsigned("Sprite Order", &spriteOrder)) {
-                    frame.spriteOrder = std::clamp<unsigned>(spriteOrder, 0, frame.spriteOrder.MASK);
+                    frame.spriteOrder = clamp<unsigned>(spriteOrder, 0, frame.spriteOrder.MASK);
                 }
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<
@@ -805,15 +805,15 @@ void MetaSpriteEditorGui::colorPopup()
             unsigned red = snesColor.red();
 
             if (ImGui::InputUnsigned("Blue", &blue)) {
-                snesColor.setBlue(std::clamp<unsigned>(blue, 0, 31));
+                snesColor.setBlue(clamp<unsigned>(blue, 0, 31));
                 colorChanged = true;
             }
             if (ImGui::InputUnsigned("Green", &green)) {
-                snesColor.setGreen(std::clamp<unsigned>(green, 0, 31));
+                snesColor.setGreen(clamp<unsigned>(green, 0, 31));
                 colorChanged = true;
             }
             if (ImGui::InputUnsigned("Red", &red)) {
-                snesColor.setRed(std::clamp<unsigned>(red, 0, 31));
+                snesColor.setRed(clamp<unsigned>(red, 0, 31));
                 colorChanged = true;
             }
 
@@ -1197,7 +1197,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
 
         static_assert(backgroundColorNames.size() == backgroundColors.size());
         ImGui::Combo("Background Color", &_selectedEditorBgColor, backgroundColorNames.data(), backgroundColorNames.size());
-        const unsigned bgIndex = std::clamp<int>(_selectedEditorBgColor, 0, backgroundColors.size() - 1);
+        const unsigned bgIndex = clamp<int>(_selectedEditorBgColor, 0, backgroundColors.size() - 1);
         const ImU32 bgColor = backgroundColors.at(bgIndex);
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
