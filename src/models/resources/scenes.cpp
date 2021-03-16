@@ -486,6 +486,11 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
             break;
         }
 
+        if (mt->animatedTileset.bitDepth != bitDepth) {
+            addError("Invalid bit depth, expected ", bitDepth, " got ", mt->animatedTileset.bitDepth);
+            break;
+        }
+
         out.layerIndex = *index;
         out.tileSize = mt->animatedTileset.vramTileSize();
 
