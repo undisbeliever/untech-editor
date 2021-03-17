@@ -73,8 +73,9 @@ private:
     Texture _paletteTexture;
     Texture _tilesetTexture;
 
-    Image _paletteImage;
-    Image _tilesetImage;
+    std::unique_ptr<Image> _paletteImage;
+    std::unique_ptr<Image> _tilesetImage;
+
     ImU32 _paletteBackgroundColor;
 
     ImVec2 _paletteUvSize;

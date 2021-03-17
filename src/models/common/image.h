@@ -20,38 +20,42 @@ namespace UnTech {
  * A simple image container class that contains a 32bpp RGBA image.
  */
 class Image {
+
 public:
-    ~Image() = default;
-    Image(const Image&) = default;
-    Image(Image&&) = default;
-    Image& operator=(const Image&) = default;
-    Image& operator=(Image&&) = default;
-
-    Image();
-    Image(const usize& size);
-    Image(unsigned width, unsigned height);
-
-    usize size() const { return _size; }
-    std::string errorString() const { return _errorString; }
-
-    void erase();
-
-    void fill(const rgba& color);
-
     /**
      * Loads a PNG image from a filename.
      *
-     * This overrides the current image.
+     * Will never return null.
      *
      * NOTE: This method will transform all pixels with an alpha value to 0 to
      *       `rgba(0, 0, 0, 0)`.
      *
-     * If the image cannot be loaded then:
-     *   - return false
-     *   - the image is erased.
-     *   _ errorString is set.
+     * If the image cannot be loaded an empty image with an `errorString` set is returned.
      */
-    bool loadPngImage(const std::filesystem::path& filename);
+    static std::shared_ptr<Image> loadPngImage_shared(const std::filesystem::path& filename);
+
+private:
+    const usize _size;
+    std::vector<unsigned char> _imageData;
+    std::string _errorString;
+
+public:
+    ~Image() = default;
+
+    Image(const Image&) = delete;
+    Image(Image&&) = delete;
+    Image& operator=(const Image&) = delete;
+    Image& operator=(Image&&) = delete;
+
+    Image();
+    Image(const usize& size);
+    Image(unsigned width, unsigned height);
+    Image(unsigned width, unsigned height, std::vector<unsigned char>&& imageData);
+
+    usize size() const { return _size; }
+    std::string errorString() const { return _errorString; }
+
+    void fill(const rgba& color);
 
     /**
      * Returns true if the image is empty.
@@ -109,10 +113,5 @@ public:
         }
         *(data() + x + (y * pixelsPerScanline())) = p;
     }
-
-private:
-    usize _size;
-    std::vector<unsigned char> _imageData;
-    std::string _errorString;
 };
 }

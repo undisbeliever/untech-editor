@@ -35,6 +35,8 @@ struct EntityGraphics {
     std::vector<DrawEntitySettings> entities;
     std::vector<DrawEntitySettings> players;
 
+    EntityGraphics(const usize& imageSize);
+
     const DrawEntitySettings& settingsForPlayer(unsigned playerId) const
     {
         if (playerId < players.size()) {

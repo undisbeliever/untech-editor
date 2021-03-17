@@ -11,22 +11,33 @@
 
 namespace UnTech::Gui {
 
-const UnTech::Image Texture::missingImageSymbol = []() {
+static std::unique_ptr<Image> createMissingImageSymbol()
+{
     const rgba red(255, 0, 0);
+    constexpr unsigned imgSize = 32;
 
-    UnTech::Image img(32, 32);
-    for (const auto i : range(1, 32)) {
-        if (i < 31) {
-            img.setPixel(i, i, red);
-            img.setPixel(i, 31 - i, red);
+    auto img = std::make_unique<Image>(imgSize, imgSize);
+
+    for (const auto i : range(1, imgSize)) {
+        if (i < imgSize - 1) {
+            img->setPixel(i, i, red);
+            img->setPixel(i, 31 - i, red);
         }
-        img.setPixel(i - 1, i, red);
-        img.setPixel(i, i - 1, red);
-        img.setPixel(i - 1, 31 - i, red);
-        img.setPixel(i, 31 - i + 1, red);
+        img->setPixel(i - 1, i, red);
+        img->setPixel(i, i - 1, red);
+        img->setPixel(i - 1, 31 - i, red);
+        img->setPixel(i, 31 - i + 1, red);
     }
+
     return img;
-}();
+}
+
+void Texture::replaceWithMissingImageSymbol()
+{
+    static const std::unique_ptr<Image> symbol = createMissingImageSymbol();
+
+    replace(*symbol);
+}
 
 void Texture::loadPngImage(const std::filesystem::path& fn)
 {

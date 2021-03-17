@@ -24,7 +24,7 @@ static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 static constexpr unsigned TILESET_WIDTH = MetaTiles::TILESET_WIDTH;
 static constexpr unsigned TILESET_HEIGHT = MetaTiles::TILESET_HEIGHT;
 
-static Image drawPaletteImage(const Resources::PaletteData& palette)
+static void drawPaletteImage(Texture& texture, const Resources::PaletteData& palette)
 {
     Image image(UINT8_MAX, palette.paletteFrames.size());
     image.fill(rgba(255, 0, 255, 255));
@@ -39,7 +39,7 @@ static Image drawPaletteImage(const Resources::PaletteData& palette)
         assert(imgBits <= image.data() + image.dataSize());
     }
 
-    return image;
+    texture.replace(image);
 }
 
 void MtTileset::reset()
@@ -58,13 +58,12 @@ void MtTileset::setPaletteData(std::shared_ptr<const UnTech::Resources::PaletteD
         _paletteData = std::move(pd);
 
         if (_paletteData) {
-            const Image pal = drawPaletteImage(*_paletteData);
-            _palette.replace(pal);
+            drawPaletteImage(_palette, *_paletteData);
 
-            if (pal.size().height != _nPaletteFrames) {
+            if (_palette.height() != _nPaletteFrames) {
                 _paletteFrame = 0;
             }
-            _nPaletteFrames = pal.size().height;
+            _nPaletteFrames = _palette.height();
         }
         else {
             _paletteFrame = 0;

@@ -5,6 +5,7 @@
  */
 
 #include "imagecache.h"
+#include <cassert>
 #include <mutex>
 #include <unordered_map>
 
@@ -42,8 +43,9 @@ class ImageCachePrivate {
             return it->second;
         }
         else {
-            std::shared_ptr<Image> image = std::make_shared<Image>();
-            image->loadPngImage(abs);
+            std::shared_ptr<Image> image = Image::loadPngImage_shared(abs);
+            assert(image);
+
             cache.insert({ fn, image });
 
             return image;
@@ -82,7 +84,7 @@ private:
     ImageCacheMap_t cache;
 };
 
-const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = std::make_unique<const Image>();
+const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = std::make_shared<const Image>();
 }
 
 using namespace UnTech;

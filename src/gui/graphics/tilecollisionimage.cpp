@@ -159,7 +159,7 @@ static constexpr TileCollisionImageData generateTileCollisionImageData()
     return imgData;
 }
 
-static Image generateTileCollisionImage()
+static Texture generateTileCollisionTexture()
 {
     constexpr auto tileCollisionData = generateTileCollisionImageData();
 
@@ -168,14 +168,12 @@ static Image generateTileCollisionImage()
 
     std::copy(tileCollisionData.begin(), tileCollisionData.end(), img.data());
 
-    return img;
+    return Texture::createFromImage(img);
 }
-
-const Image tileCollisionImage = generateTileCollisionImage();
 
 const Texture& tileCollisionTypeTexture()
 {
-    static Texture texture = Texture::createFromImage(tileCollisionImage);
+    static Texture texture = generateTileCollisionTexture();
     return texture;
 }
 

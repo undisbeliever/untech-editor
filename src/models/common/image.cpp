@@ -26,6 +26,7 @@ Image::Image(const usize& size)
     , _errorString()
 {
     assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
+    assert(uintptr_t(_imageData.data()) % sizeof(rgba) == 0);
 }
 
 Image::Image(unsigned width, unsigned height)
@@ -34,12 +35,20 @@ Image::Image(unsigned width, unsigned height)
     , _errorString()
 {
     assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
+    assert(uintptr_t(_imageData.data()) % sizeof(rgba) == 0);
 }
 
-void Image::erase()
+Image::Image(unsigned width, unsigned height, std::vector<unsigned char>&& imageData)
+    : _size(width, height)
+    , _imageData(imageData)
+    , _errorString()
 {
-    _size = usize(0, 0);
-    _imageData.clear();
+    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
+    assert(uintptr_t(_imageData.data()) % sizeof(rgba) == 0);
+
+    if (imageData.size() != width * height * sizeof(rgba)) {
+        throw std::logic_error("Invalid imageData size");
+    }
 }
 
 void Image::fill(const rgba& color)
@@ -56,27 +65,33 @@ void Image::fill(const rgba& color)
     }
 }
 
-bool Image::loadPngImage(const std::filesystem::path& filename)
+std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& filename)
 {
-    erase();
-    auto error = lodepng::decode(_imageData, _size.width, _size.height, filename.string());
+    unsigned width;
+    unsigned height;
+    std::vector<uint8_t> pixels;
+
+    const bool error = lodepng::decode(pixels, width, height, filename.string());
+
+    std::string errorString;
 
     if (error) {
-        erase();
-
-        _errorString = stringBuilder(filename.string(), ": ", lodepng_error_text(error));
-
-        return false;
+        width = 0;
+        height = 0;
     }
 
-    assert(_imageData.size() == _size.width * _size.height * sizeof(rgba));
-    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
+    assert(pixels.size() == width * height * sizeof(rgba));
 
-    if (not empty()) {
+    auto image = std::make_shared<Image>(width, height, std::move(pixels));
+
+    if (!error) {
         // Ensure all transparent pixels have the same value (`rgba(0, 0, 0, 0)`).
-        std::for_each(data(), data() + dataSize(),
+        std::for_each(image->data(), image->data() + image->dataSize(),
                       [](rgba& c) { if (c.alpha == 0) { c = rgba(0, 0, 0, 0); } });
     }
+    else {
+        image->_errorString = stringBuilder(filename.string(), ": ", lodepng_error_text(error));
+    }
 
-    return true;
+    return image;
 }

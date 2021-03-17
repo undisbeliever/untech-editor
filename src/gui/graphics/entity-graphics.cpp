@@ -29,6 +29,11 @@ static constexpr int INVALID_FRAME_SIZE = 16;
 
 static constexpr TwoPointRect NOT_SOLID_HITBOX_RECT{ -3, 3, -3, 3 };
 
+EntityGraphics::EntityGraphics(const usize& imageSize)
+    : image(imageSize)
+{
+}
+
 EntityGraphicsStore::EntityGraphicsStore()
     : _mutex()
     , _data(blankEntityGraphics())
@@ -63,9 +68,9 @@ static void drawInvalidSymbol(Image& image, const unsigned xPos, const unsigned 
 static std::shared_ptr<const EntityGraphics> blankEntityGraphics()
 {
     const static std::shared_ptr<const EntityGraphics> eg = []() {
-        auto eg = std::make_shared<EntityGraphics>();
+        const usize textureSize(INVALID_FRAME_SIZE, INVALID_FRAME_SIZE);
 
-        eg->image = Image(16, 16);
+        auto eg = std::make_shared<EntityGraphics>(textureSize);
 
         const int h = INVALID_FRAME_SIZE / 2;
 
@@ -336,9 +341,7 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
     const float uvX = 1.0f / textureSize.width;
     const float uvY = 1.0f / textureSize.height;
 
-    auto eg = std::make_shared<EntityGraphics>();
-
-    eg->image = Image(textureSize);
+    auto eg = std::make_shared<EntityGraphics>(textureSize);
 
     {
         auto it = std::find_if(packingNodes.begin(), packingNodes.end(),

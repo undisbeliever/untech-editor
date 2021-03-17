@@ -17,7 +17,7 @@ namespace UnTech::Gui::AboutPopup {
 static const char* const windowTitle = "About UnTech Editor";
 static bool openOnNextFrame = false;
 
-static Image logoImage()
+static Texture createLogoTexture()
 {
     constexpr unsigned width = 68;
     constexpr unsigned height = 31;
@@ -69,12 +69,12 @@ static Image logoImage()
     }
     assert(imgData == image.data() + image.dataSize());
 
-    return image;
+    return Texture::createFromImage(image);
 }
 
 static const Texture& logoTexture()
 {
-    static const Texture tex = Texture::createFromImage(logoImage());
+    static const Texture tex = createLogoTexture();
     return tex;
 }
 

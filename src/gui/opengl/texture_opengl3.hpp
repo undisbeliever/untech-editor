@@ -14,7 +14,7 @@ namespace UnTech::Gui {
 
 class Texture {
 public:
-    const static UnTech::Image missingImageSymbol;
+    static const Image& missingImageSymbol();
 
 private:
     GLuint _textureId;
@@ -82,12 +82,8 @@ public:
         }
     }
 
-    void replaceWithMissingImageSymbol()
-    {
-        replace(missingImageSymbol);
-    }
-
     void loadPngImage(const std::filesystem::path& filename);
+    void replaceWithMissingImageSymbol();
 };
 
 }

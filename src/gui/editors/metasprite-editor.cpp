@@ -695,11 +695,11 @@ void MetaSpriteEditorGui::palettesWindow()
         }
         ImGui::Spacing();
 
-        if (_data->palettesSel.selectedIndex() < fs.palettes.size()) {
-            assert(_paletteImage.size().width == N_PALETTE_COLORS);
-            assert(_paletteImage.size().height >= fs.palettes.size());
+        if (_paletteImage && _data->palettesSel.selectedIndex() < fs.palettes.size()) {
+            assert(_paletteImage->size().width == N_PALETTE_COLORS);
+            assert(_paletteImage->size().height >= fs.palettes.size());
 
-            const rgba* colors = _paletteImage.scanline(_data->palettesSel.selectedIndex());
+            const rgba* colors = _paletteImage->scanline(_data->palettesSel.selectedIndex());
 
             const ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha;
 
@@ -1387,16 +1387,18 @@ void MetaSpriteEditorGui::updatePaletteTexture()
     const usize palSize(PALETTE_TEXTURE_WIDTH,
                         nextPowerOfTwo(fs.palettes.size()));
 
-    if (_paletteImage.size() != palSize) {
-        _paletteImage = Image(palSize);
+    if (_paletteImage == nullptr || _paletteImage->size() != palSize) {
+        _paletteImage = std::make_unique<Image>(palSize);
         _paletteUvSize = ImVec2(1.0f, 1.0f / palSize.height);
     }
-    _paletteImage.fill(rgba());
+    else {
+        _paletteImage->fill(rgba());
+    }
 
-    assert(fs.palettes.size() <= _paletteImage.size().height);
+    assert(fs.palettes.size() <= _paletteImage->size().height);
 
-    rgba* imgBits = _paletteImage.data();
-    const rgba* imgBitsEnd = imgBits + _paletteImage.dataSize();
+    rgba* imgBits = _paletteImage->data();
+    const rgba* imgBitsEnd = imgBits + _paletteImage->dataSize();
     for (const auto& palette : fs.palettes) {
         assert(PALETTE_TEXTURE_WIDTH == palette.size());
 
@@ -1406,7 +1408,7 @@ void MetaSpriteEditorGui::updatePaletteTexture()
     }
     assert(imgBits <= imgBitsEnd);
 
-    _paletteTexture.replace(_paletteImage);
+    _paletteTexture.replace(*_paletteImage);
 
     _paletteValid = true;
     _tilesetValid = false;
@@ -1427,9 +1429,9 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     {
         const auto palIndex = _data->palettesSel.selectedIndex();
 
-        if (palIndex < _paletteImage.size().height) {
-            assert(_paletteImage.size().width == N_PALETTE_COLORS);
-            palette = _paletteImage.scanline(palIndex);
+        if (_paletteImage && palIndex < _paletteImage->size().height) {
+            assert(_paletteImage->size().width == N_PALETTE_COLORS);
+            palette = _paletteImage->scanline(palIndex);
         }
     }
 
@@ -1439,10 +1441,12 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     const usize tilesetSize(TILESET_IMAGE_WIDTH,
                             nextPowerOfTwo(nSmallRows * SMALL_TILE_SIZE + nLargeRows * LARGE_TILE_SIZE));
 
-    if (_tilesetImage.size() != tilesetSize) {
-        _tilesetImage = Image(tilesetSize);
+    if (_tilesetImage == nullptr || _tilesetImage->size() != tilesetSize) {
+        _tilesetImage = std::make_unique<Image>(tilesetSize);
     }
-    _tilesetImage.fill(rgba());
+    else {
+        _tilesetImage->fill(rgba());
+    }
 
     _smallTilesetUvSize = ImVec2(float(SMALL_TILE_SIZE) / tilesetSize.width, float(SMALL_TILE_SIZE) / tilesetSize.height);
     _largeTilesetUvSize = ImVec2(float(LARGE_TILE_SIZE) / tilesetSize.width, float(LARGE_TILE_SIZE) / tilesetSize.height);
@@ -1450,18 +1454,18 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     _largeTilesetUVmax = ImVec2(1.0f, _smallTilesetUVmax.y + _largeTilesetUvSize.y * nLargeRows);
 
     if (palette) {
-        const auto* imgBitsEnd = _tilesetImage.data() + _tilesetImage.dataSize();
+        const auto* imgBitsEnd = _tilesetImage->data() + _tilesetImage->dataSize();
         constexpr size_t stride = TILESET_IMAGE_WIDTH;
-        assert(stride == _tilesetImage.pixelsPerScanline());
+        assert(stride == _tilesetImage->pixelsPerScanline());
 
-        auto* imgBits = _tilesetImage.data();
+        auto* imgBits = _tilesetImage->data();
         Snes::drawTileset_transparent(fs.smallTileset, imgBits, imgBitsEnd, stride, palette, N_PALETTE_COLORS);
 
-        imgBits = _tilesetImage.scanline(nSmallRows * SMALL_TILE_SIZE);
+        imgBits = _tilesetImage->scanline(nSmallRows * SMALL_TILE_SIZE);
         Snes::drawTileset_transparent(fs.largeTileset, imgBits, imgBitsEnd, stride, palette, N_PALETTE_COLORS);
     }
 
-    _tilesetTexture.replace(_tilesetImage);
+    _tilesetTexture.replace(*_tilesetImage);
 
     // ALso update background color
     if (palette) {
