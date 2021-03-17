@@ -7,17 +7,15 @@
 #pragma once
 
 #include <cstdint>
+#include <tuple>
 
 namespace UnTech {
 
-union rgba {
-    struct {
-        uint8_t red;
-        uint8_t green;
-        uint8_t blue;
-        uint8_t alpha;
-    };
-    uint32_t _value;
+struct rgba {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+    uint8_t alpha;
 
     static rgba fromRgba(uint32_t rgbaValue)
     {
@@ -73,17 +71,20 @@ union rgba {
 
     inline bool operator==(const rgba& o) const
     {
-        return _value == o._value;
+        return red == o.red
+               && green == o.green
+               && blue == o.blue
+               && alpha == o.alpha;
     }
 
     inline bool operator!=(const rgba& o) const
     {
-        return _value != o._value;
+        return !(*this == o);
     }
 
     inline bool operator<(const rgba& o) const
     {
-        return _value < o._value;
+        return std::tie(alpha, blue, green, red) < std::tie(o.alpha, o.blue, o.green, o.red);
     }
 };
 }

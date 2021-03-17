@@ -16,7 +16,7 @@
 #include <vector>
 
 namespace UnTech {
-union rgba;
+struct rgba;
 
 template <typename T>
 class ExternalFileList;
