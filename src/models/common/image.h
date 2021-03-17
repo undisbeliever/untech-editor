@@ -8,6 +8,7 @@
 
 #include "aabb.h"
 #include "rgba.h"
+#include <cassert>
 #include <cstdint>
 #include <filesystem>
 #include <stdexcept>
@@ -20,6 +21,10 @@ namespace UnTech {
  * A simple image container class that contains a 32bpp RGBA image.
  */
 class Image {
+private:
+    // Used to "privatize" the constructors while still allowing `std::make_shared`.
+    struct PrivateToken {
+    };
 
 public:
     /**
@@ -34,60 +39,61 @@ public:
      */
     static std::shared_ptr<Image> loadPngImage_shared(const std::filesystem::path& filename);
 
+    static std::shared_ptr<Image> invalidImageWithErrorMessage(std::string&& error);
+
 private:
     const usize _size;
-    std::vector<unsigned char> _imageData;
-    std::string _errorString;
+    const std::string _errorString;
+    rgba* const _imageData;
+    rgba* const _imageDataEnd;
 
 public:
-    ~Image() = default;
-
+    // Images cannot be moved or copied.
     Image(const Image&) = delete;
     Image(Image&&) = delete;
     Image& operator=(const Image&) = delete;
     Image& operator=(Image&&) = delete;
 
-    Image();
-    Image(const usize& size);
-    Image(unsigned width, unsigned height);
-    Image(unsigned width, unsigned height, std::vector<unsigned char>&& imageData);
+    Image(const usize size);
+    Image(unsigned width, unsigned height)
+        : Image(usize(width, height))
+    {
+    }
+
+    // "Private" constructors for use with `std::make_shared`.
+    // Takes ownership of `data`
+    Image(const usize size, rgba*&& data, PrivateToken);
+    Image(std::string&& errorString, PrivateToken);
+
+    ~Image();
+
+    /**
+     * Returns true if the image is empty.
+     */
+    bool empty() const { return _imageData == nullptr; }
 
     usize size() const { return _size; }
     std::string errorString() const { return _errorString; }
 
     void fill(const rgba& color);
 
-    /**
-     * Returns true if the image is empty.
-     */
-    bool empty() const { return _size.width == 0 || _size.height == 0; }
+    inline size_t dataSize() const { return _size.width * _size.height; }
 
-    inline unsigned pixelsPerScanline() const
-    {
-        return _size.width;
-    }
+    inline rgba* data() { return _imageData; }
+    inline const rgba* data() const { return _imageData; }
 
-    inline size_t dataSize() const
-    {
-        return _size.width * _size.height;
-    }
+    inline rgba* dataEnd() { return _imageDataEnd; }
+    inline const rgba* dataEnd() const { return _imageDataEnd; }
 
-    inline rgba* data()
-    {
-        return reinterpret_cast<rgba*>(_imageData.data());
-    }
+    inline unsigned pixelsPerScanline() const { return _size.width; }
 
     inline rgba* scanline(unsigned y)
     {
         if (y >= _size.height) {
             throw std::out_of_range("Image::scanline out of range");
         }
-        return data() + (y * pixelsPerScanline());
-    }
-
-    inline const rgba* data() const
-    {
-        return reinterpret_cast<const rgba*>(_imageData.data());
+        assert(_imageData);
+        return _imageData + (y * pixelsPerScanline());
     }
 
     inline const rgba* scanline(unsigned y) const
@@ -95,7 +101,8 @@ public:
         if (y >= _size.height) {
             throw std::out_of_range("Image::scanline out of range");
         }
-        return data() + (y * pixelsPerScanline());
+        assert(_imageData);
+        return _imageData + (y * pixelsPerScanline());
     }
 
     inline rgba getPixel(unsigned x, unsigned y) const
@@ -103,7 +110,8 @@ public:
         if (x >= _size.width || y >= _size.height) {
             throw std::out_of_range("Image::getPixel out of range");
         }
-        return *(data() + x + (y * pixelsPerScanline()));
+        assert(_imageData);
+        return _imageData[x + y * pixelsPerScanline()];
     }
 
     inline void setPixel(unsigned x, unsigned y, const rgba& p)
@@ -111,7 +119,8 @@ public:
         if (x >= _size.width || y >= _size.height) {
             throw std::out_of_range("Image::setPixel out of range");
         }
-        *(data() + x + (y * pixelsPerScanline())) = p;
+        assert(_imageData);
+        _imageData[x + y * pixelsPerScanline()] = p;
     }
 };
 }

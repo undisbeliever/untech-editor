@@ -9,6 +9,8 @@
 #include <mutex>
 #include <unordered_map>
 
+using namespace std::string_literals;
+
 namespace UnTech {
 class ImageCachePrivate {
     friend class UnTech::ImageCache;
@@ -84,7 +86,7 @@ private:
     ImageCacheMap_t cache;
 };
 
-const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = std::make_shared<const Image>();
+const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = Image::invalidImageWithErrorMessage("Invalid filename"s);
 }
 
 using namespace UnTech;

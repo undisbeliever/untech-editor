@@ -67,7 +67,7 @@ static Texture createLogoTexture()
     for (const auto p : pixels) {
         *imgData++ = p == '*' ? white : transparent;
     }
-    assert(imgData == image.data() + image.dataSize());
+    assert(imgData == image.dataEnd());
 
     return Texture::createFromImage(image);
 }

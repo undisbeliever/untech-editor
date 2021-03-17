@@ -164,7 +164,7 @@ static Texture generateTileCollisionTexture()
     constexpr auto tileCollisionData = generateTileCollisionImageData();
 
     Image img(TILE_COLLISION_IMAGE_WIDTH, TILE_COLLISION_IMAGE_HEIGHT);
-    assert(img.dataSize() == tileCollisionData.size());
+    assert(img.size().width * img.size().height == tileCollisionData.size());
 
     std::copy(tileCollisionData.begin(), tileCollisionData.end(), img.data());
 

@@ -7,47 +7,60 @@
 #include "image.h"
 #include "stringbuilder.h"
 #include "vendor/lodepng/lodepng.h"
-#include <cassert>
+
+#ifndef LODEPNG_COMPILE_ALLOCATORS
+#error "Cannot use custom lodepng allocators"
+#endif
 
 using namespace UnTech;
 
 static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
 
-Image::Image()
-    : _size(0, 0)
-    , _imageData()
-    , _errorString()
-{
-}
-
-Image::Image(const usize& size)
+Image::Image(const usize size)
     : _size(size)
-    , _imageData(size.width * size.height * sizeof(rgba))
     , _errorString()
+    , _imageData(reinterpret_cast<rgba*>(malloc(size.width * size.height * sizeof(rgba))))
+    , _imageDataEnd(_imageData + (size.width * size.height))
 {
-    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
-    assert(uintptr_t(_imageData.data()) % sizeof(rgba) == 0);
+    assert(_size.width > 0 && _size.height > 0);
+
+    if (_imageData == nullptr) {
+        throw std::bad_alloc();
+    }
+
+    assert(uintptr_t(_imageData) % alignof(rgba) == 0);
+    assert(uintptr_t(_imageData) % sizeof(rgba) == 0);
 }
 
-Image::Image(unsigned width, unsigned height)
-    : _size(width, height)
-    , _imageData(width * height * sizeof(rgba))
+Image::Image(const usize size, rgba*&& data, Image::PrivateToken)
+    : _size(size)
     , _errorString()
+    , _imageData(data)
+    , _imageDataEnd(_imageData + (size.width * size.height))
 {
-    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
-    assert(uintptr_t(_imageData.data()) % sizeof(rgba) == 0);
+    assert(_size.width > 0 && _size.height > 0);
+
+    if (_imageData == nullptr) {
+        throw std::bad_alloc();
+    }
+
+    assert(uintptr_t(_imageData) % alignof(rgba) == 0);
+    assert(uintptr_t(_imageData) % sizeof(rgba) == 0);
 }
 
-Image::Image(unsigned width, unsigned height, std::vector<unsigned char>&& imageData)
-    : _size(width, height)
-    , _imageData(imageData)
-    , _errorString()
+Image::Image(std::string&& errorString, Image::PrivateToken)
+    : _size(0, 0)
+    , _errorString(std::move(errorString))
+    , _imageData(nullptr)
+    , _imageDataEnd(nullptr)
 {
-    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
-    assert(uintptr_t(_imageData.data()) % sizeof(rgba) == 0);
+}
 
-    if (imageData.size() != width * height * sizeof(rgba)) {
-        throw std::logic_error("Invalid imageData size");
+Image::~Image()
+{
+    if (_imageData) {
+        // Cannot use delete[] here, `lodepng_decode32_file` allocates memory using `malloc`.
+        free(_imageData);
     }
 }
 
@@ -57,41 +70,35 @@ void Image::fill(const rgba& color)
         return;
     }
 
-    auto* ptr = data();
-    auto* ptrEnd = data() + _size.height * _size.width;
-
-    while (ptr < ptrEnd) {
-        *ptr++ = color;
-    }
+    std::fill(_imageData, _imageDataEnd, color);
 }
 
 std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& filename)
 {
-    unsigned width;
-    unsigned height;
-    std::vector<uint8_t> pixels;
+    usize size;
+    rgba* pixels = nullptr;
 
-    const bool error = lodepng::decode(pixels, width, height, filename.string());
-
-    std::string errorString;
-
-    if (error) {
-        width = 0;
-        height = 0;
-    }
-
-    assert(pixels.size() == width * height * sizeof(rgba));
-
-    auto image = std::make_shared<Image>(width, height, std::move(pixels));
+    const auto error = lodepng_decode32_file(reinterpret_cast<uint8_t**>(&pixels),
+                                             &size.width, &size.height, filename.string().c_str());
 
     if (!error) {
-        // Ensure all transparent pixels have the same value (`rgba(0, 0, 0, 0)`).
-        std::for_each(image->data(), image->data() + image->dataSize(),
+        auto image = std::make_shared<Image>(size, std::move(pixels), PrivateToken{});
+
+        std::for_each(image->data(), image->dataEnd(),
                       [](rgba& c) { if (c.alpha == 0) { c = rgba(0, 0, 0, 0); } });
+
+        return image;
     }
     else {
-        image->_errorString = stringBuilder(filename.string(), ": ", lodepng_error_text(error));
-    }
+        if (pixels) {
+            free(pixels);
+        }
 
-    return image;
+        return invalidImageWithErrorMessage(stringBuilder(filename.string(), ": ", lodepng_error_text(error)));
+    }
+}
+
+std::shared_ptr<Image> Image::invalidImageWithErrorMessage(std::string&& error)
+{
+    return std::make_shared<Image>(std::move(error), PrivateToken{});
 }

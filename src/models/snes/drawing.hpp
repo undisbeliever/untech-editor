@@ -178,7 +178,7 @@ inline void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const b
 
         drawTile_transparent(tile, hFlip, vFlip,
                              image.data() + yOffset * image.pixelsPerScanline() + xOffset,
-                             image.data() + image.dataSize(),
+                             image.dataEnd(),
                              image.pixelsPerScanline(),
                              palette);
     }

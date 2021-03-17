@@ -373,7 +373,7 @@ bool FrameSet::transparentColorValid(const Image& image) const
         return true;
     }
     if (transparentColor.alpha == 0) {
-        bool hasTransparent = std::any_of(image.data(), image.data() + image.dataSize(),
+        bool hasTransparent = std::any_of(image.data(), image.dataEnd(),
                                           [&](const rgba& c) { return c.alpha == 0; });
 
         return hasTransparent && transparentColor == rgba(0, 0, 0, 0);

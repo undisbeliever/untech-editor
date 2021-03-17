@@ -36,7 +36,7 @@ static void drawPaletteImage(Texture& texture, const Resources::PaletteData& pal
         for (const auto i : range(nColors)) {
             *imgBits++ = Snes::toRgb(palFrame.at(i));
         }
-        assert(imgBits <= image.data() + image.dataSize());
+        assert(imgBits <= image.dataEnd());
     }
 
     texture.replace(image);
@@ -138,7 +138,7 @@ void MtTileset::setInteractiveTilesData(const MetaTiles::MetaTileTilesetInput& t
 
         imgIt++;
     }
-    assert(imgIt == image.data() + image.dataSize());
+    assert(imgIt == image.dataEnd());
 
     _interactiveTilesTexture.replace(image);
     _interactiveTilesDataValid = true;

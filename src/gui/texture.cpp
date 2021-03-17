@@ -44,7 +44,7 @@ void Texture::loadPngImage(const std::filesystem::path& fn)
     auto image = ImageCache::loadPngImage(fn);
     assert(image);
 
-    if (image->dataSize() != 0) {
+    if (!image->empty()) {
         this->replace(*image);
     }
     else {

@@ -1398,7 +1398,7 @@ void MetaSpriteEditorGui::updatePaletteTexture()
     assert(fs.palettes.size() <= _paletteImage->size().height);
 
     rgba* imgBits = _paletteImage->data();
-    const rgba* imgBitsEnd = imgBits + _paletteImage->dataSize();
+    const rgba* imgBitsEnd = _paletteImage->dataEnd();
     for (const auto& palette : fs.palettes) {
         assert(PALETTE_TEXTURE_WIDTH == palette.size());
 
@@ -1454,7 +1454,7 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     _largeTilesetUVmax = ImVec2(1.0f, _smallTilesetUVmax.y + _largeTilesetUvSize.y * nLargeRows);
 
     if (palette) {
-        const auto* imgBitsEnd = _tilesetImage->data() + _tilesetImage->dataSize();
+        const rgba* imgBitsEnd = _tilesetImage->dataEnd();
         constexpr size_t stride = TILESET_IMAGE_WIDTH;
         assert(stride == _tilesetImage->pixelsPerScanline());
 
