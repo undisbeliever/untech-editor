@@ -36,6 +36,8 @@ public:
      *
      * Will never return null.
      *
+     * NOTE: This method may refuse to load the image if it is too large.
+     *
      * NOTE: This method will transform all pixels with an alpha value to 0 to
      *       `rgba(0, 0, 0, 0)`.
      *

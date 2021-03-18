@@ -5,6 +5,7 @@
  */
 
 #include "image.h"
+#include "file.h"
 #include "stringbuilder.h"
 #include "vendor/lodepng/lodepng.h"
 
@@ -75,26 +76,46 @@ void Image::fill(const rgba& color)
 
 std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& filename)
 {
+    static constexpr size_t IMAGE_FILE_LIMIT = 2 * 1024 * 1024;
+    static constexpr size_t MAX_IMAGE_PIXELS = 1024 * 1024;
+
     usize size;
     rgba* pixels = nullptr;
 
-    const auto error = lodepng_decode32_file(reinterpret_cast<uint8_t**>(&pixels),
-                                             &size.width, &size.height, filename.string().c_str());
+    try {
+        const auto fileData = File::readBinaryFile(filename, IMAGE_FILE_LIMIT);
 
-    if (!error) {
-        auto image = std::make_shared<Image>(size, std::move(pixels), PrivateToken{});
+        lodepng::State state;
+        state.decoder.zlibsettings.max_output_size = MAX_IMAGE_PIXELS * sizeof(rgba);
 
-        std::for_each(image->begin(), image->end(),
-                      [](rgba& c) { if (c.alpha == 0) { c = rgba(0, 0, 0, 0); } });
+        state.info_raw.colortype = LCT_RGBA;
+        state.info_raw.bitdepth = 8;
 
-        return image;
-    }
-    else {
-        if (pixels) {
-            free(pixels);
+        const auto error = lodepng_decode(reinterpret_cast<uint8_t**>(&pixels), &size.width, &size.height,
+                                          &state,
+                                          fileData.data(), fileData.size());
+
+        if (!error) {
+            const size_t buffersize = lodepng_get_raw_size(size.width, size.height, &state.info_raw);
+            assert(buffersize == size.width * size.height * sizeof(rgba));
+
+            auto image = std::make_shared<Image>(size, std::move(pixels), PrivateToken{});
+
+            std::for_each(image->begin(), image->end(),
+                          [](rgba& c) { if (c.alpha == 0) { c = rgba(0, 0, 0, 0); } });
+
+            return image;
         }
+        else {
+            if (pixels) {
+                free(pixels);
+            }
 
-        return invalidImageWithErrorMessage(stringBuilder(filename.string(), ": ", lodepng_error_text(error)));
+            return invalidImageWithErrorMessage(stringBuilder(filename.string(), ": ", lodepng_error_text(error)));
+        }
+    }
+    catch (const std::exception& ex) {
+        return invalidImageWithErrorMessage(ex.what());
     }
 }
 
