@@ -27,6 +27,10 @@ private:
     };
 
 public:
+    using iterator = rgba*;
+    using const_iterator = const rgba*;
+
+public:
     /**
      * Loads a PNG image from a filename.
      *
@@ -122,5 +126,14 @@ public:
         assert(_imageData);
         _imageData[x + y * pixelsPerScanline()] = p;
     }
+
+    iterator begin() { return _imageData; }
+    iterator end() { return _imageDataEnd; }
+
+    const_iterator begin() const { return _imageData; }
+    const_iterator end() const { return _imageDataEnd; }
+
+    const_iterator cbegin() const { return _imageData; }
+    const_iterator cend() const { return _imageDataEnd; }
 };
 }

@@ -84,7 +84,7 @@ std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& f
     if (!error) {
         auto image = std::make_shared<Image>(size, std::move(pixels), PrivateToken{});
 
-        std::for_each(image->data(), image->dataEnd(),
+        std::for_each(image->begin(), image->end(),
                       [](rgba& c) { if (c.alpha == 0) { c = rgba(0, 0, 0, 0); } });
 
         return image;

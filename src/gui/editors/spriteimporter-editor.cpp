@@ -967,8 +967,7 @@ void SpriteImporterEditorGui::updateTransparentColorCombo()
     _transparentColorCombo.clear();
 
     std::unordered_set<ImU32> colorSet;
-    for (size_t i = 0; i < image->dataSize(); i++) {
-        const auto pixel = image->data()[i];
+    for (const auto& pixel : *image) {
         const ImU32 color = pixel.rgbaValue();
 
         bool newColor = colorSet.insert(color).second;
