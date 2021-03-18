@@ -81,8 +81,6 @@ public:
 
     void fill(const rgba& color);
 
-    inline size_t dataSize() const { return _size.width * _size.height; }
-
     inline rgba* data() { return _imageData; }
     inline const rgba* data() const { return _imageData; }
 
