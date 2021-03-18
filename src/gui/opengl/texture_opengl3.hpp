@@ -24,10 +24,22 @@ public:
     // No copying allowed
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;
+    Texture& operator=(Texture&&) = delete;
 
-    // Moving is OK
-    Texture(Texture&&) = default;
-    Texture& operator=(Texture&&) = default;
+    // Returning from a function is OK
+    Texture(Texture&& source)
+        : _textureId(source._textureId)
+        , _size(source._size)
+    {
+        source._textureId = 0;
+    }
+
+    ~Texture()
+    {
+        if (_textureId != 0) {
+            glDeleteTextures(1, &_textureId);
+        }
+    }
 
     Texture(const unsigned width = 0, const unsigned height = 0)
     {
@@ -50,11 +62,6 @@ public:
     {
     }
 
-    ~Texture()
-    {
-        glDeleteTextures(1, &_textureId);
-    }
-
     static Texture createFromImage(const Image& image)
     {
         Texture t(image.size());
@@ -71,6 +78,8 @@ public:
 
     void replace(const UnTech::Image& image)
     {
+        assert(_textureId != 0);
+
         glBindTexture(GL_TEXTURE_2D, _textureId);
 
         if (image.size() == _size) {

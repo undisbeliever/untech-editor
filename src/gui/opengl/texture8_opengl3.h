@@ -14,16 +14,30 @@ namespace UnTech::Gui {
 
 struct Texture8 {
 private:
-    Texture8(const Texture8&) = delete;
-    Texture8(Texture8&&) = delete;
-    Texture8& operator=(const Texture8&) = delete;
-    Texture8& operator=(Texture8&&) = delete;
-
-private:
     GLuint _textureId;
     usize _size;
 
 public:
+    // No copying allowed
+    Texture8(const Texture8&) = delete;
+    Texture8& operator=(const Texture8&) = delete;
+    Texture8& operator=(Texture8&&) = delete;
+
+    // Returning from a function is OK
+    Texture8(Texture8&& source)
+        : _textureId(source._textureId)
+        , _size(source._size)
+    {
+        source._textureId = 0;
+    }
+
+    ~Texture8()
+    {
+        if (_textureId != 0) {
+            glDeleteTextures(1, &_textureId);
+        }
+    }
+
     Texture8(const unsigned width = 0, const unsigned height = 0)
     {
         const bool hasSize = width > 0 && height > 0;
@@ -52,11 +66,6 @@ public:
     {
     }
 
-    ~Texture8()
-    {
-        glDeleteTextures(1, &_textureId);
-    }
-
     GLuint openGLTextureId() const { return _textureId; };
     ImTextureID imguiTextureId() const { return (ImTextureID)(intptr_t)_textureId; };
 
@@ -66,6 +75,8 @@ public:
 
     void setData(const usize& size, const uint8_t* data)
     {
+        assert(_textureId != 0);
+
         const bool sameSize = _size == size;
         _size = size;
 
