@@ -5,11 +5,8 @@
  */
 
 #include "style.h"
-#include "imgui-drawing.h"
 #include "models/common/clamp.h"
-#include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
-#include "vendor/imgui/imgui_internal.h"
 
 namespace UnTech::Gui {
 
@@ -30,7 +27,7 @@ Zoom Style::roomEditorZoom(300);
 
 ZoomAspectRatio Style::aspectRatio = ZoomAspectRatio::Ntsc;
 
-const std::array<std::pair<unsigned, const char*>, 19> zoomComboItems{ {
+static constexpr std::array<std::pair<unsigned, const char*>, 19> zoomComboItems{ {
     { 25, "25%" },
     { 50, "50%" },
     { 75, "75%" },
@@ -59,7 +56,13 @@ Zoom::Zoom(unsigned z)
 
 void Zoom::setZoom(unsigned z)
 {
-    z = clamp<unsigned>(z, 5, 1800);
+    constexpr unsigned MIN_ZOOM = 5;
+    constexpr unsigned MAX_ZOOM = 2500;
+
+    static_assert(MIN_ZOOM <= zoomComboItems.front().first);
+    static_assert(MAX_ZOOM >= zoomComboItems.back().first);
+
+    z = clamp<unsigned>(z, MIN_ZOOM, MAX_ZOOM);
 
     _zoomInt = z;
 
@@ -144,11 +147,10 @@ void Zoom::processMouseWheel()
             }
             else if (io.MouseWheel > 0.0f) {
                 unsigned z = zoomComboItems.back().first;
-                for (const auto i : range(zoomComboItems.size() - 1)) {
-                    if (zoomComboItems.at(i).first >= zoomInt()) {
-                        z = zoomComboItems.at(i + 1).first;
-                        break;
-                    }
+                auto it = std::find_if(zoomComboItems.begin(), zoomComboItems.end(),
+                                       [&](auto& z) { return z.first > _zoomInt; });
+                if (it != zoomComboItems.end()) {
+                    z = it->first;
                 }
                 updateZoom(z);
             }
