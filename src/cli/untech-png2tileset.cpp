@@ -31,11 +31,11 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int process(const CommandLine::Parser& args)
 {
-    IndexedImage image;
-    image.loadPngImage(args.filenames().front());
+    const auto image = IndexedImage::loadPngImage_shared(args.filenames().front());
+    assert(image);
 
-    if (image.empty()) {
-        throw std::runtime_error(image.errorString());
+    if (image->empty()) {
+        throw std::runtime_error(image->errorString());
     }
 
     const std::string& tilesetFile = args.options().at("output").string();
@@ -43,7 +43,7 @@ int process(const CommandLine::Parser& args)
 
     const unsigned bitDepth = args.options().at("bpp").uint();
 
-    ImageToTileset::convertAndSave(image, bitDepth, tilesetFile, paletteFile);
+    ImageToTileset::convertAndSave(*image, bitDepth, tilesetFile, paletteFile);
 
     return EXIT_SUCCESS;
 }

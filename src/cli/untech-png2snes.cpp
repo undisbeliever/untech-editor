@@ -58,11 +58,11 @@ int process(const CommandLine::Parser& args)
     image2Snes.setMaxPalettes(maxPalettes);
     image2Snes.setOrder(order);
 
-    IndexedImage image;
-    image.loadPngImage(inputFile);
+    const auto image = IndexedImage::loadPngImage_shared(inputFile);
+    assert(image);
 
-    if (image.empty()) {
-        throw std::runtime_error(image.errorString());
+    if (image->empty()) {
+        throw std::runtime_error(image->errorString());
     }
 
     if (verbose) {
@@ -79,12 +79,12 @@ int process(const CommandLine::Parser& args)
 
         std::cout << "\nINPUT:\n"
                   << "   " << inputFile << '\n'
-                  << "   " << image.size().width << " x " << image.size().height << " px\n"
-                  << "   " << image.palette().size() << " colors\n"
+                  << "   " << image->size().width << " x " << image->size().height << " px\n"
+                  << "   " << image->palette().size() << " colors\n"
                   << std::endl;
     }
 
-    image2Snes.process(image);
+    image2Snes.process(*image);
 
     if (verbose) {
         const auto& palette = image2Snes.palette();
