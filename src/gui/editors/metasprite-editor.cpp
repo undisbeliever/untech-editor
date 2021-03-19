@@ -32,9 +32,13 @@ constexpr static unsigned LARGE_TILE_SIZE = 16;
 
 constexpr static unsigned N_PALETTE_COLORS = 16;
 constexpr static unsigned PALETTE_TEXTURE_WIDTH = 16;
+constexpr static unsigned PALETTE_TEXTURE_HEIGHT = 64;
+
 constexpr static unsigned TILESET_IMAGE_WIDTH = 16 * SMALL_TILE_SIZE;
 constexpr static unsigned SMALL_TILES_PER_ROW = TILESET_IMAGE_WIDTH / SMALL_TILE_SIZE;
 constexpr static unsigned LARGE_TILES_PER_ROW = TILESET_IMAGE_WIDTH / LARGE_TILE_SIZE;
+
+const ImVec2 MetaSpriteEditorGui::_paletteUvSize(1.0f, 1.0f / PALETTE_TEXTURE_HEIGHT);
 
 const char* MetaSpriteEditorGui::colorPopupStrId = "Edit Color##MS";
 
@@ -82,7 +86,9 @@ struct MetaSpriteEditorData::AP {
         using ListArgsT = std::tuple<>;
         using SelectionT = SingleSelection;
 
-        constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_PALETTES;
+        static_assert(PALETTE_TEXTURE_HEIGHT <= UnTech::MetaSprite::MAX_PALETTES);
+
+        constexpr static size_t MAX_SIZE = PALETTE_TEXTURE_HEIGHT;
 
         constexpr static auto SelectionPtr = &EditorT::palettesSel;
 
@@ -333,12 +339,11 @@ MetaSpriteEditorGui::MetaSpriteEditorGui()
     , _editedTiles()
     , _selectedEditorBgColor(DEFAULT_BACKGROUND_COLOR)
     , _graphics()
-    , _paletteTexture()
+    , _paletteTexture(PALETTE_TEXTURE_WIDTH, PALETTE_TEXTURE_HEIGHT)
     , _tilesetTexture()
-    , _paletteImage()
+    , _paletteImage(PALETTE_TEXTURE_WIDTH, PALETTE_TEXTURE_HEIGHT)
     , _tilesetImage()
     , _paletteBackgroundColor(IM_COL32_WHITE)
-    , _paletteUvSize()
     , _smallTilesetUvSize()
     , _largeTilesetUvSize()
     , _smallTilesetUVmax()
@@ -659,6 +664,8 @@ void MetaSpriteEditorGui::palettesWindow()
     const ImVec2 editButtonSize(buttonSize.x * 2 + style.ItemSpacing.x * 1, buttonSize.y);
     const float colorButtonsHeight = buttonSize.y * 3 + style.ItemSpacing.y * 4;
 
+    const auto palIndex = _data->palettesSel.selectedIndex();
+
     bool colorSelected = false;
 
     ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
@@ -684,7 +691,9 @@ void MetaSpriteEditorGui::palettesWindow()
                 ImGui::Selectable(&_data->palettesSel, i, ImGuiSelectableFlags_SpanAllColumns);
                 ImGui::NextColumn();
 
-                ImGui::Image(_paletteTexture.imguiTextureId(), palSize, palUv0, palUv1);
+                if (i < PALETTE_TEXTURE_HEIGHT) {
+                    ImGui::Image(_paletteTexture.imguiTextureId(), palSize, palUv0, palUv1);
+                }
                 ImGui::NextColumn();
 
                 palUv0.y += _paletteUvSize.y;
@@ -695,11 +704,12 @@ void MetaSpriteEditorGui::palettesWindow()
         }
         ImGui::Spacing();
 
-        if (_paletteImage && _data->palettesSel.selectedIndex() < fs.palettes.size()) {
-            assert(_paletteImage->size().width == N_PALETTE_COLORS);
-            assert(_paletteImage->size().height >= fs.palettes.size());
+        if (palIndex < fs.palettes.size()
+            && palIndex < PALETTE_TEXTURE_HEIGHT) {
 
-            const rgba* colors = _paletteImage->scanline(_data->palettesSel.selectedIndex());
+            assert(_paletteImage.size().width == N_PALETTE_COLORS);
+
+            const rgba* colors = _paletteImage.scanline(palIndex);
 
             const ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha;
 
@@ -763,12 +773,14 @@ void MetaSpriteEditorGui::colorPopup()
     if (ImGui::BeginPopup(colorPopupStrId)) {
         const auto& style = ImGui::GetStyle();
 
+        const auto palIndex = _data->palettesSel.selectedIndex();
+
         bool colorChanged = false;
 
         if (_colorSel < MetaSprite::PALETTE_COLORS
-            && _data->palettesSel.selectedIndex() < fs.palettes.size()) {
+            && palIndex < fs.palettes.size()) {
 
-            auto& snesColor = fs.palettes.at(_data->palettesSel.selectedIndex()).at(_colorSel);
+            auto& snesColor = fs.palettes.at(palIndex).at(_colorSel);
             const rgba color = Snes::toRgb(snesColor);
             ImVec4 colorVec = ImGui::ColorConvertU32ToFloat4(color.rgb());
 
@@ -1384,22 +1396,16 @@ void MetaSpriteEditorGui::updatePaletteTexture()
         return;
     }
 
-    const usize palSize(PALETTE_TEXTURE_WIDTH,
-                        nextPowerOfTwo(fs.palettes.size()));
+    _paletteImage.fill(rgba());
 
-    if (_paletteImage == nullptr || _paletteImage->size() != palSize) {
-        _paletteImage = std::make_unique<Image>(palSize);
-        _paletteUvSize = ImVec2(1.0f, 1.0f / palSize.height);
-    }
-    else {
-        _paletteImage->fill(rgba());
-    }
+    const size_t nPalettes = std::min<size_t>(fs.palettes.size(), PALETTE_TEXTURE_HEIGHT);
 
-    assert(fs.palettes.size() <= _paletteImage->size().height);
+    rgba* imgBits = _paletteImage.data();
+    const rgba* imgBitsEnd = _paletteImage.dataEnd();
 
-    rgba* imgBits = _paletteImage->data();
-    const rgba* imgBitsEnd = _paletteImage->dataEnd();
-    for (const auto& palette : fs.palettes) {
+    for (const auto pId : range(nPalettes)) {
+        const auto& palette = fs.palettes.at(pId);
+
         assert(PALETTE_TEXTURE_WIDTH == palette.size());
 
         for (const auto c : range(palette.size())) {
@@ -1408,7 +1414,7 @@ void MetaSpriteEditorGui::updatePaletteTexture()
     }
     assert(imgBits <= imgBitsEnd);
 
-    _paletteTexture.replace(*_paletteImage);
+    _paletteTexture.replace(_paletteImage);
 
     _paletteValid = true;
     _tilesetValid = false;
@@ -1429,9 +1435,11 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     {
         const auto palIndex = _data->palettesSel.selectedIndex();
 
-        if (_paletteImage && palIndex < _paletteImage->size().height) {
-            assert(_paletteImage->size().width == N_PALETTE_COLORS);
-            palette = _paletteImage->scanline(palIndex);
+        if (palIndex < fs.palettes.size()
+            && palIndex < PALETTE_TEXTURE_HEIGHT) {
+
+            assert(_paletteImage.size().width == N_PALETTE_COLORS);
+            palette = _paletteImage.scanline(palIndex);
         }
     }
 

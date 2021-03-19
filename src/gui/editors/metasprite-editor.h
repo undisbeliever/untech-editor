@@ -73,12 +73,11 @@ private:
     Texture _paletteTexture;
     Texture _tilesetTexture;
 
-    std::unique_ptr<Image> _paletteImage;
+    Image _paletteImage;
     std::unique_ptr<Image> _tilesetImage;
 
     ImU32 _paletteBackgroundColor;
 
-    ImVec2 _paletteUvSize;
     ImVec2 _smallTilesetUvSize;
     ImVec2 _largeTilesetUvSize;
     ImVec2 _smallTilesetUVmax;
@@ -86,6 +85,8 @@ private:
 
     bool _paletteValid;
     bool _tilesetValid;
+
+    static const ImVec2 _paletteUvSize;
 
     static const char* colorPopupStrId;
 
