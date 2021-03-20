@@ -158,7 +158,7 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
     return roomInput;
 }
 
-static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
+void writeRoomInput(XmlWriter& xml, const RoomInput& input)
 {
     xml.writeTag("room");
 
@@ -183,16 +183,21 @@ static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
     xml.writeCloseTag();
 }
 
+std::unique_ptr<RoomInput> readRoomInput(Xml::XmlReader& xml)
+{
+    try {
+        std::unique_ptr<XmlTag> tag = xml.parseTag();
+        return readRoomInput(xml, tag.get());
+    }
+    catch (const std::exception& ex) {
+        throw xml_error(xml, "Error loading room", ex);
+    }
+}
+
 std::unique_ptr<RoomInput> loadRoomInput(const std::filesystem::path& filename)
 {
     auto xml = XmlReader::fromFile(filename);
-    try {
-        std::unique_ptr<XmlTag> tag = xml->parseTag();
-        return readRoomInput(*xml, tag.get());
-    }
-    catch (const std::exception& ex) {
-        throw xml_error(*xml, "Error loading metatile tileset", ex);
-    }
+    return readRoomInput(*xml);
 }
 
 void saveRoomInput(const RoomInput& input, const std::filesystem::path& filename)

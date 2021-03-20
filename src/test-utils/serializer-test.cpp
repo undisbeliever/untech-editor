@@ -15,6 +15,7 @@
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project-serializer.h"
 #include "models/resources/resources-serializer.h"
+#include "models/rooms/rooms-serializer.h"
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -42,7 +43,7 @@ static void validateReaderAndWriter(const std::filesystem::path& filename, const
 
     std::unique_ptr<T> output;
     try {
-        Xml::XmlReader xml(xmlString1, filename);
+        Xml::XmlReader xml(std::string(xmlString1), filename);
         output = readerFunction(xml);
     }
     catch (const std::exception& ex) {
@@ -96,6 +97,12 @@ template <>
 bool testSerializer<MetaSprite::FrameSetExportOrder>(const std::filesystem::path& filename)
 {
     return testSerializer(filename, MetaSprite::readFrameSetExportOrder, MetaSprite::writeFrameSetExportOrder);
+}
+
+template <>
+bool testSerializer<Rooms::RoomInput>(const std::filesystem::path& filename)
+{
+    return testSerializer(filename, Rooms::readRoomInput, Rooms::writeRoomInput);
 }
 
 template <>
@@ -176,6 +183,7 @@ bool testSerializer<Project::ProjectFile>(const std::filesystem::path& filename)
     valid &= testExternalFileList(project->metaTileTilesets);
     valid &= testExternalFileList(project->frameSetExportOrders);
     valid &= testFrameSetFiles(project->frameSets);
+    valid &= testExternalFileList(project->rooms);
 
     return valid;
 }

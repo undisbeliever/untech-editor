@@ -21,6 +21,9 @@ std::unique_ptr<RoomInput> loadRoomInput(const std::filesystem::path& filename);
 // raises an exception on error
 void saveRoomInput(const RoomInput& input, const std::filesystem::path& filename);
 
+std::unique_ptr<RoomInput> readRoomInput(Xml::XmlReader& xml);
+void writeRoomInput(Xml::XmlWriter& xml, const RoomInput& input);
+
 // raises an exception on error
 void readRoomSettings(RoomSettings& settings, const Xml::XmlTag* tag);
 
