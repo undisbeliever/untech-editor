@@ -11,7 +11,7 @@
 namespace UnTech {
 namespace Xml {
 
-std::string escape(const std::string& text, bool intag = true);
+std::string escape(const std::string_view text, bool intag = true);
 
 inline bool isName(char c)
 {
@@ -24,7 +24,7 @@ inline bool isName(char c)
             || c == '_');
 }
 
-inline bool isName(const std::string& text)
+inline bool isName(const std::string_view text)
 {
     for (const char c : text) {
         if (isName(c) == false) {

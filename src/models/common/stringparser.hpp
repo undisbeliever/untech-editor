@@ -20,14 +20,6 @@ inline bool StringParser::isWhitespaceChar(const std::string::value_type c)
     return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
 
-inline StringParser::StringParser(const std::string& str)
-    : _inputString(str)
-    , _pos(_inputString.cbegin())
-    , _lineNo(0)
-{
-    reset();
-}
-
 inline StringParser::StringParser(const std::string&& str)
     : _inputString(std::move(str))
     , _pos(_inputString.cbegin())
@@ -99,7 +91,7 @@ inline void StringParser::skipWhitespace()
     }
 }
 
-inline bool StringParser::testAndConsume(const std::string& str)
+inline bool StringParser::testAndConsume(const std::string_view str)
 {
     std::string::const_iterator it = _pos;
     for (auto c : str) {
@@ -118,7 +110,7 @@ inline bool StringParser::testAndConsume(const std::string& str)
     return true;
 }
 
-inline bool StringParser::skipUntil(const std::string& str)
+inline bool StringParser::skipUntil(const std::string_view str)
 {
     auto oldPos = _pos;
 

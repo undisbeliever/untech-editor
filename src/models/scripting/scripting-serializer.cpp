@@ -31,8 +31,8 @@ static const EnumMap<ConditionalType> conditionalTypeMap = {
 static const EnumMap<ComparisonType> comparisonTypeMap = {
     { "==", ComparisonType::Equal },
     { "!=", ComparisonType::NotEqual },
-    { "<", ComparisonType::LessThan },
-    { ">=", ComparisonType::GreaterThanEqual },
+    { "&lt;", ComparisonType::LessThan },
+    { "&gt;=", ComparisonType::GreaterThanEqual },
     { "set", ComparisonType::Set },
     { "clear", ComparisonType::Clear },
 };

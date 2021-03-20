@@ -26,6 +26,16 @@ namespace Xml {
  */
 class XmlWriter {
 
+private:
+    std::ostream& _file;
+    const std::filesystem::path _filePath;
+
+    // Cannot use std::string_view here (stack-use-after-scope AddressSanitizer error)
+    std::stack<std::string> _tagStack;
+
+    bool _inTag;
+    bool _useRelativePaths;
+
 public:
     XmlWriter() = delete;
     XmlWriter(const XmlWriter&) = delete;
@@ -33,28 +43,28 @@ public:
     XmlWriter& operator=(const XmlWriter&) = delete;
     XmlWriter& operator=(XmlWriter&&) = delete;
 
-    XmlWriter(std::ostream& output, const std::string& doctype)
+    XmlWriter(std::ostream& output, const std::string_view doctype)
         : XmlWriter(output, std::filesystem::path(), doctype)
     {
     }
-    XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string& doctype);
+    XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string_view doctype);
     ~XmlWriter();
 
     const std::filesystem::path& filePath() const { return _filePath; }
 
     void forceFullFilePaths() { _useRelativePaths = false; }
 
-    void writeTag(const std::string& name);
+    void writeTag(const std::string_view name);
 
-    void writeTagAttribute(const std::string& name, const std::string& value);
-    void writeTagAttribute(const std::string& name, const char* value);
-    void writeTagAttribute(const std::string& name, const int value);
-    void writeTagAttribute(const std::string& name, const unsigned value);
-    void writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width);
+    void writeTagAttribute(const std::string_view name, const std::string_view value);
+    void writeTagAttribute(const std::string_view name, const char* value);
+    void writeTagAttribute(const std::string_view name, const int value);
+    void writeTagAttribute(const std::string_view name, const unsigned value);
+    void writeTagAttributeHex(const std::string_view name, const unsigned value, unsigned width);
 
-    void writeTagAttributeOptional(const std::string& name, const std::string& value);
+    void writeTagAttributeOptional(const std::string_view name, const std::string_view value);
 
-    void writeText(const std::string& text);
+    void writeText(const std::string_view text);
 
     void writeBase64(const uint8_t* data, const size_t size);
     void writeBase64(const std::vector<uint8_t>& data);
@@ -67,9 +77,19 @@ public:
 
     void writeCloseTag();
 
-    void writeTagAttributeFilename(const std::string& name, const std::filesystem::path& path);
+    void writeTagAttributeFilename(const std::string_view name, const std::filesystem::path& path);
 
-    inline void writeTagAttribute(const std::string& name, bool v)
+    inline void writeTagAttribute(const std::string_view name, const idstring& value)
+    {
+        writeTagAttribute(name, value.str());
+    }
+
+    inline void writeTagAttributeOptional(const std::string_view name, const idstring& value)
+    {
+        writeTagAttributeOptional(name, value.str());
+    }
+
+    inline void writeTagAttribute(const std::string_view name, bool v)
     {
         if (v) {
             writeTagAttribute(name, "true");
@@ -77,44 +97,44 @@ public:
     }
 
     template <typename T, T MIN, T MAX>
-    inline void writeTagAttribute(const std::string& name,
+    inline void writeTagAttribute(const std::string_view name,
                                   const ClampedType<T, MIN, MAX>& v)
     {
         writeTagAttribute(name, T(v));
     }
 
     template <class T>
-    inline void writeTagAttributeEnum(const std::string& name, const T& value)
+    inline void writeTagAttributeEnum(const std::string_view name, const T& value)
     {
         const auto& enumMap = T::enumMap;
-        writeTagAttribute(name, enumMap.nameOf(value.value()));
+        writeTagAttribute_noEscape(name, enumMap.nameOf(value.value()));
     }
 
     template <typename T>
-    inline void writeTagAttributeEnum(const std::string& name, const T& value, const EnumMap<T>& enumMap)
+    inline void writeTagAttributeEnum(const std::string_view name, const T& value, const EnumMap<T>& enumMap)
     {
-        writeTagAttribute(name, enumMap.nameOf(value));
+        writeTagAttribute_noEscape(name, enumMap.nameOf(value));
     }
 
-    inline void writeTagAttributePoint(const point& p, const std::string& xName = "x", const std::string& yName = "y")
-    {
-        writeTagAttribute(xName, p.x);
-        writeTagAttribute(yName, p.y);
-    }
-
-    inline void writeTagAttributeUpoint(const upoint& p, const std::string& xName = "x", const std::string& yName = "y")
+    inline void writeTagAttributePoint(const point& p, const std::string_view xName = "x", const std::string_view yName = "y")
     {
         writeTagAttribute(xName, p.x);
         writeTagAttribute(yName, p.y);
     }
 
-    inline void writeTagAttributeUsize(const usize& s, const std::string& widthName = "width", const std::string& heightName = "height")
+    inline void writeTagAttributeUpoint(const upoint& p, const std::string_view xName = "x", const std::string_view yName = "y")
+    {
+        writeTagAttribute(xName, p.x);
+        writeTagAttribute(yName, p.y);
+    }
+
+    inline void writeTagAttributeUsize(const usize& s, const std::string_view widthName = "width", const std::string_view heightName = "height")
     {
         writeTagAttribute(widthName, s.width);
         writeTagAttribute(heightName, s.height);
     }
 
-    inline void writeTagAttributeUrect(const urect& r, const std::string& xName = "x", const std::string& yName = "y", const std::string& widthName = "width", const std::string& heightName = "height")
+    inline void writeTagAttributeUrect(const urect& r, const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height")
     {
         writeTagAttribute(xName, r.x);
         writeTagAttribute(yName, r.y);
@@ -122,13 +142,13 @@ public:
         writeTagAttribute(heightName, r.height);
     }
 
-    inline void writeTagAttributeMs8point(const ms8point& p, const std::string& xName = "x", const std::string& yName = "y")
+    inline void writeTagAttributeMs8point(const ms8point& p, const std::string_view xName = "x", const std::string_view yName = "y")
     {
         writeTagAttribute(xName, p.x);
         writeTagAttribute(yName, p.y);
     }
 
-    inline void writeTagAttributeMs8rect(const ms8rect& r, const std::string& xName = "x", const std::string& yName = "y", const std::string& widthName = "width", const std::string& heightName = "height")
+    inline void writeTagAttributeMs8rect(const ms8rect& r, const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height")
     {
         writeTagAttribute(xName, r.x);
         writeTagAttribute(yName, r.y);
@@ -138,15 +158,10 @@ public:
 
 private:
     void writeCloseTagHead();
-    void writeEscapeAttribute(const std::string& text);
+    void writeEscapeAttribute(const std::string_view text);
     void writeEscapeAttribute(const char* text);
 
-private:
-    std::ostream& _file;
-    const std::filesystem::path _filePath;
-    std::stack<std::string> _tagStack;
-    bool _inTag;
-    bool _useRelativePaths;
+    void writeTagAttribute_noEscape(const std::string_view name, const std::string_view value);
 };
 }
 }

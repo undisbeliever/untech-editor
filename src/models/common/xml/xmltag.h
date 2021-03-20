@@ -19,6 +19,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace UnTech {
@@ -33,13 +34,18 @@ public:
 };
 
 struct XmlTag {
+    std::string_view name;
+    std::unordered_map<std::string_view, std::string_view> attributes;
+    const XmlReader* xml;
+    const unsigned lineNo;
+
     XmlTag() = delete;
     XmlTag(const XmlTag&) = delete;
     XmlTag(XmlTag&&) = delete;
     XmlTag& operator=(const XmlTag&) = delete;
     XmlTag& operator=(XmlTag&&) = delete;
 
-    XmlTag(const XmlReader* xml, std::string tagName, unsigned lineNo)
+    XmlTag(const XmlReader* xml, std::string_view tagName, unsigned lineNo)
         : name(tagName)
         , attributes()
         , xml(xml)
@@ -47,12 +53,9 @@ struct XmlTag {
     {
     }
 
-    bool hasAttribute(const std::string& aName) const
-    {
-        return attributes.find(aName) != attributes.end();
-    }
-
-    inline std::string getAttribute(const std::string& aName) const
+private:
+    // NOTE: Does not unescape any `&` characters in the attribute value.
+    inline std::string_view getAttribute_rawValue(const std::string_view aName) const
     {
         auto it = attributes.find(aName);
         if (it != attributes.end()) {
@@ -63,20 +66,38 @@ struct XmlTag {
         }
     }
 
-    inline std::string getAttributeOrEmpty(const std::string& aName) const
+public:
+    bool hasAttribute(const std::string_view aName) const
+    {
+        return attributes.find(aName) != attributes.end();
+    }
+
+    inline std::string getAttribute(const std::string_view aName) const
     {
         auto it = attributes.find(aName);
         if (it != attributes.end()) {
-            return it->second;
+            return unescapeXmlString(it->second);
+        }
+        else {
+            throw xml_error(*this, aName, "Missing attribute");
+        }
+    }
+
+    inline std::string getAttributeOrEmpty(const std::string_view aName) const
+    {
+        auto it = attributes.find(aName);
+        if (it != attributes.end()) {
+            return unescapeXmlString(it->second);
         }
         else {
             return std::string();
         }
     }
 
-    inline idstring getAttributeId(const std::string& aName) const
+    inline idstring getAttributeId(const std::string_view aName) const
     {
-        const idstring id(getAttribute(aName));
+        // No need to escape value - only alnum and underscore characters are valid
+        const idstring id(getAttribute_rawValue(aName));
 
         if (id.isValid()) {
             return id;
@@ -86,13 +107,15 @@ struct XmlTag {
         }
     }
 
-    inline idstring getAttributeOptionalId(const std::string& aName) const
+    inline idstring getAttributeOptionalId(const std::string_view aName) const
     {
         auto it = attributes.find(aName);
         if (it != attributes.end()) {
             if (it->second.empty()) {
                 return idstring();
             }
+
+            // No need to escape value - only alnum and underscore characters are valid
             const idstring id(it->second);
 
             if (id.isValid()) {
@@ -108,10 +131,11 @@ struct XmlTag {
     }
 
     template <class MapT>
-    inline idstring getAttributeUniqueId(const std::string& aName,
+    inline idstring getAttributeUniqueId(const std::string_view aName,
                                          const MapT& map) const
     {
-        const idstring id(getAttribute(aName));
+        // No need to escape value - only alnum and underscore characters are valid
+        const idstring id(getAttribute_rawValue(aName));
 
         if (map.contains(id)) {
             throw xml_error(*this, aName, "id already exists");
@@ -119,20 +143,21 @@ struct XmlTag {
         return id;
     }
 
-    inline optional<std::string> getOptionalAttribute(const std::string& aName) const
+    inline optional<std::string> getOptionalAttribute(const std::string_view aName) const
     {
         auto it = attributes.find(aName);
         if (it != attributes.end()) {
-            return it->second;
+            return unescapeXmlString(it->second);
         }
         else {
             return optional<std::string>();
         }
     }
 
-    inline int getAttributeInteger(const std::string& aName) const
+    inline int getAttributeInteger(const std::string_view aName) const
     {
-        auto v = String::toInt(getAttribute(aName));
+        // No need to escape value - only digit characters and '-' are valid
+        auto v = String::toInt(getAttribute_rawValue(aName));
 
         if (!v) {
             throw xml_error(*this, aName, "Not a number");
@@ -140,7 +165,7 @@ struct XmlTag {
         return v.value();
     }
 
-    inline int getAttributeInteger(const std::string& aName, int min, int max) const
+    inline int getAttributeInteger(const std::string_view aName, int min, int max) const
     {
         int i = getAttributeInteger(aName);
 
@@ -154,7 +179,7 @@ struct XmlTag {
     }
 
     template <class T>
-    inline T getAttributeClamped(const std::string& aName)
+    inline T getAttributeClamped(const std::string_view aName)
     {
         static_assert(std::is_integral<typename T::TYPE>::value, "not integral");
 
@@ -166,9 +191,10 @@ struct XmlTag {
         }
     }
 
-    inline unsigned getAttributeUnsigned(const std::string& aName, unsigned min = 0, unsigned max = UINT_MAX) const
+    inline unsigned getAttributeUnsigned(const std::string_view aName, unsigned min = 0, unsigned max = UINT_MAX) const
     {
-        auto v = String::toLong(getAttribute(aName));
+        // No need to escape value - only digit characters are valid
+        const auto v = String::toLong(getAttribute_rawValue(aName));
 
         if (!v) {
             throw xml_error(*this, aName, "Not a number");
@@ -185,32 +211,32 @@ struct XmlTag {
         return (unsigned)v.value();
     }
 
-    inline int8_t getAttributeInt8(const std::string& aName) const
+    inline int8_t getAttributeInt8(const std::string_view aName) const
     {
         return (int8_t)getAttributeInteger(aName, INT8_MIN, INT8_MAX);
     }
 
-    inline uint8_t getAttributeUint8(const std::string& aName) const
+    inline uint8_t getAttributeUint8(const std::string_view aName) const
     {
         return (uint8_t)getAttributeUnsigned(aName, 0, UINT8_MAX);
     }
 
-    inline uint16_t getAttributeUint16(const std::string& aName) const
+    inline uint16_t getAttributeUint16(const std::string_view aName) const
     {
         return (uint16_t)getAttributeUnsigned(aName, 0, UINT16_MAX);
     }
 
-    inline uint8_t getAttributeUint8NotZero(const std::string& aName) const
+    inline uint8_t getAttributeUint8NotZero(const std::string_view aName) const
     {
         return (uint8_t)getAttributeUnsigned(aName, 1, UINT8_MAX);
     }
 
-    inline int_ms8_t getAttributeIntMs8(const std::string& aName) const
+    inline int_ms8_t getAttributeIntMs8(const std::string_view aName) const
     {
         return int_ms8_t(getAttributeInteger(aName, int_ms8_t::MIN, int_ms8_t::MAX));
     }
 
-    inline bool getAttributeBoolean(const std::string& aName, bool def = false) const
+    inline bool getAttributeBoolean(const std::string_view aName, bool def = false) const
     {
         auto v = getOptionalAttribute(aName);
 
@@ -229,7 +255,7 @@ struct XmlTag {
         return def;
     }
 
-    inline std::filesystem::path getAttributeFilename(const std::string& aName) const
+    inline std::filesystem::path getAttributeFilename(const std::string_view aName) const
     {
         const auto xmlPath = xml->filePath();
 
@@ -237,6 +263,7 @@ struct XmlTag {
             throw xml_error(*this, aName, "XML file has no path");
         }
 
+        // Must escape attribute value
         auto path = std::filesystem::u8path(getAttribute(aName));
         if (path.empty()) {
             throw xml_error(*this, aName, "Expected filename");
@@ -246,9 +273,10 @@ struct XmlTag {
     }
 
     template <typename T>
-    inline T getAttributeEnum(const std::string& aName, const EnumMap<T>& enumMap) const
+    inline T getAttributeEnum(const std::string_view aName, const EnumMap<T>& enumMap) const
     {
-        auto it = enumMap.find(getAttribute(aName));
+        // No need to escape value - only alnum, dash and underscore characters are valid
+        auto it = enumMap.find(getAttribute_rawValue(aName));
         if (it != enumMap.end()) {
             return it->second;
         }
@@ -258,13 +286,13 @@ struct XmlTag {
     }
 
     template <class T>
-    inline T getAttributeEnum(const std::string& aName) const
+    inline T getAttributeEnum(const std::string_view aName) const
     {
         return getAttributeEnum(aName, T::enumMap);
     }
 
     template <typename T>
-    inline T getAttributeOptionalEnum(const std::string& aName, const EnumMap<T>& enumMap, const T default_value) const
+    inline T getAttributeOptionalEnum(const std::string_view aName, const EnumMap<T>& enumMap, const T default_value) const
     {
         auto aIt = attributes.find(aName);
         if (aIt != attributes.end()) {
@@ -277,14 +305,15 @@ struct XmlTag {
     }
 
     template <class T>
-    inline T getAttributeOptionalEnum(const std::string& aName, const typename T::Enum default_value) const
+    inline T getAttributeOptionalEnum(const std::string_view aName, const typename T::Enum default_value) const
     {
         return getAttributeEnum(aName, T::enumMap, default_value);
     }
 
-    inline unsigned getAttributeUnsignedHex(const std::string& aName) const
+    inline unsigned getAttributeUnsignedHex(const std::string_view aName) const
     {
-        auto v = String::hexToUnsigned(getAttribute(aName));
+        // No need to escape value, only 0-9 and a-f characters are valid
+        auto v = String::hexToUnsigned(getAttribute_rawValue(aName));
 
         if (!v) {
             throw xml_error(*this, aName, "Not a hexadecimal number");
@@ -292,7 +321,7 @@ struct XmlTag {
         return v.value();
     }
 
-    inline point getAttributePoint(const std::string& xName = "x", const std::string& yName = "y") const
+    inline point getAttributePoint(const std::string_view xName = "x", const std::string_view yName = "y") const
     {
         unsigned x = getAttributeInteger(xName);
         unsigned y = getAttributeInteger(yName);
@@ -300,7 +329,7 @@ struct XmlTag {
         return point(x, y);
     }
 
-    inline upoint getAttributeUpoint(const std::string& xName = "x", const std::string& yName = "y") const
+    inline upoint getAttributeUpoint(const std::string_view xName = "x", const std::string_view yName = "y") const
     {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
@@ -308,7 +337,7 @@ struct XmlTag {
         return upoint(x, y);
     }
 
-    inline usize getAttributeUsize(const std::string& widthName = "width", const std::string& heightName = "height") const
+    inline usize getAttributeUsize(const std::string_view widthName = "width", const std::string_view heightName = "height") const
     {
         unsigned width = getAttributeUnsigned(widthName);
         unsigned height = getAttributeUnsigned(heightName);
@@ -316,7 +345,7 @@ struct XmlTag {
         return usize(width, height);
     }
 
-    inline upoint getAttributeUpointInside(const urect& container, const std::string& xName = "x", const std::string& yName = "y") const
+    inline upoint getAttributeUpointInside(const urect& container, const std::string_view xName = "x", const std::string_view yName = "y") const
     {
         unsigned x = getAttributeUnsigned(xName, 0, container.width);
         unsigned y = getAttributeUnsigned(yName, 0, container.height);
@@ -324,7 +353,7 @@ struct XmlTag {
         return upoint(x, y);
     }
 
-    inline upoint getAttributeUpointInside(const urect& container, unsigned squareSize, const std::string& xName = "x", const std::string& yName = "y") const
+    inline upoint getAttributeUpointInside(const urect& container, unsigned squareSize, const std::string_view xName = "x", const std::string_view yName = "y") const
     {
         if (container.width < squareSize || container.height < squareSize) {
             throw xml_error(*this, "upoint outside urect");
@@ -335,7 +364,7 @@ struct XmlTag {
         return upoint(x, y);
     }
 
-    inline urect getAttributeUrect(const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
+    inline urect getAttributeUrect(const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height") const
     {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
@@ -346,7 +375,7 @@ struct XmlTag {
         return urect(x, y, width, height);
     }
 
-    inline urect getAttributeUrect(const usize& minimumSize, const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
+    inline urect getAttributeUrect(const usize& minimumSize, const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height") const
     {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
@@ -357,7 +386,7 @@ struct XmlTag {
         return urect(x, y, width, height);
     }
 
-    inline urect getAttributeUrectInside(const urect& container, const std::string& xName = "x", const std::string& yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
+    inline urect getAttributeUrectInside(const urect& container, const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height") const
     {
         unsigned x = getAttributeUnsigned(xName, 0, container.width);
         unsigned y = getAttributeUnsigned(yName, 0, container.height);
@@ -368,7 +397,7 @@ struct XmlTag {
         return urect(x, y, width, height);
     }
 
-    inline ms8point getAttributeMs8point(const std::string& xName = "x", const std::string& yName = "y") const
+    inline ms8point getAttributeMs8point(const std::string_view xName = "x", const std::string_view yName = "y") const
     {
         int_ms8_t x = getAttributeIntMs8(xName);
         int_ms8_t y = getAttributeIntMs8(yName);
@@ -376,7 +405,7 @@ struct XmlTag {
         return ms8point(x, y);
     }
 
-    inline ms8rect getAttributeMs8rect(const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
+    inline ms8rect getAttributeMs8rect(const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height") const
     {
         int_ms8_t x = getAttributeIntMs8(xName);
         int_ms8_t y = getAttributeIntMs8(yName);
@@ -386,13 +415,8 @@ struct XmlTag {
         return ms8rect(x, y, width, height);
     }
 
-    std::string generateErrorString(const char* msg) const;
-    std::string generateErrorString(const std::string& aName, const char* msg) const;
-
-    std::string name;
-    std::unordered_map<std::string, std::string> attributes;
-    const XmlReader* xml;
-    const unsigned lineNo;
+    std::string generateErrorString(const std::string_view msg) const;
+    std::string generateErrorString(const std::string_view aName, const std::string_view msg) const;
 };
 }
 }

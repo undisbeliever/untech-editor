@@ -10,14 +10,12 @@
 #include "../string.h"
 #include <algorithm>
 #include <cassert>
-#include <cstring>
 #include <iomanip>
 #include <sstream>
 
-using namespace UnTech;
-using namespace UnTech::Xml;
+namespace UnTech::Xml {
 
-XmlWriter::XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string& doctype)
+XmlWriter::XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string_view doctype)
     : _file(output)
     , _filePath(filePath)
     , _tagStack()
@@ -39,7 +37,7 @@ XmlWriter::~XmlWriter()
     assert(_tagStack.size() == 0);
 }
 
-void XmlWriter::writeTag(const std::string& name)
+void XmlWriter::writeTag(const std::string_view name)
 {
     assert(isName(name));
 
@@ -54,11 +52,19 @@ void XmlWriter::writeTag(const std::string& name)
 
     _file << "<" << name;
 
-    _tagStack.push(name);
+    _tagStack.emplace(name);
     _inTag = true;
 }
 
-void XmlWriter::writeTagAttribute(const std::string& name, const std::string& value)
+void XmlWriter::writeTagAttribute_noEscape(const std::string_view name, const std::string_view value)
+{
+    assert(_inTag);
+    assert(isName(name));
+
+    _file << ' ' << name << "=\"" << value << '"';
+}
+
+void XmlWriter::writeTagAttribute(const std::string_view name, const std::string_view value)
 {
     assert(_inTag);
     assert(isName(name));
@@ -68,7 +74,7 @@ void XmlWriter::writeTagAttribute(const std::string& name, const std::string& va
     _file << '"';
 }
 
-void XmlWriter::writeTagAttribute(const std::string& name, const char* value)
+void XmlWriter::writeTagAttribute(const std::string_view name, const char* value)
 {
     assert(_inTag);
     assert(isName(name));
@@ -78,7 +84,7 @@ void XmlWriter::writeTagAttribute(const std::string& name, const char* value)
     _file << '"';
 }
 
-void XmlWriter::writeTagAttribute(const std::string& name, const int value)
+void XmlWriter::writeTagAttribute(const std::string_view name, const int value)
 {
     assert(_inTag);
     assert(isName(name));
@@ -88,7 +94,7 @@ void XmlWriter::writeTagAttribute(const std::string& name, const int value)
     _file << ' ' << name << "=\"" << value << '"';
 }
 
-void XmlWriter::writeTagAttribute(const std::string& name, const unsigned value)
+void XmlWriter::writeTagAttribute(const std::string_view name, const unsigned value)
 {
     assert(_inTag);
     assert(isName(name));
@@ -98,7 +104,7 @@ void XmlWriter::writeTagAttribute(const std::string& name, const unsigned value)
     _file << ' ' << name << "=\"" << value << '"';
 }
 
-void XmlWriter::writeTagAttributeFilename(const std::string& name, const std::filesystem::path& path)
+void XmlWriter::writeTagAttributeFilename(const std::string_view name, const std::filesystem::path& path)
 {
     std::filesystem::path p = _useRelativePaths ? path.lexically_relative(_filePath.parent_path())
                                                 : std::filesystem::absolute(path);
@@ -106,7 +112,7 @@ void XmlWriter::writeTagAttributeFilename(const std::string& name, const std::fi
     writeTagAttribute(name, p.generic_u8string());
 }
 
-void XmlWriter::writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width)
+void XmlWriter::writeTagAttributeHex(const std::string_view name, const unsigned value, unsigned width)
 {
     assert(_inTag);
     assert(isName(name));
@@ -118,14 +124,14 @@ void XmlWriter::writeTagAttributeHex(const std::string& name, const unsigned val
           << '"';
 }
 
-void XmlWriter::writeTagAttributeOptional(const std::string& name, const std::string& value)
+void XmlWriter::writeTagAttributeOptional(const std::string_view name, const std::string_view value)
 {
     if (!value.empty()) {
         writeTagAttribute(name, value);
     }
 }
 
-void XmlWriter::writeText(const std::string& text)
+void XmlWriter::writeText(const std::string_view text)
 {
     if (_inTag) {
         writeCloseTagHead();
@@ -194,7 +200,7 @@ inline void XmlWriter::writeCloseTagHead()
     _inTag = false;
 }
 
-inline void XmlWriter::writeEscapeAttribute(const std::string& text)
+inline void XmlWriter::writeEscapeAttribute(const std::string_view text)
 {
     for (char c : text) {
         switch (c) {
@@ -249,4 +255,6 @@ inline void XmlWriter::writeEscapeAttribute(const char* text)
 
         pos++;
     }
+}
+
 }

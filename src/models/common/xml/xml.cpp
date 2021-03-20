@@ -8,11 +8,11 @@
 
 using namespace UnTech::Xml;
 
-std::string escape(const std::string str, bool intag = true)
+std::string escape(const std::string_view str, bool intag = true)
 {
-    std::string ret = str;
+    std::string ret;
 
-    ret.reserve(str.capacity() * 2);
+    ret.reserve(str.size() * 2);
 
     for (const char c : str) {
         if (c == '<') {

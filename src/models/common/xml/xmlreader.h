@@ -16,21 +16,22 @@
 #include <memory>
 #include <stack>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace UnTech {
 namespace Xml {
 
+std::string unescapeXmlString(const std::string_view xmlString);
+
 class XmlReader;
 struct XmlTag;
 class xml_error : public std::runtime_error {
 public:
-    explicit xml_error(const XmlTag& tag, const char* message);
-    explicit xml_error(const XmlTag& tag, const std::string& message);
-    explicit xml_error(const XmlTag& tag, const std::string& attr, const char* message);
-    explicit xml_error(const XmlReader& xml, const char* message);
-    explicit xml_error(const XmlReader& xml, const std::string& message);
-    explicit xml_error(const XmlReader& tag, const char* message, const std::exception& error);
+    explicit xml_error(const XmlTag& tag, const std::string_view message);
+    explicit xml_error(const XmlTag& tag, const std::string_view attr, const std::string_view message);
+    explicit xml_error(const XmlReader& xml, const std::string_view message);
+    explicit xml_error(const XmlReader& tag, const std::string_view message, const std::exception& error);
 
     inline const std::filesystem::path& filePath() const { return _filePath; }
 
@@ -53,8 +54,21 @@ private:
  *
  * The parser functions can raise a std::runtime_error with a human readable
  * description of the parsing error and its location.
+ *
+ * CHANGELOG:
+ *   * Now uses std::string_view
+ *   * XmlReader does not lowercases names.  Names are now case-sensitive.
+
  */
 class XmlReader {
+
+private:
+    const std::filesystem::path _filePath;
+    StringParser _input;
+
+    std::stack<std::string_view> _tagStack;
+    std::string_view _currentTag;
+    bool _inSelfClosingTag;
 
 public:
     XmlReader() = delete;
@@ -63,7 +77,7 @@ public:
     XmlReader& operator=(const XmlReader&) = delete;
     XmlReader& operator=(XmlReader&&) = delete;
 
-    XmlReader(const std::string& xml, const std::filesystem::path& filePath = std::filesystem::path());
+    XmlReader(std::string&& xml, const std::filesystem::path& filePath = std::filesystem::path());
 
     static std::unique_ptr<XmlReader> fromFile(const std::filesystem::path& filePath);
 
@@ -110,21 +124,13 @@ public:
     /** the current line number of the cursor */
     inline unsigned lineNo() const { return _input.lineNo(); }
 
-    std::string generateErrorString(const char* message) const;
-    std::string generateErrorString(const char* message, const std::exception& ex) const;
+    std::string generateErrorString(const std::string_view message) const;
+    std::string generateErrorString(const std::string_view message, const std::exception& ex) const;
 
 private:
     void skipText();
-    std::string parseName();
-    std::string parseAttributeValue();
-
-private:
-    const std::filesystem::path _filePath;
-    StringParser _input;
-
-    std::stack<std::string> _tagStack;
-    std::string _currentTag;
-    bool _inSelfClosingTag;
+    std::string_view parseName();
+    std::string_view parseAttributeValue();
 };
 }
 }

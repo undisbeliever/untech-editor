@@ -18,7 +18,6 @@ class StringParser {
 public:
     static bool isWhitespaceChar(const std::string::value_type c);
 
-    StringParser(const std::string& str);
     StringParser(const std::string&& str);
 
     void reset();
@@ -43,11 +42,11 @@ public:
 
     void skipWhitespace();
 
-    bool testAndConsume(const std::string& str);
+    bool testAndConsume(const std::string_view str);
 
     // returns false if the string ended unexpectedly
     // lineNo is not incremented if the string ends unexpectedly
-    bool skipUntil(const std::string& str);
+    bool skipUntil(const std::string_view str);
     bool skipUntil(const std::string::value_type c);
 };
 

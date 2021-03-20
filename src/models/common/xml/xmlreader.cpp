@@ -10,54 +10,36 @@
 #include "../string.h"
 #include "../stringparser.hpp"
 #include <cassert>
-#include <cstring>
 #include <stdexcept>
-#include <type_traits>
 
-using namespace UnTech;
-using namespace UnTech::Xml;
+namespace UnTech::Xml {
 
-xml_error::xml_error(const XmlTag& tag, const char* message)
+xml_error::xml_error(const XmlTag& tag, const std::string_view message)
     : std::runtime_error(tag.generateErrorString(message))
     , _filePath(tag.xml->filePath())
 {
 }
 
-xml_error::xml_error(const XmlTag& tag, const std::string& message)
-    : std::runtime_error(tag.generateErrorString(message.c_str()))
-    , _filePath(tag.xml->filePath())
-{
-}
-
-xml_error::xml_error(const XmlTag& tag, const std::string& aName, const char* message)
+xml_error::xml_error(const XmlTag& tag, const std::string_view aName, const std::string_view message)
     : std::runtime_error(tag.generateErrorString(aName, message))
     , _filePath(tag.xml->filePath())
 {
 }
 
-xml_error::xml_error(const XmlReader& xml, const char* message)
+xml_error::xml_error(const XmlReader& xml, const std::string_view message)
     : std::runtime_error(xml.generateErrorString(message))
     , _filePath(xml.filePath())
 {
 }
 
-xml_error::xml_error(const XmlReader& xml, const std::string& message)
-    : std::runtime_error(xml.generateErrorString(message.c_str()))
-    , _filePath(xml.filePath())
-{
-}
-
-xml_error::xml_error(const XmlReader& xml, const char* message, const std::exception& ex)
+xml_error::xml_error(const XmlReader& xml, const std::string_view message, const std::exception& ex)
     : std::runtime_error(xml.generateErrorString(message, ex))
     , _filePath(xml.filePath())
 {
 }
 
-namespace UnTech {
-namespace XmlPrivate {
-
-bool string_iterator_equal(std::string::const_iterator it, const std::string::const_iterator end,
-                           const std::string& str)
+static bool string_iterator_equal(std::string_view::const_iterator it, const std::string_view::const_iterator end,
+                                  const std::string_view str)
 {
     for (auto c : str) {
         if (it == end) {
@@ -71,15 +53,18 @@ bool string_iterator_equal(std::string::const_iterator it, const std::string::co
     return true;
 }
 
-std::string unescapeXmlString(const std::string::const_iterator start,
-                              const std::string::const_iterator end)
+std::string unescapeXmlString(const std::string_view xmlString)
 {
     std::string ret;
-    auto stringSize = std::distance(start, end);
-    assert(stringSize >= 0);
-    ret.reserve(stringSize);
 
-    auto source = start;
+    if (xmlString.empty()) {
+        return ret;
+    }
+
+    ret.reserve(xmlString.size());
+
+    auto source = xmlString.begin();
+    const auto end = xmlString.end();
 
     while (source != end) {
         if (*source == '&') {
@@ -118,10 +103,10 @@ std::string unescapeXmlString(const std::string::const_iterator start,
     return ret;
 }
 
+static inline std::string_view toStringView(const std::string::const_iterator begin, const std::string::const_iterator end)
+{
+    return std::string_view(&*begin, std::distance(begin, end));
 }
-}
-
-using namespace UnTech::XmlPrivate;
 
 std::string XmlReader::filename() const
 {
@@ -133,11 +118,11 @@ std::string XmlReader::filename() const
     }
 }
 
-XmlReader::XmlReader(const std::string& xml, const std::filesystem::path& filePath)
+XmlReader::XmlReader(std::string&& xml, const std::filesystem::path& filePath)
     : _filePath(filePath)
-    , _input(xml)
+    , _input(std::move(xml))
 {
-    if (xml.empty()) {
+    if (_input.atEnd()) {
         throw std::runtime_error("Empty XML file");
     }
 
@@ -147,14 +132,14 @@ XmlReader::XmlReader(const std::string& xml, const std::filesystem::path& filePa
 std::unique_ptr<XmlReader> XmlReader::fromFile(const std::filesystem::path& filePath)
 {
     std::string xml = File::readUtf8TextFile(filePath);
-    return std::make_unique<XmlReader>(xml, filePath);
+    return std::make_unique<XmlReader>(std::move(xml), filePath);
 }
 
 void XmlReader::parseDocument()
 {
     _input.reset();
     _currentTag = std::string();
-    _tagStack = std::stack<std::string>();
+    _tagStack = std::stack<std::string_view>();
     _inSelfClosingTag = false;
 
     _input.skipWhitespace();
@@ -196,7 +181,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
     }
     _input.advance();
 
-    std::string tagName = parseName();
+    const std::string_view tagName = parseName();
 
     // tag must be followed by whitespace or a close tag.
     if (!(_input.isWhitespace()
@@ -220,7 +205,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
         if (isName(c)) {
             // attribute
 
-            std::string attributeName = parseName();
+            const std::string_view attributeName = parseName();
 
             _input.skipWhitespace();
 
@@ -231,7 +216,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
 
             _input.skipWhitespace();
 
-            std::string value = parseAttributeValue();
+            const std::string_view value = parseAttributeValue();
 
             tag->attributes.insert({ attributeName, value });
         }
@@ -278,7 +263,7 @@ std::string XmlReader::parseText()
         const auto oldTextPos = _input.pos();
 
         if (_input.testAndConsume("<!--")) {
-            text += unescapeXmlString(startText, oldTextPos);
+            text += unescapeXmlString(toStringView(startText, oldTextPos));
 
             if (_input.skipUntil("-->") == false) {
                 throw xml_error(*this, "Unclosed comment");
@@ -288,7 +273,7 @@ std::string XmlReader::parseText()
         }
 
         else if (_input.testAndConsume("<![CDATA[")) {
-            text += unescapeXmlString(startText, oldTextPos);
+            text += unescapeXmlString(toStringView(startText, oldTextPos));
 
             const auto startCData = _input.pos();
 
@@ -309,7 +294,7 @@ std::string XmlReader::parseText()
         }
     }
 
-    text += unescapeXmlString(startText, _input.pos());
+    text += unescapeXmlString(toStringView(startText, _input.pos()));
 
     return text;
 }
@@ -362,8 +347,8 @@ void XmlReader::parseCloseTag()
     auto expectedTagName = _tagStack.top();
 
     if (closeTagName != expectedTagName) {
-        std::string msg = "Missing close tag (expected </" + expectedTagName + ">)";
-        throw xml_error(*this, msg.c_str());
+        std::string msg = stringBuilder("Missing close tag (expected </", expectedTagName, ">)");
+        throw xml_error(*this, msg);
     }
     _tagStack.pop();
 
@@ -409,7 +394,7 @@ void XmlReader::skipText()
     }
 }
 
-inline std::string XmlReader::parseName()
+inline std::string_view XmlReader::parseName()
 {
     const auto nameStart = _input.pos();
     while (isName(_input.cur())) {
@@ -420,13 +405,10 @@ inline std::string XmlReader::parseName()
         throw xml_error(*this, "Missing identifier");
     }
 
-    std::string ret(nameStart, _input.pos());
-    std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
-
-    return ret;
+    return toStringView(nameStart, _input.pos());
 }
 
-inline std::string XmlReader::parseAttributeValue()
+inline std::string_view XmlReader::parseAttributeValue()
 {
     const char terminator = _input.cur();
     _input.advance();
@@ -440,22 +422,20 @@ inline std::string XmlReader::parseAttributeValue()
         throw xml_error(*this, "Incomplete attribute value");
     }
 
-    std::string value = unescapeXmlString(valueStart, _input.pos() - 1);
-
-    return value;
+    return toStringView(valueStart, _input.pos() - 1);
 }
 
-std::string XmlTag::generateErrorString(const char* msg) const
+std::string XmlTag::generateErrorString(const std::string_view msg) const
 {
     return stringBuilder(xml->filename(), ":", lineNo, " <", name, ">: ", msg);
 }
 
-std::string XmlTag::generateErrorString(const std::string& aName, const char* msg) const
+std::string XmlTag::generateErrorString(const std::string_view aName, const std::string_view msg) const
 {
     return stringBuilder(xml->filename(), ":", lineNo, " <", name, " ", aName, ">: ", msg);
 }
 
-std::string XmlReader::generateErrorString(const char* message) const
+std::string XmlReader::generateErrorString(const std::string_view message) const
 {
     if (_currentTag.empty()) {
         return stringBuilder(filename(), ":", lineNo(), ": ", message);
@@ -465,7 +445,7 @@ std::string XmlReader::generateErrorString(const char* message) const
     }
 }
 
-std::string XmlReader::generateErrorString(const char* message, const std::exception& ex) const
+std::string XmlReader::generateErrorString(const std::string_view message, const std::exception& ex) const
 {
     auto cast = dynamic_cast<const xml_error*>(&ex);
     if (cast && cast->filePath() == _filePath) {
@@ -479,4 +459,6 @@ std::string XmlReader::generateErrorString(const char* message, const std::excep
             return stringBuilder(message, "\n  ", filename(), ":", lineNo(), " <", _currentTag, ">: ", message);
         }
     }
+}
+
 }

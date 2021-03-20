@@ -43,6 +43,12 @@ public:
                             [&](auto& p) { return p.first == string; });
     }
 
+    iterator find(const std::string_view string) const
+    {
+        return std::find_if(_map.cbegin(), _map.cend(),
+                            [&](auto& p) { return p.first == string; });
+    }
+
     iterator find(T value) const
     {
         return std::find_if(_map.cbegin(), _map.cend(),

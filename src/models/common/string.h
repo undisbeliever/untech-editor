@@ -18,10 +18,11 @@ namespace String {
 /**
  * @return true if str is a NULL terminated utf8 well formed string.
  */
+// Cannot use std::string_view, code expects a null terminated string
 bool checkUtf8WellFormed(const std::string& str);
 
 // returns true if str ends in cmp
-static inline bool endsWith(const std::string& str, const std::string& cmp)
+static inline bool endsWith(const std::string_view str, const std::string_view cmp)
 {
     if (str.size() < cmp.size()) {
         return false;
@@ -52,10 +53,12 @@ static inline std::string& trim(std::string& s)
 /* Convert a string to an integer.
  * String may be encased in spaces.
  */
-static inline optional<int> toInt(const std::string& s)
+static inline optional<int> toInt(const std::string_view s)
 {
-    const char* cstr = s.c_str();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
+    using namespace std::literals;
+
+    const char* cstr = s.data();
+    const char* last = cstr + s.find_last_not_of(" \t\n\r"sv, s.npos);
     char* parseEnd;
 
     int ret = strtol(cstr, &parseEnd, 0);
@@ -69,9 +72,9 @@ static inline optional<int> toInt(const std::string& s)
 /* Convert a string to an unsigned integer.
  * String may be encased in spaces.
  */
-static inline optional<unsigned> toUnsigned(const std::string& s)
+static inline optional<unsigned> toUnsigned(const std::string_view s)
 {
-    const char* cstr = s.c_str();
+    const char* cstr = s.data();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
     char* parseEnd;
 
@@ -79,6 +82,7 @@ static inline optional<unsigned> toUnsigned(const std::string& s)
 
     if (parseEnd == cstr || parseEnd != last + 1
         || ret < 0 || ret > long(UINT_MAX)) {
+
         optional<unsigned>();
     }
     return ret;
@@ -87,9 +91,9 @@ static inline optional<unsigned> toUnsigned(const std::string& s)
 /* Convert a string to an uint8.
  * String may be encased in spaces.
  */
-static inline optional<uint8_t> toUint8(const std::string& s)
+static inline optional<uint8_t> toUint8(const std::string_view s)
 {
-    const char* cstr = s.c_str();
+    const char* cstr = s.data();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
     char* parseEnd;
 
@@ -105,9 +109,9 @@ static inline optional<uint8_t> toUint8(const std::string& s)
 /* Convert a string to an uint16.
  * String may be encased in spaces.
  */
-static inline optional<uint16_t> toUint16(const std::string& s)
+static inline optional<uint16_t> toUint16(const std::string_view s)
 {
-    const char* cstr = s.c_str();
+    const char* cstr = s.data();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
     char* parseEnd;
 
@@ -124,9 +128,9 @@ static inline optional<uint16_t> toUint16(const std::string& s)
  * Returns a default value if given invalid input.
  * String may be encased in spaces.
  */
-static inline int toInt(const std::string& s, int def)
+static inline int toInt(const std::string_view s, int def)
 {
-    const char* cstr = s.c_str();
+    const char* cstr = s.data();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
     char* parseEnd;
 
@@ -138,9 +142,9 @@ static inline int toInt(const std::string& s, int def)
     return ret;
 }
 
-static inline optional<long> toLong(const std::string& s)
+static inline optional<long> toLong(const std::string_view s)
 {
-    const char* cstr = s.c_str();
+    const char* cstr = s.data();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
     char* parseEnd;
 
@@ -152,9 +156,9 @@ static inline optional<long> toLong(const std::string& s)
     return ret;
 }
 
-static inline long toLong(const std::string& s, long def)
+static inline long toLong(const std::string_view s, long def)
 {
-    const char* cstr = s.c_str();
+    const char* cstr = s.data();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
     char* parseEnd;
 
@@ -166,9 +170,9 @@ static inline long toLong(const std::string& s, long def)
     return ret;
 }
 
-static inline optional<unsigned> hexToUnsigned(const std::string& s)
+static inline optional<unsigned> hexToUnsigned(const std::string_view s)
 {
-    const char* cstr = s.c_str();
+    const char* cstr = s.data();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
     char* parseEnd;
 

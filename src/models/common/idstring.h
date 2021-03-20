@@ -8,6 +8,7 @@
 
 #include <ostream>
 #include <string>
+#include <string_view>
 
 namespace UnTech {
 class idstring;
@@ -36,7 +37,7 @@ public:
                  || (c >= 'a' && c <= 'z')));
     }
 
-    static bool isValid(const std::string& name)
+    static bool isValid(std::string_view name)
     {
         if (name.empty()) {
             return false;
@@ -75,12 +76,19 @@ public:
     idstring() = default;
 
     // fails silently
-    explicit idstring(const std::string& s)
+    explicit idstring(const std::string_view s)
         : data()
     {
         if (isValid(s)) {
             data = s;
         }
+    }
+
+    // fails silently
+    // Required to fix a "call of overloaded ‘idstring(<brace-enclosed initializer list>)’ is ambiguous" compile error
+    explicit idstring(const char* s)
+        : idstring(std::string_view(s))
+    {
     }
 
     // fails silently

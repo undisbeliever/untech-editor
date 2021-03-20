@@ -25,6 +25,11 @@ inline size_t stringSize(const std::string& s)
     return s.size();
 }
 
+inline size_t stringSize(const std::string_view s)
+{
+    return s.size();
+}
+
 inline size_t stringSize(const idstring& id)
 {
     return id.str().size();
@@ -60,6 +65,11 @@ template <typename T>
 void concat(std::string&, T) = delete;
 
 inline void concat(std::string& str, const std::string& source)
+{
+    str.append(source);
+}
+
+inline void concat(std::string& str, const std::string_view source)
 {
     str.append(source);
 }
@@ -101,6 +111,11 @@ inline std::string&& stringBuilder(std::string&& str)
 inline const std::string& stringBuilder(const std::string& str)
 {
     return str;
+}
+
+inline std::string stringBuilder(const std::string_view str)
+{
+    return std::string(str);
 }
 
 inline std::string stringBuilder(const char* c_str)
