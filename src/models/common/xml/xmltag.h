@@ -13,6 +13,7 @@
 #include "../file.h"
 #include "../idstring.h"
 #include "../int_ms8_t.h"
+#include "../iterators.h"
 #include "../ms8aabb.h"
 #include "../optional.h"
 #include <climits>
@@ -20,7 +21,6 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 
 namespace UnTech {
 namespace Xml {
@@ -34,11 +34,17 @@ public:
 };
 
 struct XmlTag {
-    std::string_view name;
-    std::unordered_map<std::string_view, std::string_view> attributes;
+    constexpr static unsigned MAX_ATTRIBUTES = 8;
+
+    const std::string_view name;
     const XmlReader* xml;
     const unsigned lineNo;
 
+    unsigned nAttributes;
+    std::array<std::string_view, MAX_ATTRIBUTES> attrNames;
+    std::array<std::string_view, MAX_ATTRIBUTES> attrRawValues;
+
+public:
     XmlTag() = delete;
     XmlTag(const XmlTag&) = delete;
     XmlTag(XmlTag&&) = delete;
@@ -47,47 +53,82 @@ struct XmlTag {
 
     XmlTag(const XmlReader* xml, std::string_view tagName, unsigned lineNo)
         : name(tagName)
-        , attributes()
         , xml(xml)
         , lineNo(lineNo)
+        , nAttributes(0)
+        , attrNames()
+        , attrRawValues()
     {
     }
 
 private:
+    friend class UnTech::Xml::XmlReader;
+    void addAttribute(const std::string_view aName, const std::string_view rawValue)
+    {
+        if (nAttributes >= MAX_ATTRIBUTES) {
+            throw xml_error(*this, "Too many attributes");
+        }
+
+        attrNames.at(nAttributes) = aName;
+        attrRawValues.at(nAttributes) = rawValue;
+
+        nAttributes++;
+    }
+
+    // Returns a value > MAX_ATTRUBUTES if aName not found
+    inline unsigned findAttributeIndex(const std::string_view aName) const
+    {
+        assert(nAttributes <= MAX_ATTRIBUTES);
+
+        for (const unsigned i : range(nAttributes)) {
+            if (attrNames.at(i) == aName) {
+                return i;
+            }
+        }
+
+        static_assert(INT_MAX > MAX_ATTRIBUTES);
+        return INT_MAX;
+    }
+
     // NOTE: Does not unescape any `&` characters in the attribute value.
     inline std::string_view getAttribute_rawValue(const std::string_view aName) const
     {
-        auto it = attributes.find(aName);
-        if (it != attributes.end()) {
-            return it->second;
+        assert(nAttributes <= MAX_ATTRIBUTES);
+
+        for (const unsigned i : range(nAttributes)) {
+            if (attrNames.at(i) == aName) {
+                return attrRawValues.at(i);
+            }
         }
-        else {
-            throw xml_error(*this, aName, "Missing attribute");
-        }
+
+        throw xml_error(*this, aName, "Missing attribute");
     }
 
 public:
     bool hasAttribute(const std::string_view aName) const
     {
-        return attributes.find(aName) != attributes.end();
+        assert(nAttributes <= MAX_ATTRIBUTES);
+
+        for (const unsigned i : range(nAttributes)) {
+            if (attrNames.at(i) == aName) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     inline std::string getAttribute(const std::string_view aName) const
     {
-        auto it = attributes.find(aName);
-        if (it != attributes.end()) {
-            return unescapeXmlString(it->second);
-        }
-        else {
-            throw xml_error(*this, aName, "Missing attribute");
-        }
+        return unescapeXmlString(getAttribute_rawValue(aName));
     }
 
     inline std::string getAttributeOrEmpty(const std::string_view aName) const
     {
-        auto it = attributes.find(aName);
-        if (it != attributes.end()) {
-            return unescapeXmlString(it->second);
+        const auto i = findAttributeIndex(aName);
+
+        if (i < MAX_ATTRIBUTES) {
+            return unescapeXmlString(attrRawValues.at(i));
         }
         else {
             return std::string();
@@ -109,14 +150,11 @@ public:
 
     inline idstring getAttributeOptionalId(const std::string_view aName) const
     {
-        auto it = attributes.find(aName);
-        if (it != attributes.end()) {
-            if (it->second.empty()) {
-                return idstring();
-            }
+        const auto i = findAttributeIndex(aName);
 
+        if (i < MAX_ATTRIBUTES) {
             // No need to escape value - only alnum and underscore characters are valid
-            const idstring id(it->second);
+            const idstring id(attrRawValues.at(i));
 
             if (id.isValid()) {
                 return id;
@@ -145,9 +183,10 @@ public:
 
     inline optional<std::string> getOptionalAttribute(const std::string_view aName) const
     {
-        auto it = attributes.find(aName);
-        if (it != attributes.end()) {
-            return unescapeXmlString(it->second);
+        const auto i = findAttributeIndex(aName);
+
+        if (i < MAX_ATTRIBUTES) {
+            return unescapeXmlString(attrRawValues.at(i));
         }
         else {
             return optional<std::string>();
@@ -238,21 +277,25 @@ public:
 
     inline bool getAttributeBoolean(const std::string_view aName, bool def = false) const
     {
-        auto v = getOptionalAttribute(aName);
+        const auto i = findAttributeIndex(aName);
 
-        if (v) {
-            if (v.value() == "true") {
+        if (i < MAX_ATTRIBUTES) {
+            // No need to escape value - "true" or "false" allowed here
+            const auto& value = attrRawValues.at(i);
+
+            if (value == "true") {
                 return true;
             }
-            else if (v.value() == "false") {
+            else if (value == "false") {
                 return false;
             }
             else {
                 throw xml_error(*this, aName, "Expected true or false");
             }
         }
-
-        return def;
+        else {
+            return def;
+        }
     }
 
     inline std::filesystem::path getAttributeFilename(const std::string_view aName) const
@@ -294,9 +337,13 @@ public:
     template <typename T>
     inline T getAttributeOptionalEnum(const std::string_view aName, const EnumMap<T>& enumMap, const T default_value) const
     {
-        auto aIt = attributes.find(aName);
-        if (aIt != attributes.end()) {
-            auto eIt = enumMap.find(aIt->second);
+        const auto i = findAttributeIndex(aName);
+
+        if (i < MAX_ATTRIBUTES) {
+            // No need to escape value - "true" or "false" allowed here
+            const auto& value = attrRawValues.at(i);
+
+            auto eIt = enumMap.find(value);
             if (eIt != enumMap.end()) {
                 return eIt->second;
             }

@@ -218,7 +218,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
 
             const std::string_view value = parseAttributeValue();
 
-            tag->attributes.insert({ attributeName, value });
+            tag->addAttribute(attributeName, value);
         }
 
         else if (c == '?' || c == '/') {
