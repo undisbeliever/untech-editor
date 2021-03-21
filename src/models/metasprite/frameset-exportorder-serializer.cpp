@@ -42,25 +42,23 @@ private:
     XmlReader& xml;
 
 public:
-    inline void readFrameSetExportOrder(const XmlTag* tag)
+    inline void readFrameSetExportOrder(const XmlTag& tag)
     {
-        assert(tag->name == "fsexportorder");
+        assert(tag.name == "fsexportorder");
         assert(exportOrder.stillFrames.size() == 0);
         assert(exportOrder.animations.size() == 0);
 
-        exportOrder.name = tag->getAttributeId("name");
+        exportOrder.name = tag.getAttributeId("name");
 
-        std::unique_ptr<XmlTag> childTag;
-
-        while ((childTag = xml.parseTag())) {
-            if (childTag->name == "frame") {
-                readExportName(childTag.get(), exportOrder.stillFrames);
+        while (const auto childTag = xml.parseTag()) {
+            if (childTag.name == "frame") {
+                readExportName(childTag, exportOrder.stillFrames);
             }
-            else if (childTag->name == "animation") {
-                readExportName(childTag.get(), exportOrder.animations);
+            else if (childTag.name == "animation") {
+                readExportName(childTag, exportOrder.animations);
             }
             else {
-                throw unknown_tag_error(*childTag);
+                throw unknown_tag_error(childTag);
             }
 
             xml.parseCloseTag();
@@ -68,26 +66,24 @@ public:
     }
 
 private:
-    inline void readExportName(const XmlTag* tag,
+    inline void readExportName(const XmlTag& tag,
                                NamedList<FrameSetExportOrder::ExportName>& exportList)
     {
         FrameSetExportOrder::ExportName en;
-        en.name = tag->getAttributeId("id");
+        en.name = tag.getAttributeId("id");
 
-        std::unique_ptr<XmlTag> childTag;
-
-        while ((childTag = xml.parseTag())) {
-            if (childTag->name == "alt") {
+        while (const auto childTag = xml.parseTag()) {
+            if (childTag.name == "alt") {
                 NameReference alt;
 
-                alt.name = childTag->getAttributeId("name");
-                alt.hFlip = childTag->getAttributeBoolean("hflip");
-                alt.vFlip = childTag->getAttributeBoolean("vflip");
+                alt.name = childTag.getAttributeId("name");
+                alt.hFlip = childTag.getAttributeBoolean("hflip");
+                alt.vFlip = childTag.getAttributeBoolean("vflip");
 
                 en.alternatives.emplace_back(alt);
             }
             else {
-                throw unknown_tag_error(*childTag);
+                throw unknown_tag_error(childTag);
             }
 
             xml.parseCloseTag();
@@ -134,15 +130,15 @@ void writeFrameSetExportOrder(XmlWriter& xml, const FrameSetExportOrder& eo)
 std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml)
 {
     try {
-        std::unique_ptr<XmlTag> tag = xml.parseTag();
+        const auto tag = xml.parseTag();
 
-        if (tag == nullptr || tag->name != "fsexportorder") {
+        if (tag.name != "fsexportorder") {
             throw std::runtime_error(xml.filename() + ": Not frame set export order file");
         }
 
         auto exportOrder = std::make_unique<FrameSetExportOrder>();
         FrameSetExportOrderReader reader(*exportOrder, xml);
-        reader.readFrameSetExportOrder(tag.get());
+        reader.readFrameSetExportOrder(tag);
 
         return exportOrder;
     }

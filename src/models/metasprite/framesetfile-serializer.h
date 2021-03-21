@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace MetaSprite {
 
-void readFrameSetFile(const Xml::XmlTag* tag, std::vector<FrameSetFile>& frameSets);
+void readFrameSetFile(const Xml::XmlTag& tag, std::vector<FrameSetFile>& frameSets);
 void writeFrameSetFiles(Xml::XmlWriter& xml, const std::vector<FrameSetFile>& frameSets);
 
 }

@@ -82,16 +82,16 @@ static void readInteractiveTileFunction(const XmlTag& tag, NamedList<Interactive
     }
 }
 
-void readInteractiveTiles(XmlReader& xml, const XmlTag* tag, InteractiveTiles& interactiveTiles)
+void readInteractiveTiles(XmlReader& xml, const XmlTag& tag, InteractiveTiles& interactiveTiles)
 {
-    assert(tag->name == "interactive-tiles");
+    assert(tag.name == "interactive-tiles");
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "tile-function-table") {
-            readInteractiveTileFunction(*childTag, interactiveTiles.functionTables);
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "tile-function-table") {
+            readInteractiveTileFunction(childTag, interactiveTiles.functionTables);
         }
         else {
-            throw unknown_tag_error(*childTag);
+            throw unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();
@@ -110,10 +110,10 @@ void writeInteractiveTiles(XmlWriter& xml, const InteractiveTiles& interactiveTi
     xml.writeCloseTag();
 }
 
-grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
+grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag& tag)
 {
-    const unsigned width = tag->getAttributeUnsigned("width", 1, MAX_GRID_WIDTH);
-    const unsigned height = tag->getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT);
+    const unsigned width = tag.getAttributeUnsigned("width", 1, MAX_GRID_WIDTH);
+    const unsigned height = tag.getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT);
     const unsigned expectedDataSize = width * height;
 
     return grid<uint8_t>(width, height,
@@ -133,13 +133,13 @@ void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<ui
     xml.writeCloseTag();
 }
 
-static void readTileProperties(const XmlTag* tag, MetaTileTilesetInput& tilesetInput)
+static void readTileProperties(const XmlTag& tag, MetaTileTilesetInput& tilesetInput)
 {
     // <tile> tag
 
-    unsigned i = tag->getAttributeUnsigned("t", 0, N_METATILES - 1);
-    tilesetInput.tileCollisions.at(i) = tag->getAttributeOptionalEnum("collision", tileCollisonTypeEnumMap, TileCollisionType::EMPTY);
-    tilesetInput.tileFunctionTables.at(i) = tag->getAttributeOptionalId("ft");
+    unsigned i = tag.getAttributeUnsigned("t", 0, N_METATILES - 1);
+    tilesetInput.tileCollisions.at(i) = tag.getAttributeOptionalEnum("collision", tileCollisonTypeEnumMap, TileCollisionType::EMPTY);
+    tilesetInput.tileFunctionTables.at(i) = tag.getAttributeOptionalId("ft");
 }
 
 static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tilesetInput)
@@ -160,7 +160,7 @@ static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tile
     }
 }
 
-static void readTilePriorities(XmlReader& xml, const XmlTag*, MetaTileTilesetInput& tilesetInput)
+static void readTilePriorities(XmlReader& xml, const XmlTag&, MetaTileTilesetInput& tilesetInput)
 {
     // <tile-priorities> tag
     xml.parseBase64ToByteArray(tilesetInput.tilePriorities.data);
@@ -173,26 +173,26 @@ static void writeTilePriorities(XmlWriter& xml, const TilePriorities& tilePriori
     xml.writeCloseTag();
 }
 
-static void readCrumblingTilesChain(const XmlTag* tag, MetaTileTilesetInput& tilesetInput)
+static void readCrumblingTilesChain(const XmlTag& tag, MetaTileTilesetInput& tilesetInput)
 {
-    assert(tag->name == "crumbling-tile");
+    assert(tag.name == "crumbling-tile");
 
-    const std::string chainName = tag->getAttribute("chain");
+    const std::string chainName = tag.getAttribute("chain");
     if (chainName.size() != 1 || chainName.front() < 'a' || chainName.front() >= 'a' + int(N_CRUMBLING_TILE_CHAINS)) {
-        throw xml_error(*tag, "Unknown crumbling tiles chain id");
+        throw xml_error(tag, "Unknown crumbling tiles chain id");
     }
     const unsigned chainId = chainName.front() - 'a';
 
     CrumblingTileChain& chain = tilesetInput.crumblingTiles.at(chainId);
 
-    chain.firstTileId = tag->getAttributeUint8("first-tile");
-    chain.firstDelay = tag->getAttributeUint16("first-delay");
+    chain.firstTileId = tag.getAttributeUint8("first-tile");
+    chain.firstDelay = tag.getAttributeUint16("first-delay");
 
-    chain.secondTileId = tag->getAttributeUint8("second-tile");
+    chain.secondTileId = tag.getAttributeUint8("second-tile");
 
-    if (tag->getAttributeBoolean("no-third-tile") == false) {
-        chain.secondDelay = tag->getAttributeUint16("second-delay");
-        chain.thirdTileId = tag->getAttributeUint8("third-tile");
+    if (tag.getAttributeBoolean("no-third-tile") == false) {
+        chain.secondDelay = tag.getAttributeUint16("second-delay");
+        chain.thirdTileId = tag.getAttributeUint8("third-tile");
     }
     else {
         chain.secondDelay = 0xffff;
@@ -229,9 +229,9 @@ static void writeCrumblingTilesChains(XmlWriter& xml, const std::array<Crumbling
     }
 }
 
-static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml, const XmlTag* tag)
+static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml, const XmlTag& tag)
 {
-    if (tag == nullptr || tag->name != "metatile-tileset") {
+    if (tag.name != "metatile-tileset") {
         throw xml_error(xml, "Not a Resources file (expected <metatile-tileset> tag)");
     }
 
@@ -241,44 +241,44 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
 
     auto tilesetInput = std::make_unique<MetaTileTilesetInput>();
 
-    tilesetInput->name = tag->getAttributeId("name");
+    tilesetInput->name = tag.getAttributeId("name");
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "palette") {
-            tilesetInput->palettes.emplace_back(childTag->getAttributeId("name"));
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "palette") {
+            tilesetInput->palettes.emplace_back(childTag.getAttributeId("name"));
         }
-        else if (childTag->name == "animation-frames") {
+        else if (childTag.name == "animation-frames") {
             if (readAnimationFramesTag) {
-                throw xml_error(*childTag, "Only one <animation-frames> tag allowed");
+                throw xml_error(childTag, "Only one <animation-frames> tag allowed");
             }
             readAnimationFramesTag = true;
 
-            Resources::readAnimationFramesInput(tilesetInput->animationFrames, xml, childTag.get());
+            Resources::readAnimationFramesInput(tilesetInput->animationFrames, xml, childTag);
         }
-        else if (childTag->name == "tile") {
-            readTileProperties(childTag.get(), *tilesetInput);
+        else if (childTag.name == "tile") {
+            readTileProperties(childTag, *tilesetInput);
         }
-        else if (childTag->name == "scratchpad") {
+        else if (childTag.name == "scratchpad") {
             if (readScratchpadTag) {
-                throw xml_error(*childTag, "Only one <scratchpad> tag allowed");
+                throw xml_error(childTag, "Only one <scratchpad> tag allowed");
             }
             readScratchpadTag = true;
 
-            tilesetInput->scratchpad = readMetaTileGrid(xml, childTag.get());
+            tilesetInput->scratchpad = readMetaTileGrid(xml, childTag);
         }
-        else if (childTag->name == "tile-priorities") {
+        else if (childTag.name == "tile-priorities") {
             if (readTilePrioritiesTag) {
-                throw xml_error(*childTag, "Only one <tile-priorities> tag allowed");
+                throw xml_error(childTag, "Only one <tile-priorities> tag allowed");
             }
             readTilePrioritiesTag = true;
 
-            readTilePriorities(xml, childTag.get(), *tilesetInput);
+            readTilePriorities(xml, childTag, *tilesetInput);
         }
-        else if (childTag->name == "crumbling-tile") {
-            readCrumblingTilesChain(childTag.get(), *tilesetInput);
+        else if (childTag.name == "crumbling-tile") {
+            readCrumblingTilesChain(childTag, *tilesetInput);
         }
         else {
-            throw unknown_tag_error(*childTag);
+            throw unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();
@@ -313,8 +313,8 @@ void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input
 std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml)
 {
     try {
-        std::unique_ptr<XmlTag> tag = xml.parseTag();
-        return readMetaTileTilesetInput(xml, tag.get());
+        const auto tag = xml.parseTag();
+        return readMetaTileTilesetInput(xml, tag);
     }
     catch (const std::exception& ex) {
         throw xml_error(xml, "Error loading metatile tileset", ex);

@@ -26,7 +26,7 @@ namespace MetaSprite {
 
 const std::string FrameSet::FILE_EXTENSION = "utms";
 
-std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag);
+std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag& tag);
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename)
 {
@@ -37,12 +37,12 @@ std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename)
 std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
 {
     try {
-        std::unique_ptr<XmlTag> tag = xml.parseTag();
+        const auto tag = xml.parseTag();
 
-        if (tag == nullptr || tag->name != "metasprite") {
+        if (tag.name != "metasprite") {
             throw xml_error(xml, "Expected <metasprite> tag");
         }
-        return readFrameSet(xml, tag.get());
+        return readFrameSet(xml, tag);
     }
     catch (const std::exception& ex) {
         throw xml_error(xml, "Unable to load MetaSprite FrameSet", ex);
@@ -74,37 +74,36 @@ private:
     XmlReader& xml;
 
 public:
-    inline void readFrameSet(const XmlTag* tag)
+    inline void readFrameSet(const XmlTag& tag)
     {
-        assert(tag->name == "metasprite");
+        assert(tag.name == "metasprite");
         assert(frameSet.frames.size() == 0);
 
-        frameSet.name = tag->getAttributeId("id");
-        frameSet.tilesetType = tag->getAttributeEnum<TilesetType>("tilesettype");
+        frameSet.name = tag.getAttributeId("id");
+        frameSet.tilesetType = tag.getAttributeEnum<TilesetType>("tilesettype");
 
-        if (tag->hasAttribute("exportorder")) {
-            frameSet.exportOrder = tag->getAttributeId("exportorder");
+        if (tag.hasAttribute("exportorder")) {
+            frameSet.exportOrder = tag.getAttributeId("exportorder");
         }
 
-        std::unique_ptr<XmlTag> childTag;
-        while ((childTag = xml.parseTag())) {
-            if (childTag->name == "frame") {
-                readFrame(childTag.get());
+        while (const auto childTag = xml.parseTag()) {
+            if (childTag.name == "frame") {
+                readFrame(childTag);
             }
-            else if (childTag->name == "smalltileset") {
-                readSmallTileset(childTag.get());
+            else if (childTag.name == "smalltileset") {
+                readSmallTileset(childTag);
             }
-            else if (childTag->name == "largetileset") {
-                readLargeTileset(childTag.get());
+            else if (childTag.name == "largetileset") {
+                readLargeTileset(childTag);
             }
-            else if (childTag->name == "palette") {
-                readPalette(childTag.get());
+            else if (childTag.name == "palette") {
+                readPalette(childTag);
             }
-            else if (childTag->name == "animation") {
-                Animation::readAnimation(xml, childTag.get(), frameSet.animations);
+            else if (childTag.name == "animation") {
+                Animation::readAnimation(xml, childTag, frameSet.animations);
             }
             else {
-                throw unknown_tag_error(*childTag);
+                throw unknown_tag_error(childTag);
             }
 
             xml.parseCloseTag();
@@ -112,24 +111,22 @@ public:
     }
 
 private:
-    inline void readFrame(const XmlTag* tag)
+    inline void readFrame(const XmlTag& tag)
     {
-        assert(tag->name == "frame");
+        assert(tag.name == "frame");
 
         frameSet.frames.insert_back();
         Frame& frame = frameSet.frames.back();
 
-        frame.name = tag->getAttributeId("id");
-        frame.spriteOrder = tag->getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
+        frame.name = tag.getAttributeId("id");
+        frame.spriteOrder = tag.getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
         frame.solid = false;
 
-        std::unique_ptr<XmlTag> childTag;
-
-        while ((childTag = xml.parseTag())) {
-            if (childTag->name == "object") {
+        while (const auto childTag = xml.parseTag()) {
+            if (childTag.name == "object") {
                 FrameObject obj;
 
-                std::string sizeStr = childTag->getAttribute("size");
+                std::string sizeStr = childTag.getAttribute("size");
                 if (sizeStr == "small") {
                     obj.size = ObjectSize::SMALL;
                 }
@@ -137,69 +134,66 @@ private:
                     obj.size = ObjectSize::LARGE;
                 }
                 else {
-                    throw xml_error(*childTag, "size", "Unknown size");
+                    throw xml_error(childTag, "size", "Unknown size");
                 }
 
-                obj.location = childTag->getAttributeMs8point();
-                obj.tileId = childTag->getAttributeUnsigned("tile");
-                obj.hFlip = childTag->getAttributeBoolean("hflip");
-                obj.vFlip = childTag->getAttributeBoolean("vflip");
+                obj.location = childTag.getAttributeMs8point();
+                obj.tileId = childTag.getAttributeUnsigned("tile");
+                obj.hFlip = childTag.getAttributeBoolean("hflip");
+                obj.vFlip = childTag.getAttributeBoolean("vflip");
 
                 frame.objects.push_back(obj);
             }
-
-            else if (childTag->name == "actionpoint") {
+            else if (childTag.name == "actionpoint") {
                 ActionPoint ap;
 
-                ap.location = childTag->getAttributeMs8point();
-                ap.type = childTag->getAttributeOptionalId("type");
+                ap.location = childTag.getAttributeMs8point();
+                ap.type = childTag.getAttributeOptionalId("type");
 
                 frame.actionPoints.push_back(ap);
             }
-
-            else if (childTag->name == "entityhitbox") {
+            else if (childTag.name == "entityhitbox") {
                 EntityHitbox eh;
 
-                eh.aabb = childTag->getAttributeMs8rect();
-                eh.hitboxType = EntityHitboxType::from_string(childTag->getAttribute("type"));
+                eh.aabb = childTag.getAttributeMs8rect();
+                eh.hitboxType = EntityHitboxType::from_string(childTag.getAttribute("type"));
 
                 frame.entityHitboxes.push_back(eh);
             }
-
-            else if (childTag->name == "tilehitbox") {
+            else if (childTag.name == "tilehitbox") {
                 if (frame.solid == true) {
-                    throw xml_error(*childTag, "Can only have one tilehitbox per frame");
+                    throw xml_error(childTag, "Can only have one tilehitbox per frame");
                 }
-                frame.tileHitbox = childTag->getAttributeMs8rect();
+                frame.tileHitbox = childTag.getAttributeMs8rect();
                 frame.solid = true;
             }
 
             else {
-                throw unknown_tag_error(*childTag);
+                throw unknown_tag_error(childTag);
             }
 
             xml.parseCloseTag();
         }
     }
 
-    inline void readSmallTileset(const XmlTag* tag)
+    inline void readSmallTileset(const XmlTag& tag)
     {
-        assert(tag->name == "smalltileset");
+        assert(tag.name == "smalltileset");
 
         const auto data = xml.parseBase64OfUnknownSize();
 
         constexpr unsigned smallTileSize = Snes::snesTileSizeForBitdepth(4);
         assert(smallTileSize == 32);
         if ((data.size() % smallTileSize) != 0) {
-            throw xml_error(*tag, "Small Tileset data must be a multiple of 32 bytes");
+            throw xml_error(tag, "Small Tileset data must be a multiple of 32 bytes");
         }
 
         frameSet.smallTileset = Snes::readSnesTileData4bpp(data);
     }
 
-    inline void readLargeTileset(const XmlTag* tag)
+    inline void readLargeTileset(const XmlTag& tag)
     {
-        assert(tag->name == "largetileset");
+        assert(tag.name == "largetileset");
 
         const auto data = xml.parseBase64OfUnknownSize();
 
@@ -207,15 +201,15 @@ private:
 
         static_assert(largeTileSize == 128, "Bad assumption");
         if ((data.size() % largeTileSize) != 0) {
-            throw xml_error(*tag, "Large Tileset data must be a multiple of 128 bytes");
+            throw xml_error(tag, "Large Tileset data must be a multiple of 128 bytes");
         }
 
         frameSet.largeTileset = Snes::readSnesTileData4bppTile16(data);
     }
 
-    inline void readPalette(const XmlTag* tag)
+    inline void readPalette(const XmlTag& tag)
     {
-        assert(tag->name == "palette");
+        assert(tag.name == "palette");
 
         std::array<uint8_t, 32> data;
 
@@ -225,7 +219,7 @@ private:
     }
 };
 
-std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* tag)
+std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag& tag)
 {
     auto frameSet = std::make_unique<FrameSet>();
 

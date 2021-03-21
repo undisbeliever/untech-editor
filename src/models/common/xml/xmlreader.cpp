@@ -161,10 +161,14 @@ void XmlReader::parseDocument()
     }
 }
 
-std::unique_ptr<XmlTag> XmlReader::parseTag()
+// Splitting up tag parsing allows for NRVO in parseTag().
+// Returns an empty string_view if there is no tag to parse.
+inline std::string_view XmlReader::parseTagStart()
 {
+    std::string_view tagName;
+
     if (_inSelfClosingTag) {
-        return nullptr;
+        return tagName;
     }
 
     // skip whitespace/text
@@ -174,14 +178,14 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
     }
     if (_input.cur() == '<' && _input.peek() == '/') {
         // no more tags
-        return nullptr;
+        return tagName;
     }
     if (_input.cur() != '<') {
         throw xml_error(*this, "Not a tag");
     }
     _input.advance();
 
-    const std::string_view tagName = parseName();
+    tagName = parseName();
 
     // tag must be followed by whitespace or a close tag.
     if (!(_input.isWhitespace()
@@ -190,8 +194,16 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
         throw xml_error(*this, "Invalid tag name");
     }
 
-    auto tag = std::make_unique<XmlTag>(this, tagName, lineNo());
-    _currentTag = tagName;
+    return tagName;
+}
+
+XmlTag XmlReader::parseTag()
+{
+    XmlTag tag(this, parseTagStart(), lineNo());
+
+    if (tag.name.empty()) {
+        return tag;
+    }
 
     while (!_input.atEnd()) {
         _input.skipWhitespace();
@@ -210,7 +222,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
             _input.skipWhitespace();
 
             if (_input.cur() != '=') {
-                throw xml_error(*tag, attributeName, "Missing attribute value");
+                throw xml_error(tag, attributeName, "Missing attribute value");
             }
             _input.advance();
 
@@ -218,7 +230,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
 
             const std::string_view value = parseAttributeValue();
 
-            tag->addAttribute(attributeName, value);
+            tag.addAttribute(attributeName, value);
         }
 
         else if (c == '?' || c == '/') {
@@ -237,7 +249,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
             // end of tag
             _input.advance();
 
-            _tagStack.push(tagName);
+            _tagStack.push(tag.name);
             return tag;
         }
         else {

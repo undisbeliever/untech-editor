@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace MetaSprite {
 
-void readActionPointFunction(const Xml::XmlTag* tag, NamedList<ActionPointFunction>& actionPointFunctions);
+void readActionPointFunction(const Xml::XmlTag& tag, NamedList<ActionPointFunction>& actionPointFunctions);
 void writeActionPointFunctions(Xml::XmlWriter& xml, const NamedList<ActionPointFunction>& actionPointFunctions);
 
 }

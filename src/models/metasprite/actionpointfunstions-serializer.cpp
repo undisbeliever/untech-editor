@@ -13,15 +13,15 @@ using namespace UnTech::Xml;
 namespace UnTech {
 namespace MetaSprite {
 
-void readActionPointFunction(const XmlTag* tag, NamedList<ActionPointFunction>& actionPointList)
+void readActionPointFunction(const XmlTag& tag, NamedList<ActionPointFunction>& actionPointList)
 {
-    assert(tag->name == "action-point-function");
+    assert(tag.name == "action-point-function");
 
     actionPointList.insert_back();
     auto& ap = actionPointList.back();
 
-    ap.name = tag->getAttributeOptionalId("name");
-    ap.manuallyInvoked = tag->getAttributeBoolean("manually-invoked");
+    ap.name = tag.getAttributeOptionalId("name");
+    ap.manuallyInvoked = tag.getAttributeBoolean("manually-invoked");
 }
 
 void writeActionPointFunctions(XmlWriter& xml, const NamedList<ActionPointFunction>& actionPointFunctions)

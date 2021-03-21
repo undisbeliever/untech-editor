@@ -14,7 +14,7 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Animation {
 
-void readAnimation(Xml::XmlReader& xml, const Xml::XmlTag* tag,
+void readAnimation(Xml::XmlReader& xml, const Xml::XmlTag& tag,
                    NamedList<Animation>& animations);
 
 void writeAnimations(Xml::XmlWriter& xml,

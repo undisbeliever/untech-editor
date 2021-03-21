@@ -37,45 +37,45 @@ static const EnumMap<ComparisonType> comparisonTypeMap = {
     { "clear", ComparisonType::Clear },
 };
 
-void readGameState(GameState& gameState, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+void readGameState(GameState& gameState, Xml::XmlReader& xml, const Xml::XmlTag& tag)
 {
-    assert(tag->name == "game-state");
+    assert(tag.name == "game-state");
     assert(gameState.flags.empty());
     assert(gameState.words.empty());
 
-    gameState.startingRoom = tag->getAttributeOptionalId("starting-room");
-    gameState.startingEntrance = tag->getAttributeOptionalId("starting-entrance");
-    gameState.startingPlayer = tag->getAttributeOptionalId("starting-player");
+    gameState.startingRoom = tag.getAttributeOptionalId("starting-room");
+    gameState.startingEntrance = tag.getAttributeOptionalId("starting-entrance");
+    gameState.startingPlayer = tag.getAttributeOptionalId("starting-player");
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "flag") {
-            const unsigned index = childTag->getAttributeUnsigned("index", 0, GameState::MAX_FLAGS * 2);
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "flag") {
+            const unsigned index = childTag.getAttributeUnsigned("index", 0, GameState::MAX_FLAGS * 2);
 
             if (index >= gameState.flags.size()) {
                 gameState.flags.resize(index + 1);
             }
             auto& f = gameState.flags.at(index);
 
-            f.name = childTag->getAttributeOptionalId("name");
-            f.room = childTag->getAttributeOptionalId("room");
+            f.name = childTag.getAttributeOptionalId("name");
+            f.room = childTag.getAttributeOptionalId("room");
         }
-        else if (childTag->name == "word") {
-            const unsigned index = childTag->getAttributeUnsigned("index", 0, GameState::MAX_FLAGS * 2);
+        else if (childTag.name == "word") {
+            const unsigned index = childTag.getAttributeUnsigned("index", 0, GameState::MAX_FLAGS * 2);
 
             if (index >= gameState.words.size()) {
                 gameState.words.resize(index + 1);
             }
             auto& w = gameState.words.at(index);
 
-            w.name = childTag->getAttributeOptionalId("name");
-            w.room = childTag->getAttributeOptionalId("room");
+            w.name = childTag.getAttributeOptionalId("name");
+            w.room = childTag.getAttributeOptionalId("room");
 
-            if (childTag->hasAttribute("value")) {
-                w.initialValue = childTag->getAttributeUint16("value");
+            if (childTag.hasAttribute("value")) {
+                w.initialValue = childTag.getAttributeUint16("value");
             }
         }
         else {
-            throw Xml::unknown_tag_error(*childTag);
+            throw Xml::unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();
@@ -114,28 +114,28 @@ void writeGameState(Xml::XmlWriter& xml, const GameState& gameState)
     xml.writeCloseTag();
 }
 
-void readBytecode(BytecodeInput& bytecode, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+void readBytecode(BytecodeInput& bytecode, Xml::XmlReader& xml, const Xml::XmlTag& tag)
 {
-    assert(tag->name == "bytecode");
+    assert(tag.name == "bytecode");
     assert(bytecode.instructions.empty());
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "instruction") {
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "instruction") {
             Instruction& inst = bytecode.instructions.emplace_back();
 
-            inst.name = childTag->getAttributeOptionalId("name");
+            inst.name = childTag.getAttributeOptionalId("name");
 
             auto readArg = [&](const std::string& name) {
-                return childTag->getAttributeOptionalEnum(name, argumentTypeEnumMap, ArgumentType::Unused);
+                return childTag.getAttributeOptionalEnum(name, argumentTypeEnumMap, ArgumentType::Unused);
             };
             inst.arguments.at(0) = readArg("arg1");
             inst.arguments.at(1) = readArg("arg2");
             assert(inst.arguments.size() == 2);
 
-            inst.yields = childTag->getAttributeBoolean("yields");
+            inst.yields = childTag.getAttributeBoolean("yields");
         }
         else {
-            throw Xml::unknown_tag_error(*childTag);
+            throw Xml::unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();
@@ -178,66 +178,66 @@ static void readWhileTag(WhileStatement& s, Xml::XmlReader& xml);
 static void readIfTag(IfStatement& s, Xml::XmlReader& xml);
 static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml);
 
-static void readScriptNode(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+static void readScriptNode(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml, const Xml::XmlTag& tag)
 {
-    if (tag->name == "statement"s) {
+    if (tag.name == "statement"s) {
         auto& s = std::get<Statement>(nodes.emplace_back(Statement{}));
 
-        s.opcode = tag->getAttributeOptionalId("opcode"s);
+        s.opcode = tag.getAttributeOptionalId("opcode"s);
         for (auto [i, arg] : enumerate(s.arguments)) {
-            arg = tag->getAttributeOrEmpty(attributeTagNames.at(i));
+            arg = tag.getAttributeOrEmpty(attributeTagNames.at(i));
         }
     }
-    else if (tag->name == "if"s) {
+    else if (tag.name == "if"s) {
         auto& s = std::get<IfStatement>(nodes.emplace_back(IfStatement{}));
         readIfTag(s, xml);
     }
-    else if (tag->name == "else"s) {
+    else if (tag.name == "else"s) {
         readElseTag(nodes, xml);
     }
-    else if (tag->name == "while"s) {
+    else if (tag.name == "while"s) {
         auto& s = std::get<WhileStatement>(nodes.emplace_back(WhileStatement{}));
         readWhileTag(s, xml);
     }
-    else if (tag->name == "comment") {
+    else if (tag.name == "comment") {
         auto& c = std::get<Comment>(nodes.emplace_back(Comment{}));
-        c.text = tag->getAttributeOrEmpty("c");
+        c.text = tag.getAttributeOrEmpty("c");
     }
-    else if (tag->name == "condition") {
-        throw Xml::xml_error(*tag, "<condition> tag not allowed here");
+    else if (tag.name == "condition") {
+        throw Xml::xml_error(tag, "<condition> tag not allowed here");
     }
     else {
-        throw Xml::unknown_tag_error(*tag);
+        throw Xml::unknown_tag_error(tag);
     }
 }
 
 static void readScriptNodes(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
 {
-    while (auto tag = xml.parseTag()) {
-        readScriptNode(nodes, xml, tag.get());
+    while (const auto tag = xml.parseTag()) {
+        readScriptNode(nodes, xml, tag);
         xml.parseCloseTag();
     }
 }
 
-static void readConditionTag(Conditional& c, const Xml::XmlTag* tag)
+static void readConditionTag(Conditional& c, const Xml::XmlTag& tag)
 {
-    assert(tag->name == "condition");
+    assert(tag.name == "condition");
 
-    c.type = tag->getAttributeOptionalEnum("type", conditionalTypeMap, ConditionalType::Flag);
-    c.variable = tag->getAttributeOptionalId("var");
-    c.comparison = tag->getAttributeOptionalEnum("comp", comparisonTypeMap, ComparisonType::Set);
-    c.value = tag->getAttributeOrEmpty("value");
+    c.type = tag.getAttributeOptionalEnum("type", conditionalTypeMap, ConditionalType::Flag);
+    c.variable = tag.getAttributeOptionalId("var");
+    c.comparison = tag.getAttributeOptionalEnum("comp", comparisonTypeMap, ComparisonType::Set);
+    c.value = tag.getAttributeOrEmpty("value");
 }
 
 static void readWhileTag(WhileStatement& s, Xml::XmlReader& xml)
 {
     // The first tag should be a condition tag
-    if (auto tag = xml.parseTag()) {
-        if (tag->name == "condition") {
-            readConditionTag(s.condition, tag.get());
+    if (const auto tag = xml.parseTag()) {
+        if (tag.name == "condition") {
+            readConditionTag(s.condition, tag);
         }
         else {
-            readScriptNode(s.statements, xml, tag.get());
+            readScriptNode(s.statements, xml, tag);
         }
 
         xml.parseCloseTag();
@@ -249,12 +249,12 @@ static void readWhileTag(WhileStatement& s, Xml::XmlReader& xml)
 static void readIfTag(IfStatement& s, Xml::XmlReader& xml)
 {
     // The first tag should be a condition tag
-    if (auto tag = xml.parseTag()) {
-        if (tag->name == "condition") {
-            readConditionTag(s.condition, tag.get());
+    if (const auto tag = xml.parseTag()) {
+        if (tag.name == "condition") {
+            readConditionTag(s.condition, tag);
         }
         else {
-            readScriptNode(s.thenStatements, xml, tag.get());
+            readScriptNode(s.thenStatements, xml, tag);
         }
 
         xml.parseCloseTag();
@@ -296,13 +296,13 @@ static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
     }
 }
 
-void readScript(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+void readScript(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag& tag)
 {
-    assert(tag->name == "script"s);
+    assert(tag.name == "script"s);
 
     Script script;
 
-    script.name = tag->getAttributeOptionalId("name"s);
+    script.name = tag.getAttributeOptionalId("name"s);
     readScriptNodes(script.statements, xml);
 
     if (script.name != STARTUP_SCRIPT_NAME) {
@@ -313,19 +313,19 @@ void readScript(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag
     }
 }
 
-void readTempScriptVariables(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+void readTempScriptVariables(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag& tag)
 {
-    assert(tag->name == "temp-script-variables"s);
+    assert(tag.name == "temp-script-variables"s);
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "flag") {
-            roomScripts.tempFlags.push_back(childTag->getAttributeId("name"));
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "flag") {
+            roomScripts.tempFlags.push_back(childTag.getAttributeId("name"));
         }
-        else if (childTag->name == "word") {
-            roomScripts.tempWords.push_back(childTag->getAttributeId("name"));
+        else if (childTag.name == "word") {
+            roomScripts.tempWords.push_back(childTag.getAttributeId("name"));
         }
         else {
-            throw Xml::unknown_tag_error(*childTag);
+            throw Xml::unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();

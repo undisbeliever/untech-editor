@@ -47,9 +47,11 @@ struct XmlTag {
 public:
     XmlTag() = delete;
     XmlTag(const XmlTag&) = delete;
-    XmlTag(XmlTag&&) = delete;
     XmlTag& operator=(const XmlTag&) = delete;
     XmlTag& operator=(XmlTag&&) = delete;
+
+    // Allow return from function
+    XmlTag(XmlTag&&) = default;
 
     XmlTag(const XmlReader* xml, std::string_view tagName, unsigned lineNo)
         : name(tagName)
@@ -105,6 +107,8 @@ private:
     }
 
 public:
+    operator bool() const { return !name.empty(); }
+
     bool hasAttribute(const std::string_view aName) const
     {
         assert(nAttributes <= MAX_ATTRIBUTES);

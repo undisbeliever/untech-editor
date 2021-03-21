@@ -91,12 +91,12 @@ public:
 
     /**
      * This method skips text/whitespace before the next tag.
-     * returns a nullptr if there are no tags in the current level.
+     * returns a XmlTag with an empty `name` if there are no tags in the current level.
      *
      * MEMORY SAFETY: The XmlTag relies on the XmlReader.
      * It must not exist when this XmlReader is reclaimed.
      */
-    std::unique_ptr<XmlTag> parseTag();
+    XmlTag parseTag();
 
     /** returns the text at the current cursor */
     std::string parseText();
@@ -131,6 +131,7 @@ private:
     void skipText();
     std::string_view parseName();
     std::string_view parseAttributeValue();
+    std::string_view parseTagStart();
 };
 }
 }

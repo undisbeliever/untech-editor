@@ -23,7 +23,7 @@ namespace SpriteImporter {
 
 const std::string FrameSet::FILE_EXTENSION = "utsi";
 
-std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag);
+std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag& tag);
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename)
 {
@@ -34,12 +34,12 @@ std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename)
 std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
 {
     try {
-        std::unique_ptr<XmlTag> tag = xml.parseTag();
+        const auto tag = xml.parseTag();
 
-        if (tag == nullptr || tag->name != "spriteimporter") {
+        if (tag.name != "spriteimporter") {
             throw xml_error(xml, "Expected <spriteimporter> tag");
         }
-        return readFrameSet(xml, tag.get());
+        return readFrameSet(xml, tag);
     }
     catch (const std::exception& ex) {
         throw xml_error(xml, "Unable to load SpriteImporter FrameSet file", ex);
@@ -74,28 +74,28 @@ private:
     bool frameSetGridSet;
 
 public:
-    inline void readFrameSet(const XmlTag* tag)
+    inline void readFrameSet(const XmlTag& tag)
     {
-        assert(tag->name == "spriteimporter");
+        assert(tag.name == "spriteimporter");
         assert(frameSet.frames.size() == 0);
 
-        frameSet.name = tag->getAttributeId("id");
-        frameSet.tilesetType = tag->getAttributeEnum<TilesetType>("tilesettype");
+        frameSet.name = tag.getAttributeId("id");
+        frameSet.tilesetType = tag.getAttributeEnum<TilesetType>("tilesettype");
 
-        if (tag->hasAttribute("exportorder")) {
-            frameSet.exportOrder = tag->getAttributeId("exportorder");
+        if (tag.hasAttribute("exportorder")) {
+            frameSet.exportOrder = tag.getAttributeId("exportorder");
         }
 
         frameSetGridSet = false;
 
-        if (tag->hasAttribute("image")) {
-            frameSet.imageFilename = tag->getAttributeFilename("image");
+        if (tag.hasAttribute("image")) {
+            frameSet.imageFilename = tag.getAttributeFilename("image");
         }
 
-        if (tag->hasAttribute("transparent")) {
+        if (tag.hasAttribute("transparent")) {
             static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
 
-            unsigned hex = tag->getAttributeUnsignedHex("transparent");
+            unsigned hex = tag.getAttributeUnsignedHex("transparent");
 
             frameSet.transparentColor = UnTech::rgba::fromRgba(hex);
             frameSet.transparentColor.alpha = 0xFF;
@@ -104,22 +104,21 @@ public:
             frameSet.transparentColor = rgba(0, 0, 0, 0);
         }
 
-        std::unique_ptr<XmlTag> childTag;
-        while ((childTag = xml.parseTag())) {
-            if (childTag->name == "grid") {
-                readFrameSetGrid(childTag.get());
+        while (const auto childTag = xml.parseTag()) {
+            if (childTag.name == "grid") {
+                readFrameSetGrid(childTag);
             }
-            else if (childTag->name == "palette") {
-                readPalette(childTag.get());
+            else if (childTag.name == "palette") {
+                readPalette(childTag);
             }
-            else if (childTag->name == "frame") {
-                readFrame(childTag.get());
+            else if (childTag.name == "frame") {
+                readFrame(childTag);
             }
-            else if (childTag->name == "animation") {
-                Animation::readAnimation(xml, childTag.get(), frameSet.animations);
+            else if (childTag.name == "animation") {
+                Animation::readAnimation(xml, childTag, frameSet.animations);
             }
             else {
-                throw unknown_tag_error(*childTag);
+                throw unknown_tag_error(childTag);
             }
 
             xml.parseCloseTag();
@@ -127,52 +126,51 @@ public:
     }
 
 private:
-    inline void readFrameSetGrid(const XmlTag* tag)
+    inline void readFrameSetGrid(const XmlTag& tag)
     {
-        assert(tag->name == "grid");
+        assert(tag.name == "grid");
 
-        frameSet.grid.frameSize = tag->getAttributeUsize("width", "height");
-        frameSet.grid.offset = tag->getAttributeUpoint("xoffset", "yoffset");
-        frameSet.grid.padding = tag->getAttributeUpoint("xpadding", "ypadding");
-        frameSet.grid.origin = tag->getAttributeUpoint("xorigin", "yorigin");
+        frameSet.grid.frameSize = tag.getAttributeUsize("width", "height");
+        frameSet.grid.offset = tag.getAttributeUpoint("xoffset", "yoffset");
+        frameSet.grid.padding = tag.getAttributeUpoint("xpadding", "ypadding");
+        frameSet.grid.origin = tag.getAttributeUpoint("xorigin", "yorigin");
 
         frameSetGridSet = true;
     }
 
-    inline void readFrame(const XmlTag* tag)
+    inline void readFrame(const XmlTag& tag)
     {
-        assert(tag->name == "frame");
+        assert(tag.name == "frame");
 
         frameSet.frames.insert_back();
         Frame& frame = frameSet.frames.back();
 
-        frame.name = tag->getAttributeId("id");
+        frame.name = tag.getAttributeId("id");
 
-        if (tag->hasAttribute("order")) {
-            frame.spriteOrder = tag->getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
+        if (tag.hasAttribute("order")) {
+            frame.spriteOrder = tag.getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
         }
 
-        std::unique_ptr<XmlTag> childTag = xml.parseTag();
-        if (childTag) {
-            if (childTag->name == "location") {
-                frame.location.aabb = childTag->getAttributeUrect();
+        if (const auto childTag = xml.parseTag()) {
+            if (childTag.name == "location") {
+                frame.location.aabb = childTag.getAttributeUrect();
                 frame.location.useGridLocation = false;
             }
-            else if (childTag->name == "gridlocation") {
+            else if (childTag.name == "gridlocation") {
                 if (frameSetGridSet == false) {
-                    throw xml_error(*childTag, "Frameset grid is not set.");
+                    throw xml_error(childTag, "Frameset grid is not set.");
                 }
 
-                frame.location.gridLocation = childTag->getAttributeUpoint();
+                frame.location.gridLocation = childTag.getAttributeUpoint();
                 frame.location.useGridLocation = true;
             }
             else {
-                throw xml_error(*childTag, "location or gridlocation tag must be the first child of frame");
+                throw xml_error(childTag, "location or gridlocation tag must be the first child of frame");
             }
             xml.parseCloseTag();
         }
         else {
-            throw xml_error(*tag, "location or gridlocation tag must be the first child of frame");
+            throw xml_error(tag, "location or gridlocation tag must be the first child of frame");
         }
 
         frame.location.useGridOrigin = true;
@@ -180,11 +178,11 @@ private:
 
         frame.solid = false;
 
-        while ((childTag = xml.parseTag())) {
-            if (childTag->name == "object") {
+        while (const auto childTag = xml.parseTag()) {
+            if (childTag.name == "object") {
                 FrameObject obj;
 
-                std::string sizeStr = childTag->getAttribute("size");
+                std::string sizeStr = childTag.getAttribute("size");
                 if (sizeStr == "small") {
                     obj.size = ObjectSize::SMALL;
                 }
@@ -192,78 +190,78 @@ private:
                     obj.size = ObjectSize::LARGE;
                 }
                 else {
-                    throw xml_error(*childTag, "Unknown object size");
+                    throw xml_error(childTag, "Unknown object size");
                 }
 
-                obj.location = childTag->getAttributeUpoint();
+                obj.location = childTag.getAttributeUpoint();
 
                 frame.objects.push_back(obj);
             }
 
-            else if (childTag->name == "actionpoint") {
+            else if (childTag.name == "actionpoint") {
                 ActionPoint ap;
 
-                ap.location = childTag->getAttributeUpoint();
-                ap.type = childTag->getAttributeOptionalId("type");
+                ap.location = childTag.getAttributeUpoint();
+                ap.type = childTag.getAttributeOptionalId("type");
 
                 frame.actionPoints.push_back(ap);
             }
 
-            else if (childTag->name == "entityhitbox") {
+            else if (childTag.name == "entityhitbox") {
                 EntityHitbox eh;
 
-                eh.aabb = childTag->getAttributeUrect();
-                eh.hitboxType = EntityHitboxType::from_string(childTag->getAttribute("type"));
+                eh.aabb = childTag.getAttributeUrect();
+                eh.hitboxType = EntityHitboxType::from_string(childTag.getAttribute("type"));
 
                 frame.entityHitboxes.push_back(eh);
             }
 
-            else if (childTag->name == "tilehitbox") {
+            else if (childTag.name == "tilehitbox") {
                 if (frame.solid) {
-                    throw xml_error(*childTag, "Can only have one tilehitbox per frame");
+                    throw xml_error(childTag, "Can only have one tilehitbox per frame");
                 }
-                frame.tileHitbox = childTag->getAttributeUrect();
+                frame.tileHitbox = childTag.getAttributeUrect();
                 frame.solid = true;
             }
 
-            else if (childTag->name == "origin") {
+            else if (childTag.name == "origin") {
                 if (frame.location.useGridOrigin == false) {
-                    throw xml_error(*childTag, "Can only have one origin per frame");
+                    throw xml_error(childTag, "Can only have one origin per frame");
                 }
                 frame.location.useGridOrigin = false;
-                frame.location.origin = childTag->getAttributeUpoint();
+                frame.location.origin = childTag.getAttributeUpoint();
             }
             else {
-                throw unknown_tag_error(*childTag);
+                throw unknown_tag_error(childTag);
             }
 
             xml.parseCloseTag();
         }
     }
 
-    inline void readPalette(const XmlTag* tag)
+    inline void readPalette(const XmlTag& tag)
     {
-        assert(tag->name == "palette");
+        assert(tag.name == "palette");
 
         auto& palette = frameSet.palette;
 
         if (palette.usesUserSuppliedPalette()) {
-            throw xml_error(*tag, "Only one palette tag allowed per frameset");
+            throw xml_error(tag, "Only one palette tag allowed per frameset");
         }
 
-        if (tag->hasAttribute("position")) {
-            palette.position = tag->getAttributeEnum("position", UserSuppliedPalette::positionEnumMap);
+        if (tag.hasAttribute("position")) {
+            palette.position = tag.getAttributeEnum("position", UserSuppliedPalette::positionEnumMap);
         }
         else {
             // old behaviour
             palette.position = UserSuppliedPalette::Position::BOTTOM_LEFT;
         }
-        palette.nPalettes = tag->getAttributeUnsigned("npalettes", 1);
-        palette.colorSize = tag->getAttributeUnsigned("colorsize", 1);
+        palette.nPalettes = tag.getAttributeUnsigned("npalettes", 1);
+        palette.colorSize = tag.getAttributeUnsigned("colorsize", 1);
     }
 };
 
-std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag)
+std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag& tag)
 {
     auto frameSet = std::make_unique<FrameSet>();
 

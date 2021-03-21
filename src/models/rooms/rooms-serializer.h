@@ -25,7 +25,7 @@ std::unique_ptr<RoomInput> readRoomInput(Xml::XmlReader& xml);
 void writeRoomInput(Xml::XmlWriter& xml, const RoomInput& input);
 
 // raises an exception on error
-void readRoomSettings(RoomSettings& settings, const Xml::XmlTag* tag);
+void readRoomSettings(RoomSettings& settings, const Xml::XmlTag& tag);
 
 // raises an exception on error
 void writeRoomSettings(Xml::XmlWriter& xml, const RoomSettings& settings);

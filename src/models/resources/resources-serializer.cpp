@@ -33,20 +33,20 @@ static const EnumMap<LayerType> layerTypeEnumMap = {
     { "text", LayerType::TextConsole },
 };
 
-void readPalette(const XmlTag* tag, NamedList<PaletteInput>& palettes)
+void readPalette(const XmlTag& tag, NamedList<PaletteInput>& palettes)
 {
-    assert(tag->name == "palette");
+    assert(tag.name == "palette");
 
     palettes.insert_back();
     auto& palette = palettes.back();
 
-    palette.name = tag->getAttributeId("name");
-    palette.paletteImageFilename = tag->getAttributeFilename("image");
-    palette.rowsPerFrame = tag->getAttributeUnsigned("rows-per-frame");
-    palette.skipFirstFrame = tag->getAttributeBoolean("skip-first");
+    palette.name = tag.getAttributeId("name");
+    palette.paletteImageFilename = tag.getAttributeFilename("image");
+    palette.rowsPerFrame = tag.getAttributeUnsigned("rows-per-frame");
+    palette.skipFirstFrame = tag.getAttributeBoolean("skip-first");
 
-    if (tag->hasAttribute("animation-delay")) {
-        palette.animationDelay = tag->getAttributeUnsigned("animation-delay");
+    if (tag.hasAttribute("animation-delay")) {
+        palette.animationDelay = tag.getAttributeUnsigned("animation-delay");
     }
 }
 
@@ -67,20 +67,20 @@ void writePalettes(XmlWriter& xml, const NamedList<PaletteInput>& palettes)
     }
 }
 
-void readBackgroundImage(const XmlTag* tag, NamedList<BackgroundImageInput>& backgroundImages)
+void readBackgroundImage(const XmlTag& tag, NamedList<BackgroundImageInput>& backgroundImages)
 {
-    assert(tag->name == "background-image");
+    assert(tag.name == "background-image");
 
     backgroundImages.insert_back();
     auto& bi = backgroundImages.back();
 
-    bi.name = tag->getAttributeId("name");
-    bi.bitDepth = tag->getAttributeUnsigned("bit-depth");
-    bi.imageFilename = tag->getAttributeFilename("image");
-    bi.conversionPlette = tag->getAttributeOptionalId("palette");
-    bi.firstPalette = tag->getAttributeUnsigned("first-palette");
-    bi.nPalettes = tag->getAttributeUnsigned("npalettes");
-    bi.defaultOrder = tag->getAttributeUnsigned("default-order");
+    bi.name = tag.getAttributeId("name");
+    bi.bitDepth = tag.getAttributeUnsigned("bit-depth");
+    bi.imageFilename = tag.getAttributeFilename("image");
+    bi.conversionPlette = tag.getAttributeOptionalId("palette");
+    bi.firstPalette = tag.getAttributeUnsigned("first-palette");
+    bi.nPalettes = tag.getAttributeUnsigned("npalettes");
+    bi.defaultOrder = tag.getAttributeUnsigned("default-order");
 }
 
 void writeBackgroundImages(XmlWriter& xml, const NamedList<BackgroundImageInput>& backgroundImages)
@@ -98,20 +98,20 @@ void writeBackgroundImages(XmlWriter& xml, const NamedList<BackgroundImageInput>
     }
 }
 
-void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const XmlTag* tag)
+void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const XmlTag& tag)
 {
-    assert(tag->name == "animation-frames");
+    assert(tag.name == "animation-frames");
     assert(afi.frameImageFilenames.empty());
 
-    afi.conversionPalette = tag->getAttributeOptionalId("palette");
+    afi.conversionPalette = tag.getAttributeOptionalId("palette");
 
-    afi.bitDepth = tag->getAttributeUnsigned("bit-depth", 2, 8);
-    afi.animationDelay = tag->getAttributeUnsigned("animation-delay");
-    afi.addTransparentTile = tag->getAttributeBoolean("add-transparent-tile");
+    afi.bitDepth = tag.getAttributeUnsigned("bit-depth", 2, 8);
+    afi.animationDelay = tag.getAttributeUnsigned("animation-delay");
+    afi.addTransparentTile = tag.getAttributeBoolean("add-transparent-tile");
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "frame") {
-            afi.frameImageFilenames.emplace_back(childTag->getAttributeFilename("image"));
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "frame") {
+            afi.frameImageFilenames.emplace_back(childTag.getAttributeFilename("image"));
         }
         else {
             throw xml_error(xml, "Expected <frame> tag");
@@ -139,19 +139,19 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
     xml.writeCloseTag();
 }
 
-void readSceneSetting(const XmlTag* tag, NamedList<SceneSettingsInput>& sceneSettings)
+void readSceneSetting(const XmlTag& tag, NamedList<SceneSettingsInput>& sceneSettings)
 {
-    assert(tag->name == "scene-setting");
+    assert(tag.name == "scene-setting");
 
     sceneSettings.insert_back();
     auto& ssi = sceneSettings.back();
 
-    ssi.name = tag->getAttributeOptionalId("name");
-    ssi.bgMode = tag->getAttributeEnum("bg-mode", bgModeEnumMap);
-    ssi.layerTypes.at(0) = tag->getAttributeEnum("layer0-type", layerTypeEnumMap);
-    ssi.layerTypes.at(1) = tag->getAttributeEnum("layer1-type", layerTypeEnumMap);
-    ssi.layerTypes.at(2) = tag->getAttributeEnum("layer2-type", layerTypeEnumMap);
-    ssi.layerTypes.at(3) = tag->getAttributeEnum("layer3-type", layerTypeEnumMap);
+    ssi.name = tag.getAttributeOptionalId("name");
+    ssi.bgMode = tag.getAttributeEnum("bg-mode", bgModeEnumMap);
+    ssi.layerTypes.at(0) = tag.getAttributeEnum("layer0-type", layerTypeEnumMap);
+    ssi.layerTypes.at(1) = tag.getAttributeEnum("layer1-type", layerTypeEnumMap);
+    ssi.layerTypes.at(2) = tag.getAttributeEnum("layer2-type", layerTypeEnumMap);
+    ssi.layerTypes.at(3) = tag.getAttributeEnum("layer3-type", layerTypeEnumMap);
 }
 
 void writeSceneSettings(XmlWriter& xml, const NamedList<SceneSettingsInput>& sceneSettings)
@@ -170,20 +170,20 @@ void writeSceneSettings(XmlWriter& xml, const NamedList<SceneSettingsInput>& sce
     }
 }
 
-void readScene(const XmlTag* tag, NamedList<SceneInput>& scenes)
+void readScene(const XmlTag& tag, NamedList<SceneInput>& scenes)
 {
-    assert(tag->name == "scene");
+    assert(tag.name == "scene");
 
     scenes.insert_back();
     auto& scene = scenes.back();
 
-    scene.name = tag->getAttributeOptionalId("name");
-    scene.sceneSettings = tag->getAttributeOptionalId("settings");
-    scene.palette = tag->getAttributeOptionalId("palette");
-    scene.layers.at(0) = tag->getAttributeOptionalId("layer0");
-    scene.layers.at(1) = tag->getAttributeOptionalId("layer1");
-    scene.layers.at(2) = tag->getAttributeOptionalId("layer2");
-    scene.layers.at(3) = tag->getAttributeOptionalId("layer3");
+    scene.name = tag.getAttributeOptionalId("name");
+    scene.sceneSettings = tag.getAttributeOptionalId("settings");
+    scene.palette = tag.getAttributeOptionalId("palette");
+    scene.layers.at(0) = tag.getAttributeOptionalId("layer0");
+    scene.layers.at(1) = tag.getAttributeOptionalId("layer1");
+    scene.layers.at(2) = tag.getAttributeOptionalId("layer2");
+    scene.layers.at(3) = tag.getAttributeOptionalId("layer3");
 }
 
 void writeScenes(XmlWriter& xml, const NamedList<SceneInput>& scenes)

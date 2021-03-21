@@ -34,16 +34,16 @@ static const EnumMap<RoomEntranceOrientation> roomEntranceOrientationEnumMap = {
     { "up-left", RoomEntranceOrientation::UP_LEFT },
 };
 
-static void readRoomEntrance(const XmlTag* tag, NamedList<RoomEntrance>& entrances)
+static void readRoomEntrance(const XmlTag& tag, NamedList<RoomEntrance>& entrances)
 {
-    assert(tag->name == "entrance");
+    assert(tag.name == "entrance");
 
     entrances.insert_back();
     RoomEntrance& en = entrances.back();
 
-    en.name = tag->getAttributeOptionalId("name");
-    en.position = tag->getAttributeUpoint();
-    en.orientation = tag->getAttributeEnum("orientation", roomEntranceOrientationEnumMap);
+    en.name = tag.getAttributeOptionalId("name");
+    en.position = tag.getAttributeUpoint();
+    en.orientation = tag.getAttributeEnum("orientation", roomEntranceOrientationEnumMap);
 }
 
 static void writeRoomEntrance(XmlWriter& xml, const RoomEntrance& entrance)
@@ -55,25 +55,25 @@ static void writeRoomEntrance(XmlWriter& xml, const RoomEntrance& entrance)
     xml.writeCloseTag();
 }
 
-static void readEntityGroup(XmlReader& xml, const XmlTag* tag, NamedList<EntityGroup>& entityGroups)
+static void readEntityGroup(XmlReader& xml, const XmlTag& tag, NamedList<EntityGroup>& entityGroups)
 {
-    assert(tag->name == "entity-group");
+    assert(tag.name == "entity-group");
 
     entityGroups.insert_back();
     auto& eg = entityGroups.back();
 
-    eg.name = tag->getAttributeOptionalId("name");
+    eg.name = tag.getAttributeOptionalId("name");
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "entity") {
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "entity") {
             auto& e = eg.entities.emplace_back();
-            e.name = childTag->getAttributeOptionalId("name");
-            e.entityId = childTag->getAttributeOptionalId("entity");
-            e.position = childTag->getAttributePoint();
-            e.parameter = childTag->getAttributeOrEmpty("parameter");
+            e.name = childTag.getAttributeOptionalId("name");
+            e.entityId = childTag.getAttributeOptionalId("entity");
+            e.position = childTag.getAttributePoint();
+            e.parameter = childTag.getAttributeOrEmpty("parameter");
         }
         else {
-            throw unknown_tag_error(*childTag);
+            throw unknown_tag_error(childTag);
         }
         xml.parseCloseTag();
     }
@@ -98,15 +98,15 @@ static void writeEntityGroup(XmlWriter& xml, const EntityGroup& entityGroup)
     xml.writeCloseTag();
 }
 
-static void readScriptTrigger(const XmlTag* tag, std::vector<ScriptTrigger>& scriptTriggers)
+static void readScriptTrigger(const XmlTag& tag, std::vector<ScriptTrigger>& scriptTriggers)
 {
-    assert(tag->name == "script-trigger");
+    assert(tag.name == "script-trigger");
 
     ScriptTrigger& st = scriptTriggers.emplace_back();
 
-    st.script = tag->getAttributeOptionalId("script");
-    st.aabb = tag->getAttributeUrect();
-    st.once = tag->getAttributeBoolean("once");
+    st.script = tag.getAttributeOptionalId("script");
+    st.aabb = tag.getAttributeUrect();
+    st.once = tag.getAttributeBoolean("once");
 }
 
 static void writeScriptTrigger(XmlWriter& xml, const ScriptTrigger& st)
@@ -118,38 +118,38 @@ static void writeScriptTrigger(XmlWriter& xml, const ScriptTrigger& st)
     xml.writeCloseTag();
 }
 
-static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* tag)
+static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag& tag)
 {
-    if (tag == nullptr || tag->name != "room") {
+    if (tag.name != "room") {
         throw xml_error(xml, "Not a Room file (expected <room> tag)");
     }
 
     auto roomInput = std::make_unique<RoomInput>();
 
-    roomInput->name = tag->getAttributeOptionalId("name");
-    roomInput->scene = tag->getAttributeOptionalId("scene");
+    roomInput->name = tag.getAttributeOptionalId("name");
+    roomInput->scene = tag.getAttributeOptionalId("scene");
 
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "map") {
-            roomInput->map = MetaTiles::readMetaTileGrid(xml, childTag.get());
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "map") {
+            roomInput->map = MetaTiles::readMetaTileGrid(xml, childTag);
         }
-        else if (childTag->name == "entrance") {
-            readRoomEntrance(childTag.get(), roomInput->entrances);
+        else if (childTag.name == "entrance") {
+            readRoomEntrance(childTag, roomInput->entrances);
         }
-        else if (childTag->name == "entity-group") {
-            readEntityGroup(xml, childTag.get(), roomInput->entityGroups);
+        else if (childTag.name == "entity-group") {
+            readEntityGroup(xml, childTag, roomInput->entityGroups);
         }
-        else if (childTag->name == "script") {
-            Scripting::readScript(roomInput->roomScripts, xml, childTag.get());
+        else if (childTag.name == "script") {
+            Scripting::readScript(roomInput->roomScripts, xml, childTag);
         }
-        else if (childTag->name == "temp-script-variables") {
-            Scripting::readTempScriptVariables(roomInput->roomScripts, xml, childTag.get());
+        else if (childTag.name == "temp-script-variables") {
+            Scripting::readTempScriptVariables(roomInput->roomScripts, xml, childTag);
         }
-        else if (childTag->name == "script-trigger") {
-            readScriptTrigger(childTag.get(), roomInput->scriptTriggers);
+        else if (childTag.name == "script-trigger") {
+            readScriptTrigger(childTag, roomInput->scriptTriggers);
         }
         else {
-            throw unknown_tag_error(*childTag);
+            throw unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();
@@ -186,8 +186,8 @@ void writeRoomInput(XmlWriter& xml, const RoomInput& input)
 std::unique_ptr<RoomInput> readRoomInput(Xml::XmlReader& xml)
 {
     try {
-        std::unique_ptr<XmlTag> tag = xml.parseTag();
-        return readRoomInput(xml, tag.get());
+        const auto tag = xml.parseTag();
+        return readRoomInput(xml, tag);
     }
     catch (const std::exception& ex) {
         throw xml_error(xml, "Error loading room", ex);
@@ -208,9 +208,9 @@ void saveRoomInput(const RoomInput& input, const std::filesystem::path& filename
     file.commit();
 }
 
-void readRoomSettings(RoomSettings& settings, const XmlTag* tag)
+void readRoomSettings(RoomSettings& settings, const XmlTag& tag)
 {
-    settings.roomDataSize = tag->getAttributeUnsigned("room-data-size");
+    settings.roomDataSize = tag.getAttributeUnsigned("room-data-size");
 }
 
 void writeRoomSettings(XmlWriter& xml, const RoomSettings& settings)

@@ -30,13 +30,13 @@ static const EnumMap<MappingMode> mappingModeEnumMap = {
     { "hirom", MappingMode::HIROM },
 };
 
-static void readMemoryMapSettings(const XmlTag* tag, MemoryMapSettings& mmap)
+static void readMemoryMapSettings(const XmlTag& tag, MemoryMapSettings& mmap)
 {
-    assert(tag->name == "memory-map");
+    assert(tag.name == "memory-map");
 
-    mmap.mode = tag->getAttributeEnum("mode", mappingModeEnumMap);
-    mmap.firstBank = tag->getAttributeUnsignedHex("first-bank");
-    mmap.nBanks = tag->getAttributeUnsigned("n-banks");
+    mmap.mode = tag.getAttributeEnum("mode", mappingModeEnumMap);
+    mmap.firstBank = tag.getAttributeUnsignedHex("first-bank");
+    mmap.nBanks = tag.getAttributeUnsigned("n-banks");
 }
 
 static void writeMemoryMapSettings(XmlWriter& xml, const MemoryMapSettings& mmap)
@@ -49,9 +49,9 @@ static void writeMemoryMapSettings(XmlWriter& xml, const MemoryMapSettings& mmap
 }
 
 template <class T>
-static void readExternalFileList(const XmlTag* tag, ExternalFileList<T>& list)
+static void readExternalFileList(const XmlTag& tag, ExternalFileList<T>& list)
 {
-    list.insert_back(tag->getAttributeFilename("src"));
+    list.insert_back(tag.getAttributeFilename("src"));
 }
 
 template <class T>
@@ -67,93 +67,91 @@ static void writeExternalFileList(XmlWriter& xml, const std::string& tagName,
 
 std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 {
-    std::unique_ptr<XmlTag> tag = xml.parseTag();
-    if (tag == nullptr || tag->name != "project") {
+    const auto tag = xml.parseTag();
+    if (tag.name != "project") {
         throw xml_error(xml, "Not an untech-editor project (expected <project>");
     }
 
     auto project = std::make_unique<ProjectFile>();
-
-    std::unique_ptr<XmlTag> childTag;
 
     bool readMemoryMapTag = false;
     bool readGameStateTag = false;
     bool readBytecodeTag = false;
     bool readRoomSettingsTag = false;
 
-    while ((childTag = xml.parseTag())) {
-        if (childTag->name == "exportorder") {
-            readExternalFileList(childTag.get(), project->frameSetExportOrders);
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "exportorder") {
+            readExternalFileList(childTag, project->frameSetExportOrders);
         }
-        else if (childTag->name == "frameset") {
-            MetaSprite::readFrameSetFile(childTag.get(), project->frameSets);
+        else if (childTag.name == "frameset") {
+            MetaSprite::readFrameSetFile(childTag, project->frameSets);
         }
-        else if (childTag->name == "palette") {
-            Resources::readPalette(childTag.get(), project->palettes);
+        else if (childTag.name == "palette") {
+            Resources::readPalette(childTag, project->palettes);
         }
-        else if (childTag->name == "background-image") {
-            Resources::readBackgroundImage(childTag.get(), project->backgroundImages);
+        else if (childTag.name == "background-image") {
+            Resources::readBackgroundImage(childTag, project->backgroundImages);
         }
-        else if (childTag->name == "metatile-tileset") {
-            readExternalFileList(childTag.get(), project->metaTileTilesets);
+        else if (childTag.name == "metatile-tileset") {
+            readExternalFileList(childTag, project->metaTileTilesets);
         }
-        else if (childTag->name == "room-file") {
-            readExternalFileList(childTag.get(), project->rooms);
+        else if (childTag.name == "room-file") {
+            readExternalFileList(childTag, project->rooms);
         }
-        else if (childTag->name == "entity-rom-data") {
-            Entity::readEntityRomData(xml, childTag.get(), project->entityRomData);
+        else if (childTag.name == "entity-rom-data") {
+            Entity::readEntityRomData(xml, childTag, project->entityRomData);
         }
-        else if (childTag->name == "action-point-function") {
-            MetaSprite::readActionPointFunction(childTag.get(), project->actionPointFunctions);
+        else if (childTag.name == "action-point-function") {
+            MetaSprite::readActionPointFunction(childTag, project->actionPointFunctions);
         }
-        else if (childTag->name == "scene-setting") {
-            Resources::readSceneSetting(childTag.get(), project->resourceScenes.settings);
+        else if (childTag.name == "scene-setting") {
+            Resources::readSceneSetting(childTag, project->resourceScenes.settings);
         }
-        else if (childTag->name == "scene") {
-            Resources::readScene(childTag.get(), project->resourceScenes.scenes);
+        else if (childTag.name == "scene") {
+            Resources::readScene(childTag, project->resourceScenes.scenes);
         }
-        else if (childTag->name == "memory-map") {
+        else if (childTag.name == "memory-map") {
             if (readMemoryMapTag) {
-                throw xml_error(*childTag, "Only one <memory-map> tag is allowed");
+                throw xml_error(childTag, "Only one <memory-map> tag is allowed");
             }
-            readMemoryMapSettings(childTag.get(), project->projectSettings.memoryMap);
+            readMemoryMapSettings(childTag, project->projectSettings.memoryMap);
             readMemoryMapTag = true;
         }
-        else if (childTag->name == "block-settings") {
+        else if (childTag.name == "block-settings") {
             // block-settings has been removed, skip
         }
-        else if (childTag->name == "metatile-engine-settings") {
+        else if (childTag.name == "metatile-engine-settings") {
             // metatile-engine-settings has been removed, skip
         }
-        else if (childTag->name == "game-state") {
+        else if (childTag.name == "game-state") {
             if (readGameStateTag) {
-                throw xml_error(*childTag, "Only one <game-state> tag is allowed");
+                throw xml_error(childTag, "Only one <game-state> tag is allowed");
             }
             readGameStateTag = true;
 
-            Scripting::readGameState(project->gameState, xml, childTag.get());
+            Scripting::readGameState(project->gameState, xml, childTag);
         }
-        else if (childTag->name == "bytecode") {
+        else if (childTag.name == "bytecode") {
             if (readBytecodeTag) {
-                throw xml_error(*childTag, "Only one <bytecode> tag is allowed");
+                throw xml_error(childTag, "Only one <bytecode> tag is allowed");
             }
             readBytecodeTag = true;
 
-            Scripting::readBytecode(project->bytecode, xml, childTag.get());
+            Scripting::readBytecode(project->bytecode, xml, childTag);
         }
-        else if (childTag->name == "interactive-tiles") {
-            MetaTiles::readInteractiveTiles(xml, childTag.get(), project->interactiveTiles);
+        else if (childTag.name == "interactive-tiles") {
+            MetaTiles::readInteractiveTiles(xml, childTag, project->interactiveTiles);
         }
-        else if (childTag->name == "room-settings") {
+        else if (childTag.name == "room-settings") {
             if (readRoomSettingsTag) {
-                throw xml_error(*childTag, "Only one <room-settings> tag is allowed");
+                throw xml_error(childTag, "Only one <room-settings> tag is allowed");
             }
             readRoomSettingsTag = true;
 
-            Rooms::readRoomSettings(project->projectSettings.roomSettings, childTag.get());
+            Rooms::readRoomSettings(project->projectSettings.roomSettings, childTag);
         }
         else {
-            throw unknown_tag_error(*childTag);
+            throw unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();

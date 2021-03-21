@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace Entity {
 
-void readEntityRomData(Xml::XmlReader& xml, const Xml::XmlTag* tag, EntityRomData& entityRomData);
+void readEntityRomData(Xml::XmlReader& xml, const Xml::XmlTag& tag, EntityRomData& entityRomData);
 void writeEntityRomData(Xml::XmlWriter& xml, const EntityRomData& romData);
 
 }

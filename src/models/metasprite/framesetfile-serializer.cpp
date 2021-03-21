@@ -18,17 +18,17 @@ const EnumMap<FrameSetFile::FrameSetType> frameSetTypeMap = {
     { "spriteimporter", FrameSetFile::FrameSetType::SPRITE_IMPORTER },
 };
 
-void readFrameSetFile(const XmlTag* tag, std::vector<FrameSetFile>& frameSets)
+void readFrameSetFile(const XmlTag& tag, std::vector<FrameSetFile>& frameSets)
 {
-    assert(tag->name == "frameset");
+    assert(tag.name == "frameset");
 
     frameSets.emplace_back();
     FrameSetFile& fs = frameSets.back();
 
-    fs.filename = tag->getAttributeFilename("src");
+    fs.filename = tag.getAttributeFilename("src");
 
-    if (tag->hasAttribute("type")) {
-        fs.type = tag->getAttributeEnum("type", frameSetTypeMap);
+    if (tag.hasAttribute("type")) {
+        fs.type = tag.getAttributeEnum("type", frameSetTypeMap);
     }
     else {
         fs.setTypeFromExtension();

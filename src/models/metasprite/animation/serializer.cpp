@@ -15,50 +15,48 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Animation {
 
-void readAnimationFrame(const Xml::XmlTag* tag, AnimationFrame& aFrame);
+void readAnimationFrame(const Xml::XmlTag& tag, AnimationFrame& aFrame);
 
-void readAnimation(XmlReader& xml, const XmlTag* tag, NamedList<Animation>& animations)
+void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& animations)
 {
-    assert(tag->name == "animation");
+    assert(tag.name == "animation");
 
     animations.insert_back();
     Animation& animation = animations.back();
 
-    animation.name = tag->getAttributeId("id");
+    animation.name = tag.getAttributeId("id");
 
-    animation.durationFormat = tag->getAttributeEnum<DurationFormat>("durationformat");
+    animation.durationFormat = tag.getAttributeEnum<DurationFormat>("durationformat");
 
-    animation.oneShot = tag->getAttributeBoolean("oneshot");
+    animation.oneShot = tag.getAttributeBoolean("oneshot");
 
-    if (tag->hasAttribute("next")) {
-        animation.nextAnimation = tag->getAttributeId("next");
+    if (tag.hasAttribute("next")) {
+        animation.nextAnimation = tag.getAttributeId("next");
     }
 
-    std::unique_ptr<XmlTag> childTag;
-
-    while ((childTag = xml.parseTag())) {
-        if (childTag->name == "aframe") {
+    while (const auto childTag = xml.parseTag()) {
+        if (childTag.name == "aframe") {
             animation.frames.emplace_back();
 
             AnimationFrame& aFrame = animation.frames.back();
-            readAnimationFrame(childTag.get(), aFrame);
+            readAnimationFrame(childTag, aFrame);
         }
         else {
-            throw unknown_tag_error(*childTag);
+            throw unknown_tag_error(childTag);
         }
 
         xml.parseCloseTag();
     }
 }
 
-inline void readAnimationFrame(const XmlTag* tag, AnimationFrame& aFrame)
+inline void readAnimationFrame(const XmlTag& tag, AnimationFrame& aFrame)
 {
-    assert(tag->name == "aframe");
+    assert(tag.name == "aframe");
 
-    aFrame.frame.name = tag->getAttributeId("frame");
-    aFrame.frame.hFlip = tag->getAttributeBoolean("hflip");
-    aFrame.frame.vFlip = tag->getAttributeBoolean("vflip");
-    aFrame.duration = tag->getAttributeUint8("duration");
+    aFrame.frame.name = tag.getAttributeId("frame");
+    aFrame.frame.hFlip = tag.getAttributeBoolean("hflip");
+    aFrame.frame.vFlip = tag.getAttributeBoolean("vflip");
+    aFrame.duration = tag.getAttributeUint8("duration");
 }
 
 /*
