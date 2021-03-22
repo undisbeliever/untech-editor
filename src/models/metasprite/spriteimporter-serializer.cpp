@@ -80,7 +80,7 @@ public:
         assert(frameSet.frames.size() == 0);
 
         frameSet.name = tag.getAttributeId("id");
-        frameSet.tilesetType = tag.getAttributeEnum<TilesetType>("tilesettype");
+        frameSet.tilesetType = tag.getAttributeEnum("tilesettype", TilesetType::enumMap);
 
         if (tag.hasAttribute("exportorder")) {
             frameSet.exportOrder = tag.getAttributeId("exportorder");

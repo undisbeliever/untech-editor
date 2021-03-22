@@ -8,7 +8,6 @@
 
 #include "xmlreader.h"
 #include "../aabb.h"
-#include "../clampedinteger.h"
 #include "../enummap.h"
 #include "../file.h"
 #include "../idstring.h"
@@ -221,19 +220,6 @@ public:
         return i;
     }
 
-    template <class T>
-    inline T getAttributeClamped(const std::string_view aName)
-    {
-        static_assert(std::is_integral<typename T::TYPE>::value, "not integral");
-
-        if (std::is_signed<typename T::TYPE>::value) {
-            return getAttributeInteger(aName, T::MIN, T::MAX);
-        }
-        else if (std::is_unsigned<typename T::TYPE>::value) {
-            return getAttributeUnsigned(aName, T::MIN, T::MAX);
-        }
-    }
-
     inline unsigned getAttributeUnsigned(const std::string_view aName, unsigned min = 0, unsigned max = UINT_MAX) const
     {
         // No need to escape value - only digit characters are valid
@@ -267,11 +253,6 @@ public:
     inline uint16_t getAttributeUint16(const std::string_view aName) const
     {
         return (uint16_t)getAttributeUnsigned(aName, 0, UINT16_MAX);
-    }
-
-    inline uint8_t getAttributeUint8NotZero(const std::string_view aName) const
-    {
-        return (uint8_t)getAttributeUnsigned(aName, 1, UINT8_MAX);
     }
 
     inline int_ms8_t getAttributeIntMs8(const std::string_view aName) const
@@ -332,12 +313,6 @@ public:
         }
     }
 
-    template <class T>
-    inline T getAttributeEnum(const std::string_view aName) const
-    {
-        return getAttributeEnum(aName, T::enumMap);
-    }
-
     template <typename T>
     inline T getAttributeOptionalEnum(const std::string_view aName, const EnumMap<T>& enumMap, const T default_value) const
     {
@@ -353,12 +328,6 @@ public:
             }
         }
         return default_value;
-    }
-
-    template <class T>
-    inline T getAttributeOptionalEnum(const std::string_view aName, const typename T::Enum default_value) const
-    {
-        return getAttributeEnum(aName, T::enumMap, default_value);
     }
 
     inline unsigned getAttributeUnsignedHex(const std::string_view aName) const
@@ -396,25 +365,6 @@ public:
         return usize(width, height);
     }
 
-    inline upoint getAttributeUpointInside(const urect& container, const std::string_view xName = "x", const std::string_view yName = "y") const
-    {
-        unsigned x = getAttributeUnsigned(xName, 0, container.width);
-        unsigned y = getAttributeUnsigned(yName, 0, container.height);
-
-        return upoint(x, y);
-    }
-
-    inline upoint getAttributeUpointInside(const urect& container, unsigned squareSize, const std::string_view xName = "x", const std::string_view yName = "y") const
-    {
-        if (container.width < squareSize || container.height < squareSize) {
-            throw xml_error(*this, "upoint outside urect");
-        }
-        unsigned x = getAttributeUnsigned(xName, 0, container.width - squareSize);
-        unsigned y = getAttributeUnsigned(yName, 0, container.height - squareSize);
-
-        return upoint(x, y);
-    }
-
     inline urect getAttributeUrect(const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height") const
     {
         unsigned x = getAttributeUnsigned(xName);
@@ -433,17 +383,6 @@ public:
 
         unsigned width = getAttributeUnsigned(widthName, minimumSize.width, UINT_MAX);
         unsigned height = getAttributeUnsigned(heightName, minimumSize.height, UINT_MAX);
-
-        return urect(x, y, width, height);
-    }
-
-    inline urect getAttributeUrectInside(const urect& container, const std::string_view xName = "x", const std::string_view yName = "y", const std::string_view widthName = "width", const std::string_view heightName = "height") const
-    {
-        unsigned x = getAttributeUnsigned(xName, 0, container.width);
-        unsigned y = getAttributeUnsigned(yName, 0, container.height);
-
-        unsigned width = getAttributeUnsigned(widthName, 1, container.width - x);
-        unsigned height = getAttributeUnsigned(heightName, 1, container.height - y);
 
         return urect(x, y, width, height);
     }

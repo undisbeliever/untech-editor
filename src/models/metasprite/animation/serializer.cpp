@@ -26,7 +26,7 @@ void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& anim
 
     animation.name = tag.getAttributeId("id");
 
-    animation.durationFormat = tag.getAttributeEnum<DurationFormat>("durationformat");
+    animation.durationFormat = tag.getAttributeEnum("durationformat", DurationFormat::enumMap);
 
     animation.oneShot = tag.getAttributeBoolean("oneshot");
 
