@@ -17,8 +17,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace Xml {
+namespace UnTech::Xml {
 
 /**
  * The `XmlWriter` class simplifies the creation of XML documents.
@@ -165,5 +164,5 @@ private:
 
     void writeTagAttribute_noEscape(const std::string_view name, const std::string_view value);
 };
-}
+
 }

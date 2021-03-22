@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include <string>
+#include <string_view>
 
-namespace UnTech {
-namespace Xml {
+namespace UnTech::Xml {
 
 inline bool isName(char c)
 {
@@ -32,5 +31,4 @@ inline bool isName(const std::string_view text)
     return true;
 }
 
-}
 }

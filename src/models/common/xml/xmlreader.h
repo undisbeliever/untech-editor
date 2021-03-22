@@ -18,8 +18,7 @@
 #include <string_view>
 #include <vector>
 
-namespace UnTech {
-namespace Xml {
+namespace UnTech::Xml {
 
 class XmlReader;
 struct XmlTag;
@@ -134,7 +133,6 @@ private:
     std::string_view parseAttributeValue();
     std::string_view parseTagStart();
 };
-}
 }
 
 #include "xmltag.h"

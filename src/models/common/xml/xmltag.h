@@ -21,8 +21,7 @@
 #include <string>
 #include <string_view>
 
-namespace UnTech {
-namespace Xml {
+namespace UnTech::Xml {
 
 class unknown_tag_error : public xml_error {
 public:
@@ -408,5 +407,5 @@ public:
     std::string generateErrorString(const std::string_view msg) const;
     std::string generateErrorString(const std::string_view aName, const std::string_view msg) const;
 };
-}
+
 }
