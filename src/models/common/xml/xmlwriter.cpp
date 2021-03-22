@@ -5,6 +5,7 @@
  */
 
 #include "xmlwriter.h"
+#include "xml.h"
 #include "../base64.h"
 #include "../file.h"
 #include "../string.h"
@@ -14,6 +15,11 @@
 #include <sstream>
 
 namespace UnTech::Xml {
+
+static inline std::string_view toStringView(const std::string_view::const_iterator begin, const std::string_view::const_iterator end)
+{
+    return std::string_view(&*begin, std::distance(begin, end));
+}
 
 XmlWriter::XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string_view doctype)
     : _file(output)
@@ -70,17 +76,7 @@ void XmlWriter::writeTagAttribute(const std::string_view name, const std::string
     assert(isName(name));
 
     _file << ' ' << name << "=\"";
-    writeEscapeAttribute(value);
-    _file << '"';
-}
-
-void XmlWriter::writeTagAttribute(const std::string_view name, const char* value)
-{
-    assert(_inTag);
-    assert(isName(name));
-
-    _file << ' ' << name << "=\"";
-    writeEscapeAttribute(value);
+    escapeAndWrite(value);
     _file << '"';
 }
 
@@ -137,25 +133,7 @@ void XmlWriter::writeText(const std::string_view text)
         writeCloseTagHead();
     }
 
-    for (char c : text) {
-        switch (c) {
-
-        case '&':
-            _file << "&amp;";
-            break;
-
-        case '<':
-            _file << "&lt;";
-            break;
-
-        case '>':
-            _file << "&gt;";
-            break;
-
-        default:
-            _file << c;
-        }
-    }
+    escapeAndWrite(text);
 }
 
 void XmlWriter::writeBase64(const uint8_t* data, const size_t size)
@@ -200,61 +178,56 @@ inline void XmlWriter::writeCloseTagHead()
     _inTag = false;
 }
 
-inline void XmlWriter::writeEscapeAttribute(const std::string_view text)
+void XmlWriter::escapeAndWrite(const std::string_view text)
 {
-    for (char c : text) {
+    using namespace std::string_view_literals;
+
+    constexpr std::string_view toMatch = "&<>\"\'"sv;
+
+    // Using `std::find_first_of` instead of `std::string_view::find_first_of`
+    // as the compiler is able to inline it better.
+    // (`std::string_view::find_first_of` is calling `memchr`)
+    // (Profiling has confirmed std::find_first_of is the faster option)
+
+    auto start = text.begin();
+    auto it = std::find_first_of(start, text.end(),
+                                 toMatch.begin(), toMatch.end());
+
+    while (it != text.end()) {
+        _file << toStringView(start, it);
+
+        const char c = *it;
         switch (c) {
-
         case '&':
-            _file << "&amp;";
+            _file << "&amp;"sv;
             break;
 
         case '<':
-            _file << "&lt;";
+            _file << "&lt;"sv;
             break;
 
         case '>':
-            _file << "&gt;";
+            _file << "&gt;"sv;
             break;
 
         case '"':
-            _file << "&quot;";
+            _file << "&quot;"sv;
+            break;
+
+        case '\'':
+            _file << "&apos;"sv;
             break;
 
         default:
-            _file << c;
-        }
-    }
-}
-
-inline void XmlWriter::writeEscapeAttribute(const char* text)
-{
-    const char* pos = text;
-    while (*pos) {
-        switch (*pos) {
-
-        case '&':
-            _file << "&amp;";
-            break;
-
-        case '<':
-            _file << "&lt;";
-            break;
-
-        case '>':
-            _file << "&gt;";
-            break;
-
-        case '"':
-            _file << "&quot;";
-            break;
-
-        default:
-            _file << *pos;
+            abort();
         }
 
-        pos++;
+        start = it + 1;
+        it = std::find_first_of(start, text.end(),
+                                toMatch.begin(), toMatch.end());
     }
+
+    _file << toStringView(start, text.end());
 }
 
 }

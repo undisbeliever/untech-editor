@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "xml.h"
 #include "../aabb.h"
 #include "../base64.h"
 #include "../string.h"
@@ -22,10 +21,12 @@
 namespace UnTech {
 namespace Xml {
 
-std::string unescapeXmlString(const std::string_view xmlString);
-
 class XmlReader;
 struct XmlTag;
+
+// NOTE: Will only unescape sequences created by `XmlWriter`
+std::string unescapeXmlString(const std::string_view xmlString);
+
 class xml_error : public std::runtime_error {
 public:
     explicit xml_error(const XmlTag& tag, const std::string_view message);

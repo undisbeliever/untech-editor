@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "xml.h"
 #include "../aabb.h"
 #include "../enummap.h"
 #include "../ms8aabb.h"
@@ -57,10 +56,14 @@ public:
     void writeTag(const std::string_view name);
 
     void writeTagAttribute(const std::string_view name, const std::string_view value);
-    void writeTagAttribute(const std::string_view name, const char* value);
     void writeTagAttribute(const std::string_view name, const int value);
     void writeTagAttribute(const std::string_view name, const unsigned value);
     void writeTagAttributeHex(const std::string_view name, const unsigned value, unsigned width);
+
+    void writeTagAttribute(const std::string_view name, const char* value)
+    {
+        writeTagAttribute(name, std::string_view(value));
+    }
 
     void writeTagAttributeOptional(const std::string_view name, const std::string_view value);
 
@@ -158,8 +161,7 @@ public:
 
 private:
     void writeCloseTagHead();
-    void writeEscapeAttribute(const std::string_view text);
-    void writeEscapeAttribute(const char* text);
+    void escapeAndWrite(const std::string_view text);
 
     void writeTagAttribute_noEscape(const std::string_view name, const std::string_view value);
 };

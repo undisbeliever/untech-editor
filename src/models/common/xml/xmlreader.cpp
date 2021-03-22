@@ -5,6 +5,7 @@
  */
 
 #include "xmlreader.h"
+#include "xml.h"
 #include "../base64.h"
 #include "../file.h"
 #include "../string.h"
@@ -38,23 +39,10 @@ xml_error::xml_error(const XmlReader& xml, const std::string_view message, const
 {
 }
 
-static bool string_iterator_equal(std::string_view::const_iterator it, const std::string_view::const_iterator end,
-                                  const std::string_view str)
-{
-    for (auto c : str) {
-        if (it == end) {
-            return false;
-        }
-        if (*it != c) {
-            return false;
-        }
-        it++;
-    }
-    return true;
-}
-
 std::string unescapeXmlString(const std::string_view xmlString)
 {
+    using namespace std::string_view_literals;
+
     std::string ret;
 
     if (xmlString.empty()) {
@@ -63,42 +51,46 @@ std::string unescapeXmlString(const std::string_view xmlString)
 
     ret.reserve(xmlString.size());
 
-    auto source = xmlString.begin();
-    const auto end = xmlString.end();
+    size_t start = 0;
+    size_t p = xmlString.find('&');
 
-    while (source != end) {
-        if (*source == '&') {
-            auto s = source + 1;
+    while (p != xmlString.npos) {
+        ret.append(xmlString.substr(start, p - start));
 
-            if (string_iterator_equal(s, end, "lt;")) {
-                source += 4;
-                ret += '<';
-                continue;
+        auto test = [&](const std::string_view es) -> bool {
+            if (xmlString.compare(p, es.size(), es) == 0) {
+                start = p + es.size();
+                return true;
             }
-            else if (string_iterator_equal(s, end, "gt;")) {
-                source += 4;
-                ret += '>';
-                continue;
+            else {
+                return false;
             }
-            else if (string_iterator_equal(s, end, "amp;")) {
-                source += 5;
-                ret += '&';
-                continue;
-            }
-            else if (string_iterator_equal(s, end, "apos;")) {
-                source += 6;
-                ret += '\'';
-                continue;
-            }
-            else if (string_iterator_equal(s, end, "quot;")) {
-                source += 6;
-                ret += '\"';
-                continue;
-            }
+        };
+
+        if (test("&amp;"sv)) {
+            ret += '&';
         }
-        ret += *source;
-        source++;
+        else if (test("&lt;"sv)) {
+            ret += '<';
+        }
+        else if (test("&gt;"sv)) {
+            ret += '>';
+        }
+        else if (test("&quot;"sv)) {
+            ret += '"';
+        }
+        else if (test("&apos;"sv)) {
+            ret += '\'';
+        }
+        else {
+            start = p + 1;
+            ret += '&';
+        }
+
+        p = xmlString.find('&', start);
     }
+
+    ret.append(xmlString.substr(start));
 
     return ret;
 }

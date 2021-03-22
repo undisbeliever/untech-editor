@@ -5,39 +5,60 @@
  */
 
 #include "xml.h"
+#include <algorithm>
 
-using namespace UnTech::Xml;
+namespace UnTech::Xml {
 
-std::string escape(const std::string_view str, bool intag = true)
+std::string escape(const std::string_view text)
 {
+    using namespace std::string_view_literals;
+
+    constexpr std::string_view toMatch = "&<>\"\'"sv;
+
     std::string ret;
+    ret.reserve(text.size() + 64);
 
-    ret.reserve(str.size() * 2);
+    auto start = text.begin();
+    auto it = std::find_first_of(start, text.end(),
+                                 toMatch.begin(), toMatch.end());
 
-    for (const char c : str) {
-        if (c == '<') {
-            ret += "&lt;";
+    while (it != text.end()) {
+        ret.append(start, it);
+
+        const char c = *it;
+        switch (c) {
+        case '&':
+            ret.append("&amp;"sv);
+            break;
+
+        case '<':
+            ret.append("&lt;"sv);
+            break;
+
+        case '>':
+            ret.append("&gt;"sv);
+            break;
+
+        case '"':
+            ret.append("&quot;"sv);
+            break;
+
+        case '\'':
+            ret.append("&apos;"sv);
+            break;
+
+        default:
+            abort();
         }
-        else if (c == '>') {
-            ret += "&gt;";
-        }
-        else if (c == '&') {
-            ret += "&amp;";
-        }
-        else if (intag) {
-            if (c == '\'') {
-                ret += "&abuff;";
-            }
-            else if (c == '\"') {
-                ret += "&quot;";
-            }
-            else {
-                ret += c;
-            }
-        }
-        else {
-            ret += c;
-        }
+
+        start = it + 1;
+        it = std::find_first_of(start, text.end(),
+                                toMatch.begin(), toMatch.end());
     }
+
+    ret.append(start, text.end());
+
     return ret;
+}
+
 }
