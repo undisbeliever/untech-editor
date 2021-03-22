@@ -5,7 +5,7 @@
  */
 
 #include "xmlwriter.h"
-#include "xml.h"
+#include "xml-is-name.h"
 #include "../base64.h"
 #include "../file.h"
 #include "../string.h"
