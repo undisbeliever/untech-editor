@@ -11,8 +11,6 @@
 namespace UnTech {
 namespace Xml {
 
-std::string escape(const std::string_view text);
-
 inline bool isName(char c)
 {
     return ((c >= 'A' && c <= 'Z')
@@ -33,5 +31,6 @@ inline bool isName(const std::string_view text)
     }
     return true;
 }
+
 }
 }
