@@ -35,8 +35,8 @@ ifeq ($(PROFILE),release)
   OBJ_DIR       := obj/release
   BIN_DIR       := bin
 
-  CXXFLAGS      += -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
-  CFLAGS        += -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
+  CXXFLAGS      += -O2 -flto -fdata-sections -ffunction-sections -Isrc
+  CFLAGS        += -O2 -flto -fdata-sections -ffunction-sections -Isrc
   LDFLAGS       += -O2 -flto -Wl,-gc-sections
 
   # Do not use split DWARF on release profile as it increases the build time
@@ -46,8 +46,8 @@ else ifeq ($(PROFILE),debug)
   OBJ_DIR       := obj/debug-$(firstword $(CXX))
   BIN_DIR       := bin/debug-$(firstword $(CXX))
 
-  CXXFLAGS      += -g -Og -MMD -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-  CFLAGS        += -g -Og -MMD -Isrc -Werror
+  CXXFLAGS      += -g -Og -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  CFLAGS        += -g -Og -Isrc -Werror
   LDFLAGS       += -g -Og -Werror
 
 else ifeq ($(PROFILE),asan)
@@ -61,8 +61,8 @@ else ifeq ($(PROFILE),asan)
 
   ASAN_FLAGS    := -fsanitize=address,undefined -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(ASAN_FLAGS) -O1 -MMD -Isrc
-  CFLAGS        += $(ASAN_FLAGS) -O1 -MMD -Isrc
+  CXXFLAGS      += $(ASAN_FLAGS) -O1 -Isrc
+  CFLAGS        += $(ASAN_FLAGS) -O1 -Isrc
   LDFLAGS       += $(ASAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),msan)
@@ -80,8 +80,8 @@ else ifeq ($(PROFILE),msan)
 
   MSAN_FLAGS    := -fsanitize=memory,undefined -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(MSAN_FLAGS) -O1 -MMD -Isrc
-  CFLAGS        += $(MSAN_FLAGS) -O1 -MMD -Isrc
+  CXXFLAGS      += $(MSAN_FLAGS) -O1 -Isrc
+  CFLAGS        += $(MSAN_FLAGS) -O1 -Isrc
   LDFLAGS       += $(MSAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),ubsan)
@@ -96,8 +96,8 @@ else ifeq ($(PROFILE),ubsan)
 
   UBSAN_FLAGS    := -fsanitize=undefined,integer,nullability -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(UBSAN_FLAGS) -O1 -MMD -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-  CFLAGS        += $(UBSAN_FLAGS) -O1 -MMD -Isrc
+  CXXFLAGS      += $(UBSAN_FLAGS) -O1 -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  CFLAGS        += $(UBSAN_FLAGS) -O1 -Isrc
   LDFLAGS       += $(UBSAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),mingw)
@@ -122,8 +122,8 @@ else ifeq ($(PROFILE),mingw)
 
   CXX           := $(CXX_MINGW)
   CC            := $(CC_MINGW)
-  CXXFLAGS      += -O2 -flto -MMD -Isrc
-  CFLAGS        += -O2 -flto -MMD -Isrc
+  CXXFLAGS      += -O2 -flto -Isrc
+  CFLAGS        += -O2 -flto -Isrc
   LDFLAGS       += -O2 -flto
   LIBS          += -lshlwapi
 
@@ -236,6 +236,7 @@ ifeq ($(CXXWARNINGS),)
 endif
 
 
+
 SRCS            := $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp)
 OBJS            := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
@@ -344,9 +345,17 @@ $(GUI_APP): $(GUI_OBJS) $(THIRD_PARTY_OBJS) $(THIRD_PARTY_IMGUI_OBJS) $(THIRD_PA
 MAKEFLAGS += --no-builtin-rules
 
 
+
+# Add automatic dependency generation to the Makefile
+# The `-MP` prevents a "No rule to make target" make error when a header file is deleted.
+CFLAGS      := -MMD -MP $(CFLAGS)
+CXXFLAGS    := -MMD -MP $(CXXFLAGS)
+
 DEPS := $(OBJS:.o=.d)
 DEPS += $(THIRD_PARTY_OBJS:.o=.d)
 -include $(DEPS)
+
+
 
 $(TEST_UTILS): $(BIN_DIR)/test-utils/%$(BIN_EXT): $(OBJ_DIR)/test-utils/%.o
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
