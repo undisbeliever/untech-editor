@@ -13,6 +13,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions-variant.h"
 #include "gui/list-actions.h"
+#include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "models/common/iterators.h"
 #include "models/project/project-data.h"

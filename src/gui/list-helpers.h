@@ -7,23 +7,11 @@
 #pragma once
 
 #include "imgui.h"
+#include "list-actions.h"
 #include "selection.h"
 #include "models/common/namedlist.h"
 
 namespace UnTech::Gui {
-
-enum EditListAction {
-    ADD,
-    CLONE,
-    REMOVE,
-    RAISE_TO_TOP,
-    RAISE,
-    LOWER,
-    LOWER_TO_BOTTOM,
-};
-
-template <typename ActionPolicy>
-struct ListActions;
 
 template <typename ActionPolicy>
 bool ListButtons(typename ActionPolicy::EditorT* editor)

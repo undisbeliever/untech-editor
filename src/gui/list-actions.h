@@ -7,12 +7,22 @@
 #pragma once
 
 #include "abstract-editor.h"
-#include "list-helpers.h"
 #include "selection.h"
 #include "models/common/iterators.h"
 #include "models/common/type-traits.h"
+#include <algorithm>
 
 namespace UnTech::Gui {
+
+enum EditListAction {
+    ADD,
+    CLONE,
+    REMOVE,
+    RAISE_TO_TOP,
+    RAISE,
+    LOWER,
+    LOWER_TO_BOTTOM,
+};
 
 template <typename ListT>
 typename ListT::value_type* getListItem(ListT* list, const typename ListT::size_type index)
@@ -85,7 +95,7 @@ indexesAndDataForMultipleSelection(const ListT& list, const SelectionT& sel)
 }
 
 template <typename ActionPolicy>
-struct ListActions {
+struct AbstractListActions {
     using EditorT = typename ActionPolicy::EditorT;
     using EditorDataT = typename ActionPolicy::EditorDataT;
     using ListArgsT = typename ActionPolicy::ListArgsT;
@@ -698,8 +708,10 @@ struct ListActions {
         }
     };
 
-    template <auto FieldPtr, typename = std::enable_if_t<std::is_member_object_pointer_v<decltype(FieldPtr)>>>
+    template <auto FieldPtr>
     class EditItemFieldAction final : public BaseAction {
+        static_assert(std::is_member_object_pointer_v<decltype(FieldPtr)>);
+
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:
@@ -1017,7 +1029,7 @@ struct ListActions {
         }
     };
 
-private:
+protected:
     template <auto FieldPtr>
     static void _editListField(EditorT* editor, const ListArgsT& listArgs, const index_type index)
     {
@@ -1091,234 +1103,6 @@ private:
     }
 
 public:
-    template <typename T = SelectionT>
-    static std::enable_if_t<std::is_same_v<T, SingleSelection> | std::is_same_v<T, NodeSelection>>
-    editList(EditorT* editor, EditListAction action)
-    {
-        const auto& sel = getSelection(editor);
-        const ListArgsT listArgs = sel.listArgs();
-
-        const ListT* list = getEditorListPtr(editor, listArgs);
-        if (list == nullptr) {
-            return;
-        }
-
-        switch (action) {
-        case EditListAction::ADD: {
-            if (list->size() < MAX_SIZE) {
-                editor->addAction(
-                    std::make_unique<AddAction>(editor, listArgs, list->size()));
-            }
-        } break;
-
-        case EditListAction::CLONE: {
-            const index_type i = sel.selectedIndex();
-            if (i < list->size()) {
-                if (list->size() < MAX_SIZE) {
-                    auto& item = list->at(i);
-                    editor->addAction(
-                        std::make_unique<AddAction>(editor, listArgs, i + 1, item));
-                }
-            }
-        } break;
-
-        case EditListAction::REMOVE: {
-            const index_type i = sel.selectedIndex();
-            if (i < list->size()) {
-                editor->addAction(
-                    std::make_unique<RemoveAction>(editor, listArgs, i, list->at(i)));
-            }
-        } break;
-
-        case EditListAction::RAISE_TO_TOP: {
-            const index_type i = sel.selectedIndex();
-            if (i > 0 && i < list->size()) {
-                editor->addAction(
-                    std::make_unique<MoveAction>(editor, listArgs, i, 0));
-            }
-        } break;
-
-        case EditListAction::RAISE: {
-            const index_type i = sel.selectedIndex();
-            if (i > 0 && i < list->size()) {
-                editor->addAction(
-                    std::make_unique<MoveAction>(editor, listArgs, i, i - 1));
-            }
-        } break;
-
-        case EditListAction::LOWER: {
-            const index_type i = sel.selectedIndex();
-            if (i + 1 < list->size()) {
-                editor->addAction(
-                    std::make_unique<MoveAction>(editor, listArgs, i, i + 1));
-            }
-        } break;
-
-        case EditListAction::LOWER_TO_BOTTOM: {
-            const index_type i = sel.selectedIndex();
-            if (i + 1 < list->size()) {
-                editor->addAction(
-                    std::make_unique<MoveAction>(editor, listArgs, i, list->size() - 1));
-            }
-        } break;
-        }
-    }
-
-    template <typename T = SelectionT>
-    static std::enable_if_t<std::is_same_v<T, MultipleSelection>>
-    editList(EditorT* editor, EditListAction action)
-    {
-        const MultipleSelection& sel = getSelection(editor);
-        const ListArgsT listArgs = sel.listArgs();
-
-        const ListT* list = getEditorListPtr(editor, listArgs);
-        if (list == nullptr) {
-            return;
-        }
-
-        switch (action) {
-        case EditListAction::ADD: {
-            if (list->size() < MAX_SIZE) {
-                editor->addAction(
-                    std::make_unique<AddAction>(editor, listArgs, list->size()));
-            }
-        } break;
-
-        case EditListAction::CLONE: {
-            cloneMultiple(editor, listArgs, *list,
-                          indexesAndDataForMultipleSelection(*list, sel));
-        } break;
-
-        case EditListAction::REMOVE: {
-            auto values = indexesAndDataForMultipleSelection(*list, sel);
-            if (!values.empty()) {
-                editor->addAction(
-                    std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
-            }
-        } break;
-
-        case EditListAction::RAISE_TO_TOP:
-        case EditListAction::RAISE:
-        case EditListAction::LOWER:
-        case EditListAction::LOWER_TO_BOTTOM: {
-            auto indexes = indexesForMultipleSelection(*list, sel);
-            moveMultiple(editor, listArgs, std::move(indexes), action);
-        } break;
-        }
-    }
-
-    template <typename T = SelectionT>
-    static std::enable_if_t<std::is_same_v<T, MultipleChildSelection>>
-    editList(EditorT* editor, EditListAction action)
-    {
-        const MultipleChildSelection& sel = getSelection(editor);
-        const ListArgsT listArgs = sel.listArgs();
-
-        const ListT* list = getEditorListPtr(editor, listArgs);
-        if (list == nullptr) {
-            return;
-        }
-
-        switch (action) {
-        case EditListAction::ADD: {
-            if (list->size() < MAX_SIZE) {
-                editor->addAction(
-                    std::make_unique<AddAction>(editor, listArgs, list->size()));
-            }
-        } break;
-
-        case EditListAction::CLONE: {
-            cloneMultiple(editor, listArgs, *list,
-                          indexesAndDataForMultipleSelection(*list, sel));
-        } break;
-
-        case EditListAction::REMOVE: {
-            auto values = indexesAndDataForMultipleSelection(*list, sel);
-            if (!values.empty()) {
-                editor->addAction(
-                    std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
-            }
-        } break;
-
-        case EditListAction::RAISE_TO_TOP:
-        case EditListAction::RAISE:
-        case EditListAction::LOWER:
-        case EditListAction::LOWER_TO_BOTTOM: {
-            auto indexes = indexesForMultipleSelection(*list, sel);
-            moveMultiple(editor, listArgs, std::move(indexes), action);
-        } break;
-        }
-    }
-
-    template <typename T = SelectionT>
-    static std::enable_if_t<std::is_same_v<T, GroupMultipleSelection>>
-    editList(EditorT* editor, EditListAction action)
-    {
-        using ParentActionPolicy = typename ActionPolicy::ParentActionPolicy;
-
-        static_assert(ParentActionPolicy::MAX_SIZE <= GroupMultipleSelection::MAX_GROUP_SIZE);
-        static_assert(std::is_same_v<ListArgsT, std::tuple<unsigned>>);
-
-        const GroupMultipleSelection& sel = getSelection(editor);
-
-        switch (action) {
-        case EditListAction::ADD: {
-            // Can only add an item to a group if it is selected
-            const SingleSelection& parentSel = editor->*ParentActionPolicy::SelectionPtr;
-            const ListArgsT listArgs = std::make_tuple(parentSel.selectedIndex());
-            if (const ListT* list = getEditorListPtr(editor, listArgs)) {
-                editor->addAction(
-                    std::make_unique<AddAction>(editor, listArgs, list->size()));
-            }
-        } break;
-
-        case EditListAction::CLONE: {
-            editor->startMacro();
-            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
-                const auto& childSel = sel.childSel(groupIndex);
-                const ListArgsT listArgs = std::make_tuple(groupIndex);
-                if (const ListT* list = getEditorListPtr(editor, listArgs)) {
-                    cloneMultiple(editor, listArgs, *list,
-                                  indexesAndDataForMultipleSelection(*list, childSel));
-                }
-            }
-            editor->endMacro();
-        } break;
-
-        case EditListAction::REMOVE: {
-            editor->startMacro();
-            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
-                const ListArgsT listArgs = std::make_tuple(groupIndex);
-                if (const ListT* list = getEditorListPtr(editor, listArgs)) {
-                    auto& childSel = sel.childSel(groupIndex);
-                    auto values = indexesAndDataForMultipleSelection(*list, childSel);
-                    if (!values.empty()) {
-                        editor->addAction(
-                            std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
-                    }
-                }
-            }
-            editor->endMacro();
-        } break;
-
-        case EditListAction::RAISE_TO_TOP:
-        case EditListAction::RAISE:
-        case EditListAction::LOWER:
-        case EditListAction::LOWER_TO_BOTTOM: {
-            editor->startMacro();
-            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
-                const ListArgsT listArgs = std::make_tuple(groupIndex);
-                if (const ListT* list = getEditorListPtr(editor, listArgs)) {
-                    auto& childSel = sel.childSel(groupIndex);
-                    auto indexes = indexesForMultipleSelection(*list, childSel);
-                    moveMultiple(editor, listArgs, std::move(indexes), action);
-                }
-            }
-            editor->endMacro();
-        } break;
-        }
-    }
-
     static void addItemToSelectedList(EditorT* editor, const value_type& value)
     {
         const SelectionT& sel = getSelection(editor);
@@ -1348,25 +1132,6 @@ public:
         }
     }
 
-    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
-    static void addItem(EditorT* editor, const value_type& value)
-    {
-        addItem(editor, std::make_tuple(), value);
-    }
-
-    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<unsigned>>>>
-    static void addItem(EditorT* editor, const index_type parentIndex, const value_type& value)
-    {
-        addItem(editor, std::make_tuple(parentIndex), value);
-    }
-
-    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
-    static void itemEdited(EditorT* editor, const index_type index)
-    {
-        const std::tuple<> listArgs = std::make_tuple();
-        itemEdited(editor, listArgs, index);
-    }
-
     static void itemEdited(EditorT* editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1378,15 +1143,6 @@ public:
             editor->addAction(
                 std::make_unique<EditItemAction>(editor, listArgs, index));
         }
-    }
-
-    template <typename ST_ = SelectionT, typename = std::enable_if_t<std::is_same_v<ST_, SingleSelection>>>
-    static void selectedItemEdited(EditorT* editor)
-    {
-        const SingleSelection& sel = getSelection(editor);
-        const std::tuple<> listArgs = sel.listArgs();
-
-        itemEdited(editor, listArgs, sel.selectedIndex());
     }
 
     static void selectedListItemEdited(EditorT* editor, const index_type index)
@@ -1417,94 +1173,6 @@ public:
         }
     }
 
-    template <typename ST_ = SelectionT>
-    static std::enable_if_t<std::is_same_v<ST_, MultipleSelection> || std::is_same_v<ST_, MultipleChildSelection>>
-    selectedItemsEdited(EditorT* editor)
-    {
-        const SelectionT& sel = getSelection(editor);
-        const ListArgsT listArgs = sel.listArgs();
-
-        const ListT* list = getEditorListPtr(editor, listArgs);
-        if (list == nullptr) {
-            return;
-        }
-
-        const index_type end = std::min<index_type>(list->size(), SelectionT::MAX_SIZE);
-
-        std::vector<index_type> indexes;
-        indexes.reserve(end);
-
-        for (const auto i : range(end)) {
-            if (sel.isSelected(i)) {
-                indexes.push_back(i);
-            }
-        }
-
-        if (!indexes.empty()) {
-            editor->addAction(
-                std::make_unique<EditMultipleItemsAction>(editor, listArgs, std::move(indexes)));
-        }
-    }
-
-    template <typename ST_ = SelectionT>
-    static std::enable_if_t<std::is_same_v<ST_, GroupMultipleSelection>>
-    selectedItemsEdited(EditorT* editor)
-    {
-        const GroupMultipleSelection& sel = getSelection(editor);
-
-        std::vector<typename EditMultipleNestedItems::IndexAndValues> values;
-
-        for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
-            const ListArgsT listArgs = std::make_tuple(groupIndex);
-            if (const ListT* list = getEditorListPtr(editor, listArgs)) {
-                const auto& childSel = sel.childSel(groupIndex);
-                auto childIndexesAndValues = indexesAndDataForMultipleSelection(*list, childSel);
-
-                if (!childIndexesAndValues.empty()) {
-                    values.push_back({ groupIndex, std::move(childIndexesAndValues) });
-                }
-            }
-        }
-        if (!values.empty()) {
-            editor->addAction(
-                std::make_unique<EditMultipleNestedItems>(editor, std::move(values)));
-        }
-    }
-
-    template <auto FieldPtr, typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
-    static void fieldEdited(EditorT* editor, const index_type index)
-    {
-        const std::tuple<> listArgs = std::make_tuple();
-
-        _editListField<FieldPtr>(editor, listArgs, index);
-    }
-
-    template <auto FieldPtr, typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<unsigned>>>>
-    static void fieldEdited(EditorT* editor, const unsigned parentIndex, const index_type index)
-    {
-        const std::tuple<unsigned> listArgs = std::make_tuple(parentIndex);
-
-        _editListField<FieldPtr>(editor, listArgs, index);
-    }
-
-    template <auto FieldPtr, typename ST_ = SelectionT, typename = std::enable_if<std::is_same_v<ST_, SingleSelection>>>
-    static void selectedFieldEdited(EditorT* editor)
-    {
-        const SingleSelection& sel = getSelection(editor);
-        const std::tuple<> listArgs = sel.listArgs();
-
-        _editListField<FieldPtr>(editor, listArgs, sel.selectedIndex());
-    }
-
-    template <auto FieldPtr, typename ST_ = SelectionT, typename = std::enable_if_t<std::is_same_v<ST_, MultipleChildSelection>>>
-    static void selectedItemFieldEdited(EditorT* editor, const index_type index)
-    {
-        const SelectionT& sel = getSelection(editor);
-        const std::tuple<unsigned> listArgs = sel.listArgs();
-
-        _editListField<FieldPtr>(editor, listArgs, index);
-    }
-
     template <auto FieldPtr>
     static void allItemsInSelectedListFieldEdited(EditorT* editor)
     {
@@ -1523,5 +1191,362 @@ public:
             std::make_unique<EditAllItemsInListFieldAction<FieldPtr>>(editor, listArgs));
     }
 };
+
+template <class ActionPolicy>
+class SingleSelListActions : public AbstractListActions<ActionPolicy> {
+    using EditorT = typename ActionPolicy::EditorT;
+    using SelectionT = typename ActionPolicy::SelectionT;
+    using ListArgsT = typename ActionPolicy::ListArgsT;
+    using ListT = typename ActionPolicy::ListT;
+    using index_type = typename ListT::size_type;
+
+    constexpr static index_type MAX_SIZE = ActionPolicy::MAX_SIZE;
+
+    using LA = AbstractListActions<ActionPolicy>;
+
+public:
+    static void editList(EditorT* editor, EditListAction action)
+    {
+        const SelectionT& sel = LA::getSelection(editor);
+        const ListArgsT listArgs = sel.listArgs();
+
+        const ListT* list = LA::getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        switch (action) {
+        case EditListAction::ADD: {
+            if (list->size() < MAX_SIZE) {
+                editor->addAction(
+                    std::make_unique<typename LA::AddAction>(editor, listArgs, list->size()));
+            }
+        } break;
+
+        case EditListAction::CLONE: {
+            const index_type i = sel.selectedIndex();
+            if (i < list->size()) {
+                if (list->size() < MAX_SIZE) {
+                    auto& item = list->at(i);
+                    editor->addAction(
+                        std::make_unique<typename LA::AddAction>(editor, listArgs, i + 1, item));
+                }
+            }
+        } break;
+
+        case EditListAction::REMOVE: {
+            const index_type i = sel.selectedIndex();
+            if (i < list->size()) {
+                editor->addAction(
+                    std::make_unique<typename LA::RemoveAction>(editor, listArgs, i, list->at(i)));
+            }
+        } break;
+
+        case EditListAction::RAISE_TO_TOP: {
+            const index_type i = sel.selectedIndex();
+            if (i > 0 && i < list->size()) {
+                editor->addAction(
+                    std::make_unique<typename LA::MoveAction>(editor, listArgs, i, 0));
+            }
+        } break;
+
+        case EditListAction::RAISE: {
+            const index_type i = sel.selectedIndex();
+            if (i > 0 && i < list->size()) {
+                editor->addAction(
+                    std::make_unique<typename LA::MoveAction>(editor, listArgs, i, i - 1));
+            }
+        } break;
+
+        case EditListAction::LOWER: {
+            const index_type i = sel.selectedIndex();
+            if (i + 1 < list->size()) {
+                editor->addAction(
+                    std::make_unique<typename LA::MoveAction>(editor, listArgs, i, i + 1));
+            }
+        } break;
+
+        case EditListAction::LOWER_TO_BOTTOM: {
+            const index_type i = sel.selectedIndex();
+            if (i + 1 < list->size()) {
+                editor->addAction(
+                    std::make_unique<typename LA::MoveAction>(editor, listArgs, i, list->size() - 1));
+            }
+        } break;
+        }
+    }
+
+    static void selectedItemEdited(EditorT* editor)
+    {
+        const auto& sel = LA::getSelection(editor);
+        LA::itemEdited(editor, sel.listArgs(), sel.selectedIndex());
+    }
+
+    template <auto FieldPtr>
+    static void selectedFieldEdited(EditorT* editor)
+    {
+        const auto& sel = LA::getSelection(editor);
+        LA::template _editListField<FieldPtr>(editor, sel.listArgs(), sel.selectedIndex());
+    }
+};
+
+template <class ActionPolicy>
+class MultipleSelListActions : public AbstractListActions<ActionPolicy> {
+    using EditorT = typename ActionPolicy::EditorT;
+    using SelectionT = typename ActionPolicy::SelectionT;
+    using ListArgsT = typename ActionPolicy::ListArgsT;
+    using ListT = typename ActionPolicy::ListT;
+    using index_type = typename ListT::size_type;
+
+    constexpr static index_type MAX_SIZE = ActionPolicy::MAX_SIZE;
+
+    using LA = AbstractListActions<ActionPolicy>;
+
+public:
+    static void editList(EditorT* editor, EditListAction action)
+    {
+        const SelectionT& sel = LA::getSelection(editor);
+        const ListArgsT listArgs = sel.listArgs();
+
+        const ListT* list = LA::getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        switch (action) {
+        case EditListAction::ADD: {
+            if (list->size() < MAX_SIZE) {
+                editor->addAction(
+                    std::make_unique<typename LA::AddAction>(editor, listArgs, list->size()));
+            }
+        } break;
+
+        case EditListAction::CLONE: {
+            LA::cloneMultiple(editor, listArgs, *list,
+                              indexesAndDataForMultipleSelection(*list, sel));
+        } break;
+
+        case EditListAction::REMOVE: {
+            auto values = indexesAndDataForMultipleSelection(*list, sel);
+            if (!values.empty()) {
+                editor->addAction(
+                    std::make_unique<typename LA::RemoveMultipleAction>(editor, listArgs, std::move(values)));
+            }
+        } break;
+
+        case EditListAction::RAISE_TO_TOP:
+        case EditListAction::RAISE:
+        case EditListAction::LOWER:
+        case EditListAction::LOWER_TO_BOTTOM: {
+            auto indexes = indexesForMultipleSelection(*list, sel);
+            LA::moveMultiple(editor, listArgs, std::move(indexes), action);
+        } break;
+        }
+    }
+
+    static void selectedItemsEdited(EditorT* editor)
+    {
+        using EditMultipleItemsAction = typename LA::EditMultipleItemsAction;
+
+        const SelectionT& sel = LA::getSelection(editor);
+        const ListArgsT listArgs = sel.listArgs();
+
+        const ListT* list = LA::getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        const index_type end = std::min<index_type>(list->size(), sel.MAX_SIZE);
+
+        std::vector<index_type> indexes;
+        indexes.reserve(end);
+
+        for (const auto i : range(end)) {
+            if (sel.isSelected(i)) {
+                indexes.push_back(i);
+            }
+        }
+
+        if (!indexes.empty()) {
+            editor->addAction(
+                std::make_unique<EditMultipleItemsAction>(editor, listArgs, std::move(indexes)));
+        }
+    }
+};
+
+template <class ActionPolicy, class SelectionT>
+class ListActionsImpl;
+
+template <class ActionPolicy>
+class ListActionsImpl<ActionPolicy, SingleSelection> : public SingleSelListActions<ActionPolicy> {
+    using EditorT = typename ActionPolicy::EditorT;
+    using ListT = typename ActionPolicy::ListT;
+    using index_type = typename ListT::size_type;
+    using value_type = typename ListT::value_type;
+
+    using LA = SingleSelListActions<ActionPolicy>;
+
+public:
+    static void addItem(EditorT* editor, const value_type& value)
+    {
+        LA::addItem(editor, std::make_tuple(), value);
+    }
+
+    static void itemEdited(EditorT* editor, const index_type index)
+    {
+        LA::itemEdited(editor, std::make_tuple<>(), index);
+    }
+
+    template <auto FieldPtr>
+    static void fieldEdited(EditorT* editor, const index_type index)
+    {
+        LA::template _editListField<FieldPtr>(editor, std::make_tuple<>(), index);
+    }
+};
+
+template <class ActionPolicy>
+class ListActionsImpl<ActionPolicy, NodeSelection> : public SingleSelListActions<ActionPolicy> {
+};
+
+template <class ActionPolicy>
+class ListActionsImpl<ActionPolicy, MultipleSelection> : public MultipleSelListActions<ActionPolicy> {
+    using EditorT = typename ActionPolicy::EditorT;
+    using ListT = typename ActionPolicy::ListT;
+    using index_type = typename ListT::size_type;
+    using value_type = typename ListT::value_type;
+
+    using LA = MultipleSelListActions<ActionPolicy>;
+
+    constexpr static index_type MAX_SIZE = ActionPolicy::MAX_SIZE;
+
+public:
+    static void addItem(EditorT* editor, const value_type& value)
+    {
+        LA::addItem(editor, std::make_tuple(), value);
+    }
+
+    static void itemEdited(EditorT* editor, const index_type index)
+    {
+        LA::itemEdited(editor, std::make_tuple(), index);
+    }
+
+    template <auto FieldPtr>
+    static void fieldEdited(EditorT* editor, const index_type index)
+    {
+        LA::_editListField<FieldPtr>(editor, std::make_tuple(), index);
+    }
+};
+
+template <class ActionPolicy>
+class ListActionsImpl<ActionPolicy, MultipleChildSelection> : public MultipleSelListActions<ActionPolicy> {
+    // No need to implement addItem, itemEdited or fieldEdited.
+    // Implicit conversion of `unsigned` to `ListArgsT` will automatically generate these functions for me.
+};
+
+template <class ActionPolicy>
+class ListActionsImpl<ActionPolicy, GroupMultipleSelection> : public AbstractListActions<ActionPolicy> {
+    using EditorT = typename ActionPolicy::EditorT;
+    using ListArgsT = typename ActionPolicy::ListArgsT;
+    using ListT = typename ActionPolicy::ListT;
+    using index_type = typename ListT::size_type;
+
+    constexpr static index_type MAX_SIZE = ActionPolicy::MAX_SIZE;
+
+    using LA = AbstractListActions<ActionPolicy>;
+
+public:
+    static void editList(EditorT* editor, EditListAction action)
+    {
+        using ParentActionPolicy = typename ActionPolicy::ParentActionPolicy;
+
+        static_assert(ParentActionPolicy::MAX_SIZE <= GroupMultipleSelection::MAX_GROUP_SIZE);
+        static_assert(std::is_same_v<ListArgsT, std::tuple<unsigned>>);
+
+        const GroupMultipleSelection& sel = LA::getSelection(editor);
+
+        switch (action) {
+        case EditListAction::ADD: {
+            // Can only add an item to a group if it is selected
+            const SingleSelection& parentSel = editor->*ParentActionPolicy::SelectionPtr;
+            const ListArgsT listArgs = std::make_tuple(parentSel.selectedIndex());
+            if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
+                editor->addAction(
+                    std::make_unique<typename LA::AddAction>(editor, listArgs, list->size()));
+            }
+        } break;
+
+        case EditListAction::CLONE: {
+            editor->startMacro();
+            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
+                const auto& childSel = sel.childSel(groupIndex);
+                const ListArgsT listArgs = std::make_tuple(groupIndex);
+                if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
+                    LA::cloneMultiple(editor, listArgs, *list,
+                                      indexesAndDataForMultipleSelection(*list, childSel));
+                }
+            }
+            editor->endMacro();
+        } break;
+
+        case EditListAction::REMOVE: {
+            editor->startMacro();
+            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
+                const ListArgsT listArgs = std::make_tuple(groupIndex);
+                if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
+                    auto& childSel = sel.childSel(groupIndex);
+                    auto values = indexesAndDataForMultipleSelection(*list, childSel);
+                    if (!values.empty()) {
+                        editor->addAction(
+                            std::make_unique<typename LA::RemoveMultipleAction>(editor, listArgs, std::move(values)));
+                    }
+                }
+            }
+            editor->endMacro();
+        } break;
+
+        case EditListAction::RAISE_TO_TOP:
+        case EditListAction::RAISE:
+        case EditListAction::LOWER:
+        case EditListAction::LOWER_TO_BOTTOM: {
+            editor->startMacro();
+            for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
+                const ListArgsT listArgs = std::make_tuple(groupIndex);
+                if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
+                    auto& childSel = sel.childSel(groupIndex);
+                    auto indexes = indexesForMultipleSelection(*list, childSel);
+                    LA::moveMultiple(editor, listArgs, std::move(indexes), action);
+                }
+            }
+            editor->endMacro();
+        } break;
+        }
+    }
+
+    static void selectedItemsEdited(EditorT* editor)
+    {
+        const GroupMultipleSelection& sel = LA::getSelection(editor);
+
+        std::vector<typename LA::EditMultipleNestedItems::IndexAndValues> values;
+
+        for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
+            const ListArgsT listArgs = std::make_tuple(groupIndex);
+            if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
+                const auto& childSel = sel.childSel(groupIndex);
+                auto childIndexesAndValues = indexesAndDataForMultipleSelection(*list, childSel);
+
+                if (!childIndexesAndValues.empty()) {
+                    values.push_back({ groupIndex, std::move(childIndexesAndValues) });
+                }
+            }
+        }
+        if (!values.empty()) {
+            editor->addAction(
+                std::make_unique<typename LA::EditMultipleNestedItems>(editor, std::move(values)));
+        }
+    }
+};
+
+template <class ActionPolicy>
+using ListActions = ListActionsImpl<ActionPolicy, typename ActionPolicy::SelectionT>;
 
 }

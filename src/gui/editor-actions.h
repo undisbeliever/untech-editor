@@ -148,8 +148,10 @@ struct EditorActions {
         }
     };
 
-    template <auto FieldPtr, typename = std::enable_if_t<std::is_member_object_pointer_v<decltype(FieldPtr)>>>
+    template <auto FieldPtr>
     class EditFieldAction final : public BaseAction {
+        static_assert(std::is_member_object_pointer_v<decltype(FieldPtr)>);
+
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:

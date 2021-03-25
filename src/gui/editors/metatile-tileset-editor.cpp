@@ -13,6 +13,7 @@
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
+#include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "gui/texture.h"
 #include "models/common/iterators.h"

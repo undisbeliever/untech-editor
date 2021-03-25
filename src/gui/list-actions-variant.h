@@ -21,8 +21,10 @@ struct ListActionsVariant {
     using index_type = typename ListT::size_type;
     using value_type = typename ListT::value_type;
 
-    template <auto FieldPtr, typename = std::enable_if_t<std::is_member_object_pointer_v<decltype(FieldPtr)>>>
+    template <auto FieldPtr>
     class EditVariantItemFieldAction final : public ListActions<ActionPolicy>::BaseAction {
+        static_assert(std::is_member_object_pointer_v<decltype(FieldPtr)>);
+
         using ClassT = typename member_class<decltype(FieldPtr)>::type;
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
@@ -98,7 +100,7 @@ struct ListActionsVariant {
         }
     }
 
-    template <auto FieldPtr, typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
+    template <auto FieldPtr>
     static void variantFieldEdited(EditorT* editor, const index_type index)
     {
         const std::tuple<> listArgs = std::make_tuple();
