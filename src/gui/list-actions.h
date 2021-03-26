@@ -220,36 +220,30 @@ struct AbstractListActions {
         virtual ~AddRemoveAction() = default;
 
     protected:
-        void addItem(Project::ProjectFile& projectFile, bool first = false) const
+        void addItem(ListT& list) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
-
-            assert(projectList.size() == editorList.size());
-
-            assert(index <= projectList.size());
-            projectList.insert(projectList.begin() + index, value);
-            editorList.insert(editorList.begin() + index, value);
-
-            if (first) {
-                this->updateSelection_setSelected(index);
-            }
-            else {
-                this->updateSelection_itemAdded(index);
-            }
+            assert(index <= list.size());
+            list.insert(list.begin() + index, value);
         }
 
-        void removeItem(Project::ProjectFile& projectFile) const
+        void removeItem(ListT& list) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
+            assert(index < list.size());
+            list.erase(list.begin() + index);
+        }
 
-            assert(projectList.size() == editorList.size());
+        void updateSelection_ItemAdded_first() const
+        {
+            this->updateSelection_setSelected(index);
+        }
 
-            assert(index < projectList.size());
-            projectList.erase(projectList.begin() + index);
-            editorList.erase(editorList.begin() + index);
+        void updateSelection_ItemAdded() const
+        {
+            this->updateSelection_itemAdded(index);
+        }
 
+        void updateSelection_ItemRemoved() const
+        {
             this->updateSelection_itemRemoved(index);
         }
     };
@@ -272,20 +266,34 @@ struct AbstractListActions {
         }
         virtual ~AddAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
         {
-            this->addItem(projectFile, true);
+            this->addItem(this->getEditorList());
+
+            this->updateSelection_ItemAdded_first();
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        {
+            this->addItem(this->getProjectList(projectFile));
+
             return true;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItem(projectFile);
+            this->removeItem(this->getEditorList());
+            this->removeItem(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemRemoved();
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->addItem(projectFile, false);
+            this->addItem(this->getEditorList());
+            this->addItem(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemAdded();
         }
     };
 
@@ -300,20 +308,34 @@ struct AbstractListActions {
         }
         virtual ~RemoveAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
         {
-            this->removeItem(projectFile);
+            this->removeItem(this->getEditorList());
+
+            this->updateSelection_ItemRemoved();
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        {
+            this->removeItem(this->getProjectList(projectFile));
+
             return true;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->addItem(projectFile, false);
+            this->addItem(this->getEditorList());
+            this->addItem(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemAdded();
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItem(projectFile);
+            this->removeItem(this->getEditorList());
+            this->removeItem(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemRemoved();
         }
     };
 
@@ -350,20 +372,28 @@ struct AbstractListActions {
         }
         virtual ~MoveAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
         {
-            this->moveItem(projectFile, fromIndex, toIndex);
+            moveListItem(fromIndex, toIndex, this->getEditorList());
+
+            this->updateSelection_itemMoved(fromIndex, toIndex);
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        {
+            moveListItem(fromIndex, toIndex, this->getProjectList(projectFile));
+
             return true;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->moveItem(projectFile, toIndex, fromIndex);
+            moveItem(projectFile, toIndex, fromIndex);
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->moveItem(projectFile, fromIndex, toIndex);
+            moveItem(projectFile, fromIndex, toIndex);
         }
     };
 
@@ -383,47 +413,41 @@ struct AbstractListActions {
         virtual ~AddRemoveMultipleAction() = default;
 
     protected:
-        void addItems(Project::ProjectFile& projectFile, bool first = false) const
+        void addItems(ListT& list) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
-
-            assert(projectList.size() == editorList.size());
-
             for (const auto& [index, value] : _values) {
-                assert(index >= 0 && index <= projectList.size());
+                assert(index >= 0 && index <= list.size());
 
-                projectList.insert(projectList.begin() + index, value);
-                editorList.insert(editorList.begin() + index, value);
-            }
-
-            if (first) {
-                this->updateSelection_clearSelection();
-                for (const auto& [index, value] : _values) {
-                    this->updateSelection_appendSelection(index);
-                }
-            }
-            else {
-                for (const auto& [index, value] : _values) {
-                    this->updateSelection_itemAdded(index);
-                }
+                list.insert(list.begin() + index, value);
             }
         }
 
-        void removeItems(Project::ProjectFile& projectFile) const
+        void removeItems(ListT& list) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
-
-            assert(projectList.size() == editorList.size());
-
             for (const auto& [index, value] : reverse(_values)) {
-                assert(index >= 0 && index < projectList.size());
+                assert(index >= 0 && index < list.size());
 
-                projectList.erase(projectList.begin() + index);
-                editorList.erase(editorList.begin() + index);
+                list.erase(list.begin() + index);
             }
+        }
 
+        void updateSelection_setSelection() const
+        {
+            this->updateSelection_clearSelection();
+            for (const auto& [index, value] : _values) {
+                this->updateSelection_appendSelection(index);
+            }
+        }
+
+        void updateSelection_ItemsAdded() const
+        {
+            for (const auto& [index, value] : _values) {
+                this->updateSelection_itemAdded(index);
+            }
+        }
+
+        void updateSelection_ItemsRemoved() const
+        {
             for (const auto& [index, value] : reverse(_values)) {
                 this->updateSelection_itemRemoved(index);
             }
@@ -441,20 +465,34 @@ struct AbstractListActions {
         }
         virtual ~AddMultipleAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
         {
-            this->addItems(projectFile, true);
+            this->addItems(this->getEditorList());
+
+            this->updateSelection_setSelection();
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        {
+            this->addItems(this->getProjectList(projectFile));
+
             return true;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItems(projectFile);
+            this->removeItems(this->getEditorList());
+            this->removeItems(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemsRemoved();
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->addItems(projectFile, false);
+            this->addItems(this->getEditorList());
+            this->addItems(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemsAdded();
         }
     };
 
@@ -469,20 +507,34 @@ struct AbstractListActions {
         }
         virtual ~RemoveMultipleAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
         {
-            this->removeItems(projectFile);
+            this->removeItems(this->getEditorList());
+
+            this->updateSelection_ItemsRemoved();
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        {
+            this->removeItems(this->getProjectList(projectFile));
+
             return true;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->addItems(projectFile, false);
+            this->addItems(this->getEditorList());
+            this->addItems(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemsAdded();
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItems(projectFile);
+            this->removeItems(this->getEditorList());
+            this->removeItems(this->getProjectList(projectFile));
+
+            this->updateSelection_ItemsRemoved();
         }
     };
 
@@ -491,106 +543,9 @@ struct AbstractListActions {
         const std::vector<index_type> indexes;
         const EditListAction direction;
 
-        void moveItem(ListT& projectList, ListT& editorList, index_type from, index_type to) const
+        template <typename FunctionT>
+        void redo_helper(const index_type listSize, FunctionT move) const
         {
-            assert(from < projectList.size());
-            assert(to < projectList.size());
-
-            moveListItem(from, to, projectList);
-            moveListItem(from, to, editorList);
-
-            this->updateSelection_itemMoved(from, to);
-        }
-
-    public:
-        MoveMultipleAction(EditorT* editor,
-                           const ListArgsT& listArgs,
-                           const std::vector<index_type>&& indexes,
-                           const EditListAction direction)
-            : BaseAction(editor, listArgs)
-            , indexes(std::move(indexes))
-            , direction(direction)
-        {
-        }
-        virtual ~MoveMultipleAction() = default;
-
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
-        {
-            this->redo(projectFile);
-            return true;
-        }
-
-        virtual void undo(Project::ProjectFile& projectFile) const final
-        {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
-
-            assert(projectList.size() == editorList.size());
-            const index_type listSize = projectList.size();
-
-            switch (direction) {
-            case EditListAction::ADD:
-            case EditListAction::CLONE:
-            case EditListAction::REMOVE: {
-                abort();
-            } break;
-
-            case EditListAction::RAISE_TO_TOP: {
-                assert(indexes.front() >= 0);
-                assert(indexes.back() < listSize);
-                assert(listSize >= indexes.size());
-
-                index_type from = indexes.size() - 1;
-                for (const index_type& to : reverse(indexes)) {
-                    if (from != to) {
-                        moveItem(projectList, editorList, from, to);
-                    }
-                    from--;
-                }
-            } break;
-
-            case EditListAction::RAISE: {
-                assert(indexes.front() > 0);
-                assert(indexes.back() < listSize);
-
-                for (const index_type& i : reverse(indexes)) {
-                    moveItem(projectList, editorList, i - 1, i);
-                }
-            } break;
-
-            case EditListAction::LOWER: {
-                assert(indexes.front() >= 0);
-                assert(indexes.back() + 1 < listSize);
-
-                for (const index_type i : indexes) {
-                    moveItem(projectList, editorList, i + 1, i);
-                }
-            } break;
-
-            case EditListAction::LOWER_TO_BOTTOM: {
-                assert(indexes.front() >= 0);
-                assert(indexes.back() < listSize);
-                assert(listSize >= indexes.size());
-
-                index_type from = listSize - indexes.size();
-                for (const index_type to : indexes) {
-                    if (from != to) {
-                        moveItem(projectList, editorList, from, to);
-                    }
-                    from++;
-                }
-            } break;
-            }
-        }
-
-        virtual void redo(Project::ProjectFile& projectFile) const final
-        {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
-
-            assert(projectList.size() == editorList.size());
-            const index_type listSize = projectList.size();
-
             switch (direction) {
             case EditListAction::ADD:
             case EditListAction::CLONE:
@@ -606,7 +561,7 @@ struct AbstractListActions {
                 index_type to = 0;
                 for (const index_type& from : indexes) {
                     if (from != to) {
-                        moveItem(projectList, editorList, from, to);
+                        move(from, to);
                     }
                     to++;
                 }
@@ -617,7 +572,7 @@ struct AbstractListActions {
                 assert(indexes.back() < listSize);
 
                 for (const index_type& i : indexes) {
-                    moveItem(projectList, editorList, i, i - 1);
+                    move(i, i - 1);
                 }
             } break;
 
@@ -626,7 +581,7 @@ struct AbstractListActions {
                 assert(indexes.back() + 1 < listSize);
 
                 for (const index_type& i : reverse(indexes)) {
-                    moveItem(projectList, editorList, i, i + 1);
+                    move(i, i + 1);
                 }
 
             } break;
@@ -639,12 +594,149 @@ struct AbstractListActions {
                 index_type to = listSize - 1;
                 for (const index_type& from : reverse(indexes)) {
                     if (from != to) {
-                        moveItem(projectList, editorList, from, to);
+                        move(from, to);
                     }
                     to--;
                 }
             } break;
             }
+        }
+
+        template <typename FunctionT>
+        void undo_helper(const index_type listSize, FunctionT move) const
+        {
+            switch (direction) {
+            case EditListAction::ADD:
+            case EditListAction::CLONE:
+            case EditListAction::REMOVE: {
+                abort();
+            } break;
+
+            case EditListAction::RAISE_TO_TOP: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() < listSize);
+                assert(listSize >= indexes.size());
+
+                index_type from = indexes.size() - 1;
+                for (const index_type& to : reverse(indexes)) {
+                    if (from != to) {
+                        move(from, to);
+                    }
+                    from--;
+                }
+            } break;
+
+            case EditListAction::RAISE: {
+                assert(indexes.front() > 0);
+                assert(indexes.back() < listSize);
+
+                for (const index_type& i : reverse(indexes)) {
+                    move(i - 1, i);
+                }
+            } break;
+
+            case EditListAction::LOWER: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() + 1 < listSize);
+
+                for (const index_type i : indexes) {
+                    move(i + 1, i);
+                }
+            } break;
+
+            case EditListAction::LOWER_TO_BOTTOM: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() < listSize);
+                assert(listSize >= indexes.size());
+
+                index_type from = listSize - indexes.size();
+                for (const index_type to : indexes) {
+                    if (from != to) {
+                        move(from, to);
+                    }
+                    from++;
+                }
+            } break;
+            }
+        }
+
+        void redo_list(ListT& list) const
+        {
+            redo_helper(list.size(), [&](index_type from, index_type to) {
+                moveListItem(from, to, list);
+            });
+        }
+
+        void undo_list(ListT& list) const
+        {
+            undo_helper(list.size(), [&](index_type from, index_type to) {
+                moveListItem(from, to, list);
+            });
+        }
+
+        void redo_updateSelection(const index_type listSize) const
+        {
+            redo_helper(listSize, [&](index_type from, index_type to) {
+                this->updateSelection_itemMoved(from, to);
+            });
+        }
+
+        void undo_updateSelection(const index_type listSize) const
+        {
+            undo_helper(listSize, [&](index_type from, index_type to) {
+                this->updateSelection_itemMoved(from, to);
+            });
+        }
+
+    public:
+        MoveMultipleAction(EditorT* editor,
+                           const ListArgsT& listArgs,
+                           const std::vector<index_type>&& indexes,
+                           const EditListAction direction)
+            : BaseAction(editor, listArgs)
+            , indexes(std::move(indexes))
+            , direction(direction)
+        {
+        }
+        virtual ~MoveMultipleAction() = default;
+
+        virtual void firstDo_editorData() const final
+        {
+            ListT& list = this->getEditorList();
+
+            redo_updateSelection(list.size());
+            redo_list(list);
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        {
+            redo_list(this->getProjectList(projectFile));
+
+            return true;
+        }
+
+        virtual void undo(Project::ProjectFile& projectFile) const final
+        {
+            ListT& editorList = this->getEditorList();
+            ListT& projectList = this->getProjectList(projectFile);
+
+            assert(editorList.size() == projectList.size());
+
+            undo_updateSelection(editorList.size());
+            undo_list(editorList);
+            undo_list(projectList);
+        }
+
+        virtual void redo(Project::ProjectFile& projectFile) const final
+        {
+            ListT& editorList = this->getEditorList();
+            ListT& projectList = this->getProjectList(projectFile);
+
+            assert(editorList.size() == projectList.size());
+
+            redo_updateSelection(editorList.size());
+            redo_list(editorList);
+            redo_list(projectList);
         }
     };
 
@@ -673,7 +765,11 @@ struct AbstractListActions {
         }
         virtual ~EditItemAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             ListT& projectList = this->getProjectList(projectFile);
 
@@ -742,7 +838,11 @@ struct AbstractListActions {
         }
         virtual ~EditItemFieldAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             ListT& projectList = this->getProjectList(projectFile);
 
@@ -823,7 +923,11 @@ struct AbstractListActions {
         }
         virtual ~EditMultipleItemsAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             ListT& projectList = this->getProjectList(projectFile);
 
@@ -888,7 +992,11 @@ struct AbstractListActions {
         }
         virtual ~EditAllItemsInListFieldAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             const ListT& projectList = this->getProjectList(projectFile);
 
@@ -944,7 +1052,11 @@ struct AbstractListActions {
         }
         virtual ~EditMultipleNestedItems() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
             EditorDataT* editorData = ActionPolicy::getEditorData(*editor);

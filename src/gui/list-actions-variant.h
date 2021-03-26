@@ -59,7 +59,11 @@ struct ListActionsVariant {
         }
         virtual ~EditVariantItemFieldAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             ClassT& pd = getProjectData(projectFile);
 

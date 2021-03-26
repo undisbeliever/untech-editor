@@ -116,7 +116,11 @@ struct EditorActions {
         }
         virtual ~EditDataAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             EditorDataT& projectData = this->getProjectData(projectFile);
 
@@ -166,7 +170,11 @@ struct EditorActions {
         }
         virtual ~EditFieldAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             EditorDataT& projectData = this->getProjectData(projectFile);
 

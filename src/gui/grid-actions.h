@@ -83,7 +83,11 @@ struct GridActions {
         }
         virtual ~EditGridAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             GridT& projectGrid = this->getProjectGrid(projectFile);
 
@@ -136,7 +140,11 @@ struct GridActions {
         }
         virtual ~EditMultipleCellsAction() = default;
 
-        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             GridT& projectGrid = this->getProjectGrid(projectFile);
             GridT& editorGrid = this->getEditorGrid();

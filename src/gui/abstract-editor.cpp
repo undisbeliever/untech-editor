@@ -44,13 +44,20 @@ public:
         actions.push_back(std::move(a));
     }
 
-    virtual bool firstDo(Project::ProjectFile& projectFile) final
+    virtual void firstDo_editorData() const final
+    {
+        for (auto& a : actions) {
+            a->firstDo_editorData();
+        }
+    }
+
+    virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
     {
         bool changed = false;
         for (auto& a : actions) {
             assert(a != nullptr);
 
-            const bool c = a->firstDo(projectFile);
+            const bool c = a->firstDo_projectFile(projectFile);
             changed |= c;
             if (!c) {
                 a = nullptr;
@@ -88,7 +95,8 @@ void trimStack(std::vector<std::unique_ptr<EditorUndoAction>>& stack)
 AbstractEditorData::AbstractEditorData(const ItemIndex itemIndex)
     : _itemIndex(itemIndex)
     , _basename()
-    , _pendingActions()
+    , _pendingEditorActions()
+    , _pendingProjectFileActions()
     , _undoStack()
     , _redoStack()
     , _clean(true)
@@ -99,12 +107,12 @@ AbstractEditorData::AbstractEditorData(const ItemIndex itemIndex)
 void AbstractEditorData::addAction(std::unique_ptr<EditorUndoAction>&& action)
 {
     if (_inMacro == false) {
-        _pendingActions.push_back(std::move(action));
+        _pendingEditorActions.push_back(std::move(action));
     }
     else {
-        assert(!_pendingActions.empty());
-        if (!_pendingActions.empty()) {
-            auto* m = dynamic_cast<MacroAction*>(_pendingActions.back().get());
+        assert(!_pendingEditorActions.empty());
+        if (!_pendingEditorActions.empty()) {
+            auto* m = dynamic_cast<MacroAction*>(_pendingEditorActions.back().get());
             assert(m);
             if (m) {
                 m->addAction(std::move(action));
@@ -117,7 +125,7 @@ void AbstractEditorData::startMacro()
 {
     assert(_inMacro == false);
     if (_inMacro == false) {
-        _pendingActions.push_back(std::make_unique<MacroAction>());
+        _pendingEditorActions.push_back(std::make_unique<MacroAction>());
         _inMacro = true;
     }
 }
@@ -127,28 +135,59 @@ void AbstractEditorData::endMacro()
     _inMacro = false;
 }
 
-bool AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile)
+void AbstractEditorData::processEditorActions()
 {
-    const auto pendingSize = _pendingActions.size();
+    const auto pendingSize = _pendingEditorActions.size();
+    const auto undoSize = _undoStack.size();
+    const auto redoSize = _redoStack.size();
+
+    assert(_inMacro == false);
+    _inMacro = false;
+
+    if (!_pendingEditorActions.empty()) {
+        _clean = false;
+    }
+
+    for (auto& pa : _pendingEditorActions) {
+        auto action = std::move(pa);
+
+        action->firstDo_editorData();
+
+        assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
+        assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
+        assert(_pendingEditorActions.size() == pendingSize && "EditorUndoAction must not call addAction");
+
+        _pendingProjectFileActions.push_back(std::move(action));
+    }
+
+    _pendingEditorActions.clear();
+
+    // action may have modified the selection
+    updateSelection();
+}
+
+bool AbstractEditorData::processPendingProjectActions(Project::ProjectFile& projectFile)
+{
+    assert(_pendingEditorActions.empty());
 
     bool edited = false;
 
     assert(_inMacro == false);
     _inMacro = false;
 
-    for (auto& pa : _pendingActions) {
+    for (auto& pa : _pendingProjectFileActions) {
         auto action = std::move(pa);
 
         const auto undoSize = _undoStack.size();
         const auto redoSize = _redoStack.size();
 
-        const bool modifed = action->firstDo(projectFile);
+        const bool modifed = action->firstDo_projectFile(projectFile);
         _clean = false;
         edited = true;
 
         assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
         assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
-        assert(_pendingActions.size() == pendingSize && "EditorUndoAction must not call addAction");
+        assert(_pendingEditorActions.empty() && "EditorUndoAction must not call addAction");
 
         if (modifed) {
             _undoStack.push_back(std::move(action));
@@ -156,22 +195,21 @@ bool AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile
         }
     }
 
-    _pendingActions.clear();
+    _pendingProjectFileActions.clear();
 
     trimStack(_undoStack);
-
-    // action may have modified the selection
-    updateSelection();
 
     return edited;
 }
 
 bool AbstractEditorData::undo(Project::ProjectFile& projectFile)
 {
+    assert(_pendingEditorActions.empty());
+
     if (_undoStack.empty()) {
         return false;
     }
-    if (!_pendingActions.empty()) {
+    if (!_pendingProjectFileActions.empty()) {
         return false;
     }
 
@@ -189,7 +227,7 @@ bool AbstractEditorData::undo(Project::ProjectFile& projectFile)
 
     assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
     assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
-    assert(_pendingActions.empty() && "EditorUndoAction must not call addAction");
+    assert(_pendingEditorActions.empty() && "EditorUndoAction must not call addAction");
 
     _redoStack.push_back(std::move(a));
     trimStack(_redoStack);
@@ -202,10 +240,12 @@ bool AbstractEditorData::undo(Project::ProjectFile& projectFile)
 
 bool AbstractEditorData::redo(Project::ProjectFile& projectFile)
 {
+    assert(_pendingEditorActions.empty());
+
     if (_redoStack.empty()) {
         return false;
     }
-    if (!_pendingActions.empty()) {
+    if (!_pendingProjectFileActions.empty()) {
         return false;
     }
 
@@ -223,7 +263,7 @@ bool AbstractEditorData::redo(Project::ProjectFile& projectFile)
 
     assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
     assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
-    assert(_pendingActions.empty() && "EditorUndoAction must not call addAction");
+    assert(_pendingEditorActions.empty() && "EditorUndoAction must not call addAction");
 
     _undoStack.push_back(std::move(a));
     trimStack(_undoStack);

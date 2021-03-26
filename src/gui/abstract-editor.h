@@ -22,11 +22,38 @@ class EditorUndoAction {
 public:
     virtual ~EditorUndoAction() = default;
 
-    // Returns true if the action modified the project
-    // If false then the undo action will not be added to the stack
-    virtual bool firstDo(UnTech::Project::ProjectFile&) = 0;
+    // Preforms an action to the editor data.
+    //
+    // This function should update the selection if the list size or order is changed.
+    //
+    // This function is called after the GUI has been processed.
+    //
+    // The firstDo function is split into separate editorData and projectFile functions.
+    // This allows for the editor data to be updated immediately after the GUI has been
+    // processed, while also allowing for projectFile updates to be delayed until the
+    // background thread is no-longer blocking projectFile writes.
+    //
+    virtual void firstDo_editorData() const = 0;
 
+    // Preforms an action to the project data.
+    //
+    // Returns true if the action modified the project data.
+    // If this function returns false then the undo action will not be added to the stack.
+    //
+    // This function MUST NOT modify editor data or selection.
+    //
+    // This function is called after `firstDo_editorData()`.
+    //
+    virtual bool firstDo_projectFile(UnTech::Project::ProjectFile&) = 0;
+
+    // Undoes an action.
+    // This function MUST update both editor and project data.
+    // This function should update the selection if the list size or order is changed.
     virtual void undo(UnTech::Project::ProjectFile&) const = 0;
+
+    // Redoes an undone action.
+    // This function MUST update both editor and project data.
+    // This function should update the selection if the list size or order is changed.
     virtual void redo(UnTech::Project::ProjectFile&) const = 0;
 };
 
@@ -39,8 +66,10 @@ private:
     ItemIndex _itemIndex;
     std::string _basename;
 
+    std::vector<std::unique_ptr<EditorUndoAction>> _pendingEditorActions;
+    std::vector<std::unique_ptr<EditorUndoAction>> _pendingProjectFileActions;
+
     // Using vector so I can trim the stacks when they get too large
-    std::vector<std::unique_ptr<EditorUndoAction>> _pendingActions;
     std::vector<std::unique_ptr<EditorUndoAction>> _undoStack;
     std::vector<std::unique_ptr<EditorUndoAction>> _redoStack;
 
@@ -76,8 +105,11 @@ public:
     void startMacro();
     void endMacro();
 
+    // Called once per frame, before updateSelection().
+    void processEditorActions();
+
     // Returns true if the editor data changed.
-    bool processPendingActions(UnTech::Project::ProjectFile&);
+    bool processPendingProjectActions(UnTech::Project::ProjectFile&);
     bool undo(UnTech::Project::ProjectFile&);
     bool redo(UnTech::Project::ProjectFile&);
 

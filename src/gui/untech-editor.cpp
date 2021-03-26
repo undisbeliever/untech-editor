@@ -490,7 +490,6 @@ void UnTechEditor::processGui()
             assert(_currentEditor);
 
             _currentEditorGui->processGui(pf, _projectData);
-            _currentEditor->updateSelection();
 
             processErrorListWindow(_projectData, _currentEditor);
         }
@@ -501,6 +500,11 @@ void UnTechEditor::processGui()
         processKeyboardShortcuts(pf);
         unsavedChangesOnExitPopup(pf);
     });
+
+    if (_currentEditor) {
+        _currentEditor->processEditorActions();
+        _currentEditor->updateSelection();
+    }
 }
 
 void UnTechEditor::updateProjectFile()
@@ -509,7 +513,7 @@ void UnTechEditor::updateProjectFile()
 
     _projectFile.tryWrite([&](auto& pf) {
         if (_currentEditor) {
-            bool edited = _currentEditor->processPendingActions(pf);
+            bool edited = _currentEditor->processPendingProjectActions(pf);
 
             if (_currentEditorGui) {
                 edited |= processUndoStack(_currentEditorGui, _currentEditor, pf);
