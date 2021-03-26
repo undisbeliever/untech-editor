@@ -104,13 +104,14 @@ struct EditorActions {
 
     class EditDataAction final : public BaseAction {
     private:
+        const EditorDataT newValue;
         // set by firstDo()
         EditorDataT oldValue;
-        EditorDataT newValue;
 
     public:
         EditDataAction(EditorT* editor)
             : BaseAction(editor)
+            , newValue(this->getEditorData())
         {
         }
         virtual ~EditDataAction() = default;
@@ -118,10 +119,8 @@ struct EditorActions {
         virtual bool firstDo(Project::ProjectFile& projectFile) final
         {
             EditorDataT& projectData = this->getProjectData(projectFile);
-            EditorDataT& editorData = this->getEditorData();
 
             oldValue = projectData;
-            newValue = editorData;
 
             projectData = newValue;
 
@@ -155,13 +154,14 @@ struct EditorActions {
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:
+        const FieldT newValue;
         // set by firstDo()
         FieldT oldValue;
-        FieldT newValue;
 
     public:
         EditFieldAction(EditorT* editor)
             : BaseAction(editor)
+            , newValue((this->getEditorData()).*FieldPtr)
         {
         }
         virtual ~EditFieldAction() = default;
@@ -169,10 +169,8 @@ struct EditorActions {
         virtual bool firstDo(Project::ProjectFile& projectFile) final
         {
             EditorDataT& projectData = this->getProjectData(projectFile);
-            EditorDataT& editorData = this->getEditorData();
 
             oldValue = projectData.*FieldPtr;
-            newValue = editorData.*FieldPtr;
 
             projectData.*FieldPtr = newValue;
 

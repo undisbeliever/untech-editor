@@ -651,10 +651,16 @@ struct AbstractListActions {
     class EditItemAction final : public BaseAction {
     private:
         const index_type index;
-
+        const value_type newValue;
         // set by firstDo()
-        value_type newValue;
         value_type oldValue;
+
+        const value_type& getEditorValue() const
+        {
+            ListT& editorList = this->getEditorList();
+            assert(index < editorList.size());
+            return editorList.at(index);
+        }
 
     public:
         EditItemAction(EditorT* editor,
@@ -662,6 +668,7 @@ struct AbstractListActions {
                        const index_type index)
             : BaseAction(editor, listArgs)
             , index(index)
+            , newValue(getEditorValue())
         {
         }
         virtual ~EditItemAction() = default;
@@ -669,13 +676,10 @@ struct AbstractListActions {
         virtual bool firstDo(Project::ProjectFile& projectFile) final
         {
             ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
 
-            assert(projectList.size() == editorList.size());
             assert(index < projectList.size());
 
             oldValue = projectList.at(index);
-            newValue = editorList.at(index);
 
             projectList.at(index) = newValue;
 
@@ -716,10 +720,16 @@ struct AbstractListActions {
 
     private:
         const index_type index;
-
+        const FieldT newValue;
         // set by firstDo()
-        FieldT newValue;
         FieldT oldValue;
+
+        const FieldT& getEditorValue() const
+        {
+            ListT& editorList = this->getEditorList();
+            assert(index < editorList.size());
+            return editorList.at(index).*FieldPtr;
+        }
 
     public:
         EditItemFieldAction(EditorT* editor,
@@ -727,6 +737,7 @@ struct AbstractListActions {
                             const index_type index)
             : BaseAction(editor, listArgs)
             , index(index)
+            , newValue(getEditorValue())
         {
         }
         virtual ~EditItemFieldAction() = default;
@@ -734,13 +745,10 @@ struct AbstractListActions {
         virtual bool firstDo(Project::ProjectFile& projectFile) final
         {
             ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
 
-            assert(projectList.size() == editorList.size());
             assert(index < projectList.size());
 
             oldValue = projectList.at(index).*FieldPtr;
-            newValue = editorList.at(index).*FieldPtr;
 
             projectList.at(index).*FieldPtr = newValue;
 
@@ -775,25 +783,33 @@ struct AbstractListActions {
     class EditMultipleItemsAction final : public BaseAction {
     private:
         const std::vector<index_type> _indexes;
-        std::vector<value_type> _newValues;
+        const std::vector<value_type> _newValues;
         std::vector<value_type> _oldValues;
 
     private:
-        void setValues(Project::ProjectFile& projectFile, const std::vector<value_type>& values) const
+        void setValues(ListT& list, const std::vector<value_type>& values) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
-
-            assert(_indexes.size() == values.size());
+            assert(values.size() == _indexes.size());
 
             auto it = values.begin();
             for (const index_type index : _indexes) {
                 const value_type value = *it++;
 
-                projectList.at(index) = value;
-                editorList.at(index) = value;
+                list.at(index) = value;
             }
             assert(it == values.end());
+        }
+
+        static std::vector<value_type> getValues(const ListT& list, const std::vector<index_type>& indexes)
+        {
+            std::vector<value_type> ret;
+            ret.reserve(indexes.size());
+
+            for (const index_type index : indexes) {
+                ret.push_back(list.at(index));
+            }
+
+            return ret;
         }
 
     public:
@@ -802,6 +818,7 @@ struct AbstractListActions {
                                 const std::vector<index_type>&& indexes)
             : BaseAction(editor, listArgs)
             , _indexes(std::move(indexes))
+            , _newValues(getValues(this->getEditorList(), _indexes))
         {
         }
         virtual ~EditMultipleItemsAction() = default;
@@ -809,40 +826,24 @@ struct AbstractListActions {
         virtual bool firstDo(Project::ProjectFile& projectFile) final
         {
             ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
 
-            assert(_oldValues.empty());
-            assert(_newValues.empty());
+            _oldValues = getValues(projectList, _indexes);
 
-            _oldValues.reserve(_indexes.size());
-            _newValues.reserve(_indexes.size());
+            setValues(projectList, _newValues);
 
-            bool changed = false;
-            for (const index_type index : _indexes) {
-                value_type& projectValue = projectList.at(index);
-                const value_type& editorValue = editorList.at(index);
-
-                _oldValues.push_back(projectValue);
-                _newValues.push_back(editorValue);
-
-                // operator!= may not implemented in a few of my structs
-                if (!(projectValue == editorValue)) {
-                    projectValue = editorValue;
-                    changed = true;
-                }
-            }
-
-            return changed;
+            return _oldValues != _newValues;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            setValues(projectFile, _oldValues);
+            setValues(this->getEditorList(), _oldValues);
+            setValues(this->getProjectList(projectFile), _oldValues);
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            setValues(projectFile, _newValues);
+            setValues(this->getEditorList(), _newValues);
+            setValues(this->getProjectList(projectFile), _newValues);
         }
     };
 
@@ -851,32 +852,38 @@ struct AbstractListActions {
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:
-        std::vector<FieldT> _newValues;
+        const std::vector<FieldT> _newValues;
         std::vector<FieldT> _oldValues;
 
     private:
-        void setValues(Project::ProjectFile& projectFile, const std::vector<FieldT>& values) const
+        void setValues(ListT& list, const std::vector<FieldT>& values) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
+            assert(list.size() == values.size());
 
-            assert(projectList.size() == values.size());
-            assert(editorList.size() == values.size());
-
-            auto pIt = projectList.begin();
-            auto eIt = editorList.begin();
+            auto it = list.begin();
             for (const FieldT& value : values) {
-                (*eIt++).*FieldPtr = value;
-                (*pIt++).*FieldPtr = value;
+                (*it++).*FieldPtr = value;
             }
-            assert(pIt == projectList.end());
-            assert(eIt == editorList.end());
+            assert(it == list.end());
+        }
+
+        static std::vector<FieldT> getValues(const ListT& list)
+        {
+            std::vector<FieldT> ret;
+            ret.reserve(list.size());
+
+            for (const value_type& d : list) {
+                ret.push_back(d.*FieldPtr);
+            }
+
+            return ret;
         }
 
     public:
         EditAllItemsInListFieldAction(EditorT* editor,
                                       const ListArgsT& listArgs)
             : BaseAction(editor, listArgs)
+            , _newValues(getValues(this->getEditorList()))
         {
         }
         virtual ~EditAllItemsInListFieldAction() = default;
@@ -884,33 +891,24 @@ struct AbstractListActions {
         virtual bool firstDo(Project::ProjectFile& projectFile) final
         {
             const ListT& projectList = this->getProjectList(projectFile);
-            const ListT& editorList = this->getEditorList();
 
-            assert(projectList.size() == editorList.size());
-            assert(_oldValues.empty());
-            assert(_newValues.empty());
+            _oldValues = getValues(projectList);
 
-            _oldValues.reserve(projectList.size());
-            for (const auto& item : projectList) {
-                _oldValues.push_back(item.*FieldPtr);
-            }
-
-            _newValues.reserve(editorList.size());
-            for (const auto& item : editorList) {
-                _newValues.push_back(item.*FieldPtr);
-            }
+            setValues(this->getProjectList(projectFile), _newValues);
 
             return _oldValues != _newValues;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            setValues(projectFile, _oldValues);
+            setValues(this->getEditorList(), _oldValues);
+            setValues(this->getProjectList(projectFile), _oldValues);
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            setValues(projectFile, _newValues);
+            setValues(this->getEditorList(), _newValues);
+            setValues(this->getProjectList(projectFile), _newValues);
         }
     };
 
@@ -959,9 +957,6 @@ struct AbstractListActions {
 
             for (const IndexAndValues& childValues : indexesAndNewValues) {
                 ListT& projectList = getList(projectData, childValues.listArgs);
-                const ListT& editorList = getList(editorData, childValues.listArgs);
-
-                assert(projectList.size() == editorList.size());
 
                 for (const auto& [index, editorValue] : childValues.childIndexesAndValues) {
                     assert(index >= 0 && index < projectList.size());

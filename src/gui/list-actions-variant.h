@@ -30,21 +30,22 @@ struct ListActionsVariant {
 
     private:
         const index_type index;
-
+        const FieldT newValue;
         // set by firstDo()
-        FieldT newValue;
         FieldT oldValue;
 
-        std::tuple<ClassT&, ClassT&> getProjectAndEditorData(Project::ProjectFile& projectFile) const
+        ClassT& getEditorData() const
+        {
+            ListT& editorList = this->getEditorList();
+            assert(index < editorList.size());
+            return std::get<ClassT>(editorList.at(index));
+        }
+
+        ClassT& getProjectData(Project::ProjectFile& projectFile) const
         {
             ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
-
-            assert(projectList.size() == editorList.size());
             assert(index < projectList.size());
-
-            return { std::get<ClassT>(projectList.at(index)),
-                     std::get<ClassT>(editorList.at(index)) };
+            return std::get<ClassT>(projectList.at(index));
         }
 
     public:
@@ -53,16 +54,16 @@ struct ListActionsVariant {
                                    const index_type index)
             : ListActions<ActionPolicy>::BaseAction(editor, listArgs)
             , index(index)
+            , newValue(getEditorData().*FieldPtr)
         {
         }
         virtual ~EditVariantItemFieldAction() = default;
 
         virtual bool firstDo(Project::ProjectFile& projectFile) final
         {
-            auto [pd, ed] = getProjectAndEditorData(projectFile);
+            ClassT& pd = getProjectData(projectFile);
 
             oldValue = pd.*FieldPtr;
-            newValue = ed.*FieldPtr;
 
             pd.*FieldPtr = newValue;
 
@@ -71,7 +72,8 @@ struct ListActionsVariant {
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            auto [pd, ed] = getProjectAndEditorData(projectFile);
+            ClassT& ed = getEditorData();
+            ClassT& pd = getProjectData(projectFile);
 
             ed.*FieldPtr = oldValue;
             pd.*FieldPtr = oldValue;
@@ -79,7 +81,8 @@ struct ListActionsVariant {
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            auto [pd, ed] = getProjectAndEditorData(projectFile);
+            ClassT& ed = getEditorData();
+            ClassT& pd = getProjectData(projectFile);
 
             ed.*FieldPtr = newValue;
             pd.*FieldPtr = newValue;
