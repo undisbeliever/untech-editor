@@ -74,7 +74,7 @@ struct ListActionsVariant {
             auto [pd, ed] = getProjectAndEditorData(projectFile);
 
             ed.*FieldPtr = oldValue;
-            ed.*FieldPtr = oldValue;
+            pd.*FieldPtr = oldValue;
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
@@ -82,7 +82,7 @@ struct ListActionsVariant {
             auto [pd, ed] = getProjectAndEditorData(projectFile);
 
             ed.*FieldPtr = newValue;
-            ed.*FieldPtr = newValue;
+            pd.*FieldPtr = newValue;
         }
     };
 
