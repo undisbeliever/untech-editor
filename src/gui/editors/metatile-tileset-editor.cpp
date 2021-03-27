@@ -46,46 +46,14 @@ struct MetaTileTilesetEditorData::AP {
         }
     };
 
-    // ::TODO add array action helper class - add set field array items::
-    struct TileCollisions {
-        using EditorT = MetaTileTilesetEditorData;
-        using EditorDataT = std::array<UnTech::MetaTiles::TileCollisionType, 256>;
-
+    struct TileCollisions : public MtTileset {
+        constexpr static auto FieldPtr = &EditorDataT::tileCollisions;
         constexpr static auto validFlag = &MetaTileTilesetEditorGui::_tileCollisionsValid;
-
-        static EditorDataT* getEditorData(EditorT& editor)
-        {
-            return &editor.data.tileCollisions;
-        }
-
-        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
-        {
-            if (auto* e = MtTileset::getEditorData(projectFile, itemIndex)) {
-                return &e->tileCollisions;
-            }
-            return nullptr;
-        }
     };
 
-    // ::TODO add array action helper class - add set field array items::
-    struct InteractiveTiles {
-        using EditorT = MetaTileTilesetEditorData;
-        using EditorDataT = std::array<idstring, 256>;
-
+    struct TileFunctionTables : public MtTileset {
+        constexpr static auto FieldPtr = &EditorDataT::tileFunctionTables;
         constexpr static auto validFlag = &MetaTileTilesetEditorGui::_tileCollisionsValid;
-
-        static EditorDataT* getEditorData(EditorT& editor)
-        {
-            return &editor.data.tileFunctionTables;
-        }
-
-        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
-        {
-            if (auto* e = MtTileset::getEditorData(projectFile, itemIndex)) {
-                return &e->tileFunctionTables;
-            }
-            return nullptr;
-        }
     };
 
     struct Scratchpad : public MtTileset {
@@ -492,7 +460,7 @@ void MetaTileTilesetEditorGui::tileCollisionClicked(const MetaTiles::TileCollisi
         tileCollisions.at(i) = tct;
     }
 
-    EditorActions<AP::TileCollisions>::editorDataEdited(_data);
+    EditorFieldActions<AP::TileCollisions>::fieldEdited(_data);
 }
 
 void MetaTileTilesetEditorGui::tilePriorityClicked(const unsigned subTile, const bool v)
@@ -525,8 +493,7 @@ void MetaTileTilesetEditorGui::tileFunctionTableSelected(const idstring& ft)
         tileFunctionTables.at(i) = ft;
     }
 
-    // ::TODO add set field array items action::
-    EditorActions<AP::InteractiveTiles>::editorDataEdited(_data);
+    EditorFieldActions<AP::TileFunctionTables>::fieldEdited(_data);
 }
 
 void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& projectFile)

@@ -51,44 +51,14 @@ struct SpriteImporterEditorData::AP {
         }
     };
 
-    struct ExportOrder {
-        using EditorT = SpriteImporterEditorData;
-        using EditorDataT = idstring;
-
+    struct ExportOrder : public FrameSet {
+        constexpr static auto FieldPtr = &EditorDataT::exportOrder;
         constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
-
-        static EditorDataT* getEditorData(EditorT& editor)
-        {
-            return &editor.data.exportOrder;
-        }
-
-        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
-        {
-            if (auto* e = FrameSet::getEditorData(projectFile, itemIndex)) {
-                return &e->exportOrder;
-            }
-            return nullptr;
-        }
     };
 
-    struct Image {
-        using EditorT = SpriteImporterEditorData;
-        using EditorDataT = std::filesystem::path;
-
+    struct Image : public FrameSet {
+        constexpr static auto FieldPtr = &EditorDataT::imageFilename;
         constexpr static auto validFlag = &SpriteImporterEditorGui::_imageValid;
-
-        static EditorDataT* getEditorData(EditorT& editor)
-        {
-            return &editor.data.imageFilename;
-        }
-
-        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
-        {
-            if (auto* e = FrameSet::getEditorData(projectFile, itemIndex)) {
-                return &e->imageFilename;
-            }
-            return nullptr;
-        }
     };
 
     struct Frames final : public FrameSet {
@@ -307,11 +277,11 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
             }
 
             if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
-                EditorActions<AP::ExportOrder>::editorDataEdited(_data);
+                EditorFieldActions<AP::ExportOrder>::fieldEdited(_data);
             }
 
             if (ImGui::InputPngImageFilename("Image", &fs.imageFilename)) {
-                EditorActions<AP::Image>::editorDataEdited(_data);
+                EditorFieldActions<AP::Image>::fieldEdited(_data);
             }
 
             {

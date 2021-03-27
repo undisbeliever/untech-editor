@@ -226,4 +226,91 @@ struct EditorActions {
     }
 };
 
+template <typename ActionPolicy>
+struct EditorFieldActions {
+    static_assert(std::is_member_object_pointer_v<decltype(ActionPolicy::FieldPtr)>);
+
+    using EditorT = typename ActionPolicy::EditorT;
+    using EditorDataT = typename ActionPolicy::EditorDataT;
+    static constexpr auto FieldPtr = ActionPolicy::FieldPtr;
+    using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
+
+    class EditFieldAction : public EditorUndoAction {
+    private:
+        EditorT* const editor;
+
+        const FieldT newValue;
+        // set by firstDo()
+        FieldT oldValue;
+
+        FieldT& getProjectField(Project::ProjectFile& projectFile) const
+        {
+            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            assert(data != nullptr);
+            return data->*FieldPtr;
+        }
+
+        FieldT& getEditorField() const
+        {
+            EditorDataT* data = ActionPolicy::getEditorData(*editor);
+            assert(data != nullptr);
+            return data->*FieldPtr;
+        }
+
+    public:
+        EditFieldAction(EditorT* editor)
+            : editor(editor)
+            , newValue(this->getEditorField())
+        {
+            assert(editor != nullptr);
+        }
+        virtual ~EditFieldAction() = default;
+
+        virtual void notifyGui(AbstractEditorGui* gui) const final
+        {
+            editorUndoAction_notifyGui<ActionPolicy>(gui);
+        }
+
+        virtual void firstDo_editorData() const final
+        {
+        }
+
+        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        {
+            FieldT& projectData = this->getProjectField(projectFile);
+
+            oldValue = projectData;
+
+            projectData = newValue;
+
+            // operator!= may not implemented in a few of my structs
+            return !(oldValue == newValue);
+        }
+
+        virtual void undo(Project::ProjectFile& projectFile) const final
+        {
+            FieldT& projectData = this->getProjectField(projectFile);
+            FieldT& editorData = this->getEditorField();
+
+            projectData = oldValue;
+            editorData = oldValue;
+        }
+
+        virtual void redo(Project::ProjectFile& projectFile) const final
+        {
+            FieldT& projectData = this->getProjectField(projectFile);
+            FieldT& editorData = this->getEditorField();
+
+            projectData = newValue;
+            editorData = newValue;
+        }
+    };
+
+    static void fieldEdited(EditorT* editor)
+    {
+        editor->addAction(
+            std::make_unique<EditFieldAction>(editor));
+    }
+};
+
 }

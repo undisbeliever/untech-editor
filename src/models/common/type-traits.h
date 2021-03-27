@@ -15,6 +15,11 @@ struct remove_member_pointer<T C::*> {
     using type = T;
 };
 
+template <typename T, class C>
+struct remove_member_pointer<T C::*const> {
+    using type = T;
+};
+
 template <class T>
 struct member_class {
 };

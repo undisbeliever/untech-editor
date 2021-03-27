@@ -51,24 +51,9 @@ struct RoomEditorData::AP {
         }
     };
 
-    struct Scene {
-        using EditorT = RoomEditorData;
-        using EditorDataT = idstring;
-
+    struct Scene : public Room {
+        constexpr static auto FieldPtr = &EditorDataT::scene;
         constexpr static auto validFlag = &RoomEditorGui::_mtTilesetValid;
-
-        static EditorDataT* getEditorData(EditorT& editor)
-        {
-            return &editor.data.scene;
-        }
-
-        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
-        {
-            if (auto* e = Room::getEditorData(projectFile, itemIndex)) {
-                return &e->scene;
-            }
-            return nullptr;
-        }
     };
 
     struct Map : public Room {
@@ -374,7 +359,7 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
         }
 
         if (ImGui::IdStringCombo("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
-            EditorActions<AP::Scene>::editorDataEdited(_data);
+            EditorFieldActions<AP::Scene>::fieldEdited(_data);
         }
 
         if (ImGui::InputUsize("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {

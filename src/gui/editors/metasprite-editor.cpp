@@ -81,24 +81,9 @@ struct MetaSpriteEditorData::AP {
         }
     };
 
-    struct ExportOrder {
-        using EditorT = MetaSpriteEditorData;
-        using EditorDataT = idstring;
-
+    struct ExportOrder : public FrameSet {
+        constexpr static auto FieldPtr = &EditorDataT::exportOrder;
         constexpr static auto validFlag = &MetaSpriteEditorGui::_exportOrderValid;
-
-        static EditorDataT* getEditorData(EditorT& editor)
-        {
-            return &editor.data.exportOrder;
-        }
-
-        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
-        {
-            if (auto* e = FrameSet::getEditorData(projectFile, itemIndex)) {
-                return &e->exportOrder;
-            }
-            return nullptr;
-        }
     };
 
     struct Palettes final : public FrameSet {
@@ -452,7 +437,7 @@ void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& p
             }
 
             if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
-                EditorActions<AP::ExportOrder>::editorDataEdited(_data);
+                EditorFieldActions<AP::ExportOrder>::fieldEdited(_data);
             }
 
             ImGui::Unindent();
