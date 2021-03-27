@@ -63,6 +63,7 @@ private:
     std::vector<InvalidImageErrorGraphics> _invalidTilesFrame;
     unsigned _invalidTilesCompileId;
 
+public:
     bool _tilesetShaderImageFilenamesValid;
     bool _tileCollisionsValid;
     bool _interactiveTilesValid;

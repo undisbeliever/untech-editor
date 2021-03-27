@@ -83,6 +83,7 @@ private:
     ImVec2 _smallTilesetUVmax;
     ImVec2 _largeTilesetUVmax;
 
+public:
     bool _paletteValid;
     bool _tilesetValid;
 

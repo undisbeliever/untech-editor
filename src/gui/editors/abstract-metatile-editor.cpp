@@ -287,18 +287,13 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _currentEditMode(EditMode::SelectTiles)
     , _cursor()
     , _animationTimer()
-    , _tilemapOutOfDate(true)
+    , _tilemapValid(false)
 {
 }
 
 bool AbstractMetaTileEditorGui::setEditorData(AbstractEditorData* data)
 {
     return (_data = dynamic_cast<AbstractMetaTileEditorData*>(data));
-}
-
-void AbstractMetaTileEditorGui::markTilemapOutOfDate()
-{
-    _tilemapOutOfDate = true;
 }
 
 void AbstractMetaTileEditorGui::resetSelectorState()
@@ -315,7 +310,7 @@ void AbstractMetaTileEditorGui::resetState()
     resetSelectorState();
     abandonPlacedTiles();
 
-    markTilemapOutOfDate();
+    _tilemapValid = false;
 
     _animationTimer.reset();
 
@@ -1069,10 +1064,10 @@ void AbstractMetaTileEditorGui::createTileCursorFromScratchpad(const grid<uint8_
 
 void AbstractMetaTileEditorGui::updateMapAndProcessAnimations()
 {
-    if (_tilemapOutOfDate) {
+    if (!_tilemapValid) {
         _tilemap.setMapData(_data->map());
 
-        _tilemapOutOfDate = false;
+        _tilemapValid = true;
     }
 
     const auto& mtData = _tilesetShader.tilesetData();

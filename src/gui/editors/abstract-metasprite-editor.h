@@ -43,7 +43,9 @@ public:
     UnTech::MetaSprite::Animation::PreviewState _animationState;
     unsigned prevAnimationIndex;
 
+    // MUST BE cleared when the export order changes or when the frame/animation list is resize, reordered or renamed.
     bool _exportOrderValid;
+
     bool _animationHFlip;
     bool _animationVFlip;
 
@@ -76,9 +78,6 @@ protected:
 
     template <typename FrameSetT>
     void updateExportOderTree(const FrameSetT& frameSet, const Project::ProjectFile& projectFile);
-
-    // MUST be called when the frame/animation list is changed or when a frame/animation is renamed.
-    void invalidateExportOrderTree() { _exportOrderValid = false; }
 
     virtual void addFrame(const idstring& name) = 0;
     virtual void addAnimation(const idstring& name) = 0;

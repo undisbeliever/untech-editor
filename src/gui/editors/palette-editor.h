@@ -37,6 +37,8 @@ private:
 
     Texture _imageTexture;
     int _frameId;
+
+public:
     bool _textureValid;
 
 public:

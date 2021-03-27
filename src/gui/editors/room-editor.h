@@ -78,9 +78,10 @@ private:
 
     grid<uint8_t> _scratchpad;
 
-    bool _mtTilesetValid;
-
     bool _entityTextureWindowOpen;
+
+public:
+    bool _mtTilesetValid;
 
     static unsigned playerId;
 

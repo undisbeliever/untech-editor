@@ -46,6 +46,48 @@ struct MetaTileTilesetEditorData::AP {
         }
     };
 
+    // ::TODO add array action helper class - add set field array items::
+    struct TileCollisions {
+        using EditorT = MetaTileTilesetEditorData;
+        using EditorDataT = std::array<UnTech::MetaTiles::TileCollisionType, 256>;
+
+        constexpr static auto validFlag = &MetaTileTilesetEditorGui::_tileCollisionsValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.tileCollisions;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = MtTileset::getEditorData(projectFile, itemIndex)) {
+                return &e->tileCollisions;
+            }
+            return nullptr;
+        }
+    };
+
+    // ::TODO add array action helper class - add set field array items::
+    struct InteractiveTiles {
+        using EditorT = MetaTileTilesetEditorData;
+        using EditorDataT = std::array<idstring, 256>;
+
+        constexpr static auto validFlag = &MetaTileTilesetEditorGui::_tileCollisionsValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.tileFunctionTables;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = MtTileset::getEditorData(projectFile, itemIndex)) {
+                return &e->tileFunctionTables;
+            }
+            return nullptr;
+        }
+    };
+
     struct Scratchpad : public MtTileset {
         using GridT = grid<uint8_t>;
         using ListArgsT = std::tuple<>;
@@ -54,6 +96,8 @@ struct MetaTileTilesetEditorData::AP {
         constexpr static uint8_t DEFAULT_VALUE = 0;
 
         constexpr static auto SelectionPtr = &EditorT::selectedTiles;
+
+        constexpr static auto validFlag = &MetaTileTilesetEditorGui::_tilemapValid;
 
         static GridT* getGrid(EditorDataT& editorData) { return &editorData.scratchpad; }
     };
@@ -78,6 +122,8 @@ struct MetaTileTilesetEditorData::AP {
         constexpr static size_t MAX_SIZE = 32;
 
         constexpr static auto SelectionPtr = &EditorT::tilesetFrameSel;
+
+        constexpr static auto validFlag = &MetaTileTilesetEditorGui::_tilesetShaderImageFilenamesValid;
 
         static ListT* getList(EditorDataT& editorData) { return &editorData.animationFrames.frameImageFilenames; }
     };
@@ -173,10 +219,6 @@ void MetaTileTilesetEditorGui::resetState()
     _tilesetShaderImageFilenamesValid = false;
     _tileCollisionsValid = false;
     _interactiveTilesValid = false;
-
-    if (_data) {
-        _scratchpadSize = _data->data.scratchpad.size();
-    }
 }
 
 void MetaTileTilesetEditorGui::editorClosed()
@@ -203,7 +245,6 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
         ImGui::InputUsize("Scratchpad Size", &_scratchpadSize, AP::Scratchpad::MAX_SIZE);
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             GridActions<AP::Scratchpad>::resizeGrid(_data, _scratchpadSize);
-            markTilemapOutOfDate();
         }
 
         {
@@ -285,8 +326,6 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
                 ImGui::SetNextItemWidth(-1);
                 if (ImGui::InputPngImageFilename("##Image", &imageFilename)) {
-                    _tilesetShaderImageFilenamesValid = false;
-
                     ListActions<AP::FrameImages>::itemEdited(_data, i);
                 }
                 ImGui::NextColumn();
@@ -453,10 +492,7 @@ void MetaTileTilesetEditorGui::tileCollisionClicked(const MetaTiles::TileCollisi
         tileCollisions.at(i) = tct;
     }
 
-    EditorActions<AP::MtTileset>::fieldEdited<
-        &MetaTileTilesetInput::tileCollisions>(_data);
-
-    _tileCollisionsValid = false;
+    EditorActions<AP::TileCollisions>::editorDataEdited(_data);
 }
 
 void MetaTileTilesetEditorGui::tilePriorityClicked(const unsigned subTile, const bool v)
@@ -489,11 +525,8 @@ void MetaTileTilesetEditorGui::tileFunctionTableSelected(const idstring& ft)
         tileFunctionTables.at(i) = ft;
     }
 
-    _interactiveTilesValid = false;
-
     // ::TODO add set field array items action::
-    EditorActions<AP::MtTileset>::fieldEdited<
-        &MetaTileTilesetInput::tileFunctionTables>(_data);
+    EditorActions<AP::InteractiveTiles>::editorDataEdited(_data);
 }
 
 void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& projectFile)
@@ -738,6 +771,11 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
 {
     if (_data == nullptr) {
         return;
+    }
+
+    // Update scratchpadSize if the scratchpad changed
+    if (!_tilemapValid) {
+        _scratchpadSize = _data->data.scratchpad.size();
     }
 
     _tilesetShader.setTilesetFrame(_data->tilesetFrameSel.selectedIndex());

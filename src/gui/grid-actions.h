@@ -7,6 +7,7 @@
 #pragma once
 
 #include "abstract-editor.h"
+#include "editor-actions-notify-gui.h"
 #include "models/common/aabb.h"
 #include "models/common/vectorset-upoint.h"
 
@@ -65,6 +66,12 @@ struct GridActions {
         {
             upoint_vectorset& sel = editor->*ActionPolicy::SelectionPtr;
             sel.clear();
+        }
+
+    public:
+        virtual void notifyGui(AbstractEditorGui* gui) const final
+        {
+            editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
     };
 

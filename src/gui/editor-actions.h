@@ -7,6 +7,7 @@
 #pragma once
 
 #include "abstract-editor.h"
+#include "editor-actions-notify-gui.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/namedlist.h"
 #include "models/common/type-traits.h"
@@ -99,6 +100,12 @@ struct EditorActions {
             EditorDataT* data = ActionPolicy::getEditorData(*editor);
             assert(data != nullptr);
             return *data;
+        }
+
+    public:
+        virtual void notifyGui(AbstractEditorGui* gui) const final
+        {
+            editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
     };
 

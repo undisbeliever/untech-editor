@@ -23,3 +23,8 @@ template <typename T, class C>
 struct member_class<T C::*> {
     using type = C;
 };
+
+template <typename T, class C>
+struct member_class<T C::*const> {
+    using type = C;
+};

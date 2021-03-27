@@ -37,9 +37,7 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
-        if (ListButtons<typename AP::Animations>(editor)) {
-            invalidateExportOrderTree();
-        }
+        ListButtons<typename AP::Animations>(editor);
 
         ImGui::SetNextItemWidth(-1);
         ImGui::NamedListListBox("##AnimationList", &editor->animationsSel, frameSet->animations, 8);
@@ -56,8 +54,6 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<typename AP::Animations>::template selectedFieldEdited<
                         &MsAnimation::name>(editor);
-
-                    invalidateExportOrderTree();
                 }
 
                 if (ImGui::EnumCombo("Duration Format", &animation.durationFormat)) {

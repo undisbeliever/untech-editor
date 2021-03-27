@@ -54,6 +54,7 @@ private:
 
     std::vector<std::pair<ImU32, std::string>> _transparentColorCombo;
 
+public:
     bool _imageValid;
     bool _transparentColorComboValid;
 

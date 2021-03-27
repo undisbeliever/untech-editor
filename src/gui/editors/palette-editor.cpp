@@ -31,6 +31,26 @@ struct PaletteEditorData::AP {
             return namedListItem(&projectFile.palettes, itemIndex.index);
         }
     };
+
+    struct ImageFilename {
+        using EditorT = PaletteEditorData;
+        using EditorDataT = std::filesystem::path;
+
+        constexpr static auto validFlag = &PaletteEditorGui::_textureValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.paletteImageFilename;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = Palette::getEditorData(projectFile, itemIndex)) {
+                return &e->paletteImageFilename;
+            }
+            return nullptr;
+        }
+    };
 };
 
 PaletteEditorData::PaletteEditorData(ItemIndex itemIndex)
@@ -97,10 +117,7 @@ void PaletteEditorGui::paletteWindow()
             }
 
             if (ImGui::InputPngImageFilename("Image", &palette.paletteImageFilename)) {
-                EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::paletteImageFilename>(_data);
-
-                _textureValid = false;
+                EditorActions<AP::ImageFilename>::editorDataEdited(_data);
             }
 
             ImGui::InputUnsigned("Rows Per Frame", &palette.rowsPerFrame);

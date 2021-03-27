@@ -81,6 +81,26 @@ struct MetaSpriteEditorData::AP {
         }
     };
 
+    struct ExportOrder {
+        using EditorT = MetaSpriteEditorData;
+        using EditorDataT = idstring;
+
+        constexpr static auto validFlag = &MetaSpriteEditorGui::_exportOrderValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.exportOrder;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = FrameSet::getEditorData(projectFile, itemIndex)) {
+                return &e->exportOrder;
+            }
+            return nullptr;
+        }
+    };
+
     struct Palettes final : public FrameSet {
         using ListT = std::vector<UnTech::Snes::Palette4bpp>;
         using ListArgsT = std::tuple<>;
@@ -91,6 +111,8 @@ struct MetaSpriteEditorData::AP {
         constexpr static size_t MAX_SIZE = PALETTE_TEXTURE_HEIGHT;
 
         constexpr static auto SelectionPtr = &EditorT::palettesSel;
+
+        constexpr static auto validFlag = &MetaSpriteEditorGui::_paletteValid;
 
         static ListT* getList(MS::FrameSet& fs) { return &fs.palettes; }
     };
@@ -105,6 +127,8 @@ struct MetaSpriteEditorData::AP {
 
         constexpr static auto SelectionPtr = &EditorT::smallTilesetSel;
 
+        constexpr static auto validFlag = &MetaSpriteEditorGui::_tilesetValid;
+
         static ListT* getList(MS::FrameSet& fs) { return &fs.smallTileset; }
     };
 
@@ -118,6 +142,8 @@ struct MetaSpriteEditorData::AP {
 
         constexpr static auto SelectionPtr = &EditorT::largeTilesetSel;
 
+        constexpr static auto validFlag = &MetaSpriteEditorGui::_tilesetValid;
+
         static ListT* getList(MS::FrameSet& fs) { return &fs.largeTileset; }
     };
 
@@ -129,6 +155,8 @@ struct MetaSpriteEditorData::AP {
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
         constexpr static auto SelectionPtr = &EditorT::framesSel;
+
+        constexpr static auto validFlag = &MetaSpriteEditorGui::_exportOrderValid;
 
         static ListT* getList(MS::FrameSet& fs) { return &fs.frames; }
     };
@@ -189,6 +217,8 @@ struct MetaSpriteEditorData::AP {
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
         constexpr static auto SelectionPtr = &EditorT::animationsSel;
+
+        constexpr static auto validFlag = &MetaSpriteEditorGui::_exportOrderValid;
 
         static ListT* getList(MS::FrameSet& fs) { return &fs.animations; }
     };
@@ -385,7 +415,6 @@ void MetaSpriteEditorGui::addFrame(const idstring& name)
     MS::Frame frame;
     frame.name = name;
     ListActions<AP::Frames>::addItemToSelectedList(_data, frame);
-    invalidateExportOrderTree();
 }
 
 void MetaSpriteEditorGui::addAnimation(const idstring& name)
@@ -395,7 +424,6 @@ void MetaSpriteEditorGui::addAnimation(const idstring& name)
     MetaSprite::Animation::Animation animation;
     animation.name = name;
     ListActions<AP::Animations>::addItemToSelectedList(_data, animation);
-    invalidateExportOrderTree();
 }
 
 void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
@@ -424,10 +452,7 @@ void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& p
             }
 
             if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
-                EditorActions<AP::FrameSet>::fieldEdited<
-                    &MS::FrameSet::exportOrder>(_data);
-
-                invalidateExportOrderTree();
+                EditorActions<AP::ExportOrder>::editorDataEdited(_data);
             }
 
             ImGui::Unindent();
@@ -447,9 +472,7 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
-        if (ListButtons<AP::Frames>(_data)) {
-            invalidateExportOrderTree();
-        }
+        ListButtons<AP::Frames>(_data);
 
         ImGui::SetNextItemWidth(-1);
         ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
@@ -466,8 +489,6 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &MS::Frame::name>(_data);
-
-                    invalidateExportOrderTree();
                 }
 
                 unsigned spriteOrder = frame.spriteOrder;
@@ -667,9 +688,7 @@ void MetaSpriteEditorGui::palettesWindow()
     if (ImGui::Begin("Palettes##MS")) {
 
         {
-            if (ListButtons<AP::Palettes>(_data)) {
-                _paletteValid = false;
-            }
+            ListButtons<AP::Palettes>(_data);
 
             const float scrollHeight = ImGui::GetWindowHeight() - ImGui::GetCursorPosY() - style.WindowPadding.y - colorButtonsHeight;
             ImGui::BeginChild("Scroll", ImVec2(0, scrollHeight));
@@ -858,13 +877,11 @@ void MetaSpriteEditorGui::tilesetButtons()
 
     if (ImGui::Button("Add Small Tile")) {
         ListActions<AP::SmallTileset>::editList(_data, EditListAction::ADD);
-        _tilesetValid = false;
     }
     ImGui::SameLine();
 
     if (ImGui::Button("Add Large Tile")) {
         ListActions<AP::LargeTileset>::editList(_data, EditListAction::ADD);
-        _tilesetValid = false;
     }
     ImGui::SameLine();
 
@@ -897,8 +914,6 @@ void MetaSpriteEditorGui::tilesetButtons()
             tileRemoved(_data->largeTilesetSel.selectedIndex(), ObjectSize::LARGE);
         }
         _data->endMacro();
-
-        _tilesetValid = false;
     }
 }
 
@@ -1040,6 +1055,8 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
                 if (ImGui::IsMouseDown(0)) {
                     tileset->at(tileId).setPixel(p.x % TILE_SIZE, p.y % TILE_SIZE, _colorSel);
                     _editedTiles.insert(tileId);
+
+                    // Immediatly display changed tile data
                     _tilesetValid = false;
                 }
             } break;

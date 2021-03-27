@@ -51,6 +51,26 @@ struct RoomEditorData::AP {
         }
     };
 
+    struct Scene {
+        using EditorT = RoomEditorData;
+        using EditorDataT = idstring;
+
+        constexpr static auto validFlag = &RoomEditorGui::_mtTilesetValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.scene;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = Room::getEditorData(projectFile, itemIndex)) {
+                return &e->scene;
+            }
+            return nullptr;
+        }
+    };
+
     struct Map : public Room {
         using GridT = grid<uint8_t>;
         using ListArgsT = std::tuple<>;
@@ -60,6 +80,8 @@ struct RoomEditorData::AP {
         constexpr static uint8_t DEFAULT_VALUE = 0;
 
         constexpr static auto SelectionPtr = &EditorT::selectedTiles;
+
+        constexpr static auto validFlag = &RoomEditorGui::_tilemapValid;
 
         static GridT* getGrid(EditorDataT& entityRomData) { return &entityRomData.map; }
     };
@@ -309,8 +331,8 @@ RoomEditorGui::RoomEditorGui()
     , _entityTexture()
     , _entityGraphics(nullptr)
     , _scenesData(nullptr)
-    , _mtTilesetValid(false)
     , _entityTextureWindowOpen(false)
+    , _mtTilesetValid(false)
 {
 }
 
@@ -328,10 +350,6 @@ void RoomEditorGui::resetState()
 
     _mtTilesetValid = false;
     _scenesData = nullptr;
-
-    if (_data) {
-        _mapSize = _data->data.map.size();
-    }
 }
 
 void RoomEditorGui::editorClosed()
@@ -356,10 +374,7 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
         }
 
         if (ImGui::IdStringCombo("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
-            _mtTilesetValid = false;
-
-            EditorActions<AP::Room>::fieldEdited<
-                &RM::RoomInput::scene>(_data);
+            EditorActions<AP::Scene>::editorDataEdited(_data);
         }
 
         if (ImGui::InputUsize("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
@@ -368,7 +383,6 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
         }
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             GridActions<AP::Map>::resizeGrid(_data, _mapSize);
-            markTilemapOutOfDate();
         }
     }
 
@@ -966,6 +980,11 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 {
     if (_data == nullptr) {
         return;
+    }
+
+    // Update mapSize if the map changed
+    if (!_tilemapValid) {
+        _mapSize = _data->data.map.size();
     }
 
     updateMapAndProcessAnimations();

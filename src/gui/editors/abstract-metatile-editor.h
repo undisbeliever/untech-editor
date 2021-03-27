@@ -94,7 +94,8 @@ private:
 
     DualAnimationTimer _animationTimer;
 
-    bool _tilemapOutOfDate;
+public:
+    bool _tilemapValid;
 
     static bool showGrid;
     static bool showTiles;
@@ -115,8 +116,6 @@ protected:
     virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
 
     void showLayerButtons();
-
-    void markTilemapOutOfDate();
 
     // To be called at the start of `processGui`
     void updateMapAndProcessAnimations();

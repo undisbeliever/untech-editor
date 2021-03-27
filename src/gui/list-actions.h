@@ -7,6 +7,7 @@
 #pragma once
 
 #include "abstract-editor.h"
+#include "editor-actions-notify-gui.h"
 #include "selection.h"
 #include "models/common/iterators.h"
 #include "models/common/type-traits.h"
@@ -199,6 +200,12 @@ struct AbstractListActions {
         {
             std::apply(&SelectionT::itemMoved,
                        std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(from, to)));
+        }
+
+    public:
+        virtual void notifyGui(AbstractEditorGui* gui) const final
+        {
+            editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
     };
 
@@ -1133,6 +1140,12 @@ struct AbstractListActions {
                     editorList.at(index) = newValue;
                 }
             }
+        }
+
+    public:
+        virtual void notifyGui(AbstractEditorGui* gui) const final
+        {
+            editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
     };
 

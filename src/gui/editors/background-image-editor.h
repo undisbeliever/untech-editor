@@ -37,6 +37,8 @@ private:
     unsigned _invalidTilesCompileId;
 
     Texture _imageTexture;
+
+public:
     bool _textureValid;
 
 public:

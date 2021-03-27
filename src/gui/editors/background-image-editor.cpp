@@ -31,6 +31,26 @@ struct BackgroundImageEditorData::AP {
             return namedListItem(&projectFile.backgroundImages, itemIndex.index);
         }
     };
+
+    struct ImageFilename {
+        using EditorT = BackgroundImageEditorData;
+        using EditorDataT = std::filesystem::path;
+
+        constexpr static auto validFlag = &BackgroundImageEditorGui::_textureValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.imageFilename;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = BackgroundImage::getEditorData(projectFile, itemIndex)) {
+                return &e->imageFilename;
+            }
+            return nullptr;
+        }
+    };
 };
 
 BackgroundImageEditorData::BackgroundImageEditorData(ItemIndex itemIndex)
@@ -101,10 +121,7 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
             }
 
             if (ImGui::InputPngImageFilename("Image", &bi.imageFilename)) {
-                EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::imageFilename>(_data);
-
-                _textureValid = false;
+                EditorActions<AP::ImageFilename>::editorDataEdited(_data);
             }
 
             if (ImGui::IdStringCombo("Conversion Palette", &bi.conversionPlette, projectFile.palettes)) {

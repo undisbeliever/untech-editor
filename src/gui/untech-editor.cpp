@@ -501,7 +501,7 @@ void UnTechEditor::processGui()
     });
 
     if (_currentEditor) {
-        _currentEditor->processEditorActions();
+        _currentEditor->processEditorActions(_currentEditorGui);
         _currentEditor->updateSelection();
     }
 }

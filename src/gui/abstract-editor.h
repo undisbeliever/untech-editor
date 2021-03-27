@@ -18,9 +18,18 @@ class ProjectData;
 
 namespace UnTech::Gui {
 
+class AbstractEditorGui;
+
 class EditorUndoAction {
 public:
     virtual ~EditorUndoAction() = default;
+
+    // Notify the GUI that the data has changed.
+    //
+    // AbstractEditorGui* may be null
+    //
+    // Called after `firstDo_editorData()`, `undo()` or `redo()` is called.
+    virtual void notifyGui(AbstractEditorGui*) const = 0;
 
     // Preforms an action to the editor data.
     //
@@ -106,12 +115,14 @@ public:
     void endMacro();
 
     // Called once per frame, before updateSelection().
-    void processEditorActions();
+    // AbstractEditorGui* may be null
+    void processEditorActions(AbstractEditorGui*);
 
+    // AbstractEditorGui* may be null
     // Returns true if the editor data changed.
     bool processPendingProjectActions(UnTech::Project::ProjectFile&);
-    bool undo(UnTech::Project::ProjectFile&);
-    bool redo(UnTech::Project::ProjectFile&);
+    bool undo(UnTech::Project::ProjectFile&, AbstractEditorGui*);
+    bool redo(UnTech::Project::ProjectFile&, AbstractEditorGui*);
 
     bool canUndo() const { return !_undoStack.empty(); }
     bool canRedo() const { return !_redoStack.empty(); }
@@ -163,7 +174,7 @@ public:
 
     virtual bool setEditorData(AbstractEditorData* data) = 0;
 
-    // Called after undo, redo, setEditorData or ImageCache invalidation
+    // Called after setEditorData or ImageCache invalidation
     virtual void resetState() = 0;
 
     virtual void editorClosed() = 0;

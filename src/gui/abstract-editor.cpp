@@ -83,6 +83,15 @@ public:
             }
         }
     }
+
+    virtual void notifyGui(AbstractEditorGui* gui) const final
+    {
+        for (auto& a : actions) {
+            if (a) {
+                a->notifyGui(gui);
+            }
+        }
+    }
 };
 
 void trimStack(std::vector<std::unique_ptr<EditorUndoAction>>& stack)
@@ -135,7 +144,7 @@ void AbstractEditorData::endMacro()
     _inMacro = false;
 }
 
-void AbstractEditorData::processEditorActions()
+void AbstractEditorData::processEditorActions(AbstractEditorGui* gui)
 {
     const auto pendingSize = _pendingEditorActions.size();
     const auto undoSize = _undoStack.size();
@@ -152,6 +161,7 @@ void AbstractEditorData::processEditorActions()
         auto action = std::move(pa);
 
         action->firstDo_editorData();
+        action->notifyGui(gui);
 
         assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
         assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
@@ -202,7 +212,7 @@ bool AbstractEditorData::processPendingProjectActions(Project::ProjectFile& proj
     return edited;
 }
 
-bool AbstractEditorData::undo(Project::ProjectFile& projectFile)
+bool AbstractEditorData::undo(Project::ProjectFile& projectFile, AbstractEditorGui* gui)
 {
     assert(_pendingEditorActions.empty());
 
@@ -223,6 +233,7 @@ bool AbstractEditorData::undo(Project::ProjectFile& projectFile)
     const auto redoSize = _redoStack.size();
 
     a->undo(projectFile);
+    a->notifyGui(gui);
     _clean = false;
 
     assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
@@ -238,7 +249,7 @@ bool AbstractEditorData::undo(Project::ProjectFile& projectFile)
     return true;
 }
 
-bool AbstractEditorData::redo(Project::ProjectFile& projectFile)
+bool AbstractEditorData::redo(Project::ProjectFile& projectFile, AbstractEditorGui* gui)
 {
     assert(_pendingEditorActions.empty());
 
@@ -259,6 +270,7 @@ bool AbstractEditorData::redo(Project::ProjectFile& projectFile)
     const auto redoSize = _redoStack.size();
 
     a->redo(projectFile);
+    a->notifyGui(gui);
     _clean = false;
 
     assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
@@ -301,12 +313,10 @@ bool processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, Projec
     bool edited = false;
 
     if (gui->undoClicked) {
-        edited = editor->undo(pf);
-        gui->resetState();
+        edited = editor->undo(pf, gui);
     }
     else if (gui->redoClicked) {
-        edited = editor->redo(pf);
-        gui->resetState();
+        edited = editor->redo(pf, gui);
     }
 
     gui->undoClicked = false;

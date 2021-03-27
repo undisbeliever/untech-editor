@@ -51,6 +51,46 @@ struct SpriteImporterEditorData::AP {
         }
     };
 
+    struct ExportOrder {
+        using EditorT = SpriteImporterEditorData;
+        using EditorDataT = idstring;
+
+        constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.exportOrder;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = FrameSet::getEditorData(projectFile, itemIndex)) {
+                return &e->exportOrder;
+            }
+            return nullptr;
+        }
+    };
+
+    struct Image {
+        using EditorT = SpriteImporterEditorData;
+        using EditorDataT = std::filesystem::path;
+
+        constexpr static auto validFlag = &SpriteImporterEditorGui::_imageValid;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor.data.imageFilename;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
+        {
+            if (auto* e = FrameSet::getEditorData(projectFile, itemIndex)) {
+                return &e->imageFilename;
+            }
+            return nullptr;
+        }
+    };
+
     struct Frames final : public FrameSet {
         using ListT = NamedList<SI::Frame>;
         using ListArgsT = std::tuple<>;
@@ -59,6 +99,8 @@ struct SpriteImporterEditorData::AP {
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
         constexpr static auto SelectionPtr = &EditorT::framesSel;
+
+        constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
 
         static ListT* getList(SI::FrameSet& fs) { return &fs.frames; }
     };
@@ -119,6 +161,8 @@ struct SpriteImporterEditorData::AP {
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
         constexpr static auto SelectionPtr = &EditorT::animationsSel;
+
+        constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
 
         static ListT* getList(SI::FrameSet& fs) { return &fs.animations; }
     };
@@ -229,7 +273,6 @@ void SpriteImporterEditorGui::addFrame(const idstring& name)
     SI::Frame frame;
     frame.name = name;
     ListActions<AP::Frames>::addItemToSelectedList(_data, frame);
-    invalidateExportOrderTree();
 }
 
 void SpriteImporterEditorGui::addAnimation(const idstring& name)
@@ -239,7 +282,6 @@ void SpriteImporterEditorGui::addAnimation(const idstring& name)
     MetaSprite::Animation::Animation animation;
     animation.name = name;
     ListActions<AP::Animations>::addItemToSelectedList(_data, animation);
-    invalidateExportOrderTree();
 }
 
 void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
@@ -265,18 +307,11 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
             }
 
             if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
-                EditorActions<AP::FrameSet>::fieldEdited<
-                    &SI::FrameSet::exportOrder>(_data);
-
-                invalidateExportOrderTree();
+                EditorActions<AP::ExportOrder>::editorDataEdited(_data);
             }
 
             if (ImGui::InputPngImageFilename("Image", &fs.imageFilename)) {
-                EditorActions<AP::FrameSet>::fieldEdited<
-                    &SI::FrameSet::imageFilename>(_data);
-
-                _imageValid = false;
-                _transparentColorComboValid = false;
+                EditorActions<AP::Image>::editorDataEdited(_data);
             }
 
             {
@@ -406,9 +441,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
-        if (ListButtons<AP::Frames>(_data)) {
-            invalidateExportOrderTree();
-        }
+        ListButtons<AP::Frames>(_data);
 
         ImGui::SetNextItemWidth(-1);
         ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
@@ -427,8 +460,6 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &SI::Frame::name>(_data);
-
-                    invalidateExportOrderTree();
                 }
 
                 unsigned spriteOrder = frame.spriteOrder;
