@@ -208,23 +208,18 @@ bool SpriteImporterEditorGui::setEditorData(AbstractEditorData* data)
     return _data;
 }
 
-void SpriteImporterEditorGui::editorDataChanged()
+void SpriteImporterEditorGui::resetState()
 {
-    AbstractMetaSpriteEditorGui::editorDataChanged();
+    AbstractMetaSpriteEditorGui::resetState();
 
     _imageValid = false;
     _transparentColorComboValid = false;
-}
 
-void SpriteImporterEditorGui::editorOpened()
-{
-    editorDataChanged();
     _graphics.resetState();
 }
 
 void SpriteImporterEditorGui::editorClosed()
 {
-    editorOpened();
 }
 
 void SpriteImporterEditorGui::addFrame(const idstring& name)

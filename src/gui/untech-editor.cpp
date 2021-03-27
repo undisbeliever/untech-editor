@@ -156,8 +156,7 @@ void UnTechEditor::openEditor(const Project::ProjectFile& pf, const ItemIndex it
                 _currentEditorGui->redoClicked = false;
                 _currentEditorGui->undoClicked = false;
 
-                _currentEditorGui->editorDataChanged();
-                _currentEditorGui->editorOpened();
+                _currentEditorGui->resetState();
             }
             else {
                 _currentEditor = nullptr;
@@ -247,7 +246,7 @@ void UnTechEditor::invalidateImageCache()
     ImageCache::invalidateImageCache();
     _backgroundThread.markAllResourcesInvalid();
     if (_currentEditorGui) {
-        _currentEditorGui->editorDataChanged();
+        _currentEditorGui->resetState();
     }
 }
 

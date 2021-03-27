@@ -320,9 +320,11 @@ bool RoomEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<RoomEditorData*>(data));
 }
 
-void RoomEditorGui::editorDataChanged()
+void RoomEditorGui::resetState()
 {
     AbstractMetaTileEditorGui::resetState();
+
+    setEditMode(EditMode::SelectObjects);
 
     _mtTilesetValid = false;
     _scenesData = nullptr;
@@ -330,13 +332,6 @@ void RoomEditorGui::editorDataChanged()
     if (_data) {
         _mapSize = _data->data.map.size();
     }
-}
-
-void RoomEditorGui::editorOpened()
-{
-    AbstractMetaTileEditorGui::editorOpened();
-
-    setEditMode(EditMode::SelectObjects);
 }
 
 void RoomEditorGui::editorClosed()

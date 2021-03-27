@@ -71,11 +71,7 @@ bool InteractiveTilesEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<InteractiveTilesEditorData*>(data));
 }
 
-void InteractiveTilesEditorGui::editorDataChanged()
-{
-}
-
-void InteractiveTilesEditorGui::editorOpened()
+void InteractiveTilesEditorGui::resetState()
 {
 }
 

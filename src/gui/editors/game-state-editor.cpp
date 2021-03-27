@@ -88,11 +88,7 @@ bool GameStateEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<GameStateEditorData*>(data));
 }
 
-void GameStateEditorGui::editorDataChanged()
-{
-}
-
-void GameStateEditorGui::editorOpened()
+void GameStateEditorGui::resetState()
 {
 }
 

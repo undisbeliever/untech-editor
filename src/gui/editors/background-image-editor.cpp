@@ -62,12 +62,7 @@ bool BackgroundImageEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<BackgroundImageEditorData*>(data));
 }
 
-void BackgroundImageEditorGui::editorDataChanged()
-{
-    _textureValid = false;
-}
-
-void BackgroundImageEditorGui::editorOpened()
+void BackgroundImageEditorGui::resetState()
 {
     _textureValid = false;
     _invalidTilesCompileId = 0;

@@ -138,11 +138,7 @@ bool FrameSetExportOrderEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<FrameSetExportOrderEditorData*>(data));
 }
 
-void FrameSetExportOrderEditorGui::editorDataChanged()
-{
-}
-
-void FrameSetExportOrderEditorGui::editorOpened()
+void FrameSetExportOrderEditorGui::resetState()
 {
 }
 

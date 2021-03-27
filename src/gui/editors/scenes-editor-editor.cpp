@@ -91,11 +91,7 @@ bool ScenesEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<ScenesEditorData*>(data));
 }
 
-void ScenesEditorGui::editorDataChanged()
-{
-}
-
-void ScenesEditorGui::editorOpened()
+void ScenesEditorGui::resetState()
 {
 }
 

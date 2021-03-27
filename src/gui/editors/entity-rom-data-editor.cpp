@@ -161,11 +161,7 @@ bool EntityRomDataEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<EntityRomDataEditorData*>(data));
 }
 
-void EntityRomDataEditorGui::editorDataChanged()
-{
-}
-
-void EntityRomDataEditorGui::editorOpened()
+void EntityRomDataEditorGui::resetState()
 {
 }
 

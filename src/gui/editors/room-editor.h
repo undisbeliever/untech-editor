@@ -92,9 +92,7 @@ public:
     RoomEditorGui();
 
     virtual bool setEditorData(AbstractEditorData* data) final;
-    virtual void editorDataChanged() final;
-
-    virtual void editorOpened() final;
+    virtual void resetState() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile,

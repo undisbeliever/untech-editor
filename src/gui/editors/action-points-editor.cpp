@@ -69,11 +69,7 @@ bool ActionPointsEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<ActionPointsEditorData*>(data));
 }
 
-void ActionPointsEditorGui::editorDataChanged()
-{
-}
-
-void ActionPointsEditorGui::editorOpened()
+void ActionPointsEditorGui::resetState()
 {
 }
 

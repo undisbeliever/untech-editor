@@ -53,7 +53,7 @@ public:
     static bool showActionPoints;
 
 public:
-    virtual void editorDataChanged() override;
+    virtual void resetState() override;
 
     virtual void viewMenu() override;
 

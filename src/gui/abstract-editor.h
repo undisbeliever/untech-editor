@@ -163,12 +163,9 @@ public:
 
     virtual bool setEditorData(AbstractEditorData* data) = 0;
 
-    // Called when the editor data is changed outside this GUI class.
-    // (Note: also called after `setEditorData`)
-    // Called after undo, redo, ImageCache invalidation or setEditorData
-    virtual void editorDataChanged() = 0;
+    // Called after undo, redo, setEditorData or ImageCache invalidation
+    virtual void resetState() = 0;
 
-    virtual void editorOpened() = 0;
     virtual void editorClosed() = 0;
 
     virtual void processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData) = 0;

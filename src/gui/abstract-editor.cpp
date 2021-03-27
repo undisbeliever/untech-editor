@@ -302,11 +302,11 @@ bool processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, Projec
 
     if (gui->undoClicked) {
         edited = editor->undo(pf);
-        gui->editorDataChanged();
+        gui->resetState();
     }
     else if (gui->redoClicked) {
         edited = editor->redo(pf);
-        gui->editorDataChanged();
+        gui->resetState();
     }
 
     gui->undoClicked = false;

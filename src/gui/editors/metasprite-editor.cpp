@@ -361,17 +361,12 @@ bool MetaSpriteEditorGui::setEditorData(AbstractEditorData* data)
     return _data;
 }
 
-void MetaSpriteEditorGui::editorDataChanged()
+void MetaSpriteEditorGui::resetState()
 {
-    AbstractMetaSpriteEditorGui::editorDataChanged();
+    AbstractMetaSpriteEditorGui::resetState();
 
     _paletteValid = false;
     _tilesetValid = false;
-}
-
-void MetaSpriteEditorGui::editorOpened()
-{
-    editorDataChanged();
 
     _colorSel = INT_MAX;
     _paletteState = PaletteState::EDIT_COLOR;

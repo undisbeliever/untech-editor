@@ -71,11 +71,7 @@ bool ProjectSettingsEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<ProjectSettingsEditorData*>(data));
 }
 
-void ProjectSettingsEditorGui::editorDataChanged()
-{
-}
-
-void ProjectSettingsEditorGui::editorOpened()
+void ProjectSettingsEditorGui::resetState()
 {
 }
 

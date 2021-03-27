@@ -65,12 +65,7 @@ bool PaletteEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<PaletteEditorData*>(data));
 }
 
-void PaletteEditorGui::editorDataChanged()
-{
-    _textureValid = false;
-}
-
-void PaletteEditorGui::editorOpened()
+void PaletteEditorGui::resetState()
 {
     _animationTimer.reset();
     _textureValid = false;

@@ -16,9 +16,9 @@ bool AbstractMetaSpriteEditorGui::showTileHitbox = true;
 bool AbstractMetaSpriteEditorGui::showEntityHitboxes = true;
 bool AbstractMetaSpriteEditorGui::showActionPoints = true;
 
-void AbstractMetaSpriteEditorGui::editorDataChanged()
+void AbstractMetaSpriteEditorGui::resetState()
 {
-    invalidateExportOrderTree();
+    _exportOrderValid = false;
 }
 
 void AbstractMetaSpriteEditorGui::viewMenu()

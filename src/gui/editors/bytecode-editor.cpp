@@ -76,11 +76,7 @@ bool BytecodeEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<BytecodeEditorData*>(data));
 }
 
-void BytecodeEditorGui::editorDataChanged()
-{
-}
-
-void BytecodeEditorGui::editorOpened()
+void BytecodeEditorGui::resetState()
 {
 }
 

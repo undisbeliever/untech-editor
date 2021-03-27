@@ -296,20 +296,9 @@ bool AbstractMetaTileEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<AbstractMetaTileEditorData*>(data));
 }
 
-void AbstractMetaTileEditorGui::editorDataChanged()
-{
-    markTilemapOutOfDate();
-}
-
 void AbstractMetaTileEditorGui::markTilemapOutOfDate()
 {
     _tilemapOutOfDate = true;
-}
-
-void AbstractMetaTileEditorGui::resetState()
-{
-    markTilemapOutOfDate();
-    abandonPlacedTiles();
 }
 
 void AbstractMetaTileEditorGui::resetSelectorState()
@@ -321,9 +310,12 @@ void AbstractMetaTileEditorGui::resetSelectorState()
     scratchpadTilesSelector.reset();
 }
 
-void AbstractMetaTileEditorGui::editorOpened()
+void AbstractMetaTileEditorGui::resetState()
 {
     resetSelectorState();
+    abandonPlacedTiles();
+
+    markTilemapOutOfDate();
 
     _animationTimer.reset();
 
@@ -335,8 +327,6 @@ void AbstractMetaTileEditorGui::editorOpened()
     _cursor.mapDirty = false;
     _cursor.currentlyEditing = false;
     // Do not change cursor
-
-    markTilemapOutOfDate();
 }
 
 void AbstractMetaTileEditorGui::editorClosed()

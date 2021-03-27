@@ -161,25 +161,11 @@ bool MetaTileTilesetEditorGui::setEditorData(AbstractEditorData* data)
     return (_data = dynamic_cast<MetaTileTilesetEditorData*>(data));
 }
 
-void MetaTileTilesetEditorGui::editorDataChanged()
+void MetaTileTilesetEditorGui::resetState()
 {
-    resetState();
+    AbstractMetaTileEditorGui::resetState();
+
     resetTileProperties();
-
-    _tilesetShaderImageFilenamesValid = false;
-    _tileCollisionsValid = false;
-    _interactiveTilesValid = false;
-
-    if (_data) {
-        _scratchpadSize = _data->data.scratchpad.size();
-    }
-}
-
-void MetaTileTilesetEditorGui::editorOpened()
-{
-    AbstractMetaTileEditorGui::editorOpened();
-
-    editorDataChanged();
 
     setEditMode(EditMode::SelectTiles);
 
@@ -187,6 +173,10 @@ void MetaTileTilesetEditorGui::editorOpened()
     _tilesetShaderImageFilenamesValid = false;
     _tileCollisionsValid = false;
     _interactiveTilesValid = false;
+
+    if (_data) {
+        _scratchpadSize = _data->data.scratchpad.size();
+    }
 }
 
 void MetaTileTilesetEditorGui::editorClosed()

@@ -105,9 +105,7 @@ public:
     AbstractMetaTileEditorGui();
 
     virtual bool setEditorData(AbstractEditorData* data) override;
-    virtual void editorDataChanged() override;
-
-    virtual void editorOpened() override;
+    virtual void resetState() override;
     virtual void editorClosed() override;
 
     virtual void viewMenu() override;
@@ -119,9 +117,6 @@ protected:
     void showLayerButtons();
 
     void markTilemapOutOfDate();
-
-    // To be called in `loadDataFromProject`
-    void resetState();
 
     // To be called at the start of `processGui`
     void updateMapAndProcessAnimations();
