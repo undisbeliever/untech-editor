@@ -929,7 +929,7 @@ void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile
     frameEditorWindow();
 
     animationPropertiesWindow<AP>("Animations##SI", _data, &fs);
-    animationPreviewWindow("Animation Preview##MS", _data, [this](auto... args) { drawAnimationFrame(args...); });
+    animationPreviewWindow("Animation Preview##SI", _data, [this](auto... args) { drawAnimationFrame(args...); });
     exportOrderWindow("Export Order##SI");
 }
 
