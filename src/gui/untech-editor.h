@@ -104,8 +104,8 @@ public:
     void updateProjectFile();
 
 private:
-    void openEditor(const Project::ProjectFile& pf, const ItemIndex itemIndex);
-    void closeEditor(const Project::ProjectFile& pf);
+    void openEditor(Project::ProjectFile& pf, const ItemIndex itemIndex);
+    void closeEditor(Project::ProjectFile& pf);
 
     bool saveProjectFile(const Project::ProjectFile& pf);
     bool saveEditor(const Project::ProjectFile& pf, AbstractEditorData* editor);

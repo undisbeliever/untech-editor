@@ -117,9 +117,11 @@ std::optional<ItemIndex> UnTechEditor::selectedItemIndex() const
 }
 
 // MUST ONLY be called by `updateProjectFile`
-void UnTechEditor::openEditor(const Project::ProjectFile& pf, const ItemIndex itemIndex)
+void UnTechEditor::openEditor(Project::ProjectFile& pf_writeable, const ItemIndex itemIndex)
 {
     AbstractEditorData* editor = nullptr;
+
+    const Project::ProjectFile& pf = pf_writeable;
 
     auto it = std::find_if(_editors.cbegin(), _editors.cend(),
                            [&](auto& e) { return e->itemIndex() == itemIndex; });
@@ -138,7 +140,8 @@ void UnTechEditor::openEditor(const Project::ProjectFile& pf, const ItemIndex it
     }
 
     if (editor != _currentEditor) {
-        closeEditor(pf);
+        closeEditor(pf_writeable);
+
         _currentEditor = editor;
         if (editor) {
             const bool success = editor->loadDataFromProject(pf);
@@ -167,14 +170,16 @@ void UnTechEditor::openEditor(const Project::ProjectFile& pf, const ItemIndex it
 }
 
 // MUST ONLY be called by `updateProjectFile`
-void UnTechEditor::closeEditor(const Project::ProjectFile& pf)
+void UnTechEditor::closeEditor(Project::ProjectFile& pf)
 {
-    if (_currentEditor) {
-        // Discard any uncommitted data
-        _currentEditor->loadDataFromProject(pf);
-    }
     if (_currentEditorGui) {
+        assert(_currentEditor);
+
         _currentEditorGui->editorClosed();
+
+        // AbstractEditorGui::editorClosed() may add actions to the editor.
+        _currentEditor->processEditorActions(_currentEditorGui);
+        _currentEditor->processPendingProjectActions(pf);
     }
 
     _currentEditor = nullptr;
