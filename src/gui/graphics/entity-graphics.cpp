@@ -342,6 +342,7 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
     const float uvY = 1.0f / textureSize.height;
 
     auto eg = std::make_shared<EntityGraphics>(textureSize);
+    eg->image.fill(rgba());
 
     {
         auto it = std::find_if(packingNodes.begin(), packingNodes.end(),
@@ -395,7 +396,6 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
                 auto msPalette = ef.frameSet.palettes.at(ef.palette);
                 std::transform(msPalette.begin(), msPalette.end(), palette.begin(),
                                Snes::toRgb);
-                ;
             }
             else {
                 palette.fill(rgba(255, 0, 0));
