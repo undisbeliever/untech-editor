@@ -104,19 +104,19 @@ public:
     void updateProjectFile();
 
 private:
-    void openEditor(Project::ProjectFile& pf, const ItemIndex itemIndex);
-    void closeEditor(Project::ProjectFile& pf);
+    void openEditor(const ItemIndex itemIndex);
+    void closeEditor();
 
-    bool saveProjectFile(const Project::ProjectFile& pf);
-    bool saveEditor(const Project::ProjectFile& pf, AbstractEditorData* editor);
-    bool saveAll(const Project::ProjectFile& pf);
+    bool saveProjectFile();
+    bool saveEditor(AbstractEditorData* editor);
+    bool saveAll();
 
     void invalidateImageCache();
 
-    void processMenu(const Project::ProjectFile& pf);
-    void processKeyboardShortcuts(const Project::ProjectFile& pf);
+    void processMenu();
+    void processKeyboardShortcuts();
 
-    void unsavedChangesOnExitPopup(const Project::ProjectFile& pf);
+    void unsavedChangesOnExitPopup();
 };
 
 }
