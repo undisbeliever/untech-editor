@@ -22,6 +22,7 @@
 
 namespace UnTech::Gui {
 class AbstractEditorData;
+class AbstractExternalFileEditorData;
 class AbstractEditorGui;
 
 class BackgroundThread {
@@ -107,8 +108,12 @@ private:
     void openEditor(const ItemIndex itemIndex);
     void closeEditor();
 
+    // Will block execution if background thread is reading ProjectFile
+    void forceProcessEditorActions();
+
+    bool saveEditor(AbstractExternalFileEditorData* editor);
     bool saveProjectFile();
-    bool saveEditor(AbstractEditorData* editor);
+    void saveCurrentEditor();
     bool saveAll();
 
     void invalidateImageCache();

@@ -127,6 +127,8 @@ public:
     bool canUndo() const { return !_undoStack.empty(); }
     bool canRedo() const { return !_redoStack.empty(); }
 
+    bool hasPendingActions() const { return (!_pendingEditorActions.empty()) || (!_pendingEditorActions.empty()); }
+
     bool isClean() const { return _clean; }
     void markClean() { _clean = true; }
 

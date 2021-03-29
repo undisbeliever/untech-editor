@@ -183,28 +183,50 @@ void UnTechEditor::closeEditor()
         _currentEditorGui->editorClosed();
 
         // AbstractEditorGui::editorClosed() may add actions to the editor.
-        _currentEditor->processEditorActions(_currentEditorGui);
-        _projectFile.write([&](auto& pf) {
-            _currentEditor->processPendingProjectActions(pf);
-        });
+        forceProcessEditorActions();
     }
 
     _currentEditor = nullptr;
     _currentEditorGui = nullptr;
 }
 
+bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
+{
+    assert(editor);
+    assert(editor->hasPendingActions() == false);
+
+    // ::TODO is this necessary? ::
+    _projectFile.read([&](auto& pf) {
+        bool dataLoaded = editor->loadDataFromProject(pf);
+        assert(dataLoaded);
+    });
+
+    assert(editor->filename().empty() == false);
+    try {
+        editor->saveFile();
+        editor->markClean();
+        return true;
+    }
+    catch (const std::exception& ex) {
+        MsgBox::showMessage("Cannot Save Resource", ex.what());
+        return false;
+    }
+}
+
 bool UnTechEditor::saveProjectFile()
 {
     assert(!_filename.empty());
+
+    forceProcessEditorActions();
 
     try {
         _projectFile.read([&](auto& pf) {
             UnTech::Project::saveProjectFile(pf, _filename);
         });
 
-        for (auto& e : _editors) {
-            if (dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor) == nullptr) {
-                e->markClean();
+        for (auto& editor : _editors) {
+            if (dynamic_cast<AbstractExternalFileEditorData*>(editor.get()) == nullptr) {
+                editor->markClean();
             }
         }
         _projectListWindow.markClean();
@@ -216,42 +238,44 @@ bool UnTechEditor::saveProjectFile()
     }
 }
 
-bool UnTechEditor::saveEditor(AbstractEditorData* editor)
+void UnTechEditor::saveCurrentEditor()
 {
-    if (auto e = dynamic_cast<AbstractExternalFileEditorData*>(editor)) {
+    if (_currentEditor) {
+        forceProcessEditorActions();
 
-        _projectFile.read([&](auto& pf) {
-            bool dataLoaded = e->loadDataFromProject(pf);
-            assert(dataLoaded);
-        });
-
-        assert(e->filename().empty() == false);
-        try {
-            e->saveFile();
-            e->markClean();
-            return true;
+        if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor)) {
+            saveEditor(e);
         }
-        catch (const std::exception& ex) {
-            MsgBox::showMessage("Cannot Save Resource", ex.what());
-            return false;
+        else {
+            saveProjectFile();
         }
-    }
-    else {
-        return saveProjectFile();
     }
 }
 
 bool UnTechEditor::saveAll()
 {
-    bool ok = true;
+    forceProcessEditorActions();
 
-    if (_projectListWindow.isClean() == false) {
-        ok &= saveProjectFile();
+    if (_currentEditor) {
+        assert(_currentEditor->hasPendingActions() == false);
     }
-    for (auto& e : _editors) {
-        if (!e->isClean()) {
-            ok &= saveEditor(e.get());
+
+    bool ok = true;
+    bool projectFileDirty = !_projectListWindow.isClean();
+
+    for (auto& editor : _editors) {
+        if (!editor->isClean()) {
+            if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(editor.get())) {
+                saveEditor(e);
+            }
+            else {
+                projectFileDirty = true;
+            }
         }
+    }
+
+    if (projectFileDirty) {
+        ok &= saveProjectFile();
     }
 
     return ok;
@@ -277,7 +301,7 @@ void UnTechEditor::processMenu()
             if (!_currentEditor->basename().empty()) {
                 auto s = "Save "s + _currentEditor->basename();
                 if (ImGui::MenuItem(s.c_str())) {
-                    saveEditor(_currentEditor);
+                    saveCurrentEditor();
                 }
             }
         }
@@ -367,9 +391,7 @@ void UnTechEditor::processKeyboardShortcuts()
                 saveAll();
             }
             else {
-                if (_currentEditor) {
-                    saveEditor(_currentEditor);
-                }
+                saveCurrentEditor();
             }
         }
 
@@ -544,6 +566,7 @@ void UnTechEditor::updateProjectFile()
 
     if (_projectListWindow.hasPendingActions()) {
         closeEditor();
+
         _projectFile.write([&](auto& pf) {
             _projectListWindow.processPendingActions(pf, _editors);
         });
@@ -561,6 +584,27 @@ void UnTechEditor::updateProjectFile()
         if (_currentEditor != nullptr) {
             closeEditor();
         }
+    }
+}
+
+void UnTechEditor::forceProcessEditorActions()
+{
+    // ::TODO add requestStopCompiling to background thread::
+
+    if (_currentEditor) {
+        bool edited = false;
+
+        _currentEditor->processEditorActions(_currentEditorGui);
+
+        _projectFile.write([&](auto& pf) {
+            edited = _currentEditor->processPendingProjectActions(pf);
+        });
+
+        if (edited) {
+            _backgroundThread.markResourceInvalid(_currentEditor->itemIndex());
+        }
+
+        _currentEditor->updateSelection();
     }
 }
 
