@@ -11,7 +11,7 @@
 
 namespace UnTech {
 
-struct rgba {
+struct alignas(4) rgba {
     uint8_t red;
     uint8_t green;
     uint8_t blue;
