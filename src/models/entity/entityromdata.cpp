@@ -779,6 +779,9 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     for (const auto& e : data.projectiles) {
         e.validate(EntityType::PROJECTILE, project, ftMap, err);
     }
+    for (const auto& e : data.players) {
+        e.validate(EntityType::PLAYER, project, ftMap, err);
+    }
 
     ret->valid = oldErrorCount == err.errorCount();
     if (!ret->valid) {
