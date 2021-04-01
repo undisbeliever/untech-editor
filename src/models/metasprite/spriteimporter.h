@@ -82,7 +82,7 @@ struct FrameLocation {
 
 private:
     friend struct Frame;
-    bool validate(ErrorList& errorList, const Frame& frame) const;
+    bool validate(const Frame& frame, const unsigned frameId, ErrorList& errorList) const;
 };
 
 struct FrameObject {
@@ -179,7 +179,7 @@ struct Frame {
 
 private:
     friend struct FrameSet;
-    bool validate(const ActionPointMapping& actionPointMapping, const Image& image, ErrorList& errorList) const;
+    bool validate(const unsigned frameIndex, const Image& image, const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
 };
 
 struct UserSuppliedPalette {

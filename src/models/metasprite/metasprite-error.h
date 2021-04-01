@@ -20,39 +20,60 @@ enum class MsErrorType {
     ENTITY_HITBOX,
 };
 
-class MetaSpriteError : public AbstractSpecializedError {
-private:
-    const MsErrorType _type;
-    const void* const _ptr;
-    const std::string _name;
-    const unsigned _id;
-    const std::string _message;
-
+class MetaSpriteError : public GenericListError {
 public:
-    MetaSpriteError(MsErrorType type, const void* ptr, std::string name, std::string message)
-        : _type(type)
-        , _ptr(ptr)
-        , _name(std::move(name))
-        , _id(UINT_MAX)
-        , _message(std::move(message))
+    const MsErrorType type;
+
+    MetaSpriteError(const MsErrorType type, unsigned pIndex, std::string&& message)
+        : GenericListError(pIndex, std::move(message))
+        , type(type)
     {
     }
 
-    MetaSpriteError(MsErrorType type, const void* ptr, std::string name, unsigned id, std::string message)
-        : _type(type)
-        , _ptr(ptr)
-        , _name(std::move(name))
-        , _id(id)
-        , _message(std::move(message))
+    MetaSpriteError(const MsErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+        : GenericListError(pIndex, cIndex, std::move(message))
+        , type(type)
+    {
+    }
+};
+
+enum class EoErrorType {
+    STILL_FRAMES,
+    STILL_FRAMES_ALT,
+    ANIMATIONS,
+    ANIMATIONS_ALT,
+};
+
+class ExportOrderError : public GenericListError {
+public:
+    const EoErrorType type;
+
+    ExportOrderError(const EoErrorType type, unsigned pIndex, std::string&& message)
+        : GenericListError(pIndex, std::move(message))
+        , type(type)
     {
     }
 
-    MsErrorType type() const { return _type; }
-    const void* ptr() const { return _ptr; }
-    const std::string& name() const { return _name; }
-    unsigned id() const { return _id; }
+    ExportOrderError(const EoErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+        : GenericListError(pIndex, cIndex, std::move(message))
+        , type(type)
+    {
+    }
+};
 
-    virtual std::string message() const final { return _message; }
+enum class ApfErrorType {
+    ACTION_POINT_FUNCTIONS,
+};
+
+class ActionPointFunctionError : public GenericListError {
+public:
+    const ApfErrorType type;
+
+    ActionPointFunctionError(const ApfErrorType type, unsigned pIndex, std::string&& message)
+        : GenericListError(pIndex, std::move(message))
+        , type(type)
+    {
+    }
 };
 
 }

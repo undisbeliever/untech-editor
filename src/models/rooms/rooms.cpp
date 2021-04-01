@@ -5,6 +5,7 @@
  */
 
 #include "rooms.h"
+#include "errorlisthelpers.h"
 #include "models/common/errorlist.h"
 #include "models/common/iterators.h"
 #include "models/common/string.h"
@@ -68,8 +69,8 @@ static bool validateEntrances(const NamedList<RoomEntrance>& entrances, const Ro
         err.addErrorString(msg...);
         valid = false;
     };
-    const auto addEntranceError = [&](const RoomEntrance& e, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&e, "Entity Entrance ", e.name, ": ", msg...));
+    const auto addEntranceError = [&](const RoomEntrance& e, const unsigned index, const auto... msg) {
+        err.addError(roomEntranceError(e, index, "Entity Entrance ", e.name, ": ", msg...));
         valid = false;
     };
 
@@ -81,11 +82,13 @@ static bool validateEntrances(const NamedList<RoomEntrance>& entrances, const Ro
         addError("Too many Room Entrances (", entrances.size(), ", max: ", MAX_ROOM_ENTRANCES, ")");
     }
 
-    valid &= validateNamesUnique(entrances, "Room Entrance", err);
+    valid &= validateNamesUnique(entrances, "Room Entrance", [&](unsigned i, auto... msg) {
+        err.addError(std::make_unique<RoomError>(RoomErrorType::ROOM_ENTRANCE, i, stringBuilder(msg...)));
+    });
 
-    for (auto& en : entrances) {
+    for (auto [i, en] : enumerate(entrances)) {
         if (en.position.x >= ri.mapRight() || en.position.y >= ri.mapBottom()) {
-            addEntranceError(en, "Entrance must be inside map");
+            addEntranceError(en, i, "Entrance must be inside map");
         }
     }
 
@@ -102,12 +105,12 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
         err.addErrorString(msg...);
         valid = false;
     };
-    const auto addEntityGroupError = [&](const EntityGroup& ee, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&ee, "Entity Group ", ee.name, ":", msg...));
+    const auto addEntityGroupError = [&](const EntityGroup& eg, const unsigned egIndex, const auto... msg) {
+        err.addError(entityGroupError(eg, egIndex, msg...));
         valid = false;
     };
-    const auto addEntityError = [&](const EntityEntry& ee, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&ee, msg...));
+    const auto addEntityError = [&](const EntityGroup& eg, const unsigned egIndex, const unsigned eeIndex, const auto... msg) {
+        err.addError(entityEntryError(eg, egIndex, eeIndex, msg...));
         valid = false;
     };
 
@@ -118,18 +121,18 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
     const rect mapBounds = ri.validEntityArea();
 
     unsigned count = 0;
-    for (auto& eg : entityGroups) {
+    for (auto [egIndex, eg] : enumerate(entityGroups)) {
         if (eg.name.isValid() == false) {
-            addEntityGroupError(eg, "Expected name");
+            addEntityGroupError(eg, egIndex, "Expected name");
         }
 
         if (eg.entities.empty()) {
-            addEntityGroupError(eg, "Expected at least one entity");
+            addEntityGroupError(eg, egIndex, "Expected at least one entity");
         }
 
-        for (const EntityEntry& ee : eg.entities) {
+        for (const auto [eeIndex, ee] : enumerate(eg.entities)) {
             if (mapBounds.contains(ee.position) == false) {
-                addEntityError(ee, "Entity outside of map bounds");
+                addEntityError(eg, egIndex, eeIndex, "Entity outside of map bounds");
             }
             count++;
         }
@@ -152,8 +155,8 @@ static bool validateScriptTriggers(const std::vector<ScriptTrigger>& scriptTrigg
         err.addErrorString(msg...);
         valid = false;
     };
-    const auto addStError = [&](const ScriptTrigger& st, unsigned i, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&st, "Script Trigger ", i, ": ", msg...));
+    const auto addStError = [&](unsigned i, const auto... msg) {
+        err.addError(scriptTriggerError(i, msg...));
         valid = false;
     };
 
@@ -164,18 +167,18 @@ static bool validateScriptTriggers(const std::vector<ScriptTrigger>& scriptTrigg
     for (auto [i, st] : const_enumerate(scriptTriggers)) {
         if (st.script.isValid()) {
             if (!room.roomScripts.scripts.find(st.script)) {
-                addStError(st, i, "Cannot find script: ", st.script);
+                addStError(i, "Cannot find script: ", st.script);
             }
         }
         else {
-            addStError(st, i, "Expected script");
+            addStError(i, "Expected script");
         }
 
         if (st.aabb.width <= 0 || st.aabb.height <= 0) {
-            addStError(st, i, "Invalid AABB");
+            addStError(i, "Invalid AABB");
         }
         if (!room.map.size().contains(st.aabb)) {
-            addStError(st, i, "AABB must be inside the room");
+            addStError(i, "AABB must be inside the room");
         }
     }
 
@@ -298,12 +301,12 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
         err.addErrorString(msg...);
         valid = false;
     };
-    const auto addEntityGroupError = [&](const EntityGroup& eg, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&eg, msg...));
+    const auto addEntityGroupError = [&](const EntityGroup& eg, unsigned egIndex, const auto... msg) {
+        err.addError(entityGroupError(eg, egIndex, msg...));
         valid = false;
     };
-    const auto addEntityError = [&](const EntityEntry& ee, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&ee, msg...));
+    const auto addEntityError = [&](const EntityGroup& eg, const unsigned egIndex, const unsigned eeIndex, const auto... msg) {
+        err.addError(entityEntryError(eg, egIndex, eeIndex, msg...));
         valid = false;
     };
 
@@ -319,17 +322,17 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
         for (auto [egIndex, eg] : const_enumerate(input.entityGroups)) {
             bool s = entityGroupIndexMap.emplace(eg.name, egIndex).second;
             if (!s) {
-                addEntityGroupError(eg, "Duplicate Entity Group id: ", eg.name);
+                addEntityGroupError(eg, egIndex, "Duplicate Entity Group id: ", eg.name);
             }
         }
 
         unsigned entityIndex = 0;
-        for (auto& eg : input.entityGroups) {
-            for (auto& ee : eg.entities) {
+        for (auto [egIndex, eg] : const_enumerate(input.entityGroups)) {
+            for (auto [eeIndex, ee] : const_enumerate(eg.entities)) {
                 if (ee.name.isValid()) {
                     bool s = entityNameIndexMap.emplace(ee.name, entityIndex).second;
                     if (!s) {
-                        addEntityError(ee, "Duplicate Entity id: ", ee.name);
+                        addEntityError(eg, egIndex, eeIndex, "Duplicate Entity id: ", ee.name);
                     }
                 }
                 entityIndex++;
@@ -479,10 +482,16 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
 
         *it++ = 'E';
 
-        for (const EntityGroup& eg : input.entityGroups) {
+        for (auto egIt : enumerate(input.entityGroups)) {
+            const auto egIndex = egIt.first;
+            const auto& eg = egIt.second;
+
             assert(eg.entities.size() > 0);
 
-            for (const EntityEntry& ee : eg.entities) {
+            for (auto eeIt : const_enumerate(eg.entities)) {
+                const auto eeIndex = eeIt.first;
+                const auto& ee = eeIt.second;
+
                 static_assert(ENTITY_VERTICAL_SPACING == 256);
 
                 assert(ee.position.x >= 0);
@@ -499,10 +508,10 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
 
                     const auto parameterType = enIt->second.second;
                     parameter = processEntityParameter(ee.parameter, parameterType,
-                                                       [&](const auto&... msg) { addEntityError(ee, msg...); });
+                                                       [&](const auto&... msg) { addEntityError(eg, egIndex, eeIndex, msg...); });
                 }
                 else {
-                    addEntityError(ee, "Cannot find entity ", ee.entityId);
+                    addEntityError(eg, egIndex, eeIndex, "Cannot find entity ", ee.entityId);
                 }
                 assert(entityId <= UINT8_MAX);
 
@@ -545,14 +554,14 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
 
         // Startup Script
         {
-            const unsigned scriptPos = compiler.compileScript(input.roomScripts.startupScript);
+            const unsigned scriptPos = compiler.compileScript(input.roomScripts.startupScript, INT_MAX);
 
             data.at(headerPos++) = scriptPos & 0xff;
             data.at(headerPos++) = (scriptPos >> 8) & 0xff;
         }
 
-        for (const auto& s : input.roomScripts.scripts) {
-            const unsigned scriptPos = compiler.compileScript(s);
+        for (auto [i, s] : enumerate(input.roomScripts.scripts)) {
+            const unsigned scriptPos = compiler.compileScript(s, i);
 
             // Populate scriptPos in the room header
             if (headerPos < headerPosEnd) {

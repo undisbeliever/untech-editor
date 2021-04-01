@@ -9,6 +9,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/metasprite/metasprite-error.h"
 
 namespace UnTech::Gui {
 
@@ -117,6 +118,38 @@ void FrameSetExportOrderEditorData::saveFile() const
 {
     assert(!filename().empty());
     UnTech::MetaSprite::saveFrameSetExportOrder(data, filename());
+}
+
+void FrameSetExportOrderEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = MetaSprite::EoErrorType;
+
+    framesSel.clearSelection();
+    frameAlternativesSel.clearSelection();
+    animationsSel.clearSelection();
+    animationAlternativesSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const MetaSprite::ExportOrderError*>(error)) {
+        switch (e->type) {
+        case Type::STILL_FRAMES:
+            framesSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::STILL_FRAMES_ALT:
+            framesSel.setSelected(e->firstIndex);
+            frameAlternativesSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+
+        case Type::ANIMATIONS:
+            animationsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::ANIMATIONS_ALT:
+            animationsSel.setSelected(e->firstIndex);
+            animationAlternativesSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+        }
+    }
 }
 
 void FrameSetExportOrderEditorData::updateSelection()

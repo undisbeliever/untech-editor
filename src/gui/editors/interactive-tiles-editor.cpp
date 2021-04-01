@@ -9,6 +9,7 @@
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 #include "models/common/iterators.h"
+#include "models/metatiles/metatiles-error.h"
 
 namespace UnTech::Gui {
 
@@ -53,6 +54,21 @@ bool InteractiveTilesEditorData::loadDataFromProject(const Project::ProjectFile&
     interactiveTiles = projectFile.interactiveTiles;
 
     return true;
+}
+
+void InteractiveTilesEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = MetaTiles::InteractiveTilesErrorType;
+
+    sel.clearSelection();
+
+    if (auto* e = dynamic_cast<const MetaTiles::InteractiveTilesError*>(error)) {
+        switch (e->type) {
+        case Type::FUNCTION_TABLE:
+            sel.setSelected(e->firstIndex);
+            break;
+        }
+    }
 }
 
 void InteractiveTilesEditorData::updateSelection()

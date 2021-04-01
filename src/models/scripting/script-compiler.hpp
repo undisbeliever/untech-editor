@@ -9,6 +9,7 @@
 #include "bytecode.h"
 #include "game-state.h"
 #include "script.h"
+#include "scripting-error.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/iterators.h"
 #include "models/common/string.h"
@@ -19,12 +20,16 @@ namespace UnTech::Scripting {
 using GameStateDataValueMap = std::unordered_map<std::string, const GameStateData::Value>;
 
 static inline std::unordered_map<std::string, unsigned>
-setupTempVariables(const std::vector<idstring> tempVars, const char* typeName,
+setupTempVariables(const std::vector<idstring> tempVars, const bool isFlag,
                    const GameStateDataValueMap& gameStateVars, const unsigned nGameStateVars, const unsigned maxVars,
                    ErrorList& err)
 {
-    auto addError = [&](const auto... msg) {
-        err.addErrorString("Invalid temporary script ", typeName, ": ", msg...);
+    const char* typeName = isFlag ? "flag" : "word";
+    const ScriptErrorType errorType = isFlag ? ScriptErrorType::TEMP_FLAG : ScriptErrorType::TEMP_WORD;
+
+    auto addError = [&](unsigned index, const auto... msg) {
+        err.addError(std::make_unique<ScriptError>(errorType, index,
+                                                   stringBuilder("Temporary script ", typeName, ": ", msg...)));
     };
 
     std::unordered_map<std::string, unsigned> map;
@@ -32,25 +37,25 @@ setupTempVariables(const std::vector<idstring> tempVars, const char* typeName,
 
     long varId = maxVars;
 
-    for (auto& varName : tempVars) {
+    for (auto [index, varName] : enumerate(tempVars)) {
         varId--;
 
         if (!varName.isValid()) {
-            addError("Missing name");
+            addError(index, "Missing name");
         }
         else if (gameStateVars.find(varName) != gameStateVars.end()) {
-            addError("Name exists in GameState: ", varName);
+            addError(index, "Name exists in GameState: ", varName);
         }
         else {
             const auto [it, inserted] = map.emplace(varName, varId);
             if (!inserted) {
-                err.addErrorString("Duplicate temporary script ", typeName, " detected: ", varName);
+                addError(index, "Duplicate name detected");
             }
         }
     }
 
     if (tempVars.size() + nGameStateVars > maxVars) {
-        addError("Too many temporary script ", typeName, " variables");
+        addError(INT_MAX, "Too many temporary script ", typeName, " variables");
         map.clear();
     }
     else {
@@ -75,6 +80,9 @@ private:
     std::vector<uint8_t>& data;
 
     idstring scriptName;
+    unsigned scriptIndex;
+
+    unsigned lineNo;
     unsigned depth;
 
     ErrorList& err;
@@ -89,9 +97,11 @@ public:
         , gameState(gameState)
         , room(room)
         , roomsList(roomsList)
-        , tempFlags(setupTempVariables(room.roomScripts.tempFlags, "flag", gameState.flags, gameState.nFlags, GameState::MAX_FLAGS, e))
-        , tempWords(setupTempVariables(room.roomScripts.tempWords, "word", gameState.words, gameState.nWords, GameState::MAX_WORDS, e))
+        , tempFlags(setupTempVariables(room.roomScripts.tempFlags, true, gameState.flags, gameState.nFlags, GameState::MAX_FLAGS, e))
+        , tempWords(setupTempVariables(room.roomScripts.tempWords, false, gameState.words, gameState.nWords, GameState::MAX_WORDS, e))
         , data(data)
+        , scriptIndex(0)
+        , lineNo(0)
         , depth(0)
         , err(e)
         , valid(true)
@@ -102,15 +112,17 @@ public:
 
     bool isValid() const { return valid; }
 
-    unsigned compileScript(const Script& script)
+    unsigned compileScript(const Script& script, const unsigned index)
     {
         const unsigned scriptPos = data.size();
 
         scriptName = script.name;
+        scriptIndex = index;
+        lineNo = 0;
 
         if (script.name == STARTUP_SCRIPT_NAME) {
             if (&script != &room.roomScripts.startupScript) {
-                addError("Invalid script name");
+                addScriptError("Invalid script name");
             }
         }
 
@@ -125,20 +137,27 @@ public:
 
 private:
     template <typename... T>
-    void addError(T... msg)
+    void addScriptError(T... msg)
     {
-        // ::TODO include line number in the error::
-
-        err.addErrorString("Error compiling script `", scriptName, "`: ", msg...);
+        err.addError(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT, scriptIndex,
+                                                   stringBuilder("Script ", scriptName, ": ", msg...)));
         valid = false;
     }
 
     template <typename... T>
-    void addWarning(T... msg)
+    void addLineError(T... msg)
     {
-        // ::TODO include line number in the error::
+        err.addError(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT_LINE, scriptIndex, lineNo,
+                                                   stringBuilder("Script ", scriptName, " (line ", lineNo, "): ", msg...)));
+        valid = false;
+    }
 
-        err.addWarningString("Script `", scriptName, "`: ", msg...);
+    template <typename... T>
+    void addLineWarning_lineNo(unsigned wLineNo, T... msg)
+    {
+        err.addError(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT_LINE, scriptIndex, wLineNo,
+                                                   stringBuilder("Script ", scriptName, " (line ", wLineNo, "): ", msg...)));
+
         valid = false;
     }
 
@@ -146,11 +165,12 @@ private:
     {
         depth++;
         if (depth > Script::MAX_DEPTH) {
-            addError("Script too deep");
+            addScriptError("Script too deep");
             return;
         }
 
         for (auto& s : statements) {
+            lineNo++;
             std::visit(*this, s);
         }
 
@@ -167,12 +187,12 @@ private:
         auto it = gameState.flags.find(name);
         if (it != gameState.flags.end()) {
             if (!it->second.allowedInRoom(room.name)) {
-                addError("Invalid flag `", name, "` (it is private and belongs to room `", room.name, "`)");
+                addLineError("Invalid flag `", name, "` (it is private and belongs to room `", room.name, "`)");
             }
             return it->second.index;
         }
 
-        addError("Unknown flag: ", name);
+        addLineError("Unknown flag: ", name);
         return 0;
     }
 
@@ -186,12 +206,12 @@ private:
         auto it = gameState.words.find(name);
         if (it != gameState.words.end()) {
             if (!it->second.allowedInRoom(room.name)) {
-                addError("Invalid word `", name, "` (it is private and belongs to room `", room.name, "`)");
+                addLineError("Invalid word `", name, "` (it is private and belongs to room `", room.name, "`)");
             }
             return it->second.index;
         }
 
-        addError("Unknown word: ", name);
+        addLineError("Unknown word: ", name);
         return 0;
     }
 
@@ -203,7 +223,7 @@ private:
             return *u16;
         }
         else {
-            addError("Invalid argument: ", value);
+            addLineError("Invalid argument: ", value);
             return 0;
         }
     }
@@ -213,7 +233,7 @@ private:
         const auto s = room.roomScripts.scripts.indexOf(name);
 
         if (s > room.roomScripts.scripts.size()) {
-            addError("Unknown script: ", name);
+            addLineError("Unknown script: ", name);
             return 0;
         }
 
@@ -225,7 +245,7 @@ private:
         const auto s = room.entityGroups.indexOf(name);
 
         if (s > room.entityGroups.size()) {
-            addError("Unknown entity group: ", name);
+            addLineError("Unknown entity group: ", name);
             return 0;
         }
 
@@ -237,7 +257,7 @@ private:
         const auto s = roomsList.indexOf(name);
 
         if (s > roomsList.size()) {
-            addError("Unknown room: ", name);
+            addLineError("Unknown room: ", name);
             return 0;
         }
 
@@ -249,7 +269,7 @@ private:
         const auto s = r.entrances.indexOf(name);
 
         if (s > r.entrances.size()) {
-            addError("Unknown room entrance: ", name);
+            addLineError("Unknown room entrance: ", name);
             return 0;
         }
 
@@ -361,7 +381,7 @@ private:
 
             case ComparisonType::Set:
             case ComparisonType::Clear: {
-                addError("Invalid comparison type for word variable");
+                addLineError("Invalid comparison type for word variable");
                 break;
             }
             }
@@ -392,7 +412,7 @@ private:
             case ComparisonType::NotEqual:
             case ComparisonType::LessThan:
             case ComparisonType::GreaterThanEqual:
-                addError("Invalid comparison type for flag variable");
+                addLineError("Invalid comparison type for flag variable");
                 break;
             }
 
@@ -418,7 +438,7 @@ public:
     {
         const auto bcIt = bytecode.instructions.find(statement.opcode);
         if (bcIt == bytecode.instructions.end()) {
-            addError("Unknown instruction: ", statement.opcode);
+            addLineError("Unknown instruction: ", statement.opcode);
             return;
         }
         const auto& bc = bcIt->second;
@@ -435,7 +455,7 @@ public:
         const unsigned branchPos = conditional(ifStatement.condition);
 
         if (ifStatement.thenStatements.empty()) {
-            addWarning("Empty body in an if statement");
+            addLineError("Empty body in an if statement");
         }
 
         compileStatements(ifStatement.thenStatements);
@@ -464,8 +484,10 @@ public:
         const unsigned branchPos = conditional(whileStatement.condition);
 
         if (whileStatement.statements.empty()) {
-            addError("Empty body in an while statement");
+            addLineError("Empty body in an while statement");
         }
+
+        const unsigned whileLineNo = lineNo;
 
         compileStatements(whileStatement.statements);
 
@@ -482,7 +504,7 @@ public:
             });
 
         if (!hasYieldInstruction) {
-            addWarning("while loop does not contain a yielding instruction, it may infiniately loop.");
+            addLineWarning_lineNo(whileLineNo, "while loop does not contain a yielding instruction, it may infiniately loop.");
         }
 
         // Loop back to start of while statement

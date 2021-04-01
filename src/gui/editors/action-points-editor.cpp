@@ -9,6 +9,7 @@
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 #include "models/common/iterators.h"
+#include "models/metasprite/metasprite-error.h"
 
 namespace UnTech::Gui {
 
@@ -51,6 +52,21 @@ bool ActionPointsEditorData::loadDataFromProject(const Project::ProjectFile& pro
     actionPointFunctions = projectFile.actionPointFunctions;
 
     return true;
+}
+
+void ActionPointsEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = MetaSprite::ApfErrorType;
+
+    sel.clearSelection();
+
+    if (auto* e = dynamic_cast<const MetaSprite::ActionPointFunctionError*>(error)) {
+        switch (e->type) {
+        case Type::ACTION_POINT_FUNCTIONS:
+            sel.setSelected(e->firstIndex);
+            break;
+        }
+    }
 }
 
 void ActionPointsEditorData::updateSelection()

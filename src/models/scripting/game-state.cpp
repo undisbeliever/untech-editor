@@ -5,6 +5,7 @@
  */
 
 #include "game-state.h"
+#include "scripting-error.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/iterators.h"
 #include "models/entity/entityromdata.h"
@@ -12,6 +13,20 @@
 #include "models/rooms/rooms.h"
 
 namespace UnTech::Scripting {
+
+template <typename... Args>
+std::unique_ptr<GameStateError> variableError(const GameStateFlag& flag, const unsigned index, const Args... msg)
+{
+    return std::make_unique<GameStateError>(GameStateErrorType::FLAG, index,
+                                            stringBuilder("Flag ", flag.name, ": ", msg...));
+}
+
+template <typename... Args>
+std::unique_ptr<GameStateError> variableError(const GameStateWord& word, const unsigned index, const Args... msg)
+{
+    return std::make_unique<GameStateError>(GameStateErrorType::WORD, index,
+                                            stringBuilder("Word ", word.name, ": ", msg...));
+}
 
 std::shared_ptr<const GameStateData>
 compileGameState(const GameState& input,
@@ -21,6 +36,10 @@ compileGameState(const GameState& input,
     bool valid = true;
     auto addError = [&](const auto... msg) {
         err.addErrorString(msg...);
+        valid = false;
+    };
+    auto addVariableError = [&](const auto& variable, const unsigned index, const auto... msg) {
+        err.addError(variableError(variable, index, msg...));
         valid = false;
     };
 
@@ -74,7 +93,7 @@ compileGameState(const GameState& input,
 
                 const auto [it, inserted] = map.emplace(item.name, GameStateData::Value{ unsigned(i), item.room });
                 if (!inserted) {
-                    addError("Duplicate ", typeName, " detected: ", item.name);
+                    addVariableError(item, i, "Duplicate ", typeName, " detected");
                 }
             }
         }

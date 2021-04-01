@@ -17,7 +17,9 @@
 #include "gui/style.h"
 #include "models/common/iterators.h"
 #include "models/project/project-data.h"
+#include "models/rooms/room-error.h"
 #include "models/rooms/rooms-serializer.h"
+#include "models/scripting/scripting-error.h"
 
 namespace UnTech::Gui {
 
@@ -235,6 +237,177 @@ void RoomEditorData::saveFile() const
     UnTech::Rooms::saveRoomInput(data, filename());
 }
 
+// ::HACK Reading through the script line by line is easier then adding NodeSelection::ParentIndexT to the script compiler ::
+static void selectScriptLine(NodeSelection& sel, const Scripting::Script& script, const unsigned scriptIndex, const unsigned lineNo)
+{
+    using namespace UnTech::Scripting;
+
+    struct Visitor {
+        const unsigned targetLineNo;
+
+        unsigned lineNo = 0;
+
+        unsigned depth = 0;
+        unsigned index = 0;
+        std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> parentIndex;
+
+        std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> foundParentIndex;
+        unsigned foundChildIndex = INT_MAX;
+
+        Visitor(const unsigned targetLineNo)
+            : targetLineNo(targetLineNo)
+        {
+        }
+
+        void readScript(const Scripting::Script& script, const unsigned scriptIndex)
+        {
+            lineNo = 0;
+            depth = 0;
+            parentIndex.fill(0xffff);
+            foundParentIndex.fill(0xffff);
+            foundChildIndex = 0xffff;
+
+            index = scriptIndex;
+
+            readStatements(script.statements, false);
+        }
+
+        void readStatements(const std::vector<ScriptNode>& statements, const bool isFalseBranch)
+        {
+            if (depth >= parentIndex.size()) {
+                return;
+            }
+
+            // Save index - prevents an infinite loop
+            const unsigned oldIndex = index;
+
+            parentIndex.at(depth) = index;
+            if (isFalseBranch) {
+                parentIndex.at(depth) |= 0x8000;
+            }
+            depth++;
+
+            for (auto [i, s] : enumerate(statements)) {
+                // Putting mask here allows StartScript line selection to work correctly
+                index = i & 0x7fff;
+
+                lineNo++;
+
+                if (lineNo == targetLineNo) {
+                    foundParentIndex = parentIndex;
+                    foundChildIndex = i;
+                    return;
+                }
+
+                std::visit(*this, s);
+            }
+
+            // restore index
+            index = oldIndex;
+
+            depth--;
+            parentIndex.at(depth) = NodeSelection::NO_SELECTION;
+        }
+
+        void operator()(const Statement&)
+        {
+        }
+
+        void operator()(const IfStatement& s)
+        {
+            readStatements(s.thenStatements, false);
+
+            if (!s.elseStatements.empty()) {
+                readStatements(s.elseStatements, true);
+            }
+        }
+
+        void operator()(const WhileStatement& s)
+        {
+            readStatements(s.statements, false);
+        }
+
+        void operator()(const Comment&)
+        {
+        }
+    };
+
+    Visitor visitor(lineNo);
+
+    visitor.readScript(script, scriptIndex);
+
+    sel.setSelected(visitor.foundParentIndex, visitor.foundChildIndex);
+}
+
+void RoomEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    selectedTilesetTiles.clear();
+    selectedTiles.clear();
+    selectedScratchpadTiles.clear();
+
+    entrancesSel.clearSelection();
+    entityGroupsSel.clearSelection();
+    entityEntriesSel.clearSelection();
+    scriptTriggersSel.clearSelection();
+
+    tempScriptFlagsSel.clearSelection();
+    tempScriptWordsSel.clearSelection();
+
+    scriptsSel.clearSelection();
+    scriptStatementsSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const Rooms::RoomError*>(error)) {
+        using Type = Rooms::RoomErrorType;
+
+        switch (e->type) {
+        case Type::ROOM_ENTRANCE:
+            entrancesSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::ENTITY_GROUP:
+            entityGroupsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::ENTITY_ENTRY:
+            entityGroupsSel.setSelected(e->firstIndex);
+            entityEntriesSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+
+        case Type::SCRIPT_TRIGGER:
+            scriptTriggersSel.setSelected(e->firstIndex);
+            break;
+        }
+    }
+
+    if (auto* e = dynamic_cast<const Scripting::ScriptError*>(error)) {
+        using Type = Scripting::ScriptErrorType;
+
+        switch (e->type) {
+        case Type::TEMP_FLAG:
+            tempScriptFlagsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::TEMP_WORD:
+            tempScriptWordsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::SCRIPT:
+            scriptsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::SCRIPT_LINE:
+            scriptsSel.setSelected(e->firstIndex);
+            if (e->firstIndex < data.roomScripts.scripts.size()) {
+                selectScriptLine(scriptStatementsSel, data.roomScripts.scripts.at(e->firstIndex), e->firstIndex, e->childIndex);
+            }
+            else {
+                selectScriptLine(scriptStatementsSel, data.roomScripts.startupScript, NodeSelection::NO_SELECTION, e->childIndex);
+            }
+            break;
+        }
+    }
+}
+
 void RoomEditorData::updateSelection()
 {
     entrancesSel.update();
@@ -259,7 +432,7 @@ void RoomEditorData::updateSelection()
     scriptsSel.update();
 
     const unsigned selectedScriptIndex = std::min(scriptsSel.selectedIndex(), NodeSelection::NO_SELECTION);
-    if (scriptStatementsSel.parentIndex().front() != selectedScriptIndex) {
+    if (scriptStatementsSel.pendingParentIndex().front() != selectedScriptIndex) {
         NodeSelection::ParentIndexT pIndex;
         pIndex.fill(NodeSelection::NO_SELECTION);
         pIndex.at(0) = selectedScriptIndex;

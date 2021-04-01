@@ -361,6 +361,7 @@ public:
 
     unsigned selectedIndex() const { return _selected; }
     const ParentIndexT& parentIndex() const { return std::get<0>(_parentIndex); }
+    const ParentIndexT& pendingParentIndex() const { return _pendingParent; }
 
     void clearSelection()
     {

@@ -10,6 +10,7 @@
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 #include "models/common/iterators.h"
+#include "models/scripting/scripting-error.h"
 
 namespace UnTech::Gui {
 
@@ -58,6 +59,21 @@ bool BytecodeEditorData::loadDataFromProject(const Project::ProjectFile& project
     data = projectFile.bytecode;
 
     return true;
+}
+
+void BytecodeEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = Scripting::BytecodeErrorType;
+
+    instructionSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const Scripting::BytecodeError*>(error)) {
+        switch (e->type) {
+        case Type::INSTRUCTION:
+            instructionSel.setSelected(e->firstIndex);
+            break;
+        }
+    }
 }
 
 void BytecodeEditorData::updateSelection()

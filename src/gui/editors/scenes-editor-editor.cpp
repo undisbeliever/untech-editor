@@ -11,6 +11,7 @@
 #include "gui/list-helpers.h"
 #include "models/common/iterators.h"
 #include "models/resources/scene-bgmode.hpp"
+#include "models/resources/scene-error.h"
 
 namespace UnTech::Gui {
 
@@ -72,6 +73,26 @@ bool ScenesEditorData::loadDataFromProject(const Project::ProjectFile& projectFi
     scenes = projectFile.resourceScenes;
 
     return true;
+}
+
+void ScenesEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = Resources::SceneErrorType;
+
+    settingsSel.clearSelection();
+    scenesSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const Resources::SceneError*>(error)) {
+        switch (e->type) {
+        case Type::SCENE_SETTINGS:
+            settingsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::SCENE_LAYER_ERROR:
+            scenesSel.setSelected(e->firstIndex);
+            break;
+        }
+    }
 }
 
 void ScenesEditorData::updateSelection()

@@ -5,11 +5,29 @@
  */
 
 #include "frameset-exportorder.h"
-#include "models/common/errorlist.h"
+#include "metasprite-error.h"
 #include "models/common/validateunique.h"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
+
+template <typename... Args>
+static std::unique_ptr<ExportOrderError> exportNameError(const bool isStillFrame, unsigned enIndex, Args... msg)
+{
+    const EoErrorType type = isStillFrame ? EoErrorType::STILL_FRAMES : EoErrorType::ANIMATIONS;
+
+    return std::make_unique<ExportOrderError>(type, enIndex,
+                                              stringBuilder(msg...));
+}
+
+template <typename... Args>
+static std::unique_ptr<ExportOrderError> altError(const bool isStillFrame, unsigned enIndex, unsigned altIndex, Args... msg)
+{
+    const EoErrorType type = isStillFrame ? EoErrorType::STILL_FRAMES_ALT : EoErrorType::ANIMATIONS_ALT;
+
+    return std::make_unique<ExportOrderError>(type, enIndex, altIndex,
+                                              stringBuilder(msg...));
+}
 
 template <class ListT>
 static inline bool _testExists(const FrameSetExportOrder::ExportName& en, const ListT& list)
@@ -38,27 +56,30 @@ bool FrameSetExportOrder::ExportName::animationExists(const NamedList<Animation:
     return _testExists(*this, animationList);
 }
 
-static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
+static bool validateAlternativesUnique(const bool isStillFrame,
+                                       const unsigned enIndex,
+                                       const std::vector<NameReference>& alts,
                                        const std::string& typeName,
                                        const std::string& aName,
                                        UnTech::ErrorList& err)
 {
     bool valid = true;
-    auto addAltError = [&](const NameReference& alt, const auto... message) {
-        err.addError(std::make_unique<ListItemError>(&alt, message...));
+    auto addAltError = [&](const unsigned altIndex, const auto... message) {
+        err.addError(altError(isStillFrame, enIndex, altIndex, message...));
         valid = false;
     };
 
     for (auto it = alts.begin(); it != alts.end(); it++) {
+        const unsigned index = std::distance(alts.cbegin(), it);
         const NameReference& alt = *it;
 
         if (alt.name.isValid() == false) {
-            addAltError(alt, "Missing alternative name");
+            addAltError(index, "Missing alternative name");
         }
 
         auto jit = std::find(alts.begin(), it, alt);
         if (jit != it) {
-            addAltError(alt, "Duplicate ", typeName, " alternative for ", aName, ": ", alt.str());
+            addAltError(index, "Duplicate ", typeName, " alternative for ", aName, ": ", alt.str());
         }
     }
 
@@ -69,7 +90,7 @@ bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const auto... message) {
-        err.addError(std::make_unique<ListItemError>(this, message...));
+        err.addErrorString(message...);
         valid = false;
     };
 
@@ -89,14 +110,22 @@ bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
         addError("Too many animations");
     }
 
-    valid &= validateNamesUnique(stillFrames, "export frame", err);
-    valid &= validateNamesUnique(animations, "export animation", err);
+    valid &= validateNamesUnique(stillFrames, "export frame", [&](unsigned i, auto... msg) {
+        err.addError(exportNameError(true, i, msg...));
+    });
+    valid &= validateNamesUnique(animations, "export animation", [&](unsigned i, auto... msg) {
+        err.addError(exportNameError(false, i, msg...));
+    });
+
+    unsigned enIndex = 0;
 
     for (auto& sf : stillFrames) {
-        valid &= validateAlternativesUnique(sf.alternatives, "export frame", sf.name, err);
+        valid &= validateAlternativesUnique(true, enIndex, sf.alternatives, "export frame", sf.name, err);
+        enIndex++;
     }
     for (auto& ani : animations) {
-        valid &= validateAlternativesUnique(ani.alternatives, "export animation", ani.name, err);
+        valid &= validateAlternativesUnique(false, enIndex, ani.alternatives, "export animation", ani.name, err);
+        enIndex++;
     }
 
     return valid;

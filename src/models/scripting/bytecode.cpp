@@ -6,13 +6,22 @@
 
 #include "bytecode.h"
 #include "game-state.h"
+#include "scripting-error.h"
 #include "models/common/iterators.h"
+#include <climits>
 
 namespace UnTech::Scripting {
 
 constexpr unsigned N_SPECIAL_RESUME_OPCODES = 6;
 constexpr unsigned N_FLAG_INSTRUCTIONS = GameState::MAX_FLAGS / 256;
 constexpr unsigned MAX_OPCODES = 256 / 2;
+
+template <typename... Args>
+std::unique_ptr<BytecodeError> instructionError(const Instruction& inst, const unsigned index, const Args... msg)
+{
+    return std::make_unique<BytecodeError>(BytecodeErrorType::INSTRUCTION, index,
+                                           stringBuilder("Instruction ", inst.name, ": ", msg...));
+}
 
 const std::vector<Instruction> BytecodeInput::BASE_INSTRUCTIONS{
     { idstring{ "End_Script" }, {}, false },
@@ -73,15 +82,15 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
         err.addErrorString(msg...);
         valid = false;
     };
-    auto addInstructionError = [&](const Instruction& inst, const auto... msg) {
-        err.addErrorString("Instruction ", inst.name, ": ", msg...);
+    auto addInstructionError = [&](const Instruction& inst, unsigned index, const auto... msg) {
+        err.addError(instructionError(inst, index, msg...));
         valid = false;
     };
 
     auto out = std::make_shared<BytecodeMapping>();
 
     unsigned currentOpcode = 0;
-    auto addInstruction = [&](const Instruction& inst) {
+    auto addInstruction = [&](const Instruction& inst, const unsigned index) {
         InstructionData iData;
 
         iData.opcode = currentOpcode;
@@ -101,20 +110,20 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
         const auto [it, created] = out->instructions.emplace(inst.name, iData);
 
         if (!inst.name.isValid()) {
-            addInstructionError(inst, "Missing instruction name");
+            addInstructionError(inst, index, "Missing instruction name");
         }
         else if (!created) {
-            addInstructionError(inst, "Duplicate instruction name detected");
+            addInstructionError(inst, index, "Duplicate instruction name detected");
         }
 
         const unsigned nFlags = std::count(inst.arguments.begin(), inst.arguments.end(), ArgumentType::Flag);
         if (nFlags > 1) {
-            addInstructionError(inst, "Too many flag arguments (only allowed 1)");
+            addInstructionError(inst, index, "Too many flag arguments (only allowed 1)");
         }
 
         if (nFlags > 0 && inst.yields) {
             // This simplifies the `project.inc` generation
-            addInstructionError(inst, "A yielding instruction cannot have a flag argument");
+            addInstructionError(inst, index, "A yielding instruction cannot have a flag argument");
         }
 
         currentOpcode += nFlags == 0 ? 1 : N_FLAG_INSTRUCTIONS;
@@ -123,19 +132,19 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     // The first bytecode instruction is hard coded to use opcode 0
     assert(input.BASE_INSTRUCTIONS.at(0).name.str() == "End_Script");
     assert(out->endScriptOpcode == currentOpcode);
-    addInstruction(input.BASE_INSTRUCTIONS.at(0));
+    addInstruction(input.BASE_INSTRUCTIONS.at(0), INT_MAX);
 
     // Setup branch/conditional opcodes
     out->branchIfFlagClearOpcode = out->branchIfFlagSetOpcode + N_FLAG_INSTRUCTIONS;
     currentOpcode = out->branchIfFlagClearOpcode + N_FLAG_INSTRUCTIONS;
 
     for (const auto& inst : skip_first_element(input.BASE_INSTRUCTIONS)) {
-        addInstruction(inst);
+        addInstruction(inst, INT_MAX);
     }
 
     // Add custom instructions
-    for (auto& inst : input.instructions) {
-        addInstruction(inst);
+    for (auto [index, inst] : const_enumerate(input.instructions)) {
+        addInstruction(inst, index);
     }
 
     if (currentOpcode > MAX_OPCODES) {

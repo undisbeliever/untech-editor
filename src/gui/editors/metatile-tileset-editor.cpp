@@ -17,6 +17,7 @@
 #include "gui/style.h"
 #include "gui/texture.h"
 #include "models/common/iterators.h"
+#include "models/metatiles/metatiles-error.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project-data.h"
 #include <cmath>
@@ -122,6 +123,32 @@ void MetaTileTilesetEditorData::saveFile() const
     UnTech::MetaTiles::saveMetaTileTilesetInput(data, filename());
 }
 
+void MetaTileTilesetEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = MetaTiles::TilesetErrorType;
+
+    selectedTilesetTiles.clear();
+    selectedTiles.clear();
+
+    tilesetFrameSel.clearSelection();
+    paletteSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const MetaTiles::TilesetError*>(error)) {
+        switch (e->type) {
+        case Type::TILE:
+            selectedTilesetTiles.insert(e->firstIndex);
+            selectedTilesetTilesChanged();
+
+            break;
+        }
+    }
+
+    if (auto* e = dynamic_cast<const MetaTiles::InteractiveTilesError*>(error)) {
+        tilesetFrameSel.setSelected(e->firstIndex);
+        paletteSel.setSelected(0);
+    }
+}
+
 void MetaTileTilesetEditorData::updateSelection()
 {
     tilesetFrameSel.update();
@@ -142,6 +169,7 @@ void MetaTileTilesetEditorData::mapTilesPlaced(const urect r)
 
 void MetaTileTilesetEditorData::selectedTilesetTilesChanged()
 {
+    tilePropertiesWindowValid = false;
 }
 
 void MetaTileTilesetEditorData::selectedTilesChanged()
@@ -155,6 +183,8 @@ void MetaTileTilesetEditorData::selectedTilesChanged()
                 selectedTilesetTiles.insert(scratchpad.at(p));
             }
         }
+
+        tilePropertiesWindowValid = false;
     }
 }
 
@@ -404,11 +434,14 @@ void MetaTileTilesetEditorGui::updateTileProperties()
 {
     assert(_data);
     auto& tileset = _data->data;
-
     const auto& selected = _data->selectedTilesetTiles;
 
     if (selected.empty()) {
         _tileProperties = std::nullopt;
+        return;
+    }
+
+    if (_tileProperties && _data->tilePropertiesWindowValid) {
         return;
     }
 
@@ -513,9 +546,8 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
         const auto& style = ImGui::GetStyle();
         const float tileCollisionButtonsWidth = (buttonSize.x + style.FramePadding.x * 2) * 6 + style.ItemSpacing.x * 5;
 
-        if (!_tileProperties) {
-            updateTileProperties();
-        }
+        updateTileProperties();
+
         assert(_tileProperties);
 
         bool edited = false;

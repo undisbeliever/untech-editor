@@ -12,7 +12,7 @@
 
 namespace UnTech::Gui {
 
-void processErrorListWindow(const Project::ResourceStatus& status)
+void processErrorListWindow(const Project::ResourceStatus& status, AbstractEditorData* editorData)
 {
     if (status.errorList.empty()) {
         return;
@@ -36,6 +36,14 @@ void processErrorListWindow(const Project::ResourceStatus& status)
 
             ImGui::SameLine();
             ImGui::TextUnformatted(item.message);
+
+            if (ImGui::IsItemClicked()) {
+                if (ImGui::IsMouseDoubleClicked(0)) {
+                    if (item.specialized) {
+                        editorData->errorDoubleClicked(item.specialized.get());
+                    }
+                }
+            }
         }
     }
 
@@ -57,7 +65,7 @@ void processErrorListWindow(const Project::ProjectData& projectData, AbstractEdi
         static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
 
         if (itemIndex.index < resources.size()) {
-            processErrorListWindow(resources.at(itemIndex.index));
+            processErrorListWindow(resources.at(itemIndex.index), editorData);
         }
     });
 }

@@ -23,11 +23,16 @@ private:
     SingleSelection tilesetFrameSel;
     SingleSelection paletteSel;
 
+    // This allows `errorDoubleClicked` to invalidate MetaTileTilesetEditorGui::_tileProperties
+    // without adding AbstractMetaTileEditorGui to `errorDoubleClicked`.
+    bool tilePropertiesWindowValid;
+
 public:
     MetaTileTilesetEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;
+    virtual void errorDoubleClicked(const AbstractSpecializedError*) final;
     virtual void updateSelection() final;
 
 protected:

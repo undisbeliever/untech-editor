@@ -52,6 +52,11 @@ bool BackgroundImageEditorData::loadDataFromProject(const Project::ProjectFile& 
     return bi != nullptr;
 }
 
+void BackgroundImageEditorData::errorDoubleClicked(const AbstractSpecializedError*)
+{
+    // There is no selection in BackgroundImageEditorData.
+}
+
 void BackgroundImageEditorData::updateSelection()
 {
 }

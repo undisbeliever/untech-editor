@@ -20,11 +20,12 @@ using namespace UnTech::MetaSprite::MetaSprite;
  * =====
  */
 
-inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList, const FrameSet& fs) const
+inline bool Frame::validate(const unsigned frameIndex, const FrameSet& fs,
+                            const ActionPointMapping& actionPointMapping, ErrorList& errorList) const
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
-        errorList.addError(frameError(*this, msg...));
+        errorList.addError(frameError(*this, frameIndex, msg...));
         valid = false;
     };
 
@@ -45,21 +46,21 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorL
         size_t tsSize = obj.size == ObjectSize::SMALL ? fs.smallTileset.size()
                                                       : fs.largeTileset.size();
         if (obj.tileId > tsSize) {
-            errorList.addError(frameObjectError(*this, i, "Invalid tileId"));
+            errorList.addError(frameObjectError(*this, frameIndex, i, "Invalid tileId"));
             valid = false;
         }
     }
 
     for (auto [i, ap] : const_enumerate(actionPoints)) {
         if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
-            errorList.addError(actionPointError(*this, i, "Unknown action point type ", ap.type));
+            errorList.addError(actionPointError(*this, frameIndex, i, "Unknown action point type ", ap.type));
             valid = false;
         }
     }
 
     for (auto [i, eh] : const_enumerate(entityHitboxes)) {
         if (eh.aabb.width == 0 || eh.aabb.height == 0) {
-            errorList.addError(entityHitboxError(*this, i, "aabb has no size"));
+            errorList.addError(entityHitboxError(*this, frameIndex, i, "aabb has no size"));
             valid = false;
         }
     }
@@ -153,15 +154,19 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
         addError("Too many animations in frameSet");
     }
 
-    valid &= validateNamesUnique(frames, "frame", errorList);
-    valid &= validateNamesUnique(animations, "animation", errorList);
+    valid &= validateNamesUnique(frames, "frame", [&](unsigned i, auto... msg) {
+        errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::FRAME, i, stringBuilder(msg...)));
+    });
+    valid &= validateNamesUnique(animations, "animation", [&](unsigned i, auto... msg) {
+        errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, i, stringBuilder(msg...)));
+    });
 
-    for (auto& frame : frames) {
-        valid &= frame.validate(actionPointMapping, errorList, *this);
+    for (auto [i, frame] : enumerate(frames)) {
+        valid &= frame.validate(i, *this, actionPointMapping, errorList);
     }
 
-    for (auto& ani : animations) {
-        valid &= ani.validate(*this, errorList);
+    for (auto [i, ani] : enumerate(animations)) {
+        valid &= ani.validate(i, *this, errorList);
     }
 
     return valid;

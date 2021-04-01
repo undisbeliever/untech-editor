@@ -53,8 +53,8 @@ struct Animation {
         return !oneShot && !nextAnimation.isValid();
     }
 
-    bool validate(const MetaSprite::FrameSet&, ErrorList& err) const;
-    bool validate(const SpriteImporter::FrameSet&, ErrorList& err) const;
+    bool validate(const unsigned aniIndex, const MetaSprite::FrameSet&, ErrorList& err) const;
+    bool validate(const unsigned aniIndex, const SpriteImporter::FrameSet&, ErrorList& err) const;
 
     bool operator==(const Animation& o) const
     {
@@ -67,7 +67,7 @@ struct Animation {
 
 private:
     template <class FrameSetT>
-    bool _validate(const FrameSetT&, ErrorList& err) const;
+    bool _validate(const unsigned aniIndex, const FrameSetT&, ErrorList& err) const;
 };
 }
 }

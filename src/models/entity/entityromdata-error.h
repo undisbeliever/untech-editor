@@ -12,67 +12,29 @@
 namespace UnTech {
 namespace Entity {
 
-class StructFieldError : public AbstractSpecializedError {
-
-    static inline unsigned calcFieldIndex(const EntityRomStruct& rs, const StructField* field)
-    {
-        auto it = std::find_if(rs.fields.begin(), rs.fields.end(),
-                               [&](const auto& i) { return &i == field; });
-        return std::distance(rs.fields.cbegin(), it);
-    }
-
-    const void* _romStruct;
-    const unsigned _fieldIndex;
-    const std::string _message;
-
-public:
-    template <typename... Args>
-    StructFieldError(const EntityRomStruct& rs, const StructField& field, const Args... message)
-        : _romStruct(&rs)
-        , _fieldIndex(calcFieldIndex(rs, &field))
-        , _message(field.name.isValid()
-                       ? stringBuilder("EntityRomStruct ", rs.name, ", Field ", field.name, ": ", message...)
-                       : stringBuilder("EntityRomStruct ", rs.name, ", Field #", _fieldIndex, ": ", message...))
-    {
-    }
-
-    template <typename... Args>
-    StructFieldError(const EntityRomStruct& rs, unsigned fIndex, const Args... message)
-        : _romStruct(&rs)
-        , _fieldIndex(fIndex)
-        , _message(stringBuilder("EntityRomStruct ", rs.name, ", Field #", _fieldIndex, ": ", message...))
-    {
-    }
-
-    const void* romStruct() const { return _romStruct; }
-    unsigned fieldIndex() const { return _fieldIndex; }
-
-    virtual std::string message() const final { return _message; }
+enum class EntityErrorType {
+    LIST_ID,
+    STRUCT,
+    STRUCT_FIELD,
+    ENTITY_FUNCTION_TABLE,
+    ENTITY_ROM_ENTRY,
+    PROJECTILE_ROM_ENTRY,
+    PLAYER_ROM_ENTRY,
 };
 
-class EntityRomStructError : public ListItemError {
+struct EntityError : public GenericListError {
 public:
-    template <typename... Args>
-    EntityRomStructError(const EntityRomStruct& rs, const Args&... message)
-        : ListItemError(&rs, stringBuilder("EntityRomStruct ", rs.name, ": ", message...))
+    const EntityErrorType type;
+
+    EntityError(const EntityErrorType type, unsigned pIndex, std::string&& message)
+        : GenericListError(pIndex, std::move(message))
+        , type(type)
     {
     }
-};
 
-class EntityFunctionTableError : public ListItemError {
-public:
-    template <typename... Args>
-    EntityFunctionTableError(const EntityFunctionTable& ft, const Args... message)
-        : ListItemError(&ft, "EntityFunctionTable ", ft.name, ": ", message...)
-    {
-    }
-};
-
-class EntityRomEntryError : public ListItemError {
-public:
-    template <typename... Args>
-    EntityRomEntryError(const EntityRomEntry& re, const Args... message)
-        : ListItemError(&re, "EntityRomEntry ", re.name, ": ", message...)
+    EntityError(const EntityErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+        : GenericListError(pIndex, cIndex, std::move(message))
+        , type(type)
     {
     }
 };

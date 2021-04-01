@@ -6,8 +6,8 @@
 
 #include "scenes.h"
 #include "background-image.h"
+#include "errorlisthelpers.h"
 #include "scene-bgmode.hpp"
-#include "models/common/errorlist.h"
 #include "models/common/iterators.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
@@ -46,11 +46,11 @@ static constexpr uint8_t bgModeByte(BgMode mode)
     return 0xff;
 }
 
-bool SceneSettingsInput::validate(ErrorList& err) const
+bool SceneSettingsInput::validate(const unsigned index, ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const auto&... msg) {
-        err.addError(std::make_unique<ListItemError>(this, msg...));
+        err.addError(sceneSettingsError(*this, index, msg...));
         valid = false;
     };
 
@@ -115,8 +115,8 @@ using NameIndexMap = std::unordered_map<idstring, unsigned>;
 static std::optional<NameIndexMap> sceneSettingsIndexMap(const NamedList<SceneSettingsInput>& settings, ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const SceneSettingsInput& ssi, const auto&... msg) {
-        err.addError(std::make_unique<ListItemError>(&ssi, msg...));
+    auto addError = [&](const SceneSettingsInput& ssi, const unsigned index, const auto&... msg) {
+        err.addError(sceneSettingsError(ssi, index, msg...));
         valid = false;
     };
 
@@ -126,7 +126,7 @@ static std::optional<NameIndexMap> sceneSettingsIndexMap(const NamedList<SceneSe
         if (ssi.name.isValid()) {
             const auto r = nameIndexMap.try_emplace(ssi.name, id);
             if (r.second == false) {
-                addError(ssi, "Duplicate Scene Settings name:", ssi.name);
+                addError(ssi, id, "Duplicate Scene Settings name:", ssi.name);
             }
         }
     }
@@ -141,8 +141,8 @@ static std::optional<NameIndexMap> sceneSettingsIndexMap(const NamedList<SceneSe
 static SceneSettingsData
 compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorList& err)
 {
-    auto addError = [&](const SceneSettingsInput& ssi, const auto&... msg) {
-        err.addError(std::make_unique<ListItemError>(&ssi, msg...));
+    auto addError = [&](const SceneSettingsInput& ssi, const unsigned index, const auto&... msg) {
+        err.addError(sceneSettingsError(ssi, index, msg...));
     };
 
     if (settings.size() > MAX_N_SCENE_SETTINGS) {
@@ -154,10 +154,10 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
     out.nSceneSettings = settings.size();
 
     auto ssDataIt = out.sceneSettings.begin();
-    for (const SceneSettingsInput& ssi : settings) {
+    for (auto [ssIndex, ssi] : const_enumerate(settings)) {
         const uint8_t bgMode = bgModeByte(ssi.bgMode);
         if (bgMode >= 0xff) {
-            addError(ssi, "Invalid bgMode");
+            addError(ssi, ssIndex, "Invalid bgMode");
         }
 
         unsigned layerTypes = 0;
@@ -166,7 +166,7 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
             layerTypes |= (unsigned(lt) & 0x7) << (i * 4 + 1);
         }
         if (layerTypes >= 0xffff) {
-            addError(ssi, "Invalid layerTypes");
+            addError(ssi, ssIndex, "Invalid layerTypes");
         }
 
         // Must update CompiledScenesData::SCENE_FORMAT_VERSION if data format changes
@@ -433,11 +433,12 @@ std::optional<unsigned> CompiledScenesData::indexForScene(const idstring& name) 
 }
 
 static SceneLayerData getLayerSize(const unsigned layerIndex,
-                                   const SceneInput& sceneInput, const SceneSettingsInput& sceneSettings,
+                                   const SceneInput& sceneInput, const unsigned sceneIndex,
+                                   const SceneSettingsInput& sceneSettings,
                                    const Project::ProjectData& projectData, ErrorList& err)
 {
     auto addError = [&](const auto&... msg) {
-        err.addError(std::make_unique<ListItemError>(&sceneInput, "Scene", sceneInput.name, ", layer ", layerIndex, ": ", msg...));
+        err.addError(sceneLayerError(sceneInput, sceneIndex, layerIndex, msg...));
     };
 
     const unsigned bitDepth = bitDepthForLayer(sceneSettings.bgMode, layerIndex);
@@ -519,7 +520,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     return out;
 }
 
-static SceneData readSceneData(const SceneInput& scene, const ResourceScenes& resourceScenes,
+static SceneData readSceneData(const SceneInput& scene, const unsigned sceneIndex, const ResourceScenes& resourceScenes,
                                const NameIndexMap& sceneSettingsMap, const Project::ProjectData& projectData,
                                ErrorList& err)
 {
@@ -529,7 +530,7 @@ static SceneData readSceneData(const SceneInput& scene, const ResourceScenes& re
 
     out.valid = true;
     auto addError = [&](const auto&... msg) {
-        err.addError(std::make_unique<ListItemError>(&scene, "Scene ", scene.name, ": ", msg...));
+        err.addError(sceneError(scene, sceneIndex, msg...));
         out.valid = false;
     };
 
@@ -556,7 +557,7 @@ static SceneData readSceneData(const SceneInput& scene, const ResourceScenes& re
         auto& layer = out.layers.at(layerId);
         const auto& sceneLayer = sceneSettings.layerTypes.at(layerId);
 
-        layer = getLayerSize(layerId, scene, sceneSettings, projectData, err);
+        layer = getLayerSize(layerId, scene, sceneIndex, sceneSettings, projectData, err);
         out.vramUsed += layer.tileSize;
         out.vramUsed += layer.tilemapSize();
 
@@ -581,8 +582,8 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
 
     bool valid = true;
 
-    for (const SceneSettingsInput& ssi : resourceScenes.settings) {
-        valid &= ssi.validate(err);
+    for (const auto [i, ssi] : enumerate(resourceScenes.settings)) {
+        valid &= ssi.validate(i, err);
     }
 
     const auto sceneSettingsMap = sceneSettingsIndexMap(resourceScenes.settings, err);
@@ -598,11 +599,11 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
 
     for (auto [sceneIndex, scene] : const_enumerate(resourceScenes.scenes)) {
         out->scenes.emplace_back(
-            readSceneData(scene, resourceScenes, *sceneSettingsMap, projectData, err));
+            readSceneData(scene, sceneIndex, resourceScenes, *sceneSettingsMap, projectData, err));
 
         const auto r = out->nameIndexMap.try_emplace(scene.name, sceneIndex);
         if (r.second == false) {
-            err.addError(std::make_unique<ListItemError>(&scene, "Duplicate scene name detected: ", scene.name));
+            err.addError(sceneError(scene, sceneIndex, "Duplicate scene name detected"));
             valid = false;
         }
     }
@@ -633,7 +634,7 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
         scene.vramLayout = out->sceneLayouts.findOrAdd({ sc.at(0), sc.at(1), sc.at(2), sc.at(3) });
         if (!scene.vramLayout) {
             const SceneInput& sceneInput = resourceScenes.scenes.at(sceneIndex);
-            err.addError(std::make_unique<ListItemError>(&sceneInput, "Scene", sceneInput.name, ": Cannot generate VRAM layout"));
+            err.addError(sceneError(sceneInput, sceneIndex, "Cannot generate VRAM layout"));
             scene.valid = false;
         }
 

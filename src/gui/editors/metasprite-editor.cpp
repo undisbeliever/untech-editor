@@ -13,6 +13,7 @@
 #include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "models/common/bit.h"
+#include "models/metasprite/metasprite-error.h"
 #include "models/snes/convert-snescolor.h"
 #include "models/snes/drawing.hpp"
 #include <algorithm>
@@ -262,6 +263,56 @@ void MetaSpriteEditorData::saveFile() const
 {
     assert(!filename().empty());
     UnTech::MetaSprite::MetaSprite::saveFrameSet(data, filename());
+}
+
+void MetaSpriteEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = MetaSprite::MsErrorType;
+
+    animationsSel.clearSelection();
+    animationFramesSel.clearSelection();
+
+    framesSel.clearSelection();
+    tileHitboxSel.clearSelection();
+    frameObjectsSel.clearSelection();
+    actionPointsSel.clearSelection();
+    entityHitboxesSel.clearSelection();
+
+    smallTilesetSel.clearSelection();
+    largeTilesetSel.clearSelection();
+    palettesSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const MetaSprite::MetaSpriteError*>(error)) {
+        switch (e->type) {
+        case Type::FRAME:
+            framesSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::ANIMATION:
+            animationsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::ANIMATION_FRAME:
+            animationsSel.setSelected(e->firstIndex);
+            animationFramesSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+
+        case Type::FRAME_OBJECT:
+            framesSel.setSelected(e->firstIndex);
+            frameObjectsSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+
+        case Type::ACTION_POINT:
+            framesSel.setSelected(e->firstIndex);
+            actionPointsSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+
+        case Type::ENTITY_HITBOX:
+            framesSel.setSelected(e->firstIndex);
+            entityHitboxesSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+        }
+    }
 }
 
 void MetaSpriteEditorData::updateSelection()

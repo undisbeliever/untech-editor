@@ -27,22 +27,29 @@ public:
     virtual void printIndented(std::ostream& out) const;
 };
 
-class ListItemError : public AbstractSpecializedError {
-    const void* _ptr;
-    const std::string _message;
-
+struct GenericListError : public AbstractSpecializedError {
 public:
-    template <typename... Args>
-    ListItemError(const void* ptr, Args... message)
-        : _ptr(ptr)
-        , _message(stringBuilder(message...))
+    const unsigned firstIndex;
+    const unsigned childIndex;
+    const std::string msg;
+
+    GenericListError(unsigned pIndex, std::string&& message)
+        : firstIndex(pIndex)
+        , childIndex(0)
+        , msg(std::move(message))
     {
     }
-    virtual ~ListItemError() = default;
+
+    GenericListError(unsigned pIndex, unsigned cIndex, std::string&& message)
+        : firstIndex(pIndex)
+        , childIndex(cIndex)
+        , msg(std::move(message))
+    {
+    }
+
+    virtual ~GenericListError() = default;
 
     virtual std::string message() const final;
-
-    const void* ptr() const { return _ptr; }
 };
 
 struct ErrorListItem {

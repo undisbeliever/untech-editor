@@ -6,6 +6,7 @@
 
 #include "entityromdata.h"
 #include "entityromdata-error.h"
+#include "errorlisthelpers.h"
 #include "models/common/iterators.h"
 #include "models/common/string.h"
 #include "models/project/project.h"
@@ -145,11 +146,11 @@ static bool validateFieldValue(DataType type, const std::string& str)
     return false;
 }
 
-bool StructField::validate(const EntityRomStruct& romStruct, ErrorList& err) const
+bool StructField::validate(const EntityRomStruct& romStruct, const unsigned structIndex, const unsigned fieldIndex, ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
-        err.addError(std::make_unique<StructFieldError>(romStruct, *this, msg...));
+        err.addError(structFieldError(romStruct, structIndex, fieldIndex, msg...));
         valid = false;
     };
 
@@ -172,15 +173,15 @@ bool StructField::validate(const EntityRomStruct& romStruct, ErrorList& err) con
     return valid;
 }
 
-bool EntityRomStruct::validate(ErrorList& err) const
+bool EntityRomStruct::validate(const unsigned structIndex, ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
-        err.addError(std::make_unique<EntityRomStructError>(*this, msg...));
+        err.addError(entityRomStructError(*this, structIndex, msg...));
         valid = false;
     };
     auto addStructFieldError = [&](unsigned index, const auto... msg) {
-        err.addError(std::make_unique<StructFieldError>(*this, index, msg...));
+        err.addError(structFieldError(*this, structIndex, index, msg...));
         valid = false;
     };
 
@@ -205,12 +206,12 @@ bool EntityRomStruct::validate(ErrorList& err) const
 
     for (auto it = fields.cbegin(); it != fields.cend(); it++) {
         auto& field = *it;
+        unsigned index = std::distance(fields.cbegin(), it);
 
-        bool fieldValid = field.validate(*this, err);
+        bool fieldValid = field.validate(*this, structIndex, index, err);
         if (fieldValid) {
             auto dupIt = std::find_if(fields.begin(), it, [&](auto& f) { return f.name == field.name; });
             if (dupIt != it) {
-                unsigned index = std::distance(fields.cbegin(), it);
                 addStructFieldError(index, "Duplicate field name detected: ", field.name);
             }
         }
@@ -219,11 +220,11 @@ bool EntityRomStruct::validate(ErrorList& err) const
     return valid;
 }
 
-bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorList& err) const
+bool EntityFunctionTable::validate(const unsigned ftIndex, const Project::ProjectFile& project, ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
-        err.addError(std::make_unique<EntityFunctionTableError>(*this, msg...));
+        err.addError(entityFunctionTableError(*this, ftIndex, msg...));
         valid = false;
     };
 
@@ -249,11 +250,11 @@ bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorLis
     return valid;
 }
 
-bool EntityRomEntry::validate(const EntityType entityType, const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const
+bool EntityRomEntry::validate(const EntityType entityType, const unsigned index, const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
-        err.addError(std::make_unique<EntityRomEntryError>(*this, msg...));
+        err.addError(entityRomEntryError(*this, entityType, index, msg...));
         valid = false;
     };
 
@@ -375,26 +376,28 @@ bool EntityRomData::validateListIds(ErrorList& err) const
         err.addErrorString(msg...);
         valid = false;
     };
+    auto addListIdError = [&](unsigned index, const auto&... msg) {
+        err.addError(listIdError(index, msg...));
+        valid = false;
+    };
 
     if (listIds.empty()) {
         addError("Expected at least one Entity List Id");
     }
 
-    for (auto it = listIds.cbegin(); it != listIds.cend(); it++) {
-        auto& listId = *it;
-
+    for (auto [index, listId] : const_enumerate(listIds)) {
         if (listId.isValid() == false) {
-            addError("Missing listId name");
+            addListIdError(index, "Missing listId name");
             continue;
         }
         if (INVALID_NAMES.find(listId) != INVALID_NAMES.end()) {
-            addError("Invalid ListId name ", listId);
+            addListIdError(index, "Invalid ListId name ", listId);
             continue;
         }
 
-        auto count = std::count(listIds.cbegin(), it, listId);
+        auto count = std::count(listIds.cbegin(), listIds.cbegin() + index, listId);
         if (count == 1) {
-            addError("Duplicate listId detected: ", listId);
+            addListIdError(index, "Duplicate listId detected: ", listId);
         }
     }
 
@@ -403,13 +406,13 @@ bool EntityRomData::validateListIds(ErrorList& err) const
 
 StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err)
 {
-    std::vector<const EntityRomStruct*> toProcess(structs.size());
+    std::vector<unsigned> toProcess(structs.size());
     {
         auto it = toProcess.begin();
-        for (const EntityRomStruct& s : structs) {
-            s.validate(err);
+        for (auto [i, s] : const_enumerate(structs)) {
+            s.validate(i, err);
 
-            *it++ = &s;
+            *it++ = i;
         }
         assert(it == toProcess.end());
     }
@@ -417,9 +420,9 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
     StructFieldMap fieldMap(toProcess.size() + 1);
     fieldMap.emplace(idstring(), FieldList());
 
-    auto processStruct = [&](const EntityRomStruct* s) -> bool {
+    auto processStruct = [&](const unsigned structIndex) -> bool {
         // returns true if the struct is to be removed from the process list
-        assert(s);
+        const EntityRomStruct* s = &structs.at(structIndex);
 
         // Check name is unique and valid
         if (!s->name.isValid()) {
@@ -427,7 +430,7 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
         }
         auto it = fieldMap.find(s->name);
         if (it != fieldMap.end()) {
-            err.addError(std::make_unique<EntityRomStructError>(*s, "Duplicate name detected"));
+            err.addError(entityRomStructError(*s, structIndex, "Duplicate name detected"));
             return true;
         }
 
@@ -448,10 +451,10 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
 
             const auto& parentFields = parentIt->second;
 
-            for (const auto& f : s->fields) {
-                bool overridesField = std::any_of(parentFields.begin(), parentFields.end(), [&](const auto& o) { return f.name == o.name; });
+            for (auto f : const_enumerate(s->fields)) {
+                bool overridesField = std::any_of(parentFields.begin(), parentFields.end(), [&](const auto& o) { return f.second.name == o.name; });
                 if (overridesField) {
-                    err.addError(std::make_unique<StructFieldError>(*s, f, "Cannot override field in parent struct"));
+                    err.addError(structFieldError(*s, structIndex, f.first, "Cannot override field in parent struct"));
                 }
             }
 
@@ -469,10 +472,11 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
         auto it = std::remove_if(toProcess.begin(), toProcess.end(), processStruct);
 
         if (it == toProcess.end()) {
-            for (const EntityRomStruct* s : toProcess) {
-                assert(s);
-                if (s->parent != s->name) {
-                    err.addError(std::make_unique<EntityRomStructError>(*s, "Cannot find parent struct ", s->parent));
+            for (const auto structIndex : toProcess) {
+                const EntityRomStruct& s = structs.at(structIndex);
+
+                if (s.parent != s.name) {
+                    err.addError(entityRomStructError(s, structIndex, "Cannot find parent struct ", s.parent));
                 }
             }
             return fieldMap;
@@ -490,28 +494,28 @@ static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunc
                                                       const StructFieldMap& structFieldMap,
                                                       const Project::ProjectFile& project, ErrorList& err)
 {
-    auto addError = [&](const EntityFunctionTable& ft, const auto&... msg) {
-        err.addError(std::make_unique<EntityFunctionTableError>(ft, msg...));
+    auto addError = [&](const EntityFunctionTable& ft, const unsigned ftIndex, const auto&... msg) {
+        err.addError(entityFunctionTableError(ft, ftIndex, msg...));
     };
 
     static const FieldList blankFieldList;
 
     FunctionTableMap ftFieldMap(functionTables.size());
 
-    for (const EntityFunctionTable& ft : functionTables) {
-        if (ft.validate(project, err) == false) {
+    for (auto [i, ft] : const_enumerate(functionTables)) {
+        if (ft.validate(i, project, err) == false) {
             continue;
         }
 
         auto fieldsIt = structFieldMap.find(ft.entityStruct);
         if (fieldsIt == structFieldMap.end()) {
-            addError(ft, "Unable to find entity struct for functionTable ", ft.entityStruct);
+            addError(ft, i, "Unable to find entity struct for functionTable ", ft.entityStruct);
             continue;
         }
 
         auto s = ftFieldMap.emplace(ft.name, std::make_pair(&ft, &fieldsIt->second));
         if (s.second == false) {
-            addError(ft, "Duplicate functionTable detected");
+            addError(ft, i, "Duplicate functionTable detected");
         }
     }
 
@@ -773,14 +777,14 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     const auto structFieldMap = generateStructMap(data.structs, err);
     const auto ftMap = generateFunctionTableFieldMap(data.functionTables, structFieldMap, project, err);
 
-    for (const auto& e : data.entities) {
-        e.validate(EntityType::ENTITY, project, ftMap, err);
+    for (auto [i, e] : const_enumerate(data.entities)) {
+        e.validate(EntityType::ENTITY, i, project, ftMap, err);
     }
-    for (const auto& e : data.projectiles) {
-        e.validate(EntityType::PROJECTILE, project, ftMap, err);
+    for (auto [i, e] : const_enumerate(data.projectiles)) {
+        e.validate(EntityType::PROJECTILE, i, project, ftMap, err);
     }
-    for (const auto& e : data.players) {
-        e.validate(EntityType::PLAYER, project, ftMap, err);
+    for (auto [i, e] : const_enumerate(data.players)) {
+        e.validate(EntityType::PLAYER, i, project, ftMap, err);
     }
 
     ret->valid = oldErrorCount == err.errorCount();
@@ -848,8 +852,8 @@ bool validateEntityRomEntries(const EntityType entityType, const NamedList<Entit
 
     const auto ftMap = generateFunctionTableFieldMap(functionTables, structFieldMap, project, err);
 
-    for (const EntityRomEntry& e : entries) {
-        e.validate(entityType, project, ftMap, err);
+    for (auto [i, e] : const_enumerate(entries)) {
+        e.validate(entityType, i, project, ftMap, err);
     }
 
     return errCount == err.errorCount();

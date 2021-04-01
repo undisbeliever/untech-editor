@@ -11,6 +11,10 @@
 #include <memory>
 #include <vector>
 
+namespace UnTech {
+class AbstractSpecializedError;
+}
+
 namespace UnTech::Project {
 struct ProjectFile;
 class ProjectData;
@@ -103,6 +107,9 @@ public:
     // Return false if itemIndex is invalid.
     // If this editor is an `AbstractExternalFileEditor`, then you MUST call `setFilename` in this function.
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) = 0;
+
+    // Called when a an error list item is double clicked
+    virtual void errorDoubleClicked(const AbstractSpecializedError*) = 0;
 
     // Called after processGui and after an undo action has been processed.
     virtual void updateSelection() = 0;

@@ -90,7 +90,7 @@ bool ProjectFile::validate(ErrorList& err) const
         err.addErrorString("Too many MetaSprite FrameSets");
     }
 
-    valid &= validateNamesUnique(palettes, "palettes", err);
+    valid &= validateNamesUnique(palettes, "palettes", [&](unsigned, auto... msg) { err.addErrorString(msg...); });
     valid &= validateFilesAndNamesUnique(metaTileTilesets, "metatile tilesets", err);
 
     valid &= MetaSprite::validateFrameSetNamesUnique(frameSets, err);

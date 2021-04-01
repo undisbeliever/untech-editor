@@ -5,6 +5,7 @@
  */
 
 #include "common.h"
+#include "metasprite-error.h"
 #include "models/common/iterators.h"
 #include <cassert>
 
@@ -35,8 +36,8 @@ MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apF
         err.addErrorString(msg...);
         valid = false;
     };
-    auto addApfError = [&](const ActionPointFunction& apf, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&apf, msg...));
+    auto addApfError = [&](const unsigned index, const auto... msg) {
+        err.addError(std::make_unique<ActionPointFunctionError>(ApfErrorType::ACTION_POINT_FUNCTIONS, index, stringBuilder(msg...)));
         valid = false;
     };
 
@@ -59,13 +60,13 @@ MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apF
         assert(romValue <= 255 - 2);
 
         if (not apf.name.isValid()) {
-            addApfError(apf, "Missing action point function name");
+            addApfError(i, "Missing action point function name");
         }
 
         auto success = ret->emplace(apf.name, romValue);
 
         if (success.second == false) {
-            addApfError(apf, "Action point function name already exists: ", apf.name);
+            addApfError(i, "Action point function name already exists: ", apf.name);
         }
     }
 

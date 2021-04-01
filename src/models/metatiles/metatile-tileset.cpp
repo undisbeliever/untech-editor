@@ -6,8 +6,8 @@
 
 #include "metatile-tileset.h"
 #include "interactive-tiles.h"
+#include "metatiles-error.h"
 #include "models/common/bytevectorhelper.h"
-#include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
 #include "models/common/iterators.h"
 #include "models/lz4/lz4.h"
@@ -21,6 +21,13 @@ template class grid<uint16_t>;
 namespace MetaTiles {
 
 static_assert(sizeof(TilePriorities) == N_METATILES * 4 / 8);
+
+template <typename... Args>
+std::unique_ptr<TilesetError> tileError(unsigned index, const Args... msg)
+{
+    return std::make_unique<TilesetError>(TilesetErrorType::TILE, index,
+                                          stringBuilder("Tile ", index, ": ", msg...));
+}
 
 MetaTileTilesetInput::MetaTileTilesetInput()
 {
@@ -73,8 +80,8 @@ convertTileset(const MetaTileTilesetInput& input,
         return nullptr;
     }
 
-    auto addError = [&](const auto& item, const auto&... msg) {
-        err.addError(std::make_unique<ListItemError>(&item, msg...));
+    auto addTileError = [&](const unsigned index, const auto&... msg) {
+        err.addError(tileError(index, msg...));
         valid = false;
     };
 
@@ -114,7 +121,7 @@ convertTileset(const MetaTileTilesetInput& input,
             ret->tileFunctionTables.at(i) = it->second;
         }
         else {
-            addError(ft, "Unknown Interactive Tile Function Table ", ft);
+            addTileError(i, "Unknown Interactive Tile Function Table ", ft);
         }
     }
 

@@ -60,40 +60,39 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
     return valid;
 }
 
-template <class T>
+template <class T, typename ErrorFunction>
 inline bool validateNamesUnique(const NamedList<T>& list,
                                 const std::string& typeName,
-                                ErrorList& err)
+                                ErrorFunction err)
 {
     const idstring countString("count");
 
     bool valid = true;
-    auto addError = [&](const T& item, const auto... message) {
-        err.addError(std::make_unique<ListItemError>(&item, message...));
+    auto addError = [&](const unsigned index, const auto... message) {
+        err(index, message...);
         valid = false;
     };
 
-    for (auto it = list.begin(); it != list.end(); it++) {
-        const T& item = *it;
+    for (auto [index, item] : const_enumerate(list)) {
         const idstring& name = item.name;
         if (name.isValid() == false) {
-            auto d = std::distance(list.begin(), it);
-            addError(item, "Missing name in ", typeName, " ", d);
+            addError(index, "Missing name in ", typeName, " ", index);
             continue;
         }
 
         if (name == countString) {
-            addError(item, "Invalid ", typeName, " name: count");
+            addError(index, "Invalid ", typeName, " name: count");
             continue;
         }
 
-        bool dup = std::any_of(list.begin(), it,
+        bool dup = std::any_of(list.begin(), list.begin() + index,
                                [&](const auto& i) { return i.name == name; });
         if (dup) {
-            addError(item, "Duplicate ", typeName, " name detected: ", name);
+            addError(index, "Duplicate ", typeName, " name detected: ", name);
         }
     }
 
     return valid;
 }
+
 }

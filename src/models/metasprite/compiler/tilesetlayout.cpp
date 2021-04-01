@@ -213,7 +213,7 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
                 else {
                     for (unsigned frameId : ft.frameIds) {
                         errorList.addError(frameError(
-                            *exportFrames.at(frameId).frame,
+                            *exportFrames.at(frameId).frame, frameId,
                             "Too many tiles in frame (", nTiles, ")", dynamicTiles.size(), " ", ret.staticTiles.size()));
                     }
                 }

@@ -5,7 +5,7 @@
  */
 
 #include "interactive-tiles.h"
-#include "models/common/errorlist.h"
+#include "metatiles-error.h"
 #include "models/common/validateunique.h"
 
 namespace UnTech {
@@ -17,6 +17,13 @@ const std::array<InteractiveTileFunctionTable, InteractiveTiles::N_FIXED_FUNCTIO
     InteractiveTileFunctionTable{ BLANK_TILE_FUNCTION, rgba(0, 0, 0, 0) },
 } };
 
+template <typename... Args>
+std::unique_ptr<InteractiveTilesError> functionTableError(const InteractiveTileFunctionTable& ft, const unsigned ftIndex, const Args... msg)
+{
+    return std::make_unique<InteractiveTilesError>(InteractiveTilesErrorType::FUNCTION_TABLE, ftIndex,
+                                                   stringBuilder("Interactive Tile Function Table ", ft.name, " : ", msg...));
+}
+
 std::shared_ptr<const InteractiveTilesData>
 convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
 {
@@ -26,8 +33,8 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
         err.addErrorString(msg...);
         valid = false;
     };
-    const auto addFunctionError = [&](const InteractiveTileFunctionTable& ft, const auto... msg) {
-        err.addError(std::make_unique<ListItemError>(&ft, "Interactive Tile Function Table ", ft.name, " : ", msg...));
+    const auto addFunctionError = [&](const InteractiveTileFunctionTable& ft, const unsigned ftIndex, const auto... msg) {
+        err.addError(functionTableError(ft, ftIndex, msg...));
         valid = false;
     };
 
@@ -49,16 +56,16 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
             ret->tileFunctionMap.emplace(ft.name, index);
             index++;
         }
-        for (const auto& ft : input.functionTables) {
+        for (const auto [ftIndex, ft] : enumerate(input.functionTables)) {
             if (ft.name.isValid() == false) {
-                addFunctionError(ft, "Missing name");
+                addFunctionError(ft, ftIndex, "Missing name");
             }
 
-            const auto [it, added] = ret->tileFunctionMap.emplace(ft.name, index);
+            const auto [it, added] = ret->tileFunctionMap.emplace(ft.name, ftIndex);
             index++;
 
             if (added == false) {
-                addFunctionError(ft, "Duplicate name");
+                addFunctionError(ft, ftIndex, "Duplicate name");
             }
         }
         assert(index == numberOfFunctions);

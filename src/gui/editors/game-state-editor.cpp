@@ -11,6 +11,7 @@
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 #include "models/common/iterators.h"
+#include "models/scripting/scripting-error.h"
 
 namespace UnTech::Gui {
 
@@ -69,6 +70,26 @@ bool GameStateEditorData::loadDataFromProject(const Project::ProjectFile& projec
     data = projectFile.gameState;
 
     return true;
+}
+
+void GameStateEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = Scripting::GameStateErrorType;
+
+    flagSel.clearSelection();
+    wordSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const Scripting::GameStateError*>(error)) {
+        switch (e->type) {
+        case Type::FLAG:
+            flagSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::WORD:
+            wordSel.setSelected(e->firstIndex);
+            break;
+        }
+    }
 }
 
 void GameStateEditorData::updateSelection()

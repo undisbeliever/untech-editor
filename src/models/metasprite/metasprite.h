@@ -125,7 +125,8 @@ struct Frame {
 
 private:
     friend struct FrameSet;
-    bool validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList, const FrameSet& fs) const;
+    bool validate(const unsigned frameIndex, const FrameSet& fs,
+                  const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
 };
 
 struct FrameSet {

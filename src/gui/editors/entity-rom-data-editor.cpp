@@ -10,6 +10,7 @@
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 #include "models/common/iterators.h"
+#include "models/entity/entityromdata-error.h"
 
 namespace UnTech::Gui {
 
@@ -137,6 +138,52 @@ bool EntityRomDataEditorData::loadDataFromProject(const Project::ProjectFile& pr
     entityRomData = projectFile.entityRomData;
 
     return true;
+}
+
+void EntityRomDataEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+{
+    using Type = Entity::EntityErrorType;
+
+    listIdsSel.clearSelection();
+    structsSel.clearSelection();
+    structFieldsSel.clearSelection();
+    functionTablesSel.clearSelection();
+    entitiesSel.clearSelection();
+    projectilesSel.clearSelection();
+    playersSel.clearSelection();
+
+    if (auto* e = dynamic_cast<const Entity::EntityError*>(error)) {
+        switch (e->type) {
+        case Type::LIST_ID:
+            listIdsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::STRUCT:
+            structsSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::STRUCT_FIELD:
+            structsSel.setSelected(e->firstIndex);
+            structFieldsSel.setSelected(e->firstIndex, e->childIndex);
+            break;
+
+        case Type::ENTITY_FUNCTION_TABLE:
+            functionTablesSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::ENTITY_ROM_ENTRY:
+            entitiesSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::PROJECTILE_ROM_ENTRY:
+            projectilesSel.setSelected(e->firstIndex);
+            break;
+
+        case Type::PLAYER_ROM_ENTRY:
+            playersSel.setSelected(e->firstIndex);
+            break;
+        }
+    }
 }
 
 void EntityRomDataEditorData::updateSelection()
