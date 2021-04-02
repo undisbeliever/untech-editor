@@ -56,7 +56,7 @@ bool InteractiveTilesEditorData::loadDataFromProject(const Project::ProjectFile&
     return true;
 }
 
-void InteractiveTilesEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void InteractiveTilesEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = MetaTiles::InteractiveTilesErrorType;
 

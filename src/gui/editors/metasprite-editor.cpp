@@ -265,7 +265,7 @@ void MetaSpriteEditorData::saveFile() const
     UnTech::MetaSprite::MetaSprite::saveFrameSet(data, filename());
 }
 
-void MetaSpriteEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void MetaSpriteEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = MetaSprite::MsErrorType;
 

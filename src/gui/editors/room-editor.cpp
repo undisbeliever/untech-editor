@@ -339,7 +339,7 @@ static void selectScriptLine(NodeSelection& sel, const Scripting::Script& script
     sel.setSelected(visitor.foundParentIndex, visitor.foundChildIndex);
 }
 
-void RoomEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void RoomEditorData::errorDoubleClicked(const AbstractError* error)
 {
     selectedTilesetTiles.clear();
     selectedTiles.clear();

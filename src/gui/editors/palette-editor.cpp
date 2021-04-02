@@ -52,7 +52,7 @@ bool PaletteEditorData::loadDataFromProject(const Project::ProjectFile& projectF
     return p != nullptr;
 }
 
-void PaletteEditorData::errorDoubleClicked(const AbstractSpecializedError*)
+void PaletteEditorData::errorDoubleClicked(const AbstractError*)
 {
     // There is no selection in PaletteEditorData.
 }

@@ -24,7 +24,7 @@ public:
     PaletteEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void errorDoubleClicked(const AbstractSpecializedError*) final;
+    virtual void errorDoubleClicked(const AbstractError*) final;
     virtual void updateSelection() final;
 };
 

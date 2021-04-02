@@ -54,7 +54,7 @@ bool ActionPointsEditorData::loadDataFromProject(const Project::ProjectFile& pro
     return true;
 }
 
-void ActionPointsEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void ActionPointsEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = MetaSprite::ApfErrorType;
 

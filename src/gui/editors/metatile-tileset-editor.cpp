@@ -123,7 +123,7 @@ void MetaTileTilesetEditorData::saveFile() const
     UnTech::MetaTiles::saveMetaTileTilesetInput(data, filename());
 }
 
-void MetaTileTilesetEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void MetaTileTilesetEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = MetaTiles::TilesetErrorType;
 

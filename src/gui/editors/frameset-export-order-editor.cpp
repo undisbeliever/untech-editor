@@ -120,7 +120,7 @@ void FrameSetExportOrderEditorData::saveFile() const
     UnTech::MetaSprite::saveFrameSetExportOrder(data, filename());
 }
 
-void FrameSetExportOrderEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void FrameSetExportOrderEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = MetaSprite::EoErrorType;
 

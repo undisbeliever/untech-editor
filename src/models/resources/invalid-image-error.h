@@ -48,7 +48,7 @@ struct InvalidImageTile {
     }
 };
 
-class InvalidImageError : public AbstractSpecializedError {
+class InvalidImageError : public AbstractError {
 public:
     static const char* reasonString(const InvalidTileReason reason);
 

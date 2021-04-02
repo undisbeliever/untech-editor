@@ -140,7 +140,7 @@ bool EntityRomDataEditorData::loadDataFromProject(const Project::ProjectFile& pr
     return true;
 }
 
-void EntityRomDataEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void EntityRomDataEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = Entity::EntityErrorType;
 

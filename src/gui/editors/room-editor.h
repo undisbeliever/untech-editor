@@ -44,7 +44,7 @@ public:
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;
-    virtual void errorDoubleClicked(const AbstractSpecializedError*) final;
+    virtual void errorDoubleClicked(const AbstractError*) final;
     virtual void updateSelection() final;
 
 protected:

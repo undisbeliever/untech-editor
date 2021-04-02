@@ -56,7 +56,7 @@ bool ProjectSettingsEditorData::loadDataFromProject(const Project::ProjectFile& 
     return true;
 }
 
-void ProjectSettingsEditorData::errorDoubleClicked(const AbstractSpecializedError*)
+void ProjectSettingsEditorData::errorDoubleClicked(const AbstractError*)
 {
     // There is no selection in ProjectSettingsEditorData.
 }

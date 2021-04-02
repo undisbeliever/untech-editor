@@ -187,7 +187,7 @@ void SpriteImporterEditorData::saveFile() const
     UnTech::MetaSprite::SpriteImporter::saveFrameSet(data, filename());
 }
 
-void SpriteImporterEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void SpriteImporterEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = MetaSprite::MsErrorType;
 

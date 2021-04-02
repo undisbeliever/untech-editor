@@ -61,7 +61,7 @@ bool BytecodeEditorData::loadDataFromProject(const Project::ProjectFile& project
     return true;
 }
 
-void BytecodeEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void BytecodeEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = Scripting::BytecodeErrorType;
 

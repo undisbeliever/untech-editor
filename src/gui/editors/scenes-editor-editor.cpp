@@ -75,7 +75,7 @@ bool ScenesEditorData::loadDataFromProject(const Project::ProjectFile& projectFi
     return true;
 }
 
-void ScenesEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void ScenesEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = Resources::SceneErrorType;
 

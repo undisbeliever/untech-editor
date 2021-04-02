@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace UnTech {
-class AbstractSpecializedError;
+class AbstractError;
 }
 
 namespace UnTech::Project {
@@ -109,7 +109,7 @@ public:
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) = 0;
 
     // Called when a an error list item is double clicked
-    virtual void errorDoubleClicked(const AbstractSpecializedError*) = 0;
+    virtual void errorDoubleClicked(const AbstractError*) = 0;
 
     // Called after processGui and after an undo action has been processed.
     virtual void updateSelection() = 0;

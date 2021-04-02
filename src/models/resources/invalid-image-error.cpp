@@ -36,7 +36,7 @@ static std::string invalidImageErrorMessage(unsigned frameId, const std::vector<
 }
 
 InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& tiles, unsigned fId)
-    : AbstractSpecializedError(invalidImageErrorMessage(fId, tiles))
+    : AbstractError(invalidImageErrorMessage(fId, tiles))
     , invalidTiles(std::move(tiles))
     , frameId(fId)
 {

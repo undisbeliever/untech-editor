@@ -72,7 +72,7 @@ bool GameStateEditorData::loadDataFromProject(const Project::ProjectFile& projec
     return true;
 }
 
-void GameStateEditorData::errorDoubleClicked(const AbstractSpecializedError* error)
+void GameStateEditorData::errorDoubleClicked(const AbstractError* error)
 {
     using Type = Scripting::GameStateErrorType;
 

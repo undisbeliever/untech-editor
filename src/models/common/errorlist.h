@@ -13,19 +13,19 @@
 
 namespace UnTech {
 
-class AbstractSpecializedError {
+class AbstractError {
 public:
     const std::string message;
     bool isWarning;
 
 public:
-    AbstractSpecializedError(std::string&& msg)
+    AbstractError(std::string&& msg)
         : message(std::move(msg))
         , isWarning(false)
     {
     }
 
-    virtual ~AbstractSpecializedError() = default;
+    virtual ~AbstractError() = default;
 
     // Error displayed in command line compiler
     // By default prints message
@@ -34,20 +34,20 @@ public:
     virtual void printIndented(std::ostream& out) const;
 };
 
-struct GenericListError : public AbstractSpecializedError {
+struct GenericListError : public AbstractError {
 public:
     const unsigned firstIndex;
     const unsigned childIndex;
 
     GenericListError(unsigned pIndex, std::string&& message)
-        : AbstractSpecializedError(std::move(message))
+        : AbstractError(std::move(message))
         , firstIndex(pIndex)
         , childIndex(0)
     {
     }
 
     GenericListError(unsigned pIndex, unsigned cIndex, std::string&& message)
-        : AbstractSpecializedError(std::move(message))
+        : AbstractError(std::move(message))
         , firstIndex(pIndex)
         , childIndex(cIndex)
     {
@@ -58,13 +58,13 @@ public:
 
 class ErrorList {
 private:
-    std::vector<std::unique_ptr<AbstractSpecializedError>> _list;
+    std::vector<std::unique_ptr<AbstractError>> _list;
     unsigned _errorCount;
 
 public:
     ErrorList();
 
-    const std::vector<std::unique_ptr<AbstractSpecializedError>>& list() const { return _list; }
+    const std::vector<std::unique_ptr<AbstractError>>& list() const { return _list; }
 
     inline bool empty() const { return _list.empty(); }
     unsigned errorCount() const { return _errorCount; }
@@ -72,7 +72,7 @@ public:
 
     bool hasError() const { return _errorCount > 0; }
 
-    void addError(std::unique_ptr<AbstractSpecializedError> e)
+    void addError(std::unique_ptr<AbstractError> e)
     {
         e->isWarning = false;
         _list.push_back(std::move(e));
@@ -83,10 +83,10 @@ public:
     template <typename... Args>
     void addErrorString(Args... args)
     {
-        addError(std::make_unique<AbstractSpecializedError>(stringBuilder(std::forward<Args>(args)...)));
+        addError(std::make_unique<AbstractError>(stringBuilder(std::forward<Args>(args)...)));
     }
 
-    void addWarning(std::unique_ptr<AbstractSpecializedError> e)
+    void addWarning(std::unique_ptr<AbstractError> e)
     {
         e->isWarning = true;
         _list.push_back(std::move(e));
@@ -95,7 +95,7 @@ public:
     template <typename... Args>
     void addWarningString(Args... args)
     {
-        addWarning(std::make_unique<AbstractSpecializedError>(stringBuilder(std::forward<Args>(args)...)));
+        addWarning(std::make_unique<AbstractError>(stringBuilder(std::forward<Args>(args)...)));
     }
 
     void printIndented(std::ostream& out) const;

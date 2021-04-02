@@ -32,7 +32,7 @@ void ErrorList::printIndented(std::ostream& out) const
     }
 }
 
-void AbstractSpecializedError::printIndented(std::ostream& out) const
+void AbstractError::printIndented(std::ostream& out) const
 {
     out << message;
 }
