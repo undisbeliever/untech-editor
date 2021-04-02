@@ -19,29 +19,20 @@ ErrorList::ErrorList()
 void ErrorList::printIndented(std::ostream& out) const
 {
     for (const auto& item : _list) {
-        if (!item.isWarning) {
+        if (!item->isWarning) {
             out << "    ERROR: ";
         }
         else {
             out << "    Warning: ";
         }
 
-        if (item.specialized) {
-            item.specialized->printIndented(out);
-        }
-        else {
-            out << item.message;
-        }
+        item->printIndented(out);
+
         out << '\n';
     }
 }
 
 void AbstractSpecializedError::printIndented(std::ostream& out) const
 {
-    out << message();
-}
-
-std::string GenericListError::message() const
-{
-    return msg;
+    out << message;
 }

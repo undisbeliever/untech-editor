@@ -7,41 +7,42 @@
 #include "invalid-image-error.h"
 #include <ostream>
 
-using namespace UnTech::Resources;
+namespace UnTech::Resources {
 
-const char* InvalidImageError::reasonString(const InvalidImageError::InvalidTileReason reason)
+const char* InvalidImageError::reasonString(const InvalidTileReason reason)
 {
     switch (reason) {
-    case NO_PALETTE_FOUND:
+    case InvalidTileReason::NO_PALETTE_FOUND:
         return "No palette found";
 
-    case NOT_SAME_PALETTE:
+    case InvalidTileReason::NOT_SAME_PALETTE:
         return "Must use the same palette in each frame";
 
-    case TOO_MANY_COLORS:
+    case InvalidTileReason::TOO_MANY_COLORS:
         return "Too many colors";
     }
 
     return "";
 }
 
-InvalidImageError::InvalidImageError(unsigned frameId)
-    : _invalidTiles()
+static std::string invalidImageErrorMessage(unsigned frameId, const std::vector<InvalidImageTile>& invalidTiles)
+{
+    if (frameId <= INT_MAX) {
+        return stringBuilder(invalidTiles.size(), " invalid tiles in frame ", frameId);
+    }
+    else {
+        return stringBuilder(invalidTiles.size(), " invalid tiles");
+    }
+}
+
+InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles, unsigned frameId)
+    : AbstractSpecializedError(invalidImageErrorMessage(frameId, invalidTiles))
+    , _invalidTiles(std::move(invalidTiles))
     , _frameId(frameId)
 {
 }
 
 InvalidImageError::~InvalidImageError() = default;
-
-std::string InvalidImageError::message() const
-{
-    if (hasFrameId()) {
-        return stringBuilder(_invalidTiles.size(), " invalid tiles in frame ", _frameId);
-    }
-    else {
-        return stringBuilder(_invalidTiles.size(), " invalid tiles");
-    }
-}
 
 void InvalidImageError::printIndented(std::ostream& out) const
 {
@@ -62,3 +63,5 @@ void InvalidImageError::printIndented(std::ostream& out) const
         }
     }
 };
+
+}

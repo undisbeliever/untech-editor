@@ -218,7 +218,7 @@ void BackgroundImageEditorGui::updateInvalidTileList(const Project::ProjectData&
                 _invalidTiles.clear();
 
                 for (const auto& errorItem : status.errorList.list()) {
-                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.specialized.get())) {
+                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
                         _invalidTiles.append(*imgErr);
                     }
                 }

@@ -73,7 +73,7 @@ inline bool extractTileAndPalette(TileAndPalette& ft, const Image& image, const 
 inline std::vector<TileAndPalette> tilesFromImage(const Image& image, const unsigned bitDepth,
                                                   const std::vector<Snes::SnesColor>& palette,
                                                   const unsigned firstPalette, const unsigned nPalettes,
-                                                  InvalidImageError& err)
+                                                  std::vector<InvalidImageTile>& err)
 {
     const static unsigned TS = decltype(TileAndPalette::tile)::TILE_SIZE;
 
@@ -90,7 +90,7 @@ inline std::vector<TileAndPalette> tilesFromImage(const Image& image, const unsi
         for (unsigned x = 0; x < iSize.width; x += TS) {
             bool s = extractTileAndPalette(*tileIt, image, x, y, palette, colorsPerPalette, firstPalette, nPalettes);
             if (!s) {
-                err.addInvalidTile(TS, x, y, InvalidImageError::NO_PALETTE_FOUND);
+                err.emplace_back(TS, x, y, InvalidTileReason::NO_PALETTE_FOUND);
             }
             tileIt++;
         }

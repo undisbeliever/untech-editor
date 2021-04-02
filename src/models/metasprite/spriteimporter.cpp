@@ -281,7 +281,7 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
 {
     bool valid = true;
     auto addError = [&](std::string&& msg) {
-        errorList.addErrorString(msg);
+        errorList.addErrorString(std::move(msg));
         valid = false;
     };
 

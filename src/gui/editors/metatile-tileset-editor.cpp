@@ -849,7 +849,7 @@ void MetaTileTilesetEditorGui::updateInvalidTileList(const Project::ProjectData&
                 }
 
                 for (const auto& errorItem : status.errorList.list()) {
-                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.specialized.get())) {
+                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
                         if (imgErr->hasFrameId()) {
                             if (imgErr->frameId() < _invalidTilesFrame.size()) {
                                 _invalidTilesFrame.at(imgErr->frameId()).append(*imgErr);

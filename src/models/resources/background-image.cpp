@@ -104,12 +104,12 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
         return nullptr;
     }
 
-    auto imageErr = std::make_unique<InvalidImageError>();
+    std::vector<InvalidImageTile> invalidTiles;
     std::vector<TileAndPalette> extractedTiles = tilesFromImage(*image, input.bitDepth,
                                                                 palette, input.firstPalette, input.nPalettes,
-                                                                *imageErr);
-    if (imageErr->hasError()) {
-        err.addError(std::move(imageErr));
+                                                                invalidTiles);
+    if (!invalidTiles.empty()) {
+        err.addError(std::make_unique<InvalidImageError>(std::move(invalidTiles)));
         return nullptr;
     }
 

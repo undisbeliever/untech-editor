@@ -16,7 +16,7 @@ class InvalidImageErrorGraphics {
 private:
     struct Tile {
         TwoPointRect rect;
-        Resources::InvalidImageError::InvalidTileReason reason;
+        Resources::InvalidTileReason reason;
     };
     std::vector<Tile> invalidTiles;
 

@@ -22,26 +22,22 @@ void processErrorListWindow(const Project::ResourceStatus& status, AbstractEdito
     if (ImGui::Begin("Error List")) {
 
         for (const auto& item : status.errorList.list()) {
-            if (!item.isWarning) {
+            if (!item->isWarning) {
                 ImGui::PushStyleColor(ImGuiCol_Text, Style::failColor);
             }
             else {
                 ImGui::PushStyleColor(ImGuiCol_Text, Style::warningColor);
             }
 
-            // ::TODO add double click on error to select bad item::
-
             ImGui::Bullet();
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
-            ImGui::TextUnformatted(item.message);
+            ImGui::TextUnformatted(item->message);
 
             if (ImGui::IsItemClicked()) {
                 if (ImGui::IsMouseDoubleClicked(0)) {
-                    if (item.specialized) {
-                        editorData->errorDoubleClicked(item.specialized.get());
-                    }
+                    editorData->errorDoubleClicked(item.get());
                 }
             }
         }

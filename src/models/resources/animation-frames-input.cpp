@@ -44,14 +44,14 @@ static std::vector<std::vector<TileAndPalette>> tilesFromFrameImages(const Anima
     frameTiles.reserve(input.frameImageFilenames.size());
 
     for (const auto [frameId, fn] : const_enumerate(input.frameImageFilenames)) {
-        auto imageErr = std::make_unique<InvalidImageError>(frameId);
+        std::vector<InvalidImageTile> invalidTiles;
 
         const auto& image = ImageCache::loadPngImage(fn);
         frameTiles.emplace_back(
-            tilesFromImage(*image, input.bitDepth, palette, 0, 8, *imageErr));
+            tilesFromImage(*image, input.bitDepth, palette, 0, 8, invalidTiles));
 
-        if (imageErr->hasError()) {
-            err.addError(std::move(imageErr));
+        if (!invalidTiles.empty()) {
+            err.addError(std::make_unique<InvalidImageError>(std::move(invalidTiles)));
         }
     }
 
@@ -77,7 +77,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(
 
     const unsigned nFrames = frameTiles.size();
 
-    auto imageErr = std::make_unique<InvalidImageError>();
+    std::vector<InvalidImageTile> invalidTiles;
 
     AnimatedTilesetIntermediate ret;
     ret.animatedTiles.reserve(64);
@@ -89,7 +89,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(
         unsigned palette = getPalette(0, tileId);
         for (const auto frameId : range(nFrames)) {
             if (getPalette(frameId, tileId) != palette) {
-                imageErr->addInvalidTile(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, InvalidImageError::NOT_SAME_PALETTE);
+                invalidTiles.emplace_back(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, InvalidTileReason::NOT_SAME_PALETTE);
                 break;
             }
         }
@@ -120,8 +120,8 @@ static AnimatedTilesetIntermediate combineFrameTiles(
         }
     }
 
-    if (imageErr->hasError()) {
-        err.addError(std::move(imageErr));
+    if (!invalidTiles.empty()) {
+        err.addError(std::make_unique<InvalidImageError>(std::move(invalidTiles)));
     }
 
     return ret;
