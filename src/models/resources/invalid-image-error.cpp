@@ -35,10 +35,10 @@ static std::string invalidImageErrorMessage(unsigned frameId, const std::vector<
     }
 }
 
-InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles, unsigned frameId)
-    : AbstractSpecializedError(invalidImageErrorMessage(frameId, invalidTiles))
-    , _invalidTiles(std::move(invalidTiles))
-    , _frameId(frameId)
+InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& tiles, unsigned fId)
+    : AbstractSpecializedError(invalidImageErrorMessage(fId, tiles))
+    , invalidTiles(std::move(tiles))
+    , frameId(fId)
 {
 }
 
@@ -46,18 +46,18 @@ InvalidImageError::~InvalidImageError() = default;
 
 void InvalidImageError::printIndented(std::ostream& out) const
 {
-    if (!_invalidTiles.empty()) {
+    if (!invalidTiles.empty()) {
         if (hasFrameId()) {
-            out << _invalidTiles.size() << " invalid tiles in frame " << _frameId;
+            out << invalidTiles.size() << " invalid tiles in frame " << frameId;
         }
         else {
-            out << _invalidTiles.size() << " invalid tiles";
+            out << invalidTiles.size() << " invalid tiles";
         }
 
-        if (_invalidTiles.size() <= 10) {
+        if (invalidTiles.size() <= 10) {
             out << ':';
 
-            for (const auto& t : _invalidTiles) {
+            for (const auto& t : invalidTiles) {
                 out << "\n      Tile" << t.size << " @ " << t.x << "px, " << t.y << "px: " << reasonString(t.reason);
             }
         }

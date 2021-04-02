@@ -13,11 +13,11 @@ namespace UnTech::Gui {
 void InvalidImageErrorGraphics::append(const Resources::InvalidImageError& imageErr)
 {
     const auto oldSize = invalidTiles.size();
-    invalidTiles.resize(oldSize + imageErr.invalidTiles().size());
+    invalidTiles.resize(oldSize + imageErr.invalidTiles.size());
 
     auto it = invalidTiles.begin() + oldSize;
 
-    for (const auto& tile : imageErr.invalidTiles()) {
+    for (const auto& tile : imageErr.invalidTiles) {
         it->rect.x1 = tile.x;
         it->rect.x2 = tile.x + tile.size;
         it->rect.y1 = tile.y;

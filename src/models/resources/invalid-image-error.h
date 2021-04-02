@@ -52,22 +52,17 @@ class InvalidImageError : public AbstractSpecializedError {
 public:
     static const char* reasonString(const InvalidTileReason reason);
 
-private:
-    const std::vector<InvalidImageTile> _invalidTiles;
-    const unsigned _frameId;
+public:
+    const std::vector<InvalidImageTile> invalidTiles;
+    const unsigned frameId;
 
 public:
     InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles, unsigned frameId = UINT_MAX);
     virtual ~InvalidImageError();
 
-    bool hasFrameId() const { return _frameId <= INT_MAX; }
-    unsigned frameId() const { return _frameId; }
-
-    const std::vector<InvalidImageTile>& invalidTiles() const { return _invalidTiles; }
-
-    bool hasError() const { return !_invalidTiles.empty(); }
-
-    size_t errorCount() const { return _invalidTiles.size(); }
+    bool hasFrameId() const { return frameId <= INT_MAX; }
+    bool hasError() const { return !invalidTiles.empty(); }
+    size_t errorCount() const { return invalidTiles.size(); }
 
     virtual void printIndented(std::ostream& out) const final;
 };
