@@ -562,7 +562,6 @@ compileData(ConvertFunction convertFunction, const InputT& input, const Preresqu
     ResourceStatus status;
     status.name = name;
 
-    bool valid = false;
     std::shared_ptr<const DataT> data = nullptr;
 
     try {
@@ -570,14 +569,14 @@ compileData(ConvertFunction convertFunction, const InputT& input, const Preresqu
     }
     catch (const std::exception& ex) {
         status.errorList.addErrorString(stringBuilder("EXCEPTION: ", ex.what()));
-        valid = false;
         data = nullptr;
     }
 
-    if (!valid) {
+    if (status.errorList.hasError()) {
         data = nullptr;
     }
-    status.state = valid ? ResourceState::Valid : ResourceState::Invalid;
+
+    status.state = data ? ResourceState::Valid : ResourceState::Invalid;
 
     return { std::move(status), std::move(data) };
 }
