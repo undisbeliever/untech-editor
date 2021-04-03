@@ -184,28 +184,28 @@ bool AnimationFramesInput::isBitDepthValid() const
     return bitDepth == 2 || bitDepth == 4 || bitDepth == 8;
 }
 
-bool AnimationFramesInput::validate(ErrorList& err) const
+static bool validate(const AnimationFramesInput& input, ErrorList& err)
 {
     bool valid = true;
 
-    if (!isBitDepthValid()) {
+    if (!input.isBitDepthValid()) {
         err.addErrorString("Invalid bit-depth, expected 2, 4 or 8");
         valid = false;
     }
 
-    if (frameImageFilenames.empty()) {
+    if (input.frameImageFilenames.empty()) {
         err.addErrorString("Missing frame image");
         valid = false;
     }
 
-    if (!conversionPalette.isValid()) {
+    if (!input.conversionPalette.isValid()) {
         err.addErrorString("Missing conversion palette name");
         valid = false;
     }
 
-    std::vector<usize> imageSizes(frameImageFilenames.size());
+    std::vector<usize> imageSizes(input.frameImageFilenames.size());
 
-    for (auto [i, imageFilename] : const_enumerate(frameImageFilenames)) {
+    for (auto [i, imageFilename] : const_enumerate(input.frameImageFilenames)) {
         const auto& image = ImageCache::loadPngImage(imageFilename);
         imageSizes.at(i) = image->size();
 
@@ -239,7 +239,7 @@ convertAnimationFrames(const AnimationFramesInput& input,
                        const Project::DataStore<Resources::PaletteData>& projectDataStore,
                        ErrorList& err)
 {
-    bool valid = input.validate(err);
+    bool valid = validate(input, err);
     if (!valid) {
         return std::nullopt;
     }

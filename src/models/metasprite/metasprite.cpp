@@ -9,73 +9,73 @@
 #include "models/common/errorlist.h"
 #include "models/common/iterators.h"
 #include "models/common/validateunique.h"
+#include "models/metasprite/animation/animation.hpp"
 #include <algorithm>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite;
-using namespace UnTech::MetaSprite::MetaSprite;
+namespace UnTech::MetaSprite::MetaSprite {
 
 /*
  * FRAME
  * =====
  */
 
-inline bool Frame::validate(const unsigned frameIndex, const FrameSet& fs,
-                            const ActionPointMapping& actionPointMapping, ErrorList& errorList) const
+static bool validate(const Frame& input, const unsigned frameIndex,
+                     const FrameSet& fs, const ActionPointMapping& actionPointMapping,
+                     ErrorList& errorList)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
-        errorList.addError(frameError(*this, frameIndex, msg...));
+        errorList.addError(frameError(input, frameIndex, msg...));
         valid = false;
     };
 
-    if (!name.isValid()) {
+    if (!input.name.isValid()) {
         addError("Missing name");
     }
-    if (objects.size() > MAX_FRAME_OBJECTS) {
+    if (input.objects.size() > MAX_FRAME_OBJECTS) {
         addError("Too many frame objects");
     }
-    if (actionPoints.size() > MAX_ACTION_POINTS) {
+    if (input.actionPoints.size() > MAX_ACTION_POINTS) {
         addError("Too many action points");
     }
-    if (entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
+    if (input.entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
         addError("Too many entity hitboxes");
     }
 
-    for (auto [i, obj] : const_enumerate(objects)) {
+    for (auto [i, obj] : const_enumerate(input.objects)) {
         size_t tsSize = obj.size == ObjectSize::SMALL ? fs.smallTileset.size()
                                                       : fs.largeTileset.size();
         if (obj.tileId > tsSize) {
-            errorList.addError(frameObjectError(*this, frameIndex, i, "Invalid tileId"));
+            errorList.addError(frameObjectError(input, frameIndex, i, "Invalid tileId"));
             valid = false;
         }
     }
 
-    for (auto [i, ap] : const_enumerate(actionPoints)) {
+    for (auto [i, ap] : const_enumerate(input.actionPoints)) {
         if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
-            errorList.addError(actionPointError(*this, frameIndex, i, "Unknown action point type ", ap.type));
+            errorList.addError(actionPointError(input, frameIndex, i, "Unknown action point type ", ap.type));
             valid = false;
         }
     }
 
-    for (auto [i, eh] : const_enumerate(entityHitboxes)) {
+    for (auto [i, eh] : const_enumerate(input.entityHitboxes)) {
         if (eh.aabb.width == 0 || eh.aabb.height == 0) {
-            errorList.addError(entityHitboxError(*this, frameIndex, i, "aabb has no size"));
+            errorList.addError(entityHitboxError(input, frameIndex, i, "aabb has no size"));
             valid = false;
         }
     }
 
-    if (solid) {
-        if (tileHitbox.width == 0 || tileHitbox.height == 0) {
+    if (input.solid) {
+        if (input.tileHitbox.width == 0 || input.tileHitbox.height == 0) {
             addError("Tile Hitbox has no size");
         }
-        else if (tileHitbox.left() >= 0 || tileHitbox.right() <= 0
-                 || tileHitbox.top() >= 0 || tileHitbox.bottom() <= 0) {
+        else if (input.tileHitbox.left() >= 0 || input.tileHitbox.right() <= 0
+                 || input.tileHitbox.top() >= 0 || input.tileHitbox.bottom() <= 0) {
             addError("Frame origin must be inside the tile hitbox and not touching the hitbox edges");
         }
 
-        if (tileHitbox.left() < -127 || tileHitbox.right() > 127
-            || tileHitbox.top() < -127 || tileHitbox.height > 127) {
+        if (input.tileHitbox.left() < -127 || input.tileHitbox.right() > 127
+            || input.tileHitbox.top() < -127 || input.tileHitbox.height > 127) {
             addError("Tile Hitbox is too large");
         }
     }
@@ -121,7 +121,7 @@ bool Frame::operator==(const Frame& o) const
  * =========
  */
 
-bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const
+bool validate(const FrameSet& input, const ActionPointMapping& actionPointMapping, ErrorList& errorList)
 {
     bool valid = true;
 
@@ -130,43 +130,43 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
         valid = false;
     };
 
-    if (name.isValid() == false) {
+    if (input.name.isValid() == false) {
         addError("Missing name");
     }
-    if (exportOrder.isValid() == false) {
+    if (input.exportOrder.isValid() == false) {
         addError("Missing exportOrder");
     }
-    if (frames.size() == 0) {
+    if (input.frames.size() == 0) {
         addError("No Frames");
     }
 
-    if (exportOrder.isValid() == false) {
+    if (input.exportOrder.isValid() == false) {
         addError("Missing exportOrder");
     }
 
-    if (palettes.empty()) {
+    if (input.palettes.empty()) {
         addError("Expected at least one palette");
     }
-    if (palettes.size() > MAX_PALETTES) {
+    if (input.palettes.size() > MAX_PALETTES) {
         addError("Too many palettes");
     }
-    if (animations.size() > MAX_ANIMATION_FRAMES) {
+    if (input.animations.size() > MAX_ANIMATION_FRAMES) {
         addError("Too many animations in frameSet");
     }
 
-    valid &= validateNamesUnique(frames, "frame", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.frames, "frame", [&](unsigned i, auto... msg) {
         errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::FRAME, i, stringBuilder(msg...)));
     });
-    valid &= validateNamesUnique(animations, "animation", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.animations, "animation", [&](unsigned i, auto... msg) {
         errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, i, stringBuilder(msg...)));
     });
 
-    for (auto [i, frame] : enumerate(frames)) {
-        valid &= frame.validate(i, *this, actionPointMapping, errorList);
+    for (auto [i, frame] : enumerate(input.frames)) {
+        valid &= validate(frame, i, input, actionPointMapping, errorList);
     }
 
-    for (auto [i, ani] : enumerate(animations)) {
-        valid &= ani.validate(i, *this, errorList);
+    for (auto [i, ani] : enumerate(input.animations)) {
+        valid &= validate(ani, i, input, errorList);
     }
 
     return valid;
@@ -182,4 +182,6 @@ bool FrameSet::operator==(const FrameSet& o) const
            && palettes == o.palettes
            && frames == o.frames
            && animations == o.animations;
+}
+
 }

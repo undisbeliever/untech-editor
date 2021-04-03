@@ -45,7 +45,7 @@ static_assert(RoomInput::MAX_MAP_HEIGHT == MAP_HEIGHT_LARGE);
 static_assert(RoomInput::MAX_MAP_HEIGHT <= MetaTiles::MAX_GRID_HEIGHT);
 static_assert(RoomInput::MAX_MAP_WIDTH <= MetaTiles::MAX_GRID_WIDTH);
 
-bool RoomSettings::validate(ErrorList& err) const
+bool validate(const RoomSettings& input, ErrorList& err)
 {
     bool valid = true;
 
@@ -56,7 +56,7 @@ bool RoomSettings::validate(ErrorList& err) const
         }
     };
 
-    validateMinMax(roomDataSize, MIN_ROOM_DATA_SIZE, MAX_ROOM_DATA_SIZE, "Max Room Size invalid");
+    validateMinMax(input.roomDataSize, input.MIN_ROOM_DATA_SIZE, input.MAX_ROOM_DATA_SIZE, "Max Room Size invalid");
 
     return valid;
 }
@@ -203,7 +203,7 @@ unsigned RoomInput::tileIndex(const upoint& p) const
     }
 }
 
-bool RoomInput::validate(const Resources::CompiledScenesData& compiledScenes, ErrorList& err) const
+static bool validate(const RoomInput& input, const Resources::CompiledScenesData& compiledScenes, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto&... msg) {
@@ -211,29 +211,29 @@ bool RoomInput::validate(const Resources::CompiledScenesData& compiledScenes, Er
         valid = false;
     };
 
-    if (!name.isValid()) {
+    if (!input.name.isValid()) {
         addError("Missing name");
     }
 
-    if (auto sceneData = compiledScenes.findScene(scene)) {
+    if (auto sceneData = compiledScenes.findScene(input.scene)) {
         if (sceneData->mtTileset == std::nullopt) {
-            addError("Scene ", scene, " does not have a MetaTile layer");
+            addError("Scene ", input.scene, " does not have a MetaTile layer");
         }
     }
     else {
-        addError("Cannot find scene: ", scene);
+        addError("Cannot find scene: ", input.scene);
     }
 
-    if (map.width() < MIN_MAP_WIDTH || map.height() < MIN_MAP_HEIGHT) {
-        addError("Map is too small (minimum size is ", MIN_MAP_WIDTH, " x ", MIN_MAP_HEIGHT, ")");
+    if (input.map.width() < input.MIN_MAP_WIDTH || input.map.height() < input.MIN_MAP_HEIGHT) {
+        addError("Map is too small (minimum size is ", input.MIN_MAP_WIDTH, " x ", input.MIN_MAP_HEIGHT, ")");
     }
-    if (map.width() > MAX_MAP_WIDTH || map.height() > MAX_MAP_HEIGHT) {
-        addError("Map is too large (maximum size is ", MAX_MAP_WIDTH, " x ", MAX_MAP_HEIGHT, ")");
+    if (input.map.width() > input.MAX_MAP_WIDTH || input.map.height() > input.MAX_MAP_HEIGHT) {
+        addError("Map is too large (maximum size is ", input.MAX_MAP_WIDTH, " x ", input.MAX_MAP_HEIGHT, ")");
     }
 
-    valid &= validateEntrances(entrances, *this, err);
-    valid &= validateEntityGroups(entityGroups, *this, err);
-    valid &= validateScriptTriggers(scriptTriggers, *this, err);
+    valid &= validateEntrances(input.entrances, input, err);
+    valid &= validateEntityGroups(input.entityGroups, input, err);
+    valid &= validateScriptTriggers(input.scriptTriggers, input, err);
 
     return valid;
 }
@@ -295,7 +295,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
             const Scripting::BytecodeMapping& bytecodeData,
             ErrorList& err)
 {
-    bool valid = input.validate(compiledScenes, err);
+    bool valid = validate(input, compiledScenes, err);
 
     const auto addError = [&](const auto... msg) {
         err.addErrorString(msg...);

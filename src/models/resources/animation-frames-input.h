@@ -34,7 +34,6 @@ struct AnimationFramesInput {
     bool addTransparentTile = false;
 
     bool isBitDepthValid() const;
-    bool validate(ErrorList& err) const;
 
     bool operator==(const AnimationFramesInput& o) const
     {

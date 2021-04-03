@@ -34,17 +34,17 @@ MetaTileTilesetInput::MetaTileTilesetInput()
     tileCollisions.fill(TileCollisionType::EMPTY);
 }
 
-bool MetaTileTilesetInput::validate(ErrorList& err) const
+static bool validate(const MetaTileTilesetInput& input, ErrorList& err)
 {
     bool valid = true;
 
-    if (!name.isValid()) {
+    if (!input.name.isValid()) {
         err.addErrorString("Expected metaTile tileset name");
         valid = false;
     }
 
-    if (!animationFrames.frameImageFilenames.empty()) {
-        const auto& firstImageFilename = animationFrames.frameImageFilenames.front();
+    if (!input.animationFrames.frameImageFilenames.empty()) {
+        const auto& firstImageFilename = input.animationFrames.frameImageFilenames.front();
         const auto& frameSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
         if (frameSize.width != TILESET_WIDTH * METATILE_SIZE_PX) {
@@ -57,11 +57,7 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
         }
     }
 
-    if (valid) {
-        valid &= animationFrames.validate(err);
-    }
-
-    if (scratchpad.width() > MAX_GRID_WIDTH || scratchpad.height() > MAX_GRID_HEIGHT) {
+    if (input.scratchpad.width() > MAX_GRID_WIDTH || input.scratchpad.height() > MAX_GRID_HEIGHT) {
         err.addErrorString("Scratchpad too large (maximum allowed size is ", MAX_GRID_WIDTH, "x", MAX_GRID_HEIGHT, ".");
         valid = false;
     }
@@ -75,7 +71,7 @@ convertTileset(const MetaTileTilesetInput& input,
                ErrorList& err)
 
 {
-    bool valid = input.validate(err);
+    bool valid = validate(input, err);
     if (!valid) {
         return nullptr;
     }

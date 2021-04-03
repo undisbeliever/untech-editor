@@ -689,7 +689,7 @@ bool ProjectData::validatePs(const ProjectSettingsIndex indexEnum, const Validat
     ResourceStatus status;
 
     try {
-        const bool valid = (input.*validateFunction)(status.errorList);
+        const bool valid = validateFunction(input, status.errorList);
         status.state = valid ? ResourceState::Valid : ResourceState::Invalid;
     }
     catch (const std::exception& ex) {
@@ -725,7 +725,7 @@ inline bool ProjectData::validateList(const ValidateFunction validateFunction, R
             ResourceStatus status;
 
             if (input) {
-                const bool v = (input->*validateFunction)(status.errorList);
+                const bool v = validateFunction(*input, status.errorList);
                 status.state = v ? ResourceState::Valid : ResourceState::Invalid;
                 status.name = itemNameString(*input);
 
@@ -857,12 +857,12 @@ bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
     // ::TODO mark GameState unchecked if room name changes::
 
     valid &= validatePs(ProjectSettingsIndex::ProjectSettings,
-                        &ProjectSettings::validate, project.projectSettings);
+                        &Project::validateProjectSettings, project.projectSettings);
 
     valid &= compilePs<Scripting::BytecodeMapping>(ProjectSettingsIndex::Bytecode,
                                                    Scripting::compileBytecode, project.bytecode);
 
-    valid &= validateList(&MetaSprite::FrameSetExportOrder::validate, _frameSetExportOrderStatus,
+    valid &= validateList(&MetaSprite::validateExportOrder, _frameSetExportOrderStatus,
                           ResourceType::FrameSetExportOrders, project.frameSetExportOrders);
 
     valid &= compileList(Resources::convertPalette, _palettes, ResourceType::Palettes, project.palettes);

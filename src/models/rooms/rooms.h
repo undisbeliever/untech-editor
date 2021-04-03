@@ -16,19 +16,22 @@ class ErrorList;
 
 template <typename T>
 class ExternalFileList;
+}
 
-namespace Project {
+namespace UnTech::Project {
 template <typename T>
 class DataStore;
 }
-namespace Entity {
+
+namespace UnTech::Entity {
 struct CompiledEntityRomData;
 }
-namespace Resources {
+
+namespace UnTech::Resources {
 struct CompiledScenesData;
 }
 
-namespace Rooms {
+namespace UnTech::Rooms {
 
 constexpr unsigned MAX_ROOM_ENTRANCES = 32;
 constexpr unsigned MAX_ENTITY_GROUPS = 8;
@@ -47,14 +50,14 @@ struct RoomSettings {
 
     unsigned roomDataSize = 16 * 1024;
 
-    bool validate(ErrorList& err) const;
-
     bool operator==(const RoomSettings& o) const
     {
         return roomDataSize == o.roomDataSize;
     }
     bool operator!=(const RoomSettings& o) const { return !(*this == o); }
 };
+
+bool validate(const RoomSettings& input, ErrorList& err);
 
 enum class RoomEntranceOrientation {
     DOWN_RIGHT,
@@ -150,8 +153,6 @@ struct RoomInput {
 
     unsigned tileIndex(const upoint& p) const;
 
-    bool validate(const Resources::CompiledScenesData& compiledScenes, ErrorList& err) const;
-
     bool operator==(const RoomInput& o) const
     {
         return name == o.name
@@ -180,5 +181,4 @@ compileRoom(const RoomInput& input, const ExternalFileList<RoomInput>& roomsList
             const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
             const Scripting::GameStateData& gameStateData, const Scripting::BytecodeMapping& bytecodeData,
             ErrorList& err);
-}
 }

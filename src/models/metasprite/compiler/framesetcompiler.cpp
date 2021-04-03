@@ -236,7 +236,7 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
         return nullptr;
     }
 
-    const bool valid = frameSet.validate(actionPointMapping, errorList)
+    const bool valid = validate(frameSet, actionPointMapping, errorList)
                        && exportOrder->testFrameSet(frameSet, errorList);
 
     if (!valid) {
@@ -244,7 +244,7 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
     }
 
     const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
-    exportList.validate(errorList);
+    validate(exportList, errorList);
 
     auto out = std::make_shared<FrameSetData>();
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);

@@ -53,9 +53,9 @@ struct FrameSetExportList {
     const FrameSetExportOrder& exportOrder;
     const std::vector<AnimationListEntry> animations;
     const std::vector<FrameListEntry> frames;
-
-    bool validate(ErrorList& err) const;
 };
+
+bool validate(const FrameSetExportList& input, ErrorList& err);
 
 // NOTE: Can return an invalid FrameSetExportList
 FrameSetExportList buildExportList(const MetaSprite::FrameSet& frameSet,

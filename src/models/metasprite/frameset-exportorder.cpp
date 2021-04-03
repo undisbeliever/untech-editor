@@ -8,8 +8,7 @@
 #include "metasprite-error.h"
 #include "models/common/validateunique.h"
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite;
+namespace UnTech::MetaSprite {
 
 template <typename... Args>
 static std::unique_ptr<ExportOrderError> exportNameError(const bool isStillFrame, unsigned enIndex, Args... msg)
@@ -86,7 +85,7 @@ static bool validateAlternativesUnique(const bool isStillFrame,
     return valid;
 }
 
-bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
+bool validateExportOrder(const FrameSetExportOrder& input, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... message) {
@@ -94,36 +93,36 @@ bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
         valid = false;
     };
 
-    if (name.isValid() == false) {
+    if (input.name.isValid() == false) {
         addError("Missing export order name");
     }
 
-    if (stillFrames.empty() && animations.empty()) {
+    if (input.stillFrames.empty() && input.animations.empty()) {
         addError("Expected at least one still frame or animation");
     }
 
-    if (stillFrames.size() > MAX_EXPORT_NAMES) {
+    if (input.stillFrames.size() > MAX_EXPORT_NAMES) {
         addError("Too many stillFrames");
     }
 
-    if (animations.size() > MAX_EXPORT_NAMES) {
+    if (input.animations.size() > MAX_EXPORT_NAMES) {
         addError("Too many animations");
     }
 
-    valid &= validateNamesUnique(stillFrames, "export frame", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.stillFrames, "export frame", [&](unsigned i, auto... msg) {
         err.addError(exportNameError(true, i, msg...));
     });
-    valid &= validateNamesUnique(animations, "export animation", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.animations, "export animation", [&](unsigned i, auto... msg) {
         err.addError(exportNameError(false, i, msg...));
     });
 
     unsigned enIndex = 0;
 
-    for (auto& sf : stillFrames) {
+    for (auto& sf : input.stillFrames) {
         valid &= validateAlternativesUnique(true, enIndex, sf.alternatives, "export frame", sf.name, err);
         enIndex++;
     }
-    for (auto& ani : animations) {
+    for (auto& ani : input.animations) {
         valid &= validateAlternativesUnique(false, enIndex, ani.alternatives, "export animation", ani.name, err);
         enIndex++;
     }
@@ -162,4 +161,6 @@ bool FrameSetExportOrder::testFrameSet(const MetaSprite::FrameSet& frameSet, Err
 bool FrameSetExportOrder::testFrameSet(const SpriteImporter::FrameSet& frameSet, ErrorList& errorList) const
 {
     return _testFrameSet(*this, frameSet, errorList);
+}
+
 }

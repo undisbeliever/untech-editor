@@ -10,8 +10,7 @@
 #include "models/common/validateunique.h"
 #include "utsi2utms/utsi2utms.h"
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite;
+namespace UnTech::MetaSprite {
 
 void FrameSetFile::setTypeFromExtension()
 {
@@ -103,8 +102,8 @@ const idstring& FrameSetFile::exportOrder() const
     return empty;
 }
 
-bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,
-                                                     ErrorList& err)
+bool validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,
+                                 ErrorList& err)
 {
     const idstring countString("count");
 
@@ -144,4 +143,6 @@ bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetF
     }
 
     return valid;
+}
+
 }

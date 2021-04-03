@@ -50,17 +50,17 @@ unsigned PaletteInput::nFrames() const
     return imgSize.height / rowsPerFrame;
 }
 
-bool PaletteInput::validate(ErrorList& err) const
+static bool validate(const PaletteInput& input, ErrorList& err)
 {
     bool valid = true;
 
-    const auto& paletteImage = ImageCache::loadPngImage(paletteImageFilename);
+    const auto& paletteImage = ImageCache::loadPngImage(input.paletteImageFilename);
     const usize& imgSize = paletteImage->size();
 
-    unsigned minImageHeight = skipFirstFrame ? rowsPerFrame * 2 : rowsPerFrame;
-    unsigned colorsPerFrame = imgSize.width * rowsPerFrame;
+    unsigned minImageHeight = input.skipFirstFrame ? input.rowsPerFrame * 2 : input.rowsPerFrame;
+    unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
 
-    if (!name.isValid()) {
+    if (!input.name.isValid()) {
         err.addErrorString("Expected palette name");
         valid = false;
     }
@@ -68,7 +68,7 @@ bool PaletteInput::validate(ErrorList& err) const
         err.addErrorString("Error loading palette image: ", paletteImage->errorString());
         valid = false;
     }
-    if (rowsPerFrame == 0) {
+    if (input.rowsPerFrame == 0) {
         err.addErrorString("Expected rowsPerFrame");
         valid = false;
     }
@@ -80,7 +80,7 @@ bool PaletteInput::validate(ErrorList& err) const
         err.addErrorString("Palette image must be a minimum of ", minImageHeight, "pixels tall");
         valid = false;
     }
-    if (rowsPerFrame > 0 && imgSize.height % rowsPerFrame != 0) {
+    if (input.rowsPerFrame > 0 && imgSize.height % input.rowsPerFrame != 0) {
         err.addErrorString("Palette image height must be a multiple of rowsPerFrame");
         valid = false;
     }
@@ -95,7 +95,7 @@ bool PaletteInput::validate(ErrorList& err) const
 std::shared_ptr<const PaletteData>
 Resources::convertPalette(const PaletteInput& input, ErrorList& err)
 {
-    bool valid = input.validate(err);
+    bool valid = validate(input, err);
     if (!valid) {
         return nullptr;
     }

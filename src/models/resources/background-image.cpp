@@ -31,7 +31,7 @@ bool BackgroundImageInput::isBitDepthValid() const
     return bitDepth == 2 || bitDepth == 4 || bitDepth == 8;
 }
 
-bool BackgroundImageInput::validate(ErrorList& err) const
+static bool validate(const BackgroundImageInput& input, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -39,22 +39,22 @@ bool BackgroundImageInput::validate(ErrorList& err) const
         valid = false;
     };
 
-    if (name.isValid() == false) {
+    if (input.name.isValid() == false) {
         addError("Expected name");
     }
 
-    if (!isBitDepthValid()) {
+    if (!input.isBitDepthValid()) {
         addError("Invalid bit-depth, expected 2, 4 or 8");
     }
 
-    const auto& image = ImageCache::loadPngImage(imageFilename);
+    const auto& image = ImageCache::loadPngImage(input.imageFilename);
     if (image->empty()) {
         addError("Missing frame image: ", image->errorString());
     }
 
     if (!image->empty()) {
         if (image->size().width % 8 != 0 || image->size().height % 8 != 0) {
-            addError("image size invalid (height and width must be a multiple of 8): ", imageFilename.string());
+            addError("image size invalid (height and width must be a multiple of 8): ", input.imageFilename.string());
         }
 
         if (image->size().width > 512 || image->size().height > 512) {
@@ -62,16 +62,16 @@ bool BackgroundImageInput::validate(ErrorList& err) const
         }
     }
 
-    if (bitDepth > 4) {
-        if (firstPalette != 0) {
+    if (input.bitDepth > 4) {
+        if (input.firstPalette != 0) {
             addError("When bitDepth is > 4, firstPalette must be 0");
         }
-        if (nPalettes != 1) {
+        if (input.nPalettes != 1) {
             addError("When bitDepth is > 4, nPalettes must be 1");
         }
     }
 
-    if (nPalettes < 1 || nPalettes > 8) {
+    if (input.nPalettes < 1 || input.nPalettes > 8) {
         addError("nPalettes out of range (1-8)");
     }
 
@@ -82,7 +82,7 @@ std::shared_ptr<const BackgroundImageData>
 convertBackgroundImage(const BackgroundImageInput& input, const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err)
 {
-    bool valid = input.validate(err);
+    bool valid = validate(input, err);
     if (!valid) {
         return nullptr;
     }

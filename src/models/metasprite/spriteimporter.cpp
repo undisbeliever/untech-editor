@@ -11,10 +11,10 @@
 #include "models/common/imagecache.h"
 #include "models/common/iterators.h"
 #include "models/common/validateunique.h"
+#include "models/metasprite/animation/animation.hpp"
 #include <algorithm>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite::SpriteImporter;
+namespace UnTech::MetaSprite::SpriteImporter {
 
 const EnumMap<UserSuppliedPalette::Position> UserSuppliedPalette::positionEnumMap{ {
     { "TOP_LEFT", UserSuppliedPalette::Position::TOP_LEFT },
@@ -28,7 +28,7 @@ const EnumMap<UserSuppliedPalette::Position> UserSuppliedPalette::positionEnumMa
  * ==============
  */
 
-inline bool FrameSetGrid::validate(ErrorList& errorList) const
+static bool validate(const FrameSetGrid& input, ErrorList& errorList)
 {
     bool valid = true;
     auto addError = [&](const auto&... msg) {
@@ -36,16 +36,16 @@ inline bool FrameSetGrid::validate(ErrorList& errorList) const
         valid = false;
     };
 
-    if (frameSize.width == 0 || frameSize.height == 0) {
+    if (input.frameSize.width == 0 || input.frameSize.height == 0) {
         addError("grid.frameSize has no size");
     }
-    if (frameSize.width > MAX_FRAME_SIZE || frameSize.height > MAX_FRAME_SIZE) {
+    if (input.frameSize.width > MAX_FRAME_SIZE || input.frameSize.height > MAX_FRAME_SIZE) {
         addError("grid.frameSize is too large (max: ", MAX_FRAME_SIZE, " x ", MAX_FRAME_SIZE, ")");
     }
-    if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
+    if (input.origin.x > MAX_ORIGIN || input.origin.y > MAX_ORIGIN) {
         addError("grid.origin is too large (max: ", MAX_ORIGIN, ", ", MAX_ORIGIN, ")");
     }
-    if (frameSize.contains(origin) == false) {
+    if (input.frameSize.contains(input.origin) == false) {
         addError("grid.origin is not inside grid.frameSize");
     }
 
@@ -110,7 +110,7 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     origin.y = std::min(origin.y, aabb.height);
 }
 
-inline bool FrameLocation::validate(const Frame& frame, const unsigned frameIndex, ErrorList& errorList) const
+static bool validate(const FrameLocation& input, const Frame& frame, const unsigned frameIndex, ErrorList& errorList)
 {
     bool valid = true;
     auto addError = [&](const auto&... msg) {
@@ -118,16 +118,16 @@ inline bool FrameLocation::validate(const Frame& frame, const unsigned frameInde
         valid = false;
     };
 
-    if (aabb.width == 0 || aabb.height == 0) {
+    if (input.aabb.width == 0 || input.aabb.height == 0) {
         addError("FrameLocation aabb has no size");
     }
-    if (aabb.width > MAX_FRAME_SIZE || aabb.height > MAX_FRAME_SIZE) {
+    if (input.aabb.width > MAX_FRAME_SIZE || input.aabb.height > MAX_FRAME_SIZE) {
         addError("location.aabb is too large (", MAX_FRAME_SIZE, " x ", MAX_FRAME_SIZE, ")");
     }
-    if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
+    if (input.origin.x > MAX_ORIGIN || input.origin.y > MAX_ORIGIN) {
         addError("location.origin is too large (max: ", MAX_ORIGIN, ", ", MAX_ORIGIN, ")");
     }
-    if (aabb.size().contains(origin) == false) {
+    if (input.aabb.size().contains(input.origin) == false) {
         addError("location.origin is not inside frame");
     }
 
@@ -159,32 +159,32 @@ bool FrameLocation::operator==(const FrameLocation& o) const
  * NOTE: ActionPoint::type is only tested if actionPointMapping is not empty,
  *       which allows utsi2utms to work without specifing a project file.
  */
-inline bool Frame::validate(const unsigned frameIndex, const Image& image, const ActionPointMapping& actionPointMapping,
-                            ErrorList& errorList) const
+static bool validate(const Frame& input, const unsigned frameIndex, const Image& image, const ActionPointMapping& actionPointMapping,
+                     ErrorList& errorList)
 {
     bool valid = true;
 
     auto addError = [&](const auto... msg) {
-        errorList.addError(frameError(*this, frameIndex, msg...));
+        errorList.addError(frameError(input, frameIndex, msg...));
         valid = false;
     };
 
-    if (!name.isValid()) {
+    if (!input.name.isValid()) {
         addError("Missing name");
     }
-    if (objects.size() > MAX_FRAME_OBJECTS) {
+    if (input.objects.size() > MAX_FRAME_OBJECTS) {
         addError("Too many frame objects");
     }
-    if (actionPoints.size() > MAX_ACTION_POINTS) {
+    if (input.actionPoints.size() > MAX_ACTION_POINTS) {
         addError("Too many action points");
     }
-    if (entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
+    if (input.entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
         addError("Too many entity hitboxes");
     }
 
-    valid &= location.validate(*this, frameIndex, errorList);
+    valid &= validate(input.location, input, frameIndex, errorList);
 
-    if (image.size().contains(location.aabb) == false) {
+    if (image.size().contains(input.location.aabb) == false) {
         addError("Frame not inside image");
     }
 
@@ -192,43 +192,43 @@ inline bool Frame::validate(const unsigned frameIndex, const Image& image, const
         return false;
     }
 
-    const usize frameSize = location.aabb.size();
+    const usize frameSize = input.location.aabb.size();
 
-    for (auto [i, obj] : const_enumerate(objects)) {
+    for (auto [i, obj] : const_enumerate(input.objects)) {
         if (frameSize.contains(obj.location, obj.sizePx()) == false) {
-            errorList.addError(frameObjectError(*this, frameIndex, i, "Frame Object not inside frame"));
+            errorList.addError(frameObjectError(input, frameIndex, i, "Frame Object not inside frame"));
             valid = false;
         }
     }
 
-    for (auto [i, ap] : const_enumerate(actionPoints)) {
+    for (auto [i, ap] : const_enumerate(input.actionPoints)) {
         if (frameSize.contains(ap.location) == false) {
-            errorList.addError(actionPointError(*this, frameIndex, i, "location not inside frame"));
+            errorList.addError(actionPointError(input, frameIndex, i, "location not inside frame"));
             valid = false;
         }
 
         if (not actionPointMapping.empty()) {
             if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
-                errorList.addError(actionPointError(*this, frameIndex, i, "Unknown action point type ", ap.type));
+                errorList.addError(actionPointError(input, frameIndex, i, "Unknown action point type ", ap.type));
                 valid = false;
             }
         }
     }
 
-    for (auto [i, eh] : const_enumerate(entityHitboxes)) {
+    for (auto [i, eh] : const_enumerate(input.entityHitboxes)) {
         if (eh.aabb.width == 0 || eh.aabb.height == 0) {
-            errorList.addError(entityHitboxError(*this, frameIndex, i, "aabb has no size"));
+            errorList.addError(entityHitboxError(input, frameIndex, i, "aabb has no size"));
             valid = false;
         }
 
         if (frameSize.contains(eh.aabb) == false) {
-            errorList.addError(entityHitboxError(*this, frameIndex, i, "aabb not inside frame"));
+            errorList.addError(entityHitboxError(input, frameIndex, i, "aabb not inside frame"));
             valid = false;
         }
     }
 
-    if (solid) {
-        if (!tileHitbox.contains(location.origin)) {
+    if (input.solid) {
+        if (!input.tileHitbox.contains(input.location.origin)) {
             addError("Frame origin must be inside the tile hitbox");
         }
     }
@@ -277,7 +277,23 @@ bool Frame::operator==(const Frame& o) const
  * =========
  */
 
-bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const
+static bool isTransparentColorValid(const FrameSet& input, const Image& image)
+{
+    if (input.transparentColor.alpha == 0xff) {
+        return true;
+    }
+    if (input.transparentColor.alpha == 0) {
+        bool hasTransparent = std::any_of(image.begin(), image.end(),
+                                          [&](const rgba& c) { return c.alpha == 0; });
+
+        return hasTransparent && input.transparentColor == rgba(0, 0, 0, 0);
+    }
+    else {
+        return false;
+    }
+}
+
+static bool validate(const FrameSet& input, const ActionPointMapping& actionPointMapping, ErrorList& errorList)
 {
     bool valid = true;
     auto addError = [&](std::string&& msg) {
@@ -287,40 +303,40 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
 
     // Validate FrameSet
 
-    if (name.isValid() == false) {
+    if (input.name.isValid() == false) {
         addError("Missing name");
     }
-    if (exportOrder.isValid() == false) {
+    if (input.exportOrder.isValid() == false) {
         addError("Missing exportOrder");
     }
-    if (frames.size() == 0) {
+    if (input.frames.size() == 0) {
         addError("No Frames");
     }
-    if (imageFilename.empty()) {
+    if (input.imageFilename.empty()) {
         addError("No Image");
     }
-    valid &= grid.validate(errorList);
+    valid &= validate(input.grid, errorList);
 
     if (valid == false) {
         return false;
     }
 
-    const auto image = ImageCache::loadPngImage(imageFilename);
+    const auto image = ImageCache::loadPngImage(input.imageFilename);
     assert(image);
     if (image->empty()) {
         addError(image->errorString());
         return false;
     }
 
-    if (transparentColorValid(*image) == false) {
+    if (isTransparentColorValid(input, *image) == false) {
         addError("Transparent color is invalid");
     }
 
-    if (palette.usesUserSuppliedPalette()) {
+    if (input.palette.usesUserSuppliedPalette()) {
         auto imgSize = image->size();
-        auto palSize = palette.paletteSize();
+        auto palSize = input.palette.paletteSize();
 
-        if (palette.nPalettes > MAX_PALETTES) {
+        if (input.palette.nPalettes > MAX_PALETTES) {
             addError("Too many palettes");
         }
 
@@ -331,32 +347,32 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
         }
     }
 
-    if (animations.size() > MAX_ANIMATION_FRAMES) {
+    if (input.animations.size() > MAX_ANIMATION_FRAMES) {
         addError("Too many animations in frameSet");
     }
 
-    valid &= validateNamesUnique(frames, "frame", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.frames, "frame", [&](unsigned i, auto... msg) {
         errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::FRAME, i, stringBuilder(msg...)));
     });
-    valid &= validateNamesUnique(animations, "animation", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.animations, "animation", [&](unsigned i, auto... msg) {
         errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, i, stringBuilder(msg...)));
     });
 
-    for (auto [i, frame] : enumerate(frames)) {
-        valid &= frame.validate(i, *image, actionPointMapping, errorList);
+    for (auto [i, frame] : enumerate(input.frames)) {
+        valid &= validate(frame, i, *image, actionPointMapping, errorList);
     }
 
-    for (auto [i, ani] : enumerate(animations)) {
-        valid &= ani.validate(i, *this, errorList);
+    for (auto [i, ani] : enumerate(input.animations)) {
+        valid &= validate(ani, i, input, errorList);
     }
 
     return valid;
 }
 
 // This function exists to allows utsi2utms to work without specifing a project file
-bool FrameSet::validate(ErrorList& errorList) const
+bool validate(const FrameSet& frameSet, ErrorList& errorList)
 {
-    return validate(ActionPointMapping{}, errorList);
+    return validate(frameSet, ActionPointMapping{}, errorList);
 }
 
 usize FrameSet::minimumFrameGridSize() const
@@ -370,22 +386,6 @@ usize FrameSet::minimumFrameGridSize() const
     }
 
     return limit;
-}
-
-bool FrameSet::transparentColorValid(const Image& image) const
-{
-    if (transparentColor.alpha == 0xff) {
-        return true;
-    }
-    if (transparentColor.alpha == 0) {
-        bool hasTransparent = std::any_of(image.begin(), image.end(),
-                                          [&](const rgba& c) { return c.alpha == 0; });
-
-        return hasTransparent && transparentColor == rgba(0, 0, 0, 0);
-    }
-    else {
-        return false;
-    }
 }
 
 void FrameSet::updateFrameLocations()
@@ -406,4 +406,6 @@ bool FrameSet::operator==(const FrameSet& o) const
            && transparentColor == o.transparentColor
            && frames == o.frames
            && animations == o.animations;
+}
+
 }

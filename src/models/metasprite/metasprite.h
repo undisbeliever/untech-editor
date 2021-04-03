@@ -122,11 +122,6 @@ struct Frame {
 
     bool operator==(const Frame& o) const;
     bool operator!=(const Frame& o) const { return !(*this == o); }
-
-private:
-    friend struct FrameSet;
-    bool validate(const unsigned frameIndex, const FrameSet& fs,
-                  const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
 };
 
 struct FrameSet {
@@ -154,11 +149,11 @@ struct FrameSet {
     {
     }
 
-    bool validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
-
     bool operator==(const FrameSet& o) const;
     bool operator!=(const FrameSet& o) const { return !(*this == o); }
 };
+
+bool validate(const FrameSet& input, const ActionPointMapping& actionPointMapping, ErrorList& errorList);
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename);
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename);

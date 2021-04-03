@@ -32,14 +32,14 @@ struct ProjectSettings {
     MemoryMapSettings memoryMap;
     Rooms::RoomSettings roomSettings;
 
-    bool validate(ErrorList& err) const;
-
     bool operator==(const ProjectSettings& o) const
     {
         return memoryMap == o.memoryMap
                && roomSettings == o.roomSettings;
     }
 };
+
+bool validateProjectSettings(const ProjectSettings& input, ErrorList& err);
 
 struct ProjectFile {
     const static std::string FILE_EXTENSION;
@@ -66,8 +66,6 @@ struct ProjectFile {
     void loadAllFiles();
 
     void loadAllFilesIgnoringErrors();
-
-    bool validate(ErrorList& err) const;
 
     bool operator==(const ProjectFile& o) const
     {

@@ -65,7 +65,7 @@ static std::unique_ptr<MS::FrameSet> utsi2utms(const SI::FrameSet& siFrameSet, E
 
 std::unique_ptr<MS::FrameSet> utsi2utms(SI::FrameSet& siFrameSet, ErrorList& errorList)
 {
-    bool valid = siFrameSet.validate(errorList);
+    bool valid = validate(siFrameSet, errorList);
     if (!valid) {
         return nullptr;
     }

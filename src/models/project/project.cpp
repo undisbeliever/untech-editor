@@ -42,7 +42,7 @@ void ProjectFile::loadAllFilesIgnoringErrors()
     loadFiles(frameSets);
 }
 
-bool MemoryMapSettings::validate(ErrorList& err) const
+static bool validate(const MemoryMapSettings& input, ErrorList& err)
 {
     bool valid = true;
 
@@ -53,22 +53,22 @@ bool MemoryMapSettings::validate(ErrorList& err) const
         }
     };
 
-    validateMinMax(firstBank, 0, 255, "Invalid firstBank");
+    validateMinMax(input.firstBank, 0, 255, "Invalid firstBank");
 
-    if (mode == MappingMode::HIROM) {
-        const unsigned maximumNBanks = std::min<unsigned>(64, 256 - firstBank);
-        validateMinMax(nBanks, 1, maximumNBanks, "Invalid nBanks");
+    if (input.mode == MappingMode::HIROM) {
+        const unsigned maximumNBanks = std::min<unsigned>(64, 256 - input.firstBank);
+        validateMinMax(input.nBanks, 1, maximumNBanks, "Invalid nBanks");
     }
-    else if (mode == MappingMode::LOROM) {
-        const unsigned maximumNBanks = std::min<unsigned>(128, 256 - firstBank);
-        validateMinMax(nBanks, 1, maximumNBanks, "Invalid nBanks");
+    else if (input.mode == MappingMode::LOROM) {
+        const unsigned maximumNBanks = std::min<unsigned>(128, 256 - input.firstBank);
+        validateMinMax(input.nBanks, 1, maximumNBanks, "Invalid nBanks");
     }
     else {
         err.addErrorString("Invalid mapping mode");
     }
 
-    const unsigned lastBank = firstBank + nBanks;
-    auto inBounds = [&](unsigned a) { return a >= firstBank && a <= lastBank; };
+    const unsigned lastBank = input.firstBank + input.nBanks;
+    auto inBounds = [&](unsigned a) { return a >= input.firstBank && a <= lastBank; };
 
     if (inBounds(0x7e) || inBounds(0x7f)) {
         err.addErrorString("Invalid memory map: Work RAM inside mapping");
@@ -77,36 +77,12 @@ bool MemoryMapSettings::validate(ErrorList& err) const
     return valid;
 }
 
-bool ProjectFile::validate(ErrorList& err) const
+bool validateProjectSettings(const ProjectSettings& input, ErrorList& err)
 {
     bool valid = true;
 
-    valid &= projectSettings.validate(err);
-
-    if (frameSetExportOrders.size() > MetaSprite::MAX_EXPORT_NAMES) {
-        err.addErrorString("Too many MetaSprite export orders");
-    }
-    if (frameSets.size() > MetaSprite::MAX_FRAMESETS) {
-        err.addErrorString("Too many MetaSprite FrameSets");
-    }
-
-    valid &= validateNamesUnique(palettes, "palettes", [&](unsigned, auto... msg) { err.addErrorString(msg...); });
-    valid &= validateFilesAndNamesUnique(metaTileTilesets, "metatile tilesets", err);
-
-    valid &= MetaSprite::validateFrameSetNamesUnique(frameSets, err);
-    valid &= validateFilesAndNamesUnique(frameSetExportOrders, "export order", err);
-
-    valid &= validateFilesAndNamesUnique(rooms, "Room", err);
-
-    return valid;
-}
-
-bool ProjectSettings::validate(ErrorList& err) const
-{
-    bool valid = true;
-
-    valid &= memoryMap.validate(err);
-    valid &= roomSettings.validate(err);
+    valid &= validate(input.memoryMap, err);
+    valid &= validate(input.roomSettings, err);
 
     return valid;
 }

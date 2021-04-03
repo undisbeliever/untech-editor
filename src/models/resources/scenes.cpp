@@ -46,21 +46,21 @@ static constexpr uint8_t bgModeByte(BgMode mode)
     return 0xff;
 }
 
-bool SceneSettingsInput::validate(const unsigned index, ErrorList& err) const
+static bool validate(const SceneSettingsInput& input, const unsigned index, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto&... msg) {
-        err.addError(sceneSettingsError(*this, index, msg...));
+        err.addError(sceneSettingsError(input, index, msg...));
         valid = false;
     };
 
-    if (name.isValid() == false) {
+    if (input.name.isValid() == false) {
         addError("Missing name");
     }
 
-    for (const auto l : range(numberOfLayers(bgMode), N_LAYERS)) {
-        if (layerTypes.at(l) != LayerType::None) {
-            const unsigned bgModeInt = bgModeByte(bgMode) & 7;
+    for (const auto l : range(numberOfLayers(input.bgMode), N_LAYERS)) {
+        if (input.layerTypes.at(l) != LayerType::None) {
+            const unsigned bgModeInt = bgModeByte(input.bgMode) & 7;
             addError("Layer ", l, " must be empty in BG Mode ", bgModeInt);
         }
     }
@@ -68,18 +68,18 @@ bool SceneSettingsInput::validate(const unsigned index, ErrorList& err) const
     std::array<unsigned, N_LAYER_TYPES> layerTypeCount;
     layerTypeCount.fill(0);
 
-    for (const LayerType& lt : layerTypes) {
+    for (const LayerType& lt : input.layerTypes) {
         unsigned i = unsigned(lt);
         layerTypeCount.at(i)++;
     }
 
     if (layerTypeCount.at(unsigned(LayerType::TextConsole)) > 1) {
-        addError("Invalid setting ", name, ": Cannot have more than one text layer");
+        addError("Invalid setting ", input.name, ": Cannot have more than one text layer");
     }
 
     unsigned nAnimatedLayers = layerTypeCount.at(unsigned(LayerType::BackgroundImage));
     if (nAnimatedLayers > 1) {
-        addError("Invalid setting ", name, ": Cannot have more than one animated layer (MetaTiles are animated)");
+        addError("Invalid setting ", input.name, ": Cannot have more than one animated layer (MetaTiles are animated)");
     }
 
     return valid;
@@ -583,7 +583,7 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
     bool valid = true;
 
     for (const auto [i, ssi] : enumerate(resourceScenes.settings)) {
-        valid &= ssi.validate(i, err);
+        valid &= validate(ssi, i, err);
     }
 
     const auto sceneSettingsMap = sceneSettingsIndexMap(resourceScenes.settings, err);

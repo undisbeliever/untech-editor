@@ -52,8 +52,6 @@ struct SceneSettingsInput {
 
     std::array<LayerType, N_LAYERS> layerTypes;
 
-    bool validate(const unsigned index, ErrorList& err) const;
-
     bool operator==(const SceneSettingsInput& o) const
     {
         return name == o.name

@@ -128,16 +128,16 @@ FrameSetExportList buildExportList(const MS::FrameSet& frameSet, const FrameSetE
     };
 }
 
-bool FrameSetExportList::validate(ErrorList& err) const
+bool validate(const FrameSetExportList& input, ErrorList& err)
 {
     bool valid = true;
 
-    if (animations.size() > MAX_EXPORT_NAMES) {
-        err.addErrorString("Too many animations (", animations.size(), ", max ", MAX_EXPORT_NAMES, ")");
+    if (input.animations.size() > MAX_EXPORT_NAMES) {
+        err.addErrorString("Too many animations (", input.animations.size(), ", max ", MAX_EXPORT_NAMES, ")");
         valid = false;
     }
-    if (frames.size() > MAX_EXPORT_NAMES) {
-        err.addErrorString("Too many frames (", frames.size(), ", max ", MAX_EXPORT_NAMES, ")");
+    if (input.frames.size() > MAX_EXPORT_NAMES) {
+        err.addErrorString("Too many frames (", input.frames.size(), ", max ", MAX_EXPORT_NAMES, ")");
         valid = false;
     }
 

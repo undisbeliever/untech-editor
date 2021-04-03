@@ -153,7 +153,6 @@ struct MetaTileTilesetInput {
     grid<uint8_t> scratchpad;
 
     MetaTileTilesetInput();
-    bool validate(ErrorList& err) const;
 
     bool operator==(const MetaTileTilesetInput& o) const
     {

@@ -55,8 +55,6 @@ struct StructField {
 
     StructField() = default;
 
-    bool validate(const EntityRomStruct& parent, const unsigned structIndex, const unsigned fieldIndex, ErrorList& err) const;
-
     bool operator==(const StructField& o) const
     {
         return name == o.name
@@ -74,9 +72,6 @@ struct EntityRomStruct {
     std::vector<StructField> fields;
 
     EntityRomStruct() = default;
-
-    // NOTE: Does not validate parent
-    bool validate(const unsigned structIndex, ErrorList& err) const;
 
     bool operator==(const EntityRomStruct& o) const
     {
@@ -99,9 +94,6 @@ struct EntityFunctionTable {
     std::string comment;
 
     EntityFunctionTable() = default;
-
-    // Does not validate name unique or entityStruct exists
-    bool validate(const unsigned ftIndex, const Project::ProjectFile& project, ErrorList& err) const;
 
     bool operator==(const EntityFunctionTable& o) const
     {
@@ -131,8 +123,6 @@ struct EntityRomEntry {
     unsigned defaultPalette = 0;
 
     std::unordered_map<idstring, std::string> fields;
-
-    bool validate(const EntityType entityType, const unsigned index, const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const;
 
     bool operator==(const EntityRomEntry& o) const
     {
@@ -167,8 +157,6 @@ struct EntityRomData {
     NamedList<EntityRomEntry> entities;
     NamedList<EntityRomEntry> projectiles;
     NamedList<EntityRomEntry> players;
-
-    bool validateListIds(ErrorList& err) const;
 
     bool operator==(const EntityRomData& o) const
     {

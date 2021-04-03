@@ -29,8 +29,6 @@ struct MemoryMapSettings {
         return MappingMode::HIROM ? a : a + 0x8000;
     }
 
-    bool validate(ErrorList& err) const;
-
     bool operator==(const MemoryMapSettings& o) const
     {
         return mode == o.mode

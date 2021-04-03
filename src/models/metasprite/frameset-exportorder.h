@@ -44,8 +44,6 @@ struct FrameSetExportOrder {
     FrameSetExportOrder() = default;
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
 
-    bool validate(UnTech::ErrorList& err) const;
-
     bool testFrameSet(const MetaSprite::FrameSet& frameSet, ErrorList& errorList) const;
     bool testFrameSet(const SpriteImporter::FrameSet& frameSet, ErrorList& errorList) const;
 
@@ -57,8 +55,11 @@ struct FrameSetExportOrder {
     }
 };
 
+bool validateExportOrder(const FrameSetExportOrder& input, ErrorList& err);
+
 // throws exception on error
 std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::filesystem::path& filename);
 void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesystem::path& filename);
+
 }
 }

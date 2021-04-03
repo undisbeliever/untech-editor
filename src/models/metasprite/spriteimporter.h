@@ -51,10 +51,6 @@ struct FrameSetGrid {
 
     bool operator==(const FrameSetGrid& o) const;
     bool operator!=(const FrameSetGrid& o) const { return !(*this == o); }
-
-private:
-    friend struct FrameSet;
-    bool validate(ErrorList& errorList) const;
 };
 
 struct FrameLocation {
@@ -79,10 +75,6 @@ struct FrameLocation {
 
     bool operator==(const FrameLocation& o) const;
     bool operator!=(const FrameLocation& o) const { return !(*this == o); }
-
-private:
-    friend struct Frame;
-    bool validate(const Frame& frame, const unsigned frameId, ErrorList& errorList) const;
 };
 
 struct FrameObject {
@@ -176,10 +168,6 @@ struct Frame {
 
     bool operator==(const Frame& o) const;
     bool operator!=(const Frame& o) const { return !(*this == o); }
-
-private:
-    friend struct FrameSet;
-    bool validate(const unsigned frameIndex, const Image& image, const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
 };
 
 struct UserSuppliedPalette {
@@ -237,19 +225,15 @@ struct FrameSet {
 
     FrameSet() = default;
 
-    bool validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
-    bool validate(ErrorList& errorList) const;
-
     usize minimumFrameGridSize() const;
 
     void updateFrameLocations();
 
     bool operator==(const FrameSet& o) const;
     bool operator!=(const FrameSet& o) const { return !(*this == o); }
-
-private:
-    bool transparentColorValid(const Image& image) const;
 };
+
+bool validate(const FrameSet& fs, ErrorList& err);
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename);
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename);
