@@ -65,8 +65,6 @@ struct BackgroundImageData {
     std::vector<Snes::Tile8px> tiles;
     grid<Snes::TilemapEntry> tileMap;
 
-    bool validate(ErrorList& err) const;
-
     unsigned nTilemaps() const;
 
     unsigned uncompressedDataSize() const;

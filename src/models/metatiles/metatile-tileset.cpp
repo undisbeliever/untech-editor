@@ -20,6 +20,8 @@ template class grid<uint16_t>;
 
 namespace MetaTiles {
 
+static bool validate(const MetaTileTilesetData& input, ErrorList& err);
+
 static_assert(sizeof(TilePriorities) == N_METATILES * 4 / 8);
 
 template <typename... Args>
@@ -121,7 +123,8 @@ convertTileset(const MetaTileTilesetInput& input,
         }
     }
 
-    valid &= ret->validate(err);
+    valid &= validate(*ret, err);
+
     if (!valid) {
         return nullptr;
     }
@@ -140,23 +143,23 @@ usize MetaTileTilesetData::sourceTileSize() const
         animatedTileset.tileMap.height() / 2);
 }
 
-bool MetaTileTilesetData::validate(ErrorList& err) const
+static bool validate(const MetaTileTilesetData& input, ErrorList& err)
 {
-    bool valid = animatedTileset.validate(err);
+    bool valid = validate(input.animatedTileset, err);
 
-    if (animatedTileset.tileMap.empty()) {
+    if (input.animatedTileset.tileMap.empty()) {
         err.addErrorString("Expected at least one MetaTile");
         valid = false;
     }
 
-    const unsigned tileMapMetaTiles = animatedTileset.tileMap.cellCount() / 4;
+    const unsigned tileMapMetaTiles = input.animatedTileset.tileMap.cellCount() / 4;
     if (tileMapMetaTiles != N_METATILES) {
         err.addErrorString("Expected ", N_METATILES, " MetaTiles (got ", tileMapMetaTiles, ").");
         valid = false;
     }
 
-    if (animatedTileset.tileMap.width() != TILESET_WIDTH * 2
-        || animatedTileset.tileMap.height() != TILESET_HEIGHT * 2) {
+    if (input.animatedTileset.tileMap.width() != TILESET_WIDTH * 2
+        || input.animatedTileset.tileMap.height() != TILESET_HEIGHT * 2) {
 
         err.addErrorString("Invalid tileset image size");
         valid = false;

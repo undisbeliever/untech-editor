@@ -42,9 +42,6 @@ struct FrameSetData {
 
     // Only set on SpriteImporter FrameSets
     std::unique_ptr<const UnTech::MetaSprite::MetaSprite::FrameSet> msFrameSet;
-
-    // Required for ProjectData::DataStore
-    bool validate(ErrorList&) const { return true; }
 };
 
 std::shared_ptr<const FrameSetData>

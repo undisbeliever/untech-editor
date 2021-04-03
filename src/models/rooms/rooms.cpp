@@ -599,6 +599,9 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
     if (!valid) {
         out = nullptr;
     }
+    else if (data.empty()) {
+        out = nullptr;
+    }
 
     return out;
 }

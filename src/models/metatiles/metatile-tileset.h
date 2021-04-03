@@ -182,8 +182,6 @@ struct MetaTileTilesetData {
 
     usize sourceTileSize() const;
 
-    bool validate(ErrorList& err) const;
-
     std::vector<uint8_t> exportSnesData() const;
 
 private:

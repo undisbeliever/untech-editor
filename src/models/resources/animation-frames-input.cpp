@@ -280,7 +280,8 @@ convertAnimationFrames(const AnimationFramesInput& input,
         return std::nullopt;
     }
 
-    valid = ret.validate(err);
+    valid &= validate(ret, err);
+
     if (!valid) {
         return std::nullopt;
     }

@@ -43,11 +43,12 @@ struct AnimatedTilesetData {
     // number of bytes of VRAM required to hold the tile data
     unsigned vramTileSize() const;
 
-    bool validate(ErrorList& err) const;
-
     // Does not export tileMap.
     // Expects this AnimatedTilesetData to be valid.
     std::vector<uint8_t> exportAnimatedTileset() const;
 };
+
+bool validate(const AnimatedTilesetData& input, ErrorList& err);
+
 }
 }

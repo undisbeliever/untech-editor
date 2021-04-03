@@ -55,8 +55,6 @@ struct PaletteData {
     unsigned nAnimations() const { return paletteFrames.size(); }
     unsigned colorsPerFrame() const;
 
-    bool validate(ErrorList& err) const;
-
     // PaleteData SHOULD BE valid before exporting
     std::vector<uint8_t> exportSnesData() const;
 };

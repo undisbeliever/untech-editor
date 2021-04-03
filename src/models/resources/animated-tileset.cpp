@@ -53,19 +53,19 @@ unsigned AnimatedTilesetData::vramTileSize() const
     return (staticTiles.size() + nAnimatedTiles()) * Snes::snesTileSizeForBitdepth(bitDepth);
 }
 
-bool AnimatedTilesetData::validate(ErrorList& err) const
+bool validate(const AnimatedTilesetData& input, ErrorList& err)
 {
     bool valid = true;
 
-    for (const auto& at : animatedTiles) {
-        if (at.size() != nAnimatedTiles()) {
+    for (const auto& at : input.animatedTiles) {
+        if (at.size() != input.nAnimatedTiles()) {
 
             err.addErrorString("animatedTiles is invalid");
             valid = false;
         }
     }
 
-    if (staticTiles.size() == 0) {
+    if (input.staticTiles.size() == 0) {
         err.addErrorString("Expected at least one static tile");
         valid = false;
     }
@@ -76,9 +76,9 @@ bool AnimatedTilesetData::validate(ErrorList& err) const
             valid = false;
         }
     };
-    validateMax(animatedTilesBlockSize(), MAX_ANIMATED_TILES_BLOCK_SIZE, "Too many animated tiles");
-    validateMax(animatedTilesFrameSize(), MAX_ANIMATED_TILES_FRAME_SIZE, "Animated frame size too large");
-    validateMax(staticTiles.size() + nAnimatedTiles(), MAX_SNES_TILES, "Too many tiles");
+    validateMax(input.animatedTilesBlockSize(), input.MAX_ANIMATED_TILES_BLOCK_SIZE, "Too many animated tiles");
+    validateMax(input.animatedTilesFrameSize(), input.MAX_ANIMATED_TILES_FRAME_SIZE, "Animated frame size too large");
+    validateMax(input.staticTiles.size() + input.nAnimatedTiles(), input.MAX_SNES_TILES, "Too many tiles");
 
     return valid;
 }
@@ -116,5 +116,6 @@ std::vector<uint8_t> AnimatedTilesetData::exportAnimatedTileset() const
 
     return out;
 }
+
 }
 }

@@ -13,9 +13,11 @@
 #include "models/snes/convert-snescolor.h"
 #include <cassert>
 
-using namespace UnTech;
-using namespace UnTech::Resources;
+namespace UnTech::Resources {
+
 using namespace UnTech::Snes;
+
+static bool validate(const PaletteData& input, ErrorList& err);
 
 // PaletteInput
 // ============
@@ -93,7 +95,7 @@ static bool validate(const PaletteInput& input, ErrorList& err)
 }
 
 std::shared_ptr<const PaletteData>
-Resources::convertPalette(const PaletteInput& input, ErrorList& err)
+convertPalette(const PaletteInput& input, ErrorList& err)
 {
     bool valid = validate(input, err);
     if (!valid) {
@@ -137,7 +139,8 @@ Resources::convertPalette(const PaletteInput& input, ErrorList& err)
         extractPalette(ret->conversionPalette, 0);
     }
 
-    valid = ret->validate(err);
+    valid &= validate(*ret, err);
+
     if (!valid) {
         return nullptr;
     }
@@ -158,38 +161,38 @@ unsigned PaletteData::colorsPerFrame() const
     }
 }
 
-bool PaletteData::validate(ErrorList& err) const
+static bool validate(const PaletteData& input, ErrorList& err)
 {
     bool valid = true;
 
-    if (paletteFrames.empty()) {
+    if (input.paletteFrames.empty()) {
         err.addErrorString("Expected at least one palette frame");
         valid = false;
     }
-    if (paletteFrames.size() > 255) {
+    if (input.paletteFrames.size() > 255) {
         err.addErrorString("Too many palette animations");
         valid = false;
     }
 
-    unsigned blockSize = paletteFrames.size() * colorsPerFrame() * 2;
-    if (blockSize > MAX_PALETTE_BLOCK_SIZE) {
+    unsigned blockSize = input.paletteFrames.size() * input.colorsPerFrame() * 2;
+    if (blockSize > input.MAX_PALETTE_BLOCK_SIZE) {
         err.addErrorString("Animation palette too large");
         valid = false;
     }
 
-    if (paletteFrames.size() > 0) {
-        if (animationDelay == 0) {
+    if (input.paletteFrames.size() > 0) {
+        if (input.animationDelay == 0) {
             err.addErrorString("Expected animation delay");
             valid = false;
         }
-        if (animationDelay > 0xffff) {
+        if (input.animationDelay > 0xffff) {
             err.addErrorString("Animation delay too long");
             valid = false;
         }
     }
 
-    for (const auto& pal : paletteFrames) {
-        if (pal.size() != colorsPerFrame()) {
+    for (const auto& pal : input.paletteFrames) {
+        if (pal.size() != input.colorsPerFrame()) {
             err.addErrorString("paletteFrames must contain the same number of colors in each frame");
             valid = false;
         }
@@ -230,4 +233,6 @@ std::vector<uint8_t> PaletteData::exportSnesData() const
     out.insert(out.end(), block.begin(), block.end());
 
     return out;
+}
+
 }

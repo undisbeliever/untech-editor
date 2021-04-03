@@ -26,6 +26,8 @@ static constexpr unsigned BG_MAP_WIDTH = 32;
 static constexpr unsigned BG_MAP_HEIGHT = 32;
 static constexpr unsigned BG_MAP_DATA_SIZE = BG_MAP_WIDTH * BG_MAP_HEIGHT * 2;
 
+static bool validate(const BackgroundImageData& input, ErrorList& err);
+
 bool BackgroundImageInput::isBitDepthValid() const
 {
     return bitDepth == 2 || bitDepth == 4 || bitDepth == 8;
@@ -137,10 +139,16 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
     }
     assert(tmIt == ret->tileMap.end());
 
+    valid &= validate(*ret, err);
+
+    if (!valid) {
+        ret = nullptr;
+    }
+
     return ret;
 }
 
-bool BackgroundImageData::validate(ErrorList& err) const
+static bool validate(const BackgroundImageData& input, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -148,26 +156,26 @@ bool BackgroundImageData::validate(ErrorList& err) const
         valid = false;
     };
 
-    if (tiles.empty()) {
+    if (input.tiles.empty()) {
         addError("Expected at least one tile");
     }
-    if (tiles.size() > MAX_SNES_TILES) {
-        addError("Too many tiles in tileset (", tiles.size(), ", max: ", MAX_SNES_TILES, ")");
+    if (input.tiles.size() > input.MAX_SNES_TILES) {
+        addError("Too many tiles in tileset (", input.tiles.size(), ", max: ", input.MAX_SNES_TILES, ")");
     }
 
-    if (tileMap.empty() || nTilemaps() == 0) {
+    if (input.tileMap.empty() || input.nTilemaps() == 0) {
         addError("tileMap empty");
     }
-    if (tileMap.width() > 64 || tileMap.height() > 64) {
+    if (input.tileMap.width() > 64 || input.tileMap.height() > 64) {
         addError("tileMap too large");
     }
 
-    if (nTilemaps() >= MAX_N_TILEMAPS) {
-        addError("Too many tileMaps (", nTilemaps(), ", max: ", MAX_N_TILEMAPS, ")");
+    if (input.nTilemaps() >= input.MAX_N_TILEMAPS) {
+        addError("Too many tileMaps (", input.nTilemaps(), ", max: ", input.MAX_N_TILEMAPS, ")");
     }
 
-    if (uncompressedDataSize() > MAX_UNCOMPRESSED_DATA_SIZE) {
-        addError("data too large (", uncompressedDataSize(), " bytes, max: ", MAX_UNCOMPRESSED_DATA_SIZE, ")");
+    if (input.uncompressedDataSize() > input.MAX_UNCOMPRESSED_DATA_SIZE) {
+        addError("data too large (", input.uncompressedDataSize(), " bytes, max: ", input.MAX_UNCOMPRESSED_DATA_SIZE, ")");
     }
 
     return valid;

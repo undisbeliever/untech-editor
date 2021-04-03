@@ -567,10 +567,6 @@ compileData(ConvertFunction convertFunction, const InputT& input, const Preresqu
 
     try {
         data = convertFunction(input, expandPresquite(preresquites)..., status.errorList);
-
-        if (data) {
-            valid = data->validate(status.errorList);
-        }
     }
     catch (const std::exception& ex) {
         status.errorList.addErrorString(stringBuilder("EXCEPTION: ", ex.what()));

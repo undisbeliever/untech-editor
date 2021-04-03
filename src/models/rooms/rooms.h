@@ -171,8 +171,6 @@ struct RoomData {
 
     std::vector<uint8_t> data;
 
-    bool validate(ErrorList&) const { return data.empty() == false; }
-
     std::vector<uint8_t> exportSnesData() const;
 };
 
