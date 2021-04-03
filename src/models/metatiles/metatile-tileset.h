@@ -10,7 +10,6 @@
 #include "models/common/grid.h"
 #include "models/common/idstring.h"
 #include "models/resources/animated-tileset.h"
-#include "models/resources/animation-frames-input.h"
 #include <memory>
 #include <string>
 #include <vector>

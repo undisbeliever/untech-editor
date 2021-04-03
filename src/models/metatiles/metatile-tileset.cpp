@@ -145,7 +145,10 @@ usize MetaTileTilesetData::sourceTileSize() const
 
 static bool validate(const MetaTileTilesetData& input, ErrorList& err)
 {
-    bool valid = validate(input.animatedTileset, err);
+    // No need to validate `input.animatedTileset`,
+    // `convertAnimationFrames()` will never return invalid data.
+
+    bool valid = true;
 
     if (input.animatedTileset.tileMap.empty()) {
         err.addErrorString("Expected at least one MetaTile");

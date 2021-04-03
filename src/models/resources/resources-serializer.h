@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "animation-frames-input.h"
+#include "animated-tileset.h"
 #include "background-image.h"
 #include "scenes.h"
 #include "models/common/namedlist.h"
