@@ -223,6 +223,16 @@ static std::vector<FrameData> processFrameList(const FrameSetExportList& exportL
     return frames;
 }
 
+static void checkExportListSize(const FrameSetExportList& input, ErrorList& err)
+{
+    if (input.animations.size() > MAX_EXPORT_NAMES) {
+        err.addErrorString("Too many animations (", input.animations.size(), ", max ", MAX_EXPORT_NAMES, ")");
+    }
+    if (input.frames.size() > MAX_EXPORT_NAMES) {
+        err.addErrorString("Too many frames (", input.frames.size(), ", max ", MAX_EXPORT_NAMES, ")");
+    }
+}
+
 static std::shared_ptr<FrameSetData>
 compileFrameSet(const MetaSprite::FrameSet& frameSet,
                 const Project::ProjectFile& project, const ActionPointMapping& actionPointMapping,
@@ -244,7 +254,7 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
     }
 
     const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
-    validate(exportList, errorList);
+    checkExportListSize(exportList, errorList);
 
     auto out = std::make_shared<FrameSetData>();
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
