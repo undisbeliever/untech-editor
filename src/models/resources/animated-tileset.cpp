@@ -44,7 +44,7 @@ static std::vector<std::vector<TileAndPalette>> tilesFromFrameImages(const Anima
     std::vector<std::vector<TileAndPalette>> frameTiles;
     frameTiles.reserve(input.frameImageFilenames.size());
 
-    for (const auto [frameId, fn] : const_enumerate(input.frameImageFilenames)) {
+    for (const auto [frameIndex, fn] : const_enumerate(input.frameImageFilenames)) {
         std::vector<InvalidImageTile> invalidTiles;
 
         const auto& image = ImageCache::loadPngImage(fn);
@@ -52,7 +52,7 @@ static std::vector<std::vector<TileAndPalette>> tilesFromFrameImages(const Anima
             tilesFromImage(*image, input.bitDepth, palette, 0, 8, invalidTiles));
 
         if (!invalidTiles.empty()) {
-            err.addError(std::make_unique<InvalidImageError>(std::move(invalidTiles)));
+            err.addError(std::make_unique<InvalidImageError>(std::move(invalidTiles), frameIndex));
         }
     }
 
