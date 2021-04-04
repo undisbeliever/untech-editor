@@ -102,47 +102,4 @@ const idstring& FrameSetFile::exportOrder() const
     return empty;
 }
 
-bool validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,
-                                 ErrorList& err)
-{
-    const idstring countString("count");
-
-    bool valid = true;
-
-    for (auto it = frameSets.begin(); it != frameSets.end(); it++) {
-        const std::filesystem::path& filename = it->filename;
-        bool dupFn = std::any_of(it + 1, frameSets.end(),
-                                 [&](const auto& i) { return i.filename == filename; });
-        if (dupFn) {
-            err.addErrorString("Duplicate frameset file detected: ", filename.string());
-            valid = false;
-            continue;
-        }
-
-        const idstring& name = it->name();
-
-        if (name.isValid() == false) {
-            auto d = std::distance(frameSets.begin(), it);
-            err.addErrorString("Missing name in frameset ", d);
-            valid = false;
-            continue;
-        }
-
-        if (name == countString) {
-            err.addErrorString("Invalid frameset name: count");
-            valid = false;
-            continue;
-        }
-
-        bool dup = std::any_of(it + 1, frameSets.end(),
-                               [&](const auto& i) { return i.name() == name; });
-        if (dup) {
-            err.addErrorString("Duplicate frameset name detected: ", name);
-            valid = false;
-        }
-    }
-
-    return valid;
-}
-
 }

@@ -58,8 +58,5 @@ struct FrameSetFile {
     }
 };
 
-bool validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,
-                                 ErrorList& err);
-
 }
 }

@@ -836,31 +836,5 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     return ret;
 }
 
-bool validateEntityFunctionTables(const NamedList<EntityFunctionTable>& functionTables,
-                                  const StructFieldMap& structFieldMap, const Project::ProjectFile& project,
-                                  ErrorList& err)
-{
-    const auto errCount = err.errorCount();
-
-    generateFunctionTableFieldMap(functionTables, structFieldMap, project, err);
-
-    return errCount == err.errorCount();
-}
-
-bool validateEntityRomEntries(const EntityType entityType, const NamedList<EntityRomEntry>& entries,
-                              const NamedList<EntityFunctionTable>& functionTables, const StructFieldMap& structFieldMap,
-                              const Project::ProjectFile& project, ErrorList& err)
-{
-    const auto errCount = err.errorCount();
-
-    const auto ftMap = generateFunctionTableFieldMap(functionTables, structFieldMap, project, err);
-
-    for (auto [i, e] : const_enumerate(entries)) {
-        validate(e, entityType, i, project, ftMap, err);
-    }
-
-    return errCount == err.errorCount();
-}
-
 }
 }

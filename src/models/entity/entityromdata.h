@@ -140,14 +140,6 @@ struct EntityRomEntry {
 // Also validates the EntityRomDataStruct entries
 StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err);
 
-bool validateEntityFunctionTables(const NamedList<EntityFunctionTable>& functionTables,
-                                  const StructFieldMap& structFieldMap,
-                                  const Project::ProjectFile& project, ErrorList& err);
-
-bool validateEntityRomEntries(const EntityType entityType, const NamedList<EntityRomEntry>& entries,
-                              const NamedList<EntityFunctionTable>& functionTables, const StructFieldMap& structFieldMap,
-                              const Project::ProjectFile& project, ErrorList& err);
-
 struct EntityRomData {
     std::vector<idstring> listIds;
 
