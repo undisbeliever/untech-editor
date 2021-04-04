@@ -119,12 +119,13 @@ processStillFrames(const MS::FrameSet& frameSet,
 FrameSetExportList buildExportList(const MS::FrameSet& frameSet, const FrameSetExportOrder& exportOrder)
 {
     const auto animations = processAnimations(frameSet, exportOrder.animations);
+    const auto frames = processStillFrames(frameSet, exportOrder.stillFrames, animations);
 
     return {
         frameSet,
         exportOrder,
         std::move(animations),
-        processStillFrames(frameSet, exportOrder.stillFrames, animations)
+        std::move(frames),
     };
 }
 
