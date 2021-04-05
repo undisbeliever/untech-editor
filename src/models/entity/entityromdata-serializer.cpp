@@ -7,8 +7,7 @@
 #include "entityromdata-serializer.h"
 #include <cassert>
 
-namespace UnTech {
-namespace Entity {
+namespace UnTech::Entity {
 
 static const EnumMap<EntityType> entityTypeMap = {
     { "entity", EntityType::ENTITY },
@@ -251,5 +250,4 @@ void writeEntityRomData(XmlWriter& xml, const EntityRomData& entityRomData)
     xml.writeCloseTag();
 }
 
-}
 }

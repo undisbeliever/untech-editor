@@ -10,11 +10,9 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 void readFrameSetFile(const Xml::XmlTag& tag, std::vector<FrameSetFile>& frameSets);
 void writeFrameSetFiles(Xml::XmlWriter& xml, const std::vector<FrameSetFile>& frameSets);
 
-}
 }

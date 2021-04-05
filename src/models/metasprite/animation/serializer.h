@@ -10,15 +10,12 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Animation {
+namespace UnTech::MetaSprite::Animation {
 
 void readAnimation(Xml::XmlReader& xml, const Xml::XmlTag& tag,
                    NamedList<Animation>& animations);
 
 void writeAnimations(Xml::XmlWriter& xml,
                      const NamedList<Animation>& animations);
-}
-}
+
 }

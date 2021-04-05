@@ -8,16 +8,12 @@
 
 #include <string>
 
-namespace UnTech::Gui {
+namespace UnTech::Gui::MsgBox {
 
 // MessageBox is thread safe
-namespace MsgBox {
-
 void showMessage(const std::string& title, const std::string& message);
 void showMessage(const std::string& title, const char* message);
 
 void processGui();
-
-}
 
 }

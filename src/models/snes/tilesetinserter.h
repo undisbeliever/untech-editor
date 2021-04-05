@@ -10,8 +10,7 @@
 #include "models/common/iterators.h"
 #include <unordered_map>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 struct TilesetInserterOutput {
     unsigned tileId;
@@ -137,5 +136,5 @@ private:
 
 typedef TilesetInserter<8> TilesetInserter8px;
 typedef TilesetInserter<16> TilesetInserter16px;
-}
+
 }

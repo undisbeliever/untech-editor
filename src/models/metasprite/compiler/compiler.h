@@ -11,13 +11,11 @@
 #include "../frameset-exportorder.h"
 #include "../metasprite.h"
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 struct ProjectFile;
 }
 
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 struct FrameData;
 struct FrameSetData;
@@ -50,6 +48,4 @@ struct CompiledRomData {
     void addFrameSetData(const FrameSetData& fsData);
 };
 
-}
-}
 }

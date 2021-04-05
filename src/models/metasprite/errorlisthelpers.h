@@ -10,8 +10,7 @@
 #include "metasprite.h"
 #include "spriteimporter.h"
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 // ::TODO improve error message if the frame has no name::
 
@@ -91,5 +90,4 @@ inline std::unique_ptr<MetaSpriteError> animationFrameError(const Animation::Ani
                                              stringBuilder("Animation ", ani.name, message...));
 }
 
-}
 }

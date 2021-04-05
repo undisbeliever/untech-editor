@@ -13,7 +13,7 @@
 #error "Cannot use custom lodepng allocators"
 #endif
 
-using namespace UnTech;
+namespace UnTech {
 
 static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
 
@@ -122,4 +122,6 @@ std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& f
 std::shared_ptr<Image> Image::invalidImageWithErrorMessage(std::string&& error)
 {
     return std::make_shared<Image>(std::move(error), PrivateToken{});
+}
+
 }

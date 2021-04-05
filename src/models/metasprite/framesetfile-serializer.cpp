@@ -6,11 +6,9 @@
 
 #include "framesetfile-serializer.h"
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 const EnumMap<FrameSetFile::FrameSetType> frameSetTypeMap = {
     { "unknown", FrameSetFile::FrameSetType::UNKNOWN },
@@ -46,5 +44,4 @@ void writeFrameSetFiles(XmlWriter& xml, const std::vector<FrameSetFile>& frameSe
     }
 }
 
-}
 }

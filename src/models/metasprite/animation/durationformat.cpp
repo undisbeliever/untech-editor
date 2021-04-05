@@ -8,8 +8,7 @@
 #include <cstdio>
 #include <stdexcept>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite::Animation;
+namespace UnTech::MetaSprite::Animation {
 
 const EnumMap<DurationFormat::Enum> DurationFormat::enumMap = {
     { "FRAME", DurationFormat::Enum::FRAME },
@@ -43,4 +42,6 @@ std::string DurationFormat::durationToString(uint8_t duration) const
     }
 
     return str;
+}
+
 }

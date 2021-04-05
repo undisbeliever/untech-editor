@@ -10,9 +10,7 @@
 #include "romdata.h"
 #include <vector>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 struct CompiledRomData;
 
@@ -20,6 +18,4 @@ std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& ex
 
 uint16_t saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out);
 
-}
-}
 }

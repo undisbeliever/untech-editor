@@ -9,8 +9,7 @@
 #include "models/common/validateunique.h"
 #include <cassert>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 void ProjectFile::loadAllFiles()
 {
@@ -87,5 +86,4 @@ bool validateProjectSettings(const ProjectSettings& input, ErrorList& err)
     return valid;
 }
 
-}
 }

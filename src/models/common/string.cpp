@@ -8,10 +8,10 @@
 #include <fstream>
 #include <string>
 
-using namespace UnTech;
+namespace UnTech::String {
 
 // Cannot use std::string_view, code expects a null terminated string
-bool String::checkUtf8WellFormed(const std::string& str)
+bool checkUtf8WellFormed(const std::string& str)
 {
     // ::TODO change code to accept std::string_view
     // ::TODO test this code works with a std::string_view substring
@@ -87,4 +87,6 @@ bool String::checkUtf8WellFormed(const std::string& str)
     }
 
     return length == str.size();
+}
+
 }

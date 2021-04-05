@@ -10,9 +10,7 @@
 #include <cstdint>
 #include <string>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Animation {
+namespace UnTech::MetaSprite::Animation {
 
 class DurationFormat {
 public:
@@ -53,6 +51,5 @@ public:
 private:
     Enum _value;
 };
-}
-}
+
 }

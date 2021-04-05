@@ -12,8 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace CommandLine {
+namespace UnTech::CommandLine {
 
 class OptionValue {
 public:
@@ -98,6 +97,7 @@ private:
     std::list<std::string> _filenames;
     std::map<std::string, OptionValue> _options;
 };
+
 }
-}
+
 std::ostream& operator<<(std::ostream&, const UnTech::CommandLine::OptionValue&);

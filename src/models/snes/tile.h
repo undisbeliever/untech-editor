@@ -13,8 +13,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 template <size_t TS>
 class Tile {
@@ -68,7 +67,7 @@ using Tile16px = Tile<16>;
 
 std::array<Tile8px, 4> splitLargeTile(const Tile16px& largeTile);
 Tile16px combineSmallTiles(const std::array<Tile8px, 4>& tiles);
-}
+
 }
 
 namespace std {
@@ -101,4 +100,5 @@ struct hash<std::vector<::UnTech::Snes::Tile<TS>>> {
         return seed;
     }
 };
+
 }

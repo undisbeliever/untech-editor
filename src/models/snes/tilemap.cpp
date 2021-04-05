@@ -8,7 +8,7 @@
 #include "models/common/stringbuilder.h"
 #include <stdexcept>
 
-using namespace UnTech::Snes;
+namespace UnTech::Snes {
 
 Tilemap::Tilemap(unsigned width, unsigned height)
     : _width(width)
@@ -55,4 +55,6 @@ void Tilemap::readSnesData(const std::vector<uint8_t>& in)
             inData += 2;
         }
     }
+}
+
 }

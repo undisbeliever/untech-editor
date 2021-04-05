@@ -8,8 +8,7 @@
 
 #include "scenes.h"
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 inline unsigned numberOfLayers(const BgMode mode)
 {
@@ -43,5 +42,5 @@ inline unsigned bitDepthForLayer(BgMode mode, unsigned layer)
 
     return bitDepths.at(unsigned(mode) * N_LAYERS + (layer % N_LAYERS));
 }
-}
+
 }

@@ -9,9 +9,7 @@
 #include "models/project/project.h"
 #include <iostream>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 void writeFrameSetReferences(const Project::ProjectFile& project, std::ostream& out);
 void writeExportOrderReferences(const Project::ProjectFile& project, std::ostream& out);
@@ -20,6 +18,4 @@ void writeExportOrderReferences(const Project::ProjectFile& project, std::ostrea
 // NOTE: changes the ROM bank to code()
 void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& actionPointFunctions, std::ostream& out);
 
-}
-}
 }

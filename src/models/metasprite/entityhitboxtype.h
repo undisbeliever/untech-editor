@@ -10,8 +10,7 @@
 #include <array>
 #include <cstdint>
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 struct EntityHitboxType {
     bool weak = 0;
@@ -60,5 +59,5 @@ struct EntityHitboxType {
     }
     inline bool operator!=(const EntityHitboxType& o) const { return !(*this == o); }
 };
-}
+
 }

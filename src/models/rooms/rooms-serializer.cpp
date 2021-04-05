@@ -12,12 +12,11 @@
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/scripting/scripting-serializer.h"
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
 namespace UnTech {
 template <>
-void UnTech::ExternalFileItem<::Rooms::RoomInput>::loadFile()
+void UnTech::ExternalFileItem<UnTech::Rooms::RoomInput>::loadFile()
 {
     value = Rooms::loadRoomInput(filename);
 }

@@ -10,9 +10,7 @@
 #include "palettecompiler.h"
 #include "models/common/iterators.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -139,6 +137,4 @@ void CompiledRomData::addFrameSetData(const FrameSetData& data)
     frameSetData.addData_NoIndex(fsItem.data());
 }
 
-}
-}
 }

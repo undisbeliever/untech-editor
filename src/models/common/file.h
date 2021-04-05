@@ -10,8 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace File {
+namespace UnTech::File {
 
 /**
  * Reads a binary file into a vector.
@@ -45,5 +44,5 @@ std::string readUtf8TextFile(const std::filesystem::path& filePath);
 void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size);
 void atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data);
 void atomicWrite(const std::filesystem::path& filePath, const std::string& data);
-}
+
 }

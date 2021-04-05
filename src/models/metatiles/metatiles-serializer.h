@@ -13,8 +13,7 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace MetaTiles {
+namespace UnTech::MetaTiles {
 
 // returns nullptr on error
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesystem::path& filename, ErrorList& err);
@@ -38,5 +37,4 @@ void writeMetaTileGrid(Xml::XmlWriter& xml, const std::string& tagName, const gr
 void readInteractiveTiles(Xml::XmlReader& xml, const Xml::XmlTag& tag, InteractiveTiles& interactiveTiles);
 void writeInteractiveTiles(Xml::XmlWriter& xml, const InteractiveTiles& interactiveTiles);
 
-}
 }

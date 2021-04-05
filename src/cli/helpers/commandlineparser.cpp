@@ -11,8 +11,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace UnTech;
-using namespace UnTech::CommandLine;
+namespace UnTech::CommandLine {
 
 OptionValue::OptionValue(bool boolean)
     : _type(Type::BOOLEAN)
@@ -70,7 +69,7 @@ bool Argument::hasParameter() const
     }
 }
 
-const char* ::UnTech::CommandLine::optionString(const OptionType type)
+const char* optionString(const OptionType type)
 {
     switch (type) {
     case OptionType::BOOLEAN:
@@ -376,4 +375,6 @@ void Parser::error(const char* message, const Argument& argument, bool isShort)
         std::cerr << "--" << argument.longName << ": " << message << std::endl;
     }
     exit(EXIT_FAILURE);
+}
+
 }

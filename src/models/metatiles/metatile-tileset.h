@@ -14,8 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace MetaTiles {
+namespace UnTech::MetaTiles {
 
 struct InteractiveTilesData;
 
@@ -192,5 +191,5 @@ convertTileset(const MetaTileTilesetInput& input,
                const Project::DataStore<Resources::PaletteData>& paletteDataStore,
                const InteractiveTilesData& interactiveTilesData,
                ErrorList& err);
-}
+
 }

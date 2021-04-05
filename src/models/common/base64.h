@@ -11,8 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace Base64 {
+namespace UnTech::Base64 {
 
 /**
  * Encodes the given data as base64 text in the given file.
@@ -38,5 +37,4 @@ std::vector<uint8_t> decode(const std::string& text);
 // DOES NOT the number of bytes written to buffer, may be larger than buffer.
 size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::string& text);
 
-}
 }

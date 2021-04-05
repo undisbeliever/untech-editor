@@ -12,8 +12,7 @@
 #include "models/common/xml/xmlwriter.h"
 #include <filesystem>
 
-namespace UnTech {
-namespace Rooms {
+namespace UnTech::Rooms {
 
 // raises an exception on error
 std::unique_ptr<RoomInput> loadRoomInput(const std::filesystem::path& filename);
@@ -30,5 +29,4 @@ void readRoomSettings(RoomSettings& settings, const Xml::XmlTag& tag);
 // raises an exception on error
 void writeRoomSettings(Xml::XmlWriter& xml, const RoomSettings& settings);
 
-}
 }

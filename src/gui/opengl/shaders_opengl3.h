@@ -12,6 +12,7 @@
 #include "models/common/grid.h"
 
 namespace UnTech::MetaTiles {
+
 enum class TileCollisionType : uint8_t;
 
 struct MetaTileTilesetInput;

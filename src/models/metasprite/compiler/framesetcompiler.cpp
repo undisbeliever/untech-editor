@@ -15,9 +15,7 @@
 #include "models/metasprite/utsi2utms/utsi2utms.h"
 #include "models/project/project.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -295,6 +293,4 @@ compileFrameSet(const FrameSetFile& fs,
     return nullptr;
 }
 
-}
-}
 }

@@ -11,11 +11,9 @@
 #include "models/metatiles/metatiles-serializer.h"
 #include <cassert>
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 static const EnumMap<BgMode> bgModeEnumMap = {
     { "0", BgMode::MODE_0 },
@@ -203,5 +201,4 @@ void writeScenes(XmlWriter& xml, const NamedList<SceneInput>& scenes)
     }
 }
 
-}
 }

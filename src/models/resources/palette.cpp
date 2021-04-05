@@ -15,8 +15,6 @@
 
 namespace UnTech::Resources {
 
-using namespace UnTech::Snes;
-
 static bool validate(const PaletteData& input, ErrorList& err);
 
 // PaletteInput
@@ -112,7 +110,7 @@ convertPalette(const PaletteInput& input, ErrorList& err)
     auto ret = std::make_shared<PaletteData>();
     ret->animationDelay = input.animationDelay;
 
-    auto extractPalette = [&](std::vector<SnesColor>& frame, unsigned frameId) {
+    auto extractPalette = [&](std::vector<Snes::SnesColor>& frame, unsigned frameId) {
         frame.resize(colorsPerFrame);
         auto frameIt = frame.begin();
 
@@ -212,7 +210,7 @@ std::vector<uint8_t> PaletteData::exportSnesData() const
 
     for (const auto& pal : paletteFrames) {
         assert(pal.size() == paletteFrames.front().size());
-        for (const SnesColor& c : pal) {
+        for (const Snes::SnesColor& c : pal) {
             writeUint16(block, c.data());
         }
     }

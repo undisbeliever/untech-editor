@@ -12,10 +12,10 @@
 
 namespace UnTech {
 class ErrorList;
+}
 
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 std::unique_ptr<MetaSprite::FrameSet> utsi2utms(SpriteImporter::FrameSet& siFrameSet, ErrorList& errorList);
 
-}
 }

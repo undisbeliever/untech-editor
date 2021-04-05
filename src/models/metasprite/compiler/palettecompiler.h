@@ -11,9 +11,7 @@
 #include <array>
 #include <vector>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 struct CompiledRomData;
 
@@ -23,6 +21,4 @@ std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp
 
 uint16_t savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out);
 
-}
-}
 }

@@ -18,8 +18,7 @@
 #include "models/project/project.h"
 #include "models/snes/tile-data.h"
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 static const idstring BLANK_IDSTRING{};
 
@@ -194,5 +193,5 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     return ret;
 }
-}
+
 }

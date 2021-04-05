@@ -10,12 +10,9 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace SpriteImporter {
+namespace UnTech::MetaSprite::SpriteImporter {
 
 std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml);
 void writeFrameSet(Xml::XmlWriter& xml, const FrameSet& frameSet);
-}
-}
+
 }

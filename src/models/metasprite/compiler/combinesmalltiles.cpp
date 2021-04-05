@@ -11,10 +11,7 @@
 #include <climits>
 #include <list>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
-namespace CombineSmallTiles {
+namespace UnTech::MetaSprite::Compiler::CombineSmallTiles {
 
 // This is a simple packing algorithm
 // It just pairs off the most common small tiles,
@@ -211,7 +208,10 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
 
     return output;
 }
+
 }
+
+namespace UnTech::MetaSprite::Compiler {
 
 SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
                                  const std::vector<FrameListEntry>& frameEntries)
@@ -227,6 +227,5 @@ SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
     auto fp = CombineSmallTiles::firstPass(smallTileGraph);
     return CombineSmallTiles::secondPass(fp, frameSet.smallTileset.size());
 }
-}
-}
+
 }

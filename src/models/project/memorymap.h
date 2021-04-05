@@ -8,8 +8,7 @@
 
 #include "models/common/errorlist.h"
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 enum MappingMode {
     LOROM,
@@ -38,5 +37,4 @@ struct MemoryMapSettings {
     bool operator!=(const MemoryMapSettings& o) const { return !(*this == o); }
 };
 
-}
 }

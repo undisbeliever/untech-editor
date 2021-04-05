@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace UnTech;
+namespace UnTech::Base64 {
 
 char lookup[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
@@ -20,7 +20,7 @@ char lookup[64] = {
     '+', '/'
 };
 
-void Base64::encode(const uint8_t* ptr, const size_t size, std::ostream& file, unsigned indent)
+void encode(const uint8_t* ptr, const size_t size, std::ostream& file, unsigned indent)
 {
     const unsigned CHARS_PER_LINE = 64;
     const unsigned BLOCKS_PER_LINE = CHARS_PER_LINE / 4;
@@ -94,7 +94,7 @@ void Base64::encode(const uint8_t* ptr, const size_t size, std::ostream& file, u
     }
 }
 
-void Base64::encode(const std::vector<uint8_t>& data, std::ostream& file, unsigned indent)
+void encode(const std::vector<uint8_t>& data, std::ostream& file, unsigned indent)
 {
     encode(data.data(), data.size(), file, indent);
 }
@@ -122,7 +122,7 @@ inline uint8_t get_val(const char& c)
 }
 
 // ::TODO replace with std::span when upgrading to c++20::
-size_t Base64::decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::string& text)
+size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::string& text)
 {
     uint8_t token, tmp;
 
@@ -168,7 +168,7 @@ size_t Base64::decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const st
     return bytesDecoded;
 }
 
-std::vector<uint8_t> Base64::decode(const std::string& text)
+std::vector<uint8_t> decode(const std::string& text)
 {
     std::vector<uint8_t> out(text.size() * 6 / 8 + 16);
 
@@ -178,4 +178,6 @@ std::vector<uint8_t> Base64::decode(const std::string& text)
     out.resize(bytesDecoded);
 
     return out;
+}
+
 }

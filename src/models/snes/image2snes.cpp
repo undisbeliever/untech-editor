@@ -14,8 +14,7 @@
 #include <array>
 #include <vector>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 class Image2SnesConverter {
     constexpr static unsigned TILE_SIZE = 8;
@@ -504,5 +503,5 @@ std::vector<uint8_t> Image2Snes::paletteSnesData() const
 
     return data;
 }
-}
+
 }

@@ -11,9 +11,7 @@
 
 #pragma once
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 struct TilesetLayout;
 
@@ -58,6 +56,4 @@ struct TilesetData {
 
 TilesetData processTileset(const MetaSprite::FrameSet& frameSet, const TilesetLayout& tilesetLayout);
 
-}
-}
 }

@@ -12,8 +12,7 @@
 #include <optional>
 #include <vector>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 class RomBankData {
 private:
@@ -84,5 +83,4 @@ public:
     }
 };
 
-}
 }

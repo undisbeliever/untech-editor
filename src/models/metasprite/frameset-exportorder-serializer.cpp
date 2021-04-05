@@ -13,10 +13,7 @@
 #include <cassert>
 #include <stdexcept>
 
-using namespace UnTech;
 using namespace UnTech::Xml;
-
-namespace MS = UnTech::MetaSprite;
 
 namespace UnTech {
 
@@ -26,9 +23,11 @@ void ExternalFileItem<MetaSprite::FrameSetExportOrder>::loadFile()
     value = MetaSprite::loadFrameSetExportOrder(filename);
 }
 
-namespace MetaSprite {
+}
 
-const std::string MS::FrameSetExportOrder::FILE_EXTENSION = "utfseo";
+namespace UnTech::MetaSprite {
+
+const std::string FrameSetExportOrder::FILE_EXTENSION = "utfseo";
 
 struct FrameSetExportOrderReader {
     FrameSetExportOrderReader(FrameSetExportOrder& exportOrder, XmlReader& xml)
@@ -160,5 +159,5 @@ void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesyste
     writeFrameSetExportOrder(xml, eo);
     file.commit();
 }
-}
+
 }

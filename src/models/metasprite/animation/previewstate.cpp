@@ -8,8 +8,7 @@
 #include <cassert>
 #include <cmath>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite::Animation;
+namespace UnTech::MetaSprite::Animation {
 
 PreviewState::PreviewState()
     : _animations(nullptr)
@@ -52,7 +51,7 @@ const AnimationFrame* PreviewState::getAnimationFrame() const
     return &ani->frames.at(_aFrameIndex);
 }
 
-const MetaSprite::NameReference& PreviewState::frame() const
+const NameReference& PreviewState::frame() const
 {
     const static NameReference BLANK_FRAME = {};
 
@@ -213,4 +212,6 @@ unsigned PreviewState::calcTimeToNextFrame() const
     }
 
     return 0;
+}
+
 }

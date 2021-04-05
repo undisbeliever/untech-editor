@@ -9,8 +9,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 template <size_t TS>
 class Tile;
@@ -35,5 +34,4 @@ std::vector<Tile8px> readSnesTileData(const std::vector<uint8_t>& in, const unsi
 std::vector<uint8_t> snesTileData4bppTile16(const std::vector<Tile16px>& tileset);
 std::vector<Tile16px> readSnesTileData4bppTile16(const std::vector<uint8_t>& in);
 
-}
 }

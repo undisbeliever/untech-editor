@@ -11,9 +11,7 @@
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 /*
  * Increments the `charattr` position by one 16x16 tile,
@@ -198,6 +196,4 @@ TilesetData processTileset(const MetaSprite::FrameSet& frameSet, const TilesetLa
     return ret;
 }
 
-}
-}
 }

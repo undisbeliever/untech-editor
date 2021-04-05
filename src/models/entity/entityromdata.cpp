@@ -14,8 +14,7 @@
 #include <sstream>
 #include <unordered_set>
 
-namespace UnTech {
-namespace Entity {
+namespace UnTech::Entity {
 
 const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 6;
 
@@ -836,5 +835,4 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     return ret;
 }
 
-}
 }

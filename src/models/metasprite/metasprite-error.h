@@ -8,8 +8,7 @@
 
 #include "models/common/errorlist.h"
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 enum class MsErrorType {
     FRAME,
@@ -76,5 +75,4 @@ public:
     }
 };
 
-}
 }

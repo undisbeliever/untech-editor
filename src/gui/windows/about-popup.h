@@ -6,16 +6,10 @@
 
 #pragma once
 
-namespace UnTech::Gui {
-
-class Texture;
-
-namespace AboutPopup {
+namespace UnTech::Gui::AboutPopup {
 
 void openPopup();
 
 void processGui();
-
-}
 
 }

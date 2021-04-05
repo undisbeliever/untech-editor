@@ -7,9 +7,7 @@
 #include "framesetexportlist.h"
 #include "models/common/errorlist.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -129,6 +127,4 @@ FrameSetExportList buildExportList(const MS::FrameSet& frameSet, const FrameSetE
     };
 }
 
-}
-}
 }

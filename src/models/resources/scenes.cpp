@@ -13,8 +13,7 @@
 #include "models/project/project-data.h"
 #include <numeric>
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 // Scene Settings
 // --------------
@@ -679,5 +678,4 @@ const std::string SceneSettingsData::FUNCTION_TABLE_LABEL("Project.SceneSettings
 const std::string SceneLayoutsData::DATA_LABEL("Project.SceneLayoutData");
 const std::string CompiledScenesData::DATA_LABEL("Project.SceneData");
 
-}
 }

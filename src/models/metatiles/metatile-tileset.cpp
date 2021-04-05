@@ -14,11 +14,11 @@
 #include <climits>
 
 namespace UnTech {
-
 // test grid template class compiles
 template class grid<uint16_t>;
+}
 
-namespace MetaTiles {
+namespace UnTech::MetaTiles {
 
 static bool validate(const MetaTileTilesetData& input, ErrorList& err);
 
@@ -267,5 +267,4 @@ MetaTileTilesetData::exportSnesData() const
     return out;
 }
 
-}
 }

@@ -15,11 +15,9 @@
 #include "models/rooms/rooms-serializer.h"
 #include "models/scripting/scripting-serializer.h"
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 const std::string ProjectFile::FILE_EXTENSION = "utproject";
 
@@ -212,5 +210,5 @@ void saveProjectFile(const ProjectFile& project, const std::filesystem::path& fi
     writeProjectFile(xml, project);
     file.commit();
 }
-}
+
 }

@@ -10,11 +10,9 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 std::unique_ptr<ProjectFile> readProjectFile(Xml::XmlReader& xml);
 void writeProjectFile(Xml::XmlWriter& xml, const ProjectFile& project);
 
-}
 }

@@ -9,8 +9,7 @@
 #include "entityromdata.h"
 #include "models/common/errorlist.h"
 
-namespace UnTech {
-namespace Entity {
+namespace UnTech::Entity {
 
 enum class EntityErrorType {
     LIST_ID,
@@ -39,5 +38,4 @@ public:
     }
 };
 
-}
 }

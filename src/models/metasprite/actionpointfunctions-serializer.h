@@ -10,11 +10,9 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 void readActionPointFunction(const Xml::XmlTag& tag, NamedList<ActionPointFunction>& actionPointFunctions);
 void writeActionPointFunctions(Xml::XmlWriter& xml, const NamedList<ActionPointFunction>& actionPointFunctions);
 
-}
 }

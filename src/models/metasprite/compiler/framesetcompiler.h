@@ -12,9 +12,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 struct TileHitboxData {
     uint8_t left;
@@ -48,6 +46,5 @@ std::shared_ptr<const FrameSetData>
 compileFrameSet(const UnTech::MetaSprite::FrameSetFile& fs,
                 const Project::ProjectFile& project, const ActionPointMapping& actionPointMapping,
                 ErrorList& errorList);
-}
-}
+
 }

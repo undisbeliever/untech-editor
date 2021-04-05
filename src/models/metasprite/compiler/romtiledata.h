@@ -17,9 +17,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 // Tile data is stored in last ROM Bank first.
 
@@ -105,6 +103,5 @@ public:
         }
     }
 };
-}
-}
+
 }

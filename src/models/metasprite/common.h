@@ -15,8 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 const static size_t MAX_FRAMESETS = 1024;
 const static size_t MAX_EXPORT_NAMES = 254;
@@ -77,5 +76,4 @@ using ActionPointMapping = std::unordered_map<idstring, uint8_t>;
 std::shared_ptr<const ActionPointMapping>
 generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err);
 
-}
 }

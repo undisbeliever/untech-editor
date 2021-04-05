@@ -12,8 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 template <unsigned TILE_SIZE>
 class AnimatedTilesetInserter {
@@ -104,5 +103,5 @@ private:
         _map.insert({ hvFliped, { tileId, true, true } });
     }
 };
-}
+
 }

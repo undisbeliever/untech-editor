@@ -10,8 +10,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 struct TilemapEntry {
     const static unsigned CHAR_MASK = 0x03ff;
@@ -90,5 +89,5 @@ private:
     unsigned _height;
     std::vector<map_t> _maps;
 };
-}
+
 }

@@ -13,8 +13,7 @@
 #include <cstring>
 #include <string>
 
-namespace UnTech {
-namespace StringBuilder {
+namespace UnTech::StringBuilder {
 
 // Disable automated type casting on stringBuilder
 template <typename T>
@@ -90,6 +89,8 @@ void concat(std::string& str, uint32_t value);
 void concat(std::string& str, uint64_t value);
 
 }
+
+namespace UnTech {
 
 template <typename... Args>
 inline std::string stringBuilder(const Args&... args)

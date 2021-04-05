@@ -11,9 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace Snes {
-namespace Cartridge {
+namespace UnTech::Snes::Cartridge {
 
 enum class MemoryMap {
     LOROM,
@@ -33,6 +31,5 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 
 // throws exception is unable to write to file
 void writeChecksum(const std::filesystem::path& filename, uint16_t checksum, MemoryMap memoryMap);
-}
-}
+
 }

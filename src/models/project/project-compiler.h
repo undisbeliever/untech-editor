@@ -11,8 +11,8 @@
 #include <sstream>
 #include <vector>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
+
 struct ProjectFile;
 
 struct ProjectOutput {
@@ -24,5 +24,5 @@ struct ProjectOutput {
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinaryFilename,
                std::ostream& errorStream);
-}
+
 }

@@ -8,9 +8,7 @@
 #include "compiler.h"
 #include "models/common/iterators.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp>& palettes)
 {
@@ -54,6 +52,4 @@ uint16_t savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomD
     return out.paletteList.addData_Index(indexes);
 }
 
-}
-}
 }

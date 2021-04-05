@@ -14,12 +14,9 @@
 #include <fstream>
 #include <stdexcept>
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
-namespace UnTech {
-namespace MetaSprite {
-namespace SpriteImporter {
+namespace UnTech::MetaSprite::SpriteImporter {
 
 const std::string FrameSet::FILE_EXTENSION = "utsi";
 
@@ -392,6 +389,5 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     xml.writeCloseTag();
 }
-}
-}
+
 }

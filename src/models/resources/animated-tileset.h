@@ -13,13 +13,14 @@
 
 namespace UnTech {
 class ErrorList;
+}
 
-namespace Project {
+namespace UnTech::Project {
 template <typename T>
 class DataStore;
 }
 
-namespace Resources {
+namespace UnTech::Resources {
 
 struct PaletteInput;
 struct PaletteData;
@@ -85,5 +86,4 @@ convertAnimationFrames(const AnimationFramesInput& input,
                        const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err);
 
-}
 }

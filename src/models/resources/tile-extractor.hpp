@@ -11,8 +11,7 @@
 #include "models/snes/tile.h"
 #include <vector>
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 struct TileAndPalette {
     Snes::Tile8px tile;
@@ -100,5 +99,4 @@ inline std::vector<TileAndPalette> tilesFromImage(const Image& image, const unsi
     return tiles;
 }
 
-}
 }

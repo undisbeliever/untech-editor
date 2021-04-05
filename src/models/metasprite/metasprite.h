@@ -20,9 +20,9 @@
 
 namespace UnTech {
 class ErrorList;
+}
 
-namespace MetaSprite {
-namespace MetaSprite {
+namespace UnTech::MetaSprite::MetaSprite {
 
 struct FrameSet;
 struct Frame;
@@ -157,6 +157,5 @@ bool validate(const FrameSet& input, const ActionPointMapping& actionPointMappin
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename);
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename);
-}
-}
+
 }

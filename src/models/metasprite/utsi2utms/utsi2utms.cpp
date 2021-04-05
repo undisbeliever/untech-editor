@@ -10,12 +10,12 @@
 #include "tileextractor.hpp"
 #include "models/common/imagecache.h"
 
+namespace UnTech::MetaSprite {
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
+}
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Utsi2UtmsPrivate {
+namespace UnTech::MetaSprite::Utsi2UtmsPrivate {
 
 static std::unique_ptr<MS::FrameSet> utsi2utms(const SI::FrameSet& siFrameSet, ErrorList& errorList)
 {
@@ -58,7 +58,10 @@ static std::unique_ptr<MS::FrameSet> utsi2utms(const SI::FrameSet& siFrameSet, E
 
     return msFrameSet;
 }
+
 }
+
+namespace UnTech::MetaSprite {
 
 // ::TODO add a section to untech-editor-gui that allows you to see the output of utsi2utms ::
 // :::    and allows the user to save it to a file (if he/she wishes).::
@@ -73,5 +76,4 @@ std::unique_ptr<MS::FrameSet> utsi2utms(SI::FrameSet& siFrameSet, ErrorList& err
     return Utsi2UtmsPrivate::utsi2utms(siFrameSet, errorList);
 }
 
-}
 }

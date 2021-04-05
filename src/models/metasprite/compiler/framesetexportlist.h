@@ -12,9 +12,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 struct AnimationListEntry {
     const Animation::Animation* animation;
@@ -59,6 +57,4 @@ struct FrameSetExportList {
 FrameSetExportList buildExportList(const MetaSprite::FrameSet& frameSet,
                                    const FrameSetExportOrder& exportOrder);
 
-}
-}
 }

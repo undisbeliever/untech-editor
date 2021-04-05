@@ -12,18 +12,19 @@
 #include "models/resources/resources-serializer.h"
 #include <cassert>
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
 namespace UnTech {
 
 template <>
-void UnTech::ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
+void ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
 {
     value = MetaTiles::loadMetaTileTilesetInput(filename);
 }
 
-namespace MetaTiles {
+}
+
+namespace UnTech::MetaTiles {
 
 static const EnumMap<TileCollisionType> tileCollisonTypeEnumMap = {
     { "", TileCollisionType::EMPTY },
@@ -348,5 +349,4 @@ void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::file
     file.commit();
 }
 
-}
 }

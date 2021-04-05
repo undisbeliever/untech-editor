@@ -16,11 +16,12 @@
 
 namespace UnTech {
 class ErrorList;
-namespace Project {
+}
+namespace UnTech::Project {
 class ProjectData;
 }
 
-namespace Resources {
+namespace UnTech::Resources {
 
 constexpr unsigned N_LAYERS = 4;
 constexpr unsigned MAX_N_SCENE_SETTINGS = 42;
@@ -194,5 +195,5 @@ void writeSceneIncData(const ResourceScenes& resourceScenes, std::ostream& out);
 
 std::shared_ptr<const CompiledScenesData>
 compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectData& projectData, ErrorList& err);
-}
+
 }

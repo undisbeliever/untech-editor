@@ -29,9 +29,9 @@
 #include <unistd.h>
 #endif
 
-using namespace UnTech;
+namespace UnTech::File {
 
-std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath, size_t limit)
+std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_t limit)
 {
     std::ifstream in(filePath, std::ios::in | std::ios::binary);
     if (!in) {
@@ -62,7 +62,7 @@ std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath,
     return ret;
 }
 
-std::string File::readUtf8TextFile(const std::filesystem::path& filePath)
+std::string readUtf8TextFile(const std::filesystem::path& filePath)
 {
     constexpr static unsigned N_BOM_CHARS = 3;
     constexpr static std::array<uint8_t, 4> BOM{ 0xEF, 0xBB, 0xBF };
@@ -124,19 +124,19 @@ std::string File::readUtf8TextFile(const std::filesystem::path& filePath)
     return (ret);
 }
 
-void File::atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
+void atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
 {
     atomicWrite(filePath, data.data(), data.size());
 }
 
-void File::atomicWrite(const std::filesystem::path& filePath, const std::string& data)
+void atomicWrite(const std::filesystem::path& filePath, const std::string& data)
 {
     atomicWrite(filePath, data.data(), data.size());
 }
 
 // ::TODO replace with std::span when upgrading to c++20::
 #ifdef PLATFORM_WINDOWS
-void File::atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
+void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
 {
     const size_t BLOCK_SIZE = 4096;
 
@@ -187,7 +187,7 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
     }
 }
 #else
-void File::atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
+void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
 {
     using namespace std::string_literals;
 
@@ -269,3 +269,5 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
     }
 }
 #endif
+
+}

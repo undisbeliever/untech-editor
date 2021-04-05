@@ -6,8 +6,7 @@
 
 #pragma once
 
-namespace UnTech {
-namespace MetaTiles {
+namespace UnTech::MetaTiles {
 
 constexpr unsigned TILESET_WIDTH = 16;
 constexpr unsigned TILESET_HEIGHT = 16;
@@ -22,5 +21,4 @@ constexpr static unsigned METATILE_SIZE_PX = 16;
 
 constexpr static unsigned MAX_INTERACTIVE_TILE_FUNCTION_TABLES = 32;
 
-}
 }

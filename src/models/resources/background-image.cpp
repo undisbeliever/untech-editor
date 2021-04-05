@@ -17,8 +17,7 @@
 
 #include "tile-extractor.hpp"
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 static constexpr unsigned HEADER_DATA_SIZE = 1;
 
@@ -265,5 +264,4 @@ std::vector<uint8_t> BackgroundImageData::exportSnesData() const
     return data;
 }
 
-}
 }

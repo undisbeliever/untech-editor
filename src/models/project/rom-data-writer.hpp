@@ -15,8 +15,7 @@
 #include <sstream>
 #include <vector>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 template <typename T>
 class DataStore;
@@ -221,5 +220,5 @@ public:
         return binData;
     }
 };
-}
+
 }

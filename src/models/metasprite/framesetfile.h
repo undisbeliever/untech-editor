@@ -11,8 +11,7 @@
 #include <filesystem>
 #include <memory>
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 struct FrameSetFile {
     enum class FrameSetType {
@@ -58,5 +57,4 @@ struct FrameSetFile {
     }
 };
 
-}
 }

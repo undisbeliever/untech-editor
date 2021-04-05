@@ -6,7 +6,7 @@
 
 #include "snescolor.h"
 
-using namespace UnTech::Snes;
+namespace UnTech::Snes {
 
 void SnesColor::setData(const uint16_t data)
 {
@@ -32,4 +32,6 @@ void SnesColor::setRed(const uint8_t red)
     uint8_t r = red & 31;
 
     _data = (_data & (0x7FFF ^ 31)) | r;
+}
+
 }

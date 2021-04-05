@@ -13,7 +13,7 @@
 #error "Cannot use custom lodepng allocators"
 #endif
 
-using namespace UnTech;
+namespace UnTech {
 
 IndexedImage::IndexedImage(const usize size)
     : _size(size)
@@ -121,4 +121,6 @@ std::shared_ptr<IndexedImage> IndexedImage::loadPngImage_shared(const std::files
 std::shared_ptr<IndexedImage> IndexedImage::invalidImageWithErrorMessage(std::string&& error)
 {
     return std::make_shared<IndexedImage>(std::move(error), PrivateToken{});
+}
+
 }

@@ -7,7 +7,7 @@
 #include "optional.h"
 #include "models/resources/palette.h"
 
-using namespace UnTech;
+namespace UnTech {
 
 // Test template compliles properly
 template class UnTech::optional<long>;
@@ -16,4 +16,6 @@ template class UnTech::optional<Resources::PaletteInput&>;
 const char* bad_optional_access::what() const noexcept
 {
     return "Bad optional access";
+}
+
 }

@@ -20,8 +20,7 @@
 
 #include "tile-extractor.hpp"
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 using Tile8px = Snes::Tile8px;
 
@@ -389,5 +388,4 @@ convertAnimationFrames(const AnimationFramesInput& input,
     return ret;
 }
 
-}
 }

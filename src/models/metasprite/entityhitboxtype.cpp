@@ -6,8 +6,7 @@
 
 #include "entityhitboxtype.h"
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite;
+namespace UnTech::MetaSprite {
 
 const std::array<std::string, 16> EntityHitboxType::SHORT_STRING_VALUES({
     "----",
@@ -97,4 +96,6 @@ EntityHitboxType EntityHitboxType::from_string(const std::string& string)
     }
 
     return eht;
+}
+
 }

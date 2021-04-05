@@ -7,8 +7,7 @@
 #include "stringbuilder.h"
 #include <charconv>
 
-namespace UnTech {
-namespace StringBuilder {
+namespace UnTech::StringBuilder {
 
 template <typename T>
 static void concat_int(std::string& str, const T value)
@@ -27,24 +26,23 @@ static void concat_int(std::string& str, const T value)
 
     str.resize(r.ptr - start);
 }
-}
 
-void StringBuilder::concat(std::string& str, int64_t value)
+void concat(std::string& str, int64_t value)
 {
     concat_int(str, value);
 }
 
-void StringBuilder::concat(std::string& str, uint64_t value)
+void concat(std::string& str, uint64_t value)
 {
     concat_int(str, value);
 }
 
-void StringBuilder::concat(std::string& str, int32_t value)
+void concat(std::string& str, int32_t value)
 {
     concat_int(str, value);
 }
 
-void StringBuilder::concat(std::string& str, uint32_t value)
+void concat(std::string& str, uint32_t value)
 {
     concat_int(str, value);
 }

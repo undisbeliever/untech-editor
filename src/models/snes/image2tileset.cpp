@@ -13,8 +13,7 @@
 #include "models/snes/convert-snescolor.h"
 #include <stdexcept>
 
-using namespace UnTech;
-using namespace UnTech::Snes;
+namespace UnTech::Snes {
 
 ImageToTileset::ImageToTileset(int bitDepth)
     : _bitDepth(bitDepth)
@@ -112,4 +111,6 @@ void ImageToTileset::processTileset(const IndexedImage& image)
         }
     }
     assert(tilesetIt == _tileset.end());
+}
+
 }

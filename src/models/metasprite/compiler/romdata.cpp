@@ -7,7 +7,7 @@
 #include "romdata.h"
 #include <iomanip>
 
-using namespace UnTech::MetaSprite::Compiler;
+namespace UnTech::MetaSprite::Compiler {
 
 void RomAddrTable::writeToIncFile(std::ostream& out) const
 {
@@ -48,4 +48,6 @@ void RomAddrTable::writeToIncFile(std::ostream& out) const
     out.width(oldWidth);
     out.flags(oldFlags);
     out.fill(oldFill);
+}
+
 }

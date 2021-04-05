@@ -13,9 +13,7 @@
 #include <array>
 #include <map>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Utsi2UtmsPrivate {
+namespace UnTech::MetaSprite::Utsi2UtmsPrivate {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
@@ -157,6 +155,5 @@ static void clearCommonOverlappedTiles(Snes::Tile<OVER_SIZE>& overTile,
         }
     }
 }
-}
-}
+
 }

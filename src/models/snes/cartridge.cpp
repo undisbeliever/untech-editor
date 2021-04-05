@@ -13,8 +13,7 @@
 #include <fstream>
 #include <stdexcept>
 
-using namespace UnTech::Snes;
-using namespace UnTech::Snes::Cartridge;
+namespace UnTech::Snes::Cartridge {
 
 constexpr size_t HEADER_ADDR = 0xffb0;
 constexpr size_t CHECKSUM_COMPLEMENT_ADDR = 0xffdc;
@@ -26,7 +25,7 @@ constexpr unsigned MAX_ROM_SIZE = 4 * 1024 * 1024;
 #define MIN_ROM_STRING "64 KiB"
 #define MAX_ROM_STRING "4 MiB"
 
-size_t Cartridge::headerAddress(MemoryMap memoryMap)
+size_t headerAddress(MemoryMap memoryMap)
 {
     switch (memoryMap) {
     case MemoryMap::LOROM:
@@ -51,7 +50,7 @@ static inline size_t checksumAddress(MemoryMap memoryMap)
     return headerAddress(memoryMap) + offset;
 }
 
-bool Cartridge::isHeaderValid(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
+bool isHeaderValid(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 {
     // Blank Maker Code and Game Code as my homebrew stuff is unlicensed.
     static const std::array<uint8_t, 2 + 4 + 7> EXPECTED(
@@ -83,14 +82,14 @@ bool Cartridge::isHeaderValid(const std::vector<uint8_t>& rom, MemoryMap memoryM
     return true;
 }
 
-uint16_t Cartridge::readChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
+uint16_t readChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 {
     unsigned addr = checksumAddress(memoryMap);
 
     return rom.at(addr) | rom.at(addr + 1) << 8;
 }
 
-uint16_t Cartridge::calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
+uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 {
     static_assert(sizeof(int) > sizeof(uint16_t) + 1, "int too small");
     static_assert(INT_MAX > MAX_ROM_SIZE * 256, "int too small");
@@ -144,7 +143,7 @@ uint16_t Cartridge::calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap
     return checkSum & 0xffff;
 }
 
-void Cartridge::writeChecksum(const std::filesystem::path& filename, uint16_t checksum, MemoryMap memoryMap)
+void writeChecksum(const std::filesystem::path& filename, uint16_t checksum, MemoryMap memoryMap)
 {
     unsigned checksumAddr = checksumAddress(memoryMap);
     unsigned complementAddr = checksumCompelementAddress(memoryMap);
@@ -167,4 +166,6 @@ void Cartridge::writeChecksum(const std::filesystem::path& filename, uint16_t ch
     out.put(checksum >> 8 & 0xff);
 
     out.close();
+}
+
 }

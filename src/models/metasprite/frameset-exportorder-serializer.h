@@ -10,11 +10,9 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml);
 void writeFrameSetExportOrder(Xml::XmlWriter& xml, const FrameSetExportOrder& eo);
 
-}
 }

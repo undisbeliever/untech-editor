@@ -14,9 +14,7 @@
 #include <cassert>
 #include <vector>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Utsi2UtmsPrivate {
+namespace UnTech::MetaSprite::Utsi2UtmsPrivate {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
@@ -297,6 +295,4 @@ static void processFrames(NamedList<MS::Frame>& msFrames, TileExtractor& tileExt
     }
 }
 
-}
-}
 }

@@ -12,6 +12,7 @@
 using namespace std::string_literals;
 
 namespace UnTech {
+
 class ImageCachePrivate {
     friend class UnTech::ImageCache;
     using ImageCacheMap_t = std::unordered_map<std::filesystem::path::string_type, const std::shared_ptr<const Image>>;
@@ -87,9 +88,6 @@ private:
 };
 
 const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = Image::invalidImageWithErrorMessage("Invalid filename"s);
-}
-
-using namespace UnTech;
 
 const std::shared_ptr<const Image> ImageCache::loadPngImage(const std::filesystem::path& filename)
 {
@@ -104,4 +102,6 @@ void ImageCache::invalidateFilename(const std::filesystem::path& filename)
 void ImageCache::invalidateImageCache()
 {
     ImageCachePrivate::instance().invalidateImageCache();
+}
+
 }

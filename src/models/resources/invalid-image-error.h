@@ -12,8 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 enum class InvalidTileReason : unsigned {
     NO_PALETTE_FOUND,
@@ -66,5 +65,5 @@ public:
 
     virtual void printIndented(std::ostream& out) const final;
 };
-}
+
 }

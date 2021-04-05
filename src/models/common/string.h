@@ -12,8 +12,7 @@
 #include <cstdlib>
 #include <string>
 
-namespace UnTech {
-namespace String {
+namespace UnTech::String {
 
 /**
  * @return true if str is a NULL terminated utf8 well formed string.
@@ -184,5 +183,5 @@ static inline optional<unsigned> hexToUnsigned(const std::string_view s)
     }
     return ret;
 }
-}
+
 }

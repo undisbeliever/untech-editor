@@ -15,8 +15,9 @@
 
 namespace UnTech {
 class ErrorList;
+}
 
-namespace Resources {
+namespace UnTech::Resources {
 
 struct PaletteInput {
     idstring name;
@@ -63,5 +64,4 @@ struct PaletteData {
 std::shared_ptr<const PaletteData>
 convertPalette(const PaletteInput& input, ErrorList& err);
 
-}
 }

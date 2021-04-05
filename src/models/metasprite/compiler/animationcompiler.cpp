@@ -9,9 +9,7 @@
 #include <algorithm>
 #include <climits>
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace ANI = UnTech::MetaSprite::Animation;
@@ -31,8 +29,6 @@ static inline auto indexOf_throw(const std::vector<T>& vector, const T& item)
 static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
                                              const FrameSetExportList& exportList)
 {
-    using namespace UnTech;
-
     const auto& frameSet = exportList.frameSet;
     const auto& frames = exportList.frames;
     const auto& animations = exportList.animations;
@@ -107,6 +103,4 @@ uint16_t saveAnimations(const std::vector<std::vector<uint8_t>>& animations, Com
     return out.animationList.addData_Index(table.data());
 }
 
-}
-}
 }

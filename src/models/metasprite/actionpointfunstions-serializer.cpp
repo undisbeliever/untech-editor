@@ -7,11 +7,9 @@
 #include "actionpointfunctions-serializer.h"
 #include <cassert>
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 void readActionPointFunction(const XmlTag& tag, NamedList<ActionPointFunction>& actionPointList)
 {
@@ -34,5 +32,4 @@ void writeActionPointFunctions(XmlWriter& xml, const NamedList<ActionPointFuncti
     }
 }
 
-}
 }

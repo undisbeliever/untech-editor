@@ -14,8 +14,9 @@
 
 namespace UnTech {
 class ErrorList;
+}
 
-namespace MetaTiles {
+namespace UnTech::MetaTiles {
 
 struct InteractiveTileFunctionTable {
     idstring name;
@@ -65,5 +66,4 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err);
 // Assumes InteractiveTiles is valid
 void writeFunctionTables(std::stringstream& incData, const InteractiveTiles& input);
 
-}
 }

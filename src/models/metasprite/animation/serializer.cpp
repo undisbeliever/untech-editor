@@ -9,11 +9,9 @@
 
 using namespace UnTech::Xml;
 
-namespace Ani = UnTech::MetaSprite::Animation;
+namespace UnTech::MetaSprite::Animation {
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Animation {
+namespace Ani = UnTech::MetaSprite::Animation;
 
 void readAnimationFrame(const Xml::XmlTag& tag, AnimationFrame& aFrame);
 
@@ -100,6 +98,5 @@ void writeAnimations(XmlWriter& xml, const NamedList<Animation>& animations)
         xml.writeCloseTag();
     }
 }
-}
-}
+
 }

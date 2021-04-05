@@ -6,12 +6,8 @@
 
 #pragma once
 
-namespace UnTech::Gui {
-
-namespace FpsWindow {
+namespace UnTech::Gui::FpsWindow {
 
 void processGui();
-
-}
 
 }

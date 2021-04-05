@@ -9,8 +9,7 @@
 #include "models/common/enummap.h"
 #include <cstdint>
 
-namespace UnTech {
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 class TilesetType {
 public:
@@ -61,5 +60,5 @@ public:
 private:
     Enum _value;
 };
-}
+
 }

@@ -7,9 +7,7 @@
 #include "references.h"
 #include "models/common/iterators.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 using ProjectFile = UnTech::Project::ProjectFile;
 
@@ -125,6 +123,4 @@ void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& action
     out << "}\n";
 }
 
-}
-}
 }

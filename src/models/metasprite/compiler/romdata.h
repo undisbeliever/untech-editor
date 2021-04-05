@@ -17,9 +17,7 @@
 // uses std::string instead of idstring as
 // the assembly data labels can contain dots (.)
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 struct IndexPlusOne {
     uint16_t index;
@@ -197,6 +195,5 @@ private:
     std::vector<uint8_t> _data;
     bool _nullableType;
 };
-}
-}
+
 }

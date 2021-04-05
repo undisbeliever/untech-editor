@@ -12,8 +12,7 @@
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include <cassert>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 static const idstring BLANK_ID{};
 
@@ -907,5 +906,4 @@ bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
     return valid;
 }
 
-}
 }

@@ -20,9 +20,9 @@
 
 namespace UnTech {
 class ErrorList;
+}
 
-namespace MetaSprite {
-namespace SpriteImporter {
+namespace UnTech::MetaSprite::SpriteImporter {
 
 const static unsigned MIN_FRAME_SIZE = 16;
 const static unsigned MAX_FRAME_SIZE = 255;
@@ -237,6 +237,5 @@ bool validate(const FrameSet& fs, ErrorList& err);
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename);
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename);
-}
-}
+
 }

@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <ostream>
 
-using namespace UnTech;
+namespace UnTech {
 
 ErrorList::ErrorList()
     : _list()
@@ -35,4 +35,6 @@ void ErrorList::printIndented(std::ostream& out) const
 void AbstractError::printIndented(std::ostream& out) const
 {
     out << message;
+}
+
 }

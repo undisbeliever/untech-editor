@@ -8,8 +8,7 @@
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite::Animation;
+namespace UnTech::MetaSprite::Animation {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
@@ -25,4 +24,6 @@ bool AnimationFrame::testFrameValid(const SI::FrameSet& frameSet) const
 bool AnimationFrame::testFrameValid(const MS::FrameSet& frameSet) const
 {
     return frameSet.frames.find(frame.name).exists();
+}
+
 }

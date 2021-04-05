@@ -8,8 +8,7 @@
 #include "metatiles-error.h"
 #include "models/common/validateunique.h"
 
-namespace UnTech {
-namespace MetaTiles {
+namespace UnTech::MetaTiles {
 
 static const idstring BLANK_TILE_FUNCTION{ "NoTileInteraction" };
 
@@ -121,5 +120,4 @@ void writeFunctionTables(std::stringstream& incData, const InteractiveTiles& inp
 
 const int INTERACTIVE_TILES_FORMAT_VERSION = 1;
 
-}
 }

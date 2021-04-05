@@ -12,9 +12,7 @@
 
 #pragma once
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace UnTech::MetaSprite::Compiler {
 
 constexpr uint16_t INVALID_SMALL_TILE = 0xffff;
 constexpr std::array<uint16_t, 4> INVALID_SMALL_TILES_ARRAY = { 0xffff, 0xffff, 0xffff, 0xffff };
@@ -58,6 +56,4 @@ TilesetLayout layoutTiles(const MetaSprite::FrameSet& frameSet,
                           const std::vector<FrameListEntry>& exportFrames,
                           ErrorList& errorList);
 
-}
-}
 }

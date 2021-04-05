@@ -10,11 +10,9 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace Entity {
+namespace UnTech::Entity {
 
 void readEntityRomData(Xml::XmlReader& xml, const Xml::XmlTag& tag, EntityRomData& entityRomData);
 void writeEntityRomData(Xml::XmlWriter& xml, const EntityRomData& romData);
 
-}
 }

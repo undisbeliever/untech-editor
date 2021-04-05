@@ -7,8 +7,7 @@
 #include "tilesettype.h"
 #include <stdexcept>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite;
+namespace UnTech::MetaSprite {
 
 const EnumMap<TilesetType::Enum> TilesetType::enumMap = {
     { "ONE_TILE", TilesetType::Enum::ONE_TILE },
@@ -82,4 +81,6 @@ unsigned TilesetType::tilesetSplitPoint() const
     default:
         return 0;
     }
+}
+
 }

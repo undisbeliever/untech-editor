@@ -9,8 +9,7 @@
 #include <memory>
 #include <shared_mutex>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 struct ProjectFile;
 
@@ -61,5 +60,4 @@ public:
     }
 };
 
-}
 }

@@ -14,8 +14,7 @@
 
 #include <vector>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 class Image2Snes {
 public:
@@ -49,5 +48,5 @@ private:
     std::vector<SnesColor> _palette;
     Tilemap _tilemap;
 };
-}
+
 }

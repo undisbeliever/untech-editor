@@ -6,6 +6,8 @@
 
 #include "rgba.h"
 
-using namespace UnTech;
+namespace UnTech {
 
 static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
+
+}

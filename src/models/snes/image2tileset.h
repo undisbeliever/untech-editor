@@ -11,8 +11,7 @@
 #include "models/common/indexedimage.h"
 #include <filesystem>
 
-namespace UnTech {
-namespace Snes {
+namespace UnTech::Snes {
 
 /*
  * A very simple image to 8x8px tileset converter.
@@ -53,5 +52,5 @@ private:
     void processPalette(const IndexedImage& image);
     void processTileset(const IndexedImage& image);
 };
-}
+
 }

@@ -12,11 +12,9 @@
 #include "models/common/vectorset.h"
 #include "models/metasprite/errorlisthelpers.h"
 
-namespace MS = UnTech::MetaSprite::MetaSprite;
+namespace UnTech::MetaSprite::Compiler {
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Compiler {
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 static void addFrameToTileset(vectorset<Tile16>& tiles,
                               const MS::Frame& frame,
@@ -224,6 +222,4 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
     return ret;
 }
 
-}
-}
 }

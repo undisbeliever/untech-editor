@@ -16,8 +16,9 @@
 
 namespace UnTech {
 class ErrorList;
+}
 
-namespace MetaSprite {
+namespace UnTech::MetaSprite {
 
 struct FrameSetExportOrder {
     static const std::string FILE_EXTENSION;
@@ -61,5 +62,4 @@ bool validateExportOrder(const FrameSetExportOrder& input, ErrorList& err);
 std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::filesystem::path& filename);
 void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesystem::path& filename);
 
-}
 }

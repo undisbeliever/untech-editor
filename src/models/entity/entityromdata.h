@@ -14,12 +14,11 @@
 #include <unordered_map>
 #include <vector>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 struct ProjectFile;
 }
 
-namespace Entity {
+namespace UnTech::Entity {
 
 constexpr unsigned MAX_N_ENTITY_ENTRIES = 256;
 
@@ -181,5 +180,4 @@ struct CompiledEntityRomData {
 std::shared_ptr<const CompiledEntityRomData>
 compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err);
 
-}
 }

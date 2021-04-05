@@ -27,31 +27,35 @@ class ErrorList;
 
 template <typename T>
 class ExternalFileList;
+}
 
-namespace Scripting {
+namespace UnTech::Scripting {
 struct GameStateData;
 struct BytecodeMapping;
 }
-namespace Resources {
+
+namespace UnTech::Resources {
 struct PaletteData;
 struct BackgroundImageData;
 struct SceneSettingsData;
 struct CompiledScenesData;
 }
-namespace MetaTiles {
+
+namespace UnTech::MetaTiles {
 struct MetaTileTilesetData;
 struct InteractiveTilesData;
 }
-namespace Entity {
+
+namespace UnTech::Entity {
 struct CompiledEntityRomData;
 }
-namespace Rooms {
+
+namespace UnTech::Rooms {
 struct RoomData;
 }
-}
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
+
 struct ProjectFile;
 class ProjectData;
 
@@ -374,5 +378,4 @@ private:
                      const PreresquitesT&... prerequisites);
 };
 
-}
 }

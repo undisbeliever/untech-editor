@@ -9,8 +9,7 @@
 #include "models/common/iterators.h"
 #include <cassert>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite;
+namespace UnTech::MetaSprite {
 
 std::string NameReference::str() const
 {
@@ -29,7 +28,7 @@ std::string NameReference::str() const
 }
 
 std::shared_ptr<const ActionPointMapping>
-MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
+generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -75,4 +74,6 @@ MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apF
     }
 
     return ret;
+}
+
 }

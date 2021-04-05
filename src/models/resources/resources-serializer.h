@@ -13,8 +13,7 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
-namespace UnTech {
-namespace Resources {
+namespace UnTech::Resources {
 
 // raises exception on error
 void readPalette(const Xml::XmlTag& tag, NamedList<PaletteInput>& palettes);
@@ -48,5 +47,4 @@ void readScene(const Xml::XmlTag& tag, NamedList<SceneInput>& scenes);
 // raises exception on error
 void writeScenes(Xml::XmlWriter& xml, const NamedList<SceneInput>& scenes);
 
-}
 }

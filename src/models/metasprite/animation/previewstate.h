@@ -9,9 +9,7 @@
 #include "animation.h"
 #include "models/common/aabb.h"
 
-namespace UnTech {
-namespace MetaSprite {
-namespace Animation {
+namespace UnTech::MetaSprite::Animation {
 
 class PreviewState {
 public:
@@ -81,6 +79,4 @@ private:
     point _position;
 };
 
-}
-}
 }

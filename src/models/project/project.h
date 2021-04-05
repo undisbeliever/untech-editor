@@ -25,8 +25,7 @@
 #include <string>
 #include <vector>
 
-namespace UnTech {
-namespace Project {
+namespace UnTech::Project {
 
 struct ProjectSettings {
     MemoryMapSettings memoryMap;
@@ -89,5 +88,4 @@ struct ProjectFile {
 std::unique_ptr<ProjectFile> loadProjectFile(const std::filesystem::path& filename);
 void saveProjectFile(const ProjectFile& project, const std::filesystem::path& filename);
 
-}
 }

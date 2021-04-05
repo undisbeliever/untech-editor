@@ -15,16 +15,17 @@
 
 namespace UnTech {
 class ErrorList;
-
-namespace MetaSprite {
-namespace MetaSprite {
-struct FrameSet;
-}
-namespace SpriteImporter {
-struct FrameSet;
 }
 
-namespace Animation {
+namespace UnTech::MetaSprite::MetaSprite {
+struct FrameSet;
+}
+namespace UnTech::MetaSprite::SpriteImporter {
+struct FrameSet;
+}
+
+namespace UnTech::MetaSprite::Animation {
+
 struct Animation;
 
 struct AnimationFrame {
@@ -63,6 +64,4 @@ struct Animation {
     bool operator!=(const Animation& o) const { return !(*this == o); }
 };
 
-}
-}
 }

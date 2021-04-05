@@ -13,8 +13,10 @@
 #include "vendor/lz4/lib/lz4hc.h"
 #include <stdexcept>
 
+namespace UnTech {
+
 std::vector<uint8_t>
-UnTech::lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
+lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
 {
     if (limit > UINT16_MAX
         || source.size() > UINT16_MAX) {
@@ -53,4 +55,6 @@ UnTech::lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
     out.resize(outSize);
 
     return out;
+}
+
 }

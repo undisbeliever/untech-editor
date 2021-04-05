@@ -17,12 +17,9 @@
 #include <fstream>
 #include <stdexcept>
 
-using namespace UnTech;
 using namespace UnTech::Xml;
 
-namespace UnTech {
-namespace MetaSprite {
-namespace MetaSprite {
+namespace UnTech::MetaSprite::MetaSprite {
 
 const std::string FrameSet::FILE_EXTENSION = "utms";
 
@@ -325,6 +322,5 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     xml.writeCloseTag();
 }
-}
-}
+
 }

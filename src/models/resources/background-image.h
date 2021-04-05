@@ -15,12 +15,13 @@
 
 namespace UnTech {
 class ErrorList;
-namespace Project {
+}
+namespace UnTech::Project {
 template <typename T>
 class DataStore;
 }
 
-namespace Resources {
+namespace UnTech::Resources {
 
 struct BackgroundImageInput {
     idstring name;
@@ -81,5 +82,4 @@ std::shared_ptr<const BackgroundImageData>
 convertBackgroundImage(const BackgroundImageInput& input,
                        const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err);
-}
 }

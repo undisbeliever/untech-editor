@@ -8,7 +8,7 @@
 #include "file.h"
 #include <stdexcept>
 
-using namespace UnTech;
+namespace UnTech {
 
 AtomicOfStream::AtomicOfStream(const std::filesystem::path& filePath, ios_base::openmode mode)
     : std::ostringstream(mode)
@@ -45,4 +45,6 @@ void AtomicOfStream::commit()
     File::atomicWrite(_filePath, str.c_str(), str.size());
 
     _state = State::COMMITTED;
+}
+
 }
