@@ -155,8 +155,8 @@ private:
     template <typename... T>
     void addLineWarning_lineNo(unsigned wLineNo, T... msg)
     {
-        err.addError(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT_LINE, scriptIndex, wLineNo,
-                                                   stringBuilder("Script ", scriptName, " (line ", wLineNo, "): ", msg...)));
+        err.addWarning(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT_LINE, scriptIndex, wLineNo,
+                                                     stringBuilder("Script ", scriptName, " (line ", wLineNo, "): ", msg...)));
 
         valid = false;
     }
