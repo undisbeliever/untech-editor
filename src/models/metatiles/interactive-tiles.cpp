@@ -60,7 +60,7 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
                 addFunctionError(ft, ftIndex, "Missing name");
             }
 
-            const auto [it, added] = ret->tileFunctionMap.emplace(ft.name, ftIndex);
+            const auto [it, added] = ret->tileFunctionMap.emplace(ft.name, index);
             index++;
 
             if (added == false) {
