@@ -899,7 +899,7 @@ bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
 
     valid &= compileList(Rooms::compileRoom, _rooms, ResourceType::Rooms,
                          project.rooms, project.rooms, _projectSettingsData.scenes(), _projectSettingsData.entityRomData(), project.projectSettings.roomSettings,
-                         _projectSettingsData.gameState(), _projectSettingsData.bytecode());
+                         _projectSettingsData.gameState(), _projectSettingsData.bytecode(), _metaTileTilesets);
 
     _projectSettingsStatus.updateState();
 

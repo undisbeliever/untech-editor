@@ -13,6 +13,7 @@
 #include "models/entity/entityromdata.h"
 #include "models/lz4/lz4.h"
 #include "models/metatiles/common.h"
+#include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
 #include "models/resources/scenes.h"
 #include "models/scripting/script-compiler.hpp"
@@ -203,7 +204,360 @@ unsigned RoomInput::tileIndex(const upoint& p) const
     }
 }
 
-static bool validate(const RoomInput& input, const Resources::CompiledScenesData& compiledScenes, ErrorList& err)
+static bool isTileAllowedLeftofEndSlope(const MetaTiles::TileCollisionType tile)
+{
+    using TCT = MetaTiles::TileCollisionType;
+
+    switch (tile) {
+    case TCT::DOWN_RIGHT_SLOPE:
+    case TCT::DOWN_RIGHT_TALL_SLOPE:
+    case TCT::UP_RIGHT_TALL_SLOPE:
+    case TCT::UP_RIGHT_SLOPE:
+        return true;
+
+    case TCT::END_SLOPE:
+    case TCT::SOLID:
+        return true;
+
+    case TCT::DOWN_LEFT_SLOPE:
+    case TCT::DOWN_RIGHT_SHORT_SLOPE:
+    case TCT::DOWN_LEFT_TALL_SLOPE:
+    case TCT::DOWN_LEFT_SHORT_SLOPE:
+    case TCT::UP_LEFT_SLOPE:
+    case TCT::UP_RIGHT_SHORT_SLOPE:
+    case TCT::UP_LEFT_TALL_SLOPE:
+    case TCT::UP_LEFT_SHORT_SLOPE:
+        return false;
+
+    case TCT::EMPTY:
+    case TCT::UP_PLATFORM:
+    case TCT::DOWN_PLATFORM:
+        return false;
+    }
+
+    return false;
+}
+
+static bool isTileAllowedRightofEndSlope(const MetaTiles::TileCollisionType tile)
+{
+    using TCT = MetaTiles::TileCollisionType;
+
+    switch (tile) {
+    case TCT::DOWN_LEFT_SLOPE:
+    case TCT::DOWN_LEFT_TALL_SLOPE:
+    case TCT::UP_LEFT_TALL_SLOPE:
+    case TCT::UP_LEFT_SLOPE:
+        return true;
+
+    case TCT::END_SLOPE:
+    case TCT::SOLID:
+        return true;
+
+    case TCT::DOWN_RIGHT_SLOPE:
+    case TCT::DOWN_RIGHT_SHORT_SLOPE:
+    case TCT::DOWN_RIGHT_TALL_SLOPE:
+    case TCT::DOWN_LEFT_SHORT_SLOPE:
+    case TCT::UP_RIGHT_SLOPE:
+    case TCT::UP_RIGHT_SHORT_SLOPE:
+    case TCT::UP_RIGHT_TALL_SLOPE:
+    case TCT::UP_LEFT_SHORT_SLOPE:
+        return false;
+
+    case TCT::EMPTY:
+    case TCT::UP_PLATFORM:
+    case TCT::DOWN_PLATFORM:
+        return false;
+    }
+
+    return false;
+}
+
+static unsigned checkTileCollision_Border(const unsigned x, const unsigned y,
+                                          const grid<uint8_t>& map, const MetaTiles::MetaTileTilesetData& tileset)
+{
+    unsigned ret = 0;
+
+    auto getTc = [&](unsigned x, unsigned y) {
+        return tileset.tileCollisions.at(map.at(x, y));
+    };
+
+    using TCT = MetaTiles::TileCollisionType;
+
+    const TCT tile = getTc(x, y);
+
+    switch (tile) {
+    case TCT::DOWN_RIGHT_SLOPE:
+    case TCT::DOWN_LEFT_SLOPE:
+    case TCT::DOWN_RIGHT_SHORT_SLOPE:
+    case TCT::DOWN_RIGHT_TALL_SLOPE:
+    case TCT::DOWN_LEFT_TALL_SLOPE:
+    case TCT::DOWN_LEFT_SHORT_SLOPE:
+    case TCT::UP_RIGHT_SLOPE:
+    case TCT::UP_LEFT_SLOPE:
+    case TCT::UP_RIGHT_SHORT_SLOPE:
+    case TCT::UP_RIGHT_TALL_SLOPE:
+    case TCT::UP_LEFT_TALL_SLOPE:
+    case TCT::UP_LEFT_SHORT_SLOPE:
+        ret |= InvalidRoomTile::SLOPE_ON_BORDER;
+        break;
+
+    case TCT::END_SLOPE:
+        if (x > 0) {
+            const TCT left = getTc(x - 1, y);
+
+            if (!isTileAllowedLeftofEndSlope(left)) {
+                ret |= InvalidRoomTile::INVALID_TILE_ON_THE_LEFT;
+            }
+        }
+        if (x < map.width() - 1) {
+            const TCT right = getTc(x + 1, y);
+
+            if (!isTileAllowedRightofEndSlope(right)) {
+                ret |= InvalidRoomTile::INVALID_TILE_ON_THE_RIGHT;
+            }
+        }
+        break;
+
+    case TCT::EMPTY:
+    case TCT::SOLID:
+    case TCT::UP_PLATFORM:
+    case TCT::DOWN_PLATFORM:
+        break;
+    }
+
+    return ret;
+}
+
+// NOTE: This function MUST NOT be called on a tile along the border of the map grid.
+static unsigned checkTileCollision_NotBorder(const unsigned x, const unsigned y,
+                                             const grid<uint8_t>& map, const MetaTiles::MetaTileTilesetData& tileset)
+{
+    using TCT = MetaTiles::TileCollisionType;
+
+    unsigned ret = 0;
+
+    auto getTc = [&](unsigned x, unsigned y) {
+        return tileset.tileCollisions.at(map.at(x, y));
+    };
+
+    const TCT tile = getTc(x, y);
+
+    if (tile == TCT::EMPTY
+        || tile == TCT::SOLID
+        || tile == TCT::UP_PLATFORM
+        || tile == TCT::DOWN_PLATFORM) {
+
+        return 0;
+    }
+
+    const TCT above = getTc(x, y - 1);
+    const TCT below = getTc(x, y + 1);
+
+    const TCT left = getTc(x - 1, y);
+    const TCT right = getTc(x + 1, y);
+
+    auto testDownSlopeAboveBelow = [&]() {
+        // ::TODO add configurable minimum slope spacing::
+        if (above != TCT::EMPTY) {
+            ret |= InvalidRoomTile::NO_EMPTY_TILE_ABOVE_DOWN_SLOPE;
+        }
+        if (below != TCT::SOLID && below != TCT::END_SLOPE) {
+            ret |= InvalidRoomTile::NO_FLOOR_BELOW_DOWN_SLOPE;
+        }
+    };
+
+    auto testUpSlopeAboveBelow = [&]() {
+        // ::TODO add configurable minimum slope spacing::
+        if (below != TCT::EMPTY) {
+            ret |= InvalidRoomTile::NO_EMPTY_TILE_BELOW_UP_SLOPE;
+        }
+        if (above != TCT::SOLID && above != TCT::END_SLOPE) {
+            ret |= InvalidRoomTile::NO_CEILING_ABOVE_UP_SLOPE;
+        }
+    };
+
+    auto testDownSlopeLeft = [&](const auto... args) {
+        if (left == TCT::SOLID) {
+            // A SOLID tile is valid if it is a part of a wall
+            const TCT aboveLeft = getTc(x - 1, y - 1);
+            if (aboveLeft != TCT::SOLID) {
+                ret |= InvalidRoomTile::INVALID_TILE_ON_THE_LEFT;
+            }
+        }
+        else if ((... && (left != args))) {
+            ret |= InvalidRoomTile::INVALID_TILE_ON_THE_LEFT;
+        }
+    };
+
+    auto testUpSlopeLeft = [&](const auto... args) {
+        if (left == TCT::SOLID) {
+            const TCT belowLeft = getTc(x - 1, y + 1);
+            if (belowLeft != TCT::SOLID) {
+                ret |= InvalidRoomTile::INVALID_TILE_ON_THE_LEFT;
+            }
+        }
+        else if ((... && (left != args))) {
+            ret |= InvalidRoomTile::INVALID_TILE_ON_THE_LEFT;
+        }
+    };
+
+    auto testDownSlopeRight = [&](const auto... args) {
+        if (right == TCT::SOLID) {
+            const TCT aboveRight = getTc(x + 1, y - 1);
+            if (aboveRight != TCT::SOLID) {
+                ret |= InvalidRoomTile::INVALID_TILE_ON_THE_RIGHT;
+            }
+        }
+        else if ((... && (right != args))) {
+            ret |= InvalidRoomTile::INVALID_TILE_ON_THE_RIGHT;
+        }
+    };
+
+    auto testUpSlopeRight = [&](const auto... args) {
+        if (right == TCT::SOLID) {
+            const TCT belowRight = getTc(x + 1, y + 1);
+            if (belowRight != TCT::SOLID) {
+                ret |= InvalidRoomTile::INVALID_TILE_ON_THE_RIGHT;
+            }
+        }
+        else if ((... && (right != args))) {
+            ret |= InvalidRoomTile::INVALID_TILE_ON_THE_RIGHT;
+        }
+    };
+
+    switch (tile) {
+    case TCT::DOWN_RIGHT_SLOPE:
+        testDownSlopeAboveBelow();
+        testDownSlopeRight(TCT::DOWN_LEFT_SLOPE, TCT::DOWN_LEFT_TALL_SLOPE, TCT::END_SLOPE);
+        break;
+
+    case TCT::DOWN_LEFT_SLOPE:
+        testDownSlopeAboveBelow();
+        testDownSlopeLeft(TCT::DOWN_RIGHT_SLOPE, TCT::DOWN_RIGHT_TALL_SLOPE, TCT::END_SLOPE);
+        break;
+
+    case TCT::DOWN_RIGHT_SHORT_SLOPE:
+        testDownSlopeAboveBelow();
+        testDownSlopeRight(TCT::DOWN_RIGHT_TALL_SLOPE, TCT::DOWN_LEFT_SHORT_SLOPE);
+        break;
+
+    case TCT::DOWN_RIGHT_TALL_SLOPE:
+        testDownSlopeAboveBelow();
+        testDownSlopeLeft(TCT::DOWN_RIGHT_SHORT_SLOPE, TCT::DOWN_LEFT_TALL_SLOPE);
+        testDownSlopeRight(TCT::DOWN_LEFT_SLOPE, TCT::DOWN_LEFT_TALL_SLOPE, TCT::END_SLOPE);
+        break;
+
+    case TCT::DOWN_LEFT_TALL_SLOPE:
+        testDownSlopeAboveBelow();
+        testDownSlopeLeft(TCT::DOWN_RIGHT_SLOPE, TCT::DOWN_RIGHT_TALL_SLOPE, TCT::END_SLOPE);
+        testDownSlopeRight(TCT::DOWN_LEFT_SHORT_SLOPE, TCT::DOWN_RIGHT_TALL_SLOPE);
+        break;
+
+    case TCT::DOWN_LEFT_SHORT_SLOPE:
+        testDownSlopeAboveBelow();
+        testDownSlopeLeft(TCT::DOWN_LEFT_TALL_SLOPE, TCT::DOWN_RIGHT_SHORT_SLOPE);
+        break;
+
+    case TCT::UP_RIGHT_SLOPE:
+        testUpSlopeAboveBelow();
+        testUpSlopeRight(TCT::UP_LEFT_SLOPE, TCT::UP_LEFT_TALL_SLOPE, TCT::END_SLOPE);
+        break;
+
+    case TCT::UP_LEFT_SLOPE:
+        testUpSlopeAboveBelow();
+        testUpSlopeLeft(TCT::UP_RIGHT_SLOPE, TCT::UP_RIGHT_TALL_SLOPE, TCT::END_SLOPE);
+        break;
+
+    case TCT::UP_RIGHT_SHORT_SLOPE:
+        testUpSlopeAboveBelow();
+        testUpSlopeRight(TCT::UP_RIGHT_TALL_SLOPE, TCT::UP_LEFT_SHORT_SLOPE);
+        break;
+
+    case TCT::UP_RIGHT_TALL_SLOPE:
+        testUpSlopeAboveBelow();
+        testUpSlopeLeft(TCT::UP_RIGHT_SHORT_SLOPE, TCT::UP_LEFT_TALL_SLOPE);
+        testUpSlopeRight(TCT::UP_LEFT_SLOPE, TCT::UP_LEFT_TALL_SLOPE, TCT::END_SLOPE);
+        break;
+
+    case TCT::UP_LEFT_TALL_SLOPE:
+        testUpSlopeAboveBelow();
+        testUpSlopeLeft(TCT::UP_RIGHT_SLOPE, TCT::UP_RIGHT_TALL_SLOPE, TCT::END_SLOPE);
+        testUpSlopeRight(TCT::UP_LEFT_SHORT_SLOPE, TCT::UP_RIGHT_TALL_SLOPE);
+        break;
+
+    case TCT::UP_LEFT_SHORT_SLOPE:
+        testUpSlopeAboveBelow();
+        testUpSlopeLeft(TCT::UP_LEFT_TALL_SLOPE, TCT::UP_RIGHT_SHORT_SLOPE);
+        break;
+
+    case TCT::END_SLOPE:
+        if (!isTileAllowedLeftofEndSlope(left)) {
+            ret |= InvalidRoomTile::INVALID_TILE_ON_THE_LEFT;
+        }
+        if (!isTileAllowedRightofEndSlope(right)) {
+            ret |= InvalidRoomTile::INVALID_TILE_ON_THE_RIGHT;
+        }
+        break;
+
+    case TCT::EMPTY:
+    case TCT::SOLID:
+    case TCT::UP_PLATFORM:
+    case TCT::DOWN_PLATFORM:
+        break;
+    }
+
+    return ret;
+}
+
+static void checkRoomTileCollisions(const grid<uint8_t>& map,
+                                    const MetaTiles::MetaTileTilesetData& tileset,
+                                    ErrorList& err)
+{
+    assert(map.width() < INT_MAX);
+    assert(map.height() < INT_MAX);
+
+    if (map.width() < 3 || map.width() > RoomInput::MAX_MAP_WIDTH
+        || map.height() < 3 || map.height() > RoomInput::MAX_MAP_HEIGHT) {
+
+        err.addWarningString("Cannot check tile collisions: Invalid map size");
+        return;
+    }
+
+    std::vector<InvalidRoomTile> invalidTiles;
+
+    auto test = [&](auto checkTileCollisionFunction, unsigned x, unsigned y) {
+        const uint8_t d = checkTileCollisionFunction(x, y, map, tileset);
+        if (d != 0) {
+            invalidTiles.emplace_back(x, y, d);
+        }
+    };
+
+    // Top Row
+    for (const auto x : range(map.width())) {
+        test(checkTileCollision_Border, x, 0);
+    }
+    for (const auto y : range(1, map.height() - 1)) {
+        test(checkTileCollision_Border, 0, y);
+
+        for (const auto x : range(1, map.width() - 1)) {
+            test(checkTileCollision_NotBorder, x, y);
+        }
+
+        test(checkTileCollision_Border, map.width() - 1, y);
+    }
+    for (const auto x : range(map.width())) {
+        test(checkTileCollision_Border, x, map.height() - 1);
+    }
+
+    if (!invalidTiles.empty()) {
+        err.addWarning(std::make_unique<InvalidRoomTilesError>(std::move(invalidTiles)));
+    }
+}
+
+static bool validate(const RoomInput& input,
+                     const Resources::CompiledScenesData& compiledScenes,
+                     const Project::DataStore<MetaTiles::MetaTileTilesetData>& metaTilesData,
+                     ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto&... msg) {
@@ -215,8 +569,13 @@ static bool validate(const RoomInput& input, const Resources::CompiledScenesData
         addError("Missing name");
     }
 
+    std::shared_ptr<const MetaTiles::MetaTileTilesetData> tileset;
+
     if (auto sceneData = compiledScenes.findScene(input.scene)) {
-        if (sceneData->mtTileset == std::nullopt) {
+        if (sceneData->mtTileset) {
+            tileset = metaTilesData.at(sceneData->mtTileset);
+        }
+        else {
             addError("Scene ", input.scene, " does not have a MetaTile layer");
         }
     }
@@ -234,6 +593,10 @@ static bool validate(const RoomInput& input, const Resources::CompiledScenesData
     valid &= validateEntrances(input.entrances, input, err);
     valid &= validateEntityGroups(input.entityGroups, input, err);
     valid &= validateScriptTriggers(input.scriptTriggers, input, err);
+
+    if (tileset) {
+        checkRoomTileCollisions(input.map, *tileset, err);
+    }
 
     return valid;
 }
@@ -291,11 +654,12 @@ static uint8_t processEntityParameter(const std::string& parameter, const Entity
 
 std::shared_ptr<const RoomData>
 compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& roomsList,
-            const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings, const Scripting::GameStateData& gameStateData,
-            const Scripting::BytecodeMapping& bytecodeData,
+            const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
+            const Scripting::GameStateData& gameStateData, const Scripting::BytecodeMapping& bytecodeData,
+            const Project::DataStore<MetaTiles::MetaTileTilesetData>& metaTilesData,
             ErrorList& err)
 {
-    bool valid = validate(input, compiledScenes, err);
+    bool valid = validate(input, compiledScenes, metaTilesData, err);
 
     const auto addError = [&](const auto... msg) {
         err.addErrorString(msg...);

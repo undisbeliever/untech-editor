@@ -8,6 +8,7 @@
 
 #include "gui/editors/abstract-metatile-editor.h"
 #include "gui/graphics/aabb-graphics.h"
+#include "gui/graphics/invalid-room-tile-graphics.h"
 #include "gui/selection.h"
 #include "models/project/project.h"
 
@@ -79,6 +80,9 @@ private:
 
     grid<uint8_t> _scratchpad;
 
+    InvalidRoomTileGraphics _invalidTiles;
+    unsigned _invalidTilesCompileId;
+
     bool _entityTextureWindowOpen;
 
 public:
@@ -127,6 +131,7 @@ private:
     void updateEntityGraphics();
     void updateTilesetData(const Project::ProjectFile& projectFile,
                            const Project::ProjectData& projectData);
+    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

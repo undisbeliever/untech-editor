@@ -506,6 +506,8 @@ void RoomEditorGui::resetState()
 
     setEditMode(EditMode::SelectObjects);
 
+    _invalidTilesCompileId = 0;
+
     _mtTilesetValid = false;
     _scenesData = nullptr;
 }
@@ -1114,6 +1116,8 @@ void RoomEditorGui::editorWindow()
         _graphics.endLoop(drawList,
                           &_data->entrancesSel, &_data->entityEntriesSel, &_data->scriptTriggersSel);
 
+        _invalidTiles.draw(drawList, geo.zoom, geo.offset);
+
         // Draw drag+drop entity on top of selected entity outlines
         entityDropTarget(drawList);
 
@@ -1148,6 +1152,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
     updateMapAndProcessAnimations();
     updateEntityGraphics();
     updateTilesetData(projectFile, projectData);
+    updateInvalidTileList(projectData);
 
     propertiesWindow(projectFile);
     entrancesWindow();
@@ -1290,6 +1295,25 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     }
 
     _mtTilesetValid = true;
+}
+
+void RoomEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+{
+    assert(_data);
+
+    projectData.rooms().readResourceState(
+        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
+            if (status.compileId != _invalidTilesCompileId) {
+                _invalidTilesCompileId = status.compileId;
+                _invalidTiles.clear();
+
+                for (const auto& errorItem : status.errorList.list()) {
+                    if (auto* tileErr = dynamic_cast<const Rooms::InvalidRoomTilesError*>(errorItem.get())) {
+                        _invalidTiles.append(*tileErr);
+                    }
+                }
+            }
+        });
 }
 
 // Room Scripts
