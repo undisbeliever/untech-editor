@@ -99,13 +99,13 @@ private:
         p1 = clampPoint(p1);
         p2 = clampPoint(p2);
 
-        const unsigned minX = std::min(p1.x, p2.x);
-        const unsigned maxX = std::max(p1.x, p2.x);
-        const unsigned minY = std::min(p1.y, p2.y);
-        const unsigned maxY = std::max(p1.y, p2.y);
+        const unsigned startX = std::min(p1.x, p2.x);
+        const unsigned startY = std::min(p1.y, p2.y);
+        const unsigned endX = std::max(p1.x, p2.x) + 1;
+        const unsigned endY = std::max(p1.y, p2.y) + 1;
 
-        for (const auto y : range(minY, maxY)) {
-            for (const auto x : range(minX, maxX)) {
+        for (const auto y : range(startY, endY)) {
+            for (const auto x : range(startX, endX)) {
                 const auto tile = toTarget(x, y);
                 if (selected) {
                     sel->insert(tile);
