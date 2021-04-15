@@ -62,7 +62,7 @@ struct SpriteImporterEditorData::AP {
         constexpr static auto validFlag = &SpriteImporterEditorGui::_imageValid;
     };
 
-    struct Frames final : public FrameSet {
+    struct Frames : public FrameSet {
         using ListT = NamedList<SI::Frame>;
         using ListArgsT = std::tuple<>;
         using SelectionT = SingleSelection;
@@ -74,6 +74,11 @@ struct SpriteImporterEditorData::AP {
         constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
 
         static ListT* getList(SI::FrameSet& fs) { return &fs.frames; }
+    };
+
+    // MUST BE used on any action that changes the frame list or changes the name of a frame.
+    struct Frames_EditName final : public Frames {
+        constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
     };
 
     struct FrameObjects final : public FrameSet {
@@ -124,7 +129,7 @@ struct SpriteImporterEditorData::AP {
         }
     };
 
-    struct Animations final : public FrameSet {
+    struct Animations : public FrameSet {
         using ListT = NamedList<UnTech::MetaSprite::Animation::Animation>;
         using ListArgsT = std::tuple<>;
         using SelectionT = SingleSelection;
@@ -133,9 +138,12 @@ struct SpriteImporterEditorData::AP {
 
         constexpr static auto SelectionPtr = &EditorT::animationsSel;
 
-        constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
-
         static ListT* getList(SI::FrameSet& fs) { return &fs.animations; }
+    };
+
+    // MUST BE used on any action that changes the animation list or changes the name of an animation.
+    struct Animations_EditName final : public Animations {
+        constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
     };
 
     struct AnimationFrames final : public FrameSet {
@@ -289,7 +297,7 @@ void SpriteImporterEditorGui::addFrame(const idstring& name)
 
     SI::Frame frame;
     frame.name = name;
-    ListActions<AP::Frames>::addItemToSelectedList(_data, frame);
+    ListActions<AP::Frames_EditName>::addItemToSelectedList(_data, frame);
 }
 
 void SpriteImporterEditorGui::addAnimation(const idstring& name)
@@ -298,7 +306,7 @@ void SpriteImporterEditorGui::addAnimation(const idstring& name)
 
     MetaSprite::Animation::Animation animation;
     animation.name = name;
-    ListActions<AP::Animations>::addItemToSelectedList(_data, animation);
+    ListActions<AP::Animations_EditName>::addItemToSelectedList(_data, animation);
 }
 
 void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
@@ -458,7 +466,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
-        ListButtons<AP::Frames>(_data);
+        ListButtons<AP::Frames_EditName>(_data);
 
         ImGui::SetNextItemWidth(-1);
         ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
@@ -475,7 +483,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
             {
                 ImGui::InputIdstring("Name", &frame.name);
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
-                    ListActions<AP::Frames>::selectedFieldEdited<
+                    ListActions<AP::Frames_EditName>::selectedFieldEdited<
                         &SI::Frame::name>(_data);
                 }
 
