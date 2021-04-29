@@ -178,9 +178,6 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
     if (input.actionPoints.size() > MAX_ACTION_POINTS) {
         addError("Too many action points");
     }
-    if (input.entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
-        addError("Too many entity hitboxes");
-    }
 
     valid &= validate(input.location, input, frameIndex, errorList);
 
@@ -215,23 +212,31 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
         }
     }
 
-    for (auto [i, eh] : const_enumerate(input.entityHitboxes)) {
-        if (eh.aabb.width == 0 || eh.aabb.height == 0) {
-            errorList.addError(entityHitboxError(input, frameIndex, i, "aabb has no size"));
-            valid = false;
-        }
-
-        if (frameSize.contains(eh.aabb) == false) {
-            errorList.addError(entityHitboxError(input, frameIndex, i, "aabb not inside frame"));
-            valid = false;
-        }
-    }
-
-    if (input.solid) {
-        if (!input.tileHitbox.contains(input.location.origin)) {
+    if (input.tileHitbox.exists) {
+        if (!input.tileHitbox.aabb.contains(input.location.origin)) {
             addError("Frame origin must be inside the tile hitbox");
         }
     }
+
+    auto validateCollisionBox = [&](const CollisionBox& box, const std::string_view boxName, const MsErrorType type) {
+        if (frameSize.contains(box.aabb) == false) {
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " not inside frame"));
+            valid = false;
+        }
+
+        if (box.aabb.width == 0 || box.aabb.height == 0) {
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " has no size"));
+            valid = false;
+        }
+        else if (box.aabb.width >= MAX_COLLISION_BOX_SIZE || box.aabb.height >= MAX_COLLISION_BOX_SIZE) {
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " is too large"));
+            valid = false;
+        }
+    };
+    validateCollisionBox(input.tileHitbox, "Tile Hitbox", MsErrorType::TILE_HITBOX);
+    validateCollisionBox(input.shield, "Shield", MsErrorType::SHIELD);
+    validateCollisionBox(input.hitbox, "Hitbox", MsErrorType::HIT_BOX);
+    validateCollisionBox(input.hurtbox, "Hurtbox", MsErrorType::HURT_BOX);
 
     return valid;
 }
@@ -242,9 +247,15 @@ usize Frame::minimumViableSize() const
 
     limit = limit.expand(location.origin);
 
-    if (solid) {
-        limit = limit.expand(tileHitbox);
-    }
+    auto expandCollisionBox = [&](const CollisionBox& box) {
+        if (box.exists) {
+            limit = limit.expand(box.aabb);
+        }
+    };
+    expandCollisionBox(tileHitbox);
+    expandCollisionBox(shield);
+    expandCollisionBox(hitbox);
+    expandCollisionBox(hurtbox);
 
     for (const auto& obj : objects) {
         limit = limit.expand(obj.bottomRight());
@@ -252,10 +263,6 @@ usize Frame::minimumViableSize() const
 
     for (const auto& ap : actionPoints) {
         limit = limit.expand(ap.location);
-    }
-
-    for (const auto& eh : entityHitboxes) {
-        limit = limit.expand(eh.aabb);
     }
 
     return limit;
@@ -266,10 +273,11 @@ bool Frame::operator==(const Frame& o) const
     return location == o.location
            && objects == o.objects
            && actionPoints == o.actionPoints
-           && entityHitboxes == o.entityHitboxes
-           && tileHitbox == o.tileHitbox
            && spriteOrder == o.spriteOrder
-           && solid == o.solid;
+           && tileHitbox == o.tileHitbox
+           && shield == o.shield
+           && hitbox == o.hitbox
+           && hurtbox == o.hurtbox;
 }
 
 /*

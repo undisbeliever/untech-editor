@@ -36,8 +36,8 @@ struct CompiledRomData {
     RomBinData frameList;
 
     RomBinData frameObjectData;
-    RomBinData entityHitboxData;
     RomBinData actionPointData;
+    RomBinData collisionBoxData;
 
     RomBinData frameSetData;
 

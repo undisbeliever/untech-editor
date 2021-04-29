@@ -54,8 +54,11 @@ struct Style {
     // MetaSprite / Sprite Importer
     constexpr static ImU32 frameObjectOutlineColor = IM_COL32(64, 128, 64, 240);
     constexpr static ImU32 actionPointOutlineColor = IM_COL32(192, 192, 192, 240);
-    constexpr static ImU32 entityHitboxOutlineColor = IM_COL32(0, 0, 255, 240);
-    constexpr static ImU32 tileHitboxOutlineColor = IM_COL32(192, 0, 0, 240);
+    constexpr static ImU32 tileHitboxOutlineColor = IM_COL32(192, 0, 192, 240);
+    constexpr static ImU32 shieldOutlineColor = IM_COL32(255, 165, 0, 240);
+    constexpr static ImU32 hurtboxOutlineColor = IM_COL32(0, 0, 255, 240);
+    constexpr static ImU32 hitboxOutlineColor = IM_COL32(255, 0, 0, 240);
+
     constexpr static ImU32 metaSpriteCrosshairColor = IM_COL32(128, 128, 128, 255);
 
     // Sprite Importer

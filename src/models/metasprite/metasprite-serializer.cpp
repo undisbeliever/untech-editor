@@ -108,6 +108,16 @@ public:
     }
 
 private:
+    static void readCollisionBox(const XmlTag& tag, CollisionBox& box)
+    {
+        if (box.exists) {
+            throw xml_error(tag, stringBuilder("Can only have one ", tag.name, " per frame"));
+        }
+
+        box.exists = true;
+        box.aabb = tag.getAttributeMs8rect();
+    }
+
     inline void readFrame(const XmlTag& tag)
     {
         assert(tag.name == "frame");
@@ -117,7 +127,6 @@ private:
 
         frame.name = tag.getAttributeId("id");
         frame.spriteOrder = tag.getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
-        frame.solid = false;
 
         while (const auto childTag = xml.parseTag()) {
             if (childTag.name == "object") {
@@ -149,22 +158,18 @@ private:
 
                 frame.actionPoints.push_back(ap);
             }
-            else if (childTag.name == "entityhitbox") {
-                EntityHitbox eh;
-
-                eh.aabb = childTag.getAttributeMs8rect();
-                eh.hitboxType = EntityHitboxType::from_string(childTag.getAttribute("type"));
-
-                frame.entityHitboxes.push_back(eh);
-            }
             else if (childTag.name == "tilehitbox") {
-                if (frame.solid == true) {
-                    throw xml_error(childTag, "Can only have one tilehitbox per frame");
-                }
-                frame.tileHitbox = childTag.getAttributeMs8rect();
-                frame.solid = true;
+                readCollisionBox(childTag, frame.tileHitbox);
             }
-
+            else if (childTag.name == "shield") {
+                readCollisionBox(childTag, frame.shield);
+            }
+            else if (childTag.name == "hitbox") {
+                readCollisionBox(childTag, frame.hitbox);
+            }
+            else if (childTag.name == "hurtbox") {
+                readCollisionBox(childTag, frame.hurtbox);
+            }
             else {
                 throw unknown_tag_error(childTag);
             }
@@ -231,6 +236,15 @@ std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag& t
  * ================
  */
 
+static void writeCollisionBox(XmlWriter& xml, const CollisionBox& box, const std::string_view tagName)
+{
+    if (box.exists) {
+        xml.writeTag(tagName);
+        xml.writeTagAttributeMs8rect(box.aabb);
+        xml.writeCloseTag();
+    }
+}
+
 inline void writeFrame(XmlWriter& xml, const Frame& frame)
 {
     xml.writeTag("frame");
@@ -238,13 +252,10 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
     xml.writeTagAttribute("id", frame.name);
     xml.writeTagAttribute("order", frame.spriteOrder);
 
-    if (frame.solid) {
-        xml.writeTag("tilehitbox");
-
-        xml.writeTagAttributeMs8rect(frame.tileHitbox);
-
-        xml.writeCloseTag();
-    }
+    writeCollisionBox(xml, frame.tileHitbox, "tilehitbox");
+    writeCollisionBox(xml, frame.shield, "shield");
+    writeCollisionBox(xml, frame.hitbox, "hitbox");
+    writeCollisionBox(xml, frame.hurtbox, "hurtbox");
 
     for (const FrameObject& obj : frame.objects) {
         xml.writeTag("object");
@@ -269,15 +280,6 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
 
         xml.writeTagAttribute("type", ap.type);
         xml.writeTagAttributeMs8point(ap.location);
-
-        xml.writeCloseTag();
-    }
-
-    for (const EntityHitbox& eh : frame.entityHitboxes) {
-        xml.writeTag("entityhitbox");
-
-        xml.writeTagAttribute("type", eh.hitboxType.to_string());
-        xml.writeTagAttributeMs8rect(eh.aabb);
 
         xml.writeCloseTag();
     }

@@ -23,8 +23,8 @@ struct TileHitboxData {
 
 struct FrameData {
     std::vector<uint8_t> frameObjects;
-    std::vector<uint8_t> entityHitboxes;
     std::vector<uint8_t> actionPoints;
+    std::array<uint8_t, 12> collisionBoxes;
 
     // Index into `FrameSetData::tileset`
     std::optional<unsigned> tileset;

@@ -38,9 +38,6 @@ static bool validate(const Frame& input, const unsigned frameIndex,
     if (input.actionPoints.size() > MAX_ACTION_POINTS) {
         addError("Too many action points");
     }
-    if (input.entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
-        addError("Too many entity hitboxes");
-    }
 
     for (auto [i, obj] : const_enumerate(input.objects)) {
         size_t tsSize = obj.size == ObjectSize::SMALL ? fs.smallTileset.size()
@@ -58,27 +55,33 @@ static bool validate(const Frame& input, const unsigned frameIndex,
         }
     }
 
-    for (auto [i, eh] : const_enumerate(input.entityHitboxes)) {
-        if (eh.aabb.width == 0 || eh.aabb.height == 0) {
-            errorList.addError(entityHitboxError(input, frameIndex, i, "aabb has no size"));
-            valid = false;
-        }
-    }
-
-    if (input.solid) {
-        if (input.tileHitbox.width == 0 || input.tileHitbox.height == 0) {
-            addError("Tile Hitbox has no size");
-        }
-        else if (input.tileHitbox.left() >= 0 || input.tileHitbox.right() <= 0
-                 || input.tileHitbox.top() >= 0 || input.tileHitbox.bottom() <= 0) {
+    if (input.tileHitbox.exists) {
+        if (input.tileHitbox.aabb.left() >= 0 || input.tileHitbox.aabb.right() <= 0
+            || input.tileHitbox.aabb.top() >= 0 || input.tileHitbox.aabb.bottom() <= 0) {
             addError("Frame origin must be inside the tile hitbox and not touching the hitbox edges");
         }
-
-        if (input.tileHitbox.left() < -127 || input.tileHitbox.right() > 127
-            || input.tileHitbox.top() < -127 || input.tileHitbox.height > 127) {
-            addError("Tile Hitbox is too large");
-        }
     }
+
+    auto validateCollisionBox = [&](const CollisionBox& box, const std::string_view boxName, const MsErrorType type) {
+        if (box.aabb.width == 0 || box.aabb.height == 0) {
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " has no size"));
+            valid = false;
+        }
+        else if (input.tileHitbox.aabb.left() < -127 || input.tileHitbox.aabb.right() > 127
+                 || input.tileHitbox.aabb.top() < -127 || input.tileHitbox.aabb.height > 127) {
+
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, "is too large"));
+            valid = false;
+        }
+        else if (box.aabb.width >= MAX_COLLISION_BOX_SIZE || box.aabb.height >= MAX_COLLISION_BOX_SIZE) {
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " is too large"));
+            valid = false;
+        }
+    };
+    validateCollisionBox(input.tileHitbox, "Tile Hitbox", MsErrorType::TILE_HITBOX);
+    validateCollisionBox(input.shield, "Shield", MsErrorType::SHIELD);
+    validateCollisionBox(input.hitbox, "Hitbox", MsErrorType::HIT_BOX);
+    validateCollisionBox(input.hurtbox, "Hurtbox", MsErrorType::HURT_BOX);
 
     return valid;
 }
@@ -86,8 +89,6 @@ static bool validate(const Frame& input, const unsigned frameIndex,
 Frame Frame::flip(bool hFlip, bool vFlip) const
 {
     Frame ret(*this);
-
-    ret.tileHitbox = tileHitbox.flip(hFlip, vFlip);
 
     for (auto& obj : ret.objects) {
         obj.location = obj.location.flip(hFlip, vFlip, obj.sizePx());
@@ -99,9 +100,10 @@ Frame Frame::flip(bool hFlip, bool vFlip) const
         ap.location = ap.location.flip(hFlip, vFlip);
     }
 
-    for (auto& eh : ret.entityHitboxes) {
-        eh.aabb = eh.aabb.flip(hFlip, vFlip);
-    }
+    ret.tileHitbox.aabb = tileHitbox.aabb.flip(hFlip, vFlip);
+    ret.shield.aabb = shield.aabb.flip(hFlip, vFlip);
+    ret.hitbox.aabb = hitbox.aabb.flip(hFlip, vFlip);
+    ret.hurtbox.aabb = hurtbox.aabb.flip(hFlip, vFlip);
 
     return ret;
 }
@@ -110,10 +112,11 @@ bool Frame::operator==(const Frame& o) const
 {
     return objects == o.objects
            && actionPoints == o.actionPoints
-           && entityHitboxes == o.entityHitboxes
            && spriteOrder == o.spriteOrder
            && tileHitbox == o.tileHitbox
-           && solid == o.solid;
+           && shield == o.shield
+           && hitbox == o.hitbox
+           && hurtbox == o.hurtbox;
 }
 
 /*

@@ -182,22 +182,6 @@ struct MetaSpriteEditorData::AP {
         }
     };
 
-    struct EntityHitboxes final : public FrameSet {
-        using ListT = std::vector<MS::EntityHitbox>;
-        using ListArgsT = std::tuple<unsigned>;
-        using SelectionT = MultipleChildSelection;
-
-        static constexpr const char* name = "Entity Hitbox";
-        constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_ENTITY_HITBOXES;
-
-        constexpr static auto SelectionPtr = &EditorT::entityHitboxesSel;
-
-        static ListT* getList(MS::FrameSet& fs, unsigned frameIndex)
-        {
-            return getListField(Frames::getList(fs), frameIndex, &MS::Frame::entityHitboxes);
-        }
-    };
-
     struct Animations : public FrameSet {
         using ListT = NamedList<UnTech::MetaSprite::Animation::Animation>;
         using ListArgsT = std::tuple<>;
@@ -279,10 +263,13 @@ void MetaSpriteEditorData::errorDoubleClicked(const AbstractError* error)
     animationFramesSel.clearSelection();
 
     framesSel.clearSelection();
+
     tileHitboxSel.clearSelection();
+    shieldSel.clearSelection();
+    hitboxSel.clearSelection();
+    hurtboxSel.clearSelection();
     frameObjectsSel.clearSelection();
     actionPointsSel.clearSelection();
-    entityHitboxesSel.clearSelection();
 
     smallTilesetSel.clearSelection();
     largeTilesetSel.clearSelection();
@@ -313,9 +300,24 @@ void MetaSpriteEditorData::errorDoubleClicked(const AbstractError* error)
             actionPointsSel.setSelected(e->firstIndex, e->childIndex);
             break;
 
-        case Type::ENTITY_HITBOX:
+        case Type::TILE_HITBOX:
             framesSel.setSelected(e->firstIndex);
-            entityHitboxesSel.setSelected(e->firstIndex, e->childIndex);
+            tileHitboxSel.setSelected(true);
+            break;
+
+        case Type::SHIELD:
+            framesSel.setSelected(e->firstIndex);
+            shieldSel.setSelected(true);
+            break;
+
+        case Type::HIT_BOX:
+            framesSel.setSelected(e->firstIndex);
+            hitboxSel.setSelected(true);
+            break;
+
+        case Type::HURT_BOX:
+            framesSel.setSelected(e->firstIndex);
+            hurtboxSel.setSelected(true);
             break;
         }
     }
@@ -329,6 +331,9 @@ void MetaSpriteEditorData::updateSelection()
 
     if (framesSel.isSelectionChanging()) {
         tileHitboxSel.clearSelection();
+        shieldSel.clearSelection();
+        hitboxSel.clearSelection();
+        hurtboxSel.clearSelection();
     }
 
     if (smallTilesetSel.isSelectionChanging()) {
@@ -341,15 +346,17 @@ void MetaSpriteEditorData::updateSelection()
     palettesSel.update();
     framesSel.update();
 
-    tileHitboxSel.update();
-
     if (frameObjectsSel.isSelectionChanging(framesSel)) {
         _tileSelectionValid = false;
     }
 
     frameObjectsSel.update(framesSel);
     actionPointsSel.update(framesSel);
-    entityHitboxesSel.update(framesSel);
+
+    tileHitboxSel.update();
+    shieldSel.update();
+    hitboxSel.update();
+    hurtboxSel.update();
 
     smallTilesetSel.update();
     largeTilesetSel.update();
@@ -504,6 +511,33 @@ void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& p
     ImGui::End();
 }
 
+template <auto FieldPtr>
+void MetaSpriteEditorGui::collisionBox(const char* label, MS::Frame& frame, ToggleSelection* sel)
+{
+    assert(_data);
+    MS::CollisionBox& cb = frame.*FieldPtr;
+
+    const auto style = ImGui::GetStyle();
+
+    if (ImGui::Checkbox(label, &cb.exists)) {
+        ListActions<AP::Frames>::selectedFieldEdited<FieldPtr>(_data);
+    }
+    if (cb.exists) {
+        ImGui::PushID(label);
+
+        ImGui::Selectable("##sel", sel, ImGuiSelectableFlags_AllowItemOverlap);
+        ImGui::SameLine(style.IndentSpacing * 2);
+
+        ImGui::SetNextItemWidth(-1);
+        ImGui::InputMs8rect("##aabb", &cb.aabb);
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            ListActions<AP::Frames>::selectedFieldEdited<FieldPtr>(_data);
+        }
+
+        ImGui::PopID();
+    }
+}
+
 void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& projectFile)
 {
     assert(_data);
@@ -541,27 +575,20 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &MS::Frame::spriteOrder>(_data);
                 }
-
-                if (ImGui::Checkbox("Solid Tile Hitbox", &frame.solid)) {
-                    ListActions<AP::Frames>::selectedFieldEdited<
-                        &MS::Frame::solid>(_data);
-                }
-                if (frame.solid) {
-                    ImGui::InputMs8rect("Tile Hitbox", &frame.tileHitbox);
-                    if (ImGui::IsItemDeactivatedAfterEdit()) {
-                        ListActions<AP::Frames>::selectedFieldEdited<
-                            &MS::Frame::tileHitbox>(_data);
-                    }
-                }
             }
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
 
             {
-                CombinedListButtons<AP::FrameObjects, AP::ActionPoints, AP::EntityHitboxes>("FC_Buttons", _data);
+                CombinedListButtons<AP::FrameObjects, AP::ActionPoints>("FC_Buttons", _data);
 
                 ImGui::BeginChild("FC Scroll");
+
+                collisionBox<&MS::Frame::tileHitbox>("Tile Hitbox", frame, &_data->tileHitboxSel);
+                collisionBox<&MS::Frame::shield>("Shield", frame, &_data->shieldSel);
+                collisionBox<&MS::Frame::hitbox>("Entity Hitbox", frame, &_data->hitboxSel);
+                collisionBox<&MS::Frame::hurtbox>("Entity Hurtbox", frame, &_data->hurtboxSel);
 
                 // Indent required to prevent a glitch when the columns are resized
                 ImGui::Indent();
@@ -652,48 +679,6 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
 
                         if (edited) {
                             ListActions<AP::ActionPoints>::selectedListItemEdited(_data, i);
-                        }
-
-                        ImGui::PopID();
-                    }
-
-                    ImGui::PopID();
-                    ImGui::Columns(1);
-                    ImGui::Unindent();
-                }
-
-                if (ImGui::TreeNodeEx("Entity Hitboxes", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
-                    ImGui::Indent();
-                    ImGui::Columns(3);
-                    ImGui::PushID("EH");
-
-                    for (auto [i, eh] : enumerate(frame.entityHitboxes)) {
-                        bool edited = false;
-
-                        ImGui::PushID(i);
-
-                        ImGui::Selectable(&_data->entityHitboxesSel, i);
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::InputMs8rect("##aabb", &eh.aabb);
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        edited |= ImGui::EntityHitboxTypeCombo("##type", &eh.hitboxType);
-                        if (ImGui::IsItemHovered()) {
-                            const std::string& toolTip = eh.hitboxType.to_long_string();
-                            if (!toolTip.empty()) {
-                                ImGui::BeginTooltip();
-                                ImGui::TextUnformatted(toolTip);
-                                ImGui::EndTooltip();
-                            }
-                        }
-                        ImGui::NextColumn();
-
-                        if (edited) {
-                            ListActions<AP::EntityHitboxes>::selectedListItemEdited(_data, i);
                         }
 
                         ImGui::PopID();
@@ -1203,21 +1188,17 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
         }
     }
 
-    if (showTileHitbox) {
-        if (frame.solid) {
-            ImVec2 p1(pos.x + frame.tileHitbox.x * zoom.x, pos.y + frame.tileHitbox.y * zoom.y);
-            ImVec2 p2(p1.x + frame.tileHitbox.width * zoom.x, p1.y + frame.tileHitbox.height * zoom.y);
-            drawList->AddRect(p1, p2, Style::tileHitboxOutlineColor, lineThickness);
+    auto drawCollisionBox = [&](const MS::CollisionBox& box, const bool showFlag, const ImU32 outlineColor) {
+        if (showFlag && box.exists) {
+            ImVec2 p1(pos.x + box.aabb.x * zoom.x, pos.y + box.aabb.y * zoom.y);
+            ImVec2 p2(pos.x + box.aabb.right() * zoom.x, pos.y + box.aabb.bottom() * zoom.y);
+            drawList->AddRect(p1, p2, outlineColor, lineThickness);
         }
-    }
-
-    if (showEntityHitboxes) {
-        for (auto [i, eh] : reverse_enumerate(frame.entityHitboxes)) {
-            ImVec2 p1(pos.x + eh.aabb.x * zoom.x, pos.y + eh.aabb.y * zoom.y);
-            ImVec2 p2(p1.x + eh.aabb.width * zoom.x, p1.y + eh.aabb.height * zoom.y);
-            drawList->AddRect(p1, p2, Style::entityHitboxOutlineColor, lineThickness);
-        }
-    }
+    };
+    drawCollisionBox(frame.tileHitbox, showTileHitbox, Style::tileHitboxOutlineColor);
+    drawCollisionBox(frame.shield, showShield, Style::shieldOutlineColor);
+    drawCollisionBox(frame.hitbox, showHitbox, Style::hitboxOutlineColor);
+    drawCollisionBox(frame.hurtbox, showHurtbox, Style::hurtboxOutlineColor);
 
     if (showActionPoints) {
         for (auto [i, ap] : reverse_enumerate(frame.actionPoints)) {
@@ -1271,7 +1252,8 @@ void MetaSpriteEditorGui::frameEditorWindow()
         auto* drawList = ImGui::GetWindowDrawList();
 
         _graphics.startLoop("##Editor", ms8RectBounds, Style::metaSpriteZoom.zoom(),
-                            &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
+                            &_data->frameObjectsSel, &_data->actionPointsSel,
+                            &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
 
         _graphics.drawBackgroundColor(drawList, bgColor);
         _graphics.drawBoundedCrosshair(drawList, 0, 0, Style::metaSpriteCrosshairColor);
@@ -1319,28 +1301,20 @@ void MetaSpriteEditorGui::frameEditorWindow()
             }
         }
 
-        if (showTileHitbox) {
-            if (frame->solid) {
-                _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor, &_data->tileHitboxSel, 1);
+        auto drawCollisionBox = [&](MS::CollisionBox* box, ToggleSelection* sel, const bool showFlag, const ImU32 outlineColor, std::string_view toolTip) {
+            if (showFlag && box->exists) {
+                _graphics.addRect(drawList, &box->aabb, outlineColor, sel, 1);
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
-                    ImGui::TextUnformatted("Tile Hitbox");
+                    ImGui::TextUnformatted(toolTip);
                     ImGui::EndTooltip();
                 }
             }
-        }
-
-        if (showEntityHitboxes) {
-            for (auto [i, eh] : reverse_enumerate(frame->entityHitboxes)) {
-                _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor, &_data->entityHitboxesSel, i);
-
-                if (_graphics.isHoveredAndNotEditing()) {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Entity Hitbox %u (%s)", unsigned(i), eh.hitboxType.to_string().c_str());
-                    ImGui::EndTooltip();
-                }
-            }
-        }
+        };
+        drawCollisionBox(&frame->tileHitbox, &_data->tileHitboxSel, showTileHitbox, Style::tileHitboxOutlineColor, "Tile Hitbox");
+        drawCollisionBox(&frame->shield, &_data->shieldSel, showShield, Style::shieldOutlineColor, "Shield Box");
+        drawCollisionBox(&frame->hitbox, &_data->hitboxSel, showHitbox, Style::hitboxOutlineColor, "Hitbox");
+        drawCollisionBox(&frame->hurtbox, &_data->hurtboxSel, showHurtbox, Style::hurtboxOutlineColor, "Hurtbox");
 
         if (showActionPoints) {
             for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
@@ -1360,7 +1334,8 @@ void MetaSpriteEditorGui::frameEditorWindow()
         }
 
         _graphics.endLoop(drawList,
-                          &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
+                          &_data->frameObjectsSel, &_data->actionPointsSel,
+                          &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
 
         if (_graphics.isEditingFinished()) {
             _data->startMacro();
@@ -1370,7 +1345,18 @@ void MetaSpriteEditorGui::frameEditorWindow()
             }
             ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
             ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
-            ListActions<AP::EntityHitboxes>::selectedItemsEdited(_data);
+            if (_data->tileHitboxSel.isSelected()) {
+                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
+            }
+            if (_data->shieldSel.isSelected()) {
+                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::shield>(_data);
+            }
+            if (_data->hitboxSel.isSelected()) {
+                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hitbox>(_data);
+            }
+            if (_data->hurtboxSel.isSelected()) {
+                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hurtbox>(_data);
+            }
 
             _data->endMacro();
         }

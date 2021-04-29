@@ -11,9 +11,11 @@
 
 namespace UnTech::Gui {
 
-bool AbstractMetaSpriteEditorGui::showFrameObjects = true;
 bool AbstractMetaSpriteEditorGui::showTileHitbox = true;
-bool AbstractMetaSpriteEditorGui::showEntityHitboxes = true;
+bool AbstractMetaSpriteEditorGui::showShield = true;
+bool AbstractMetaSpriteEditorGui::showHitbox = true;
+bool AbstractMetaSpriteEditorGui::showHurtbox = true;
+bool AbstractMetaSpriteEditorGui::showFrameObjects = true;
 bool AbstractMetaSpriteEditorGui::showActionPoints = true;
 
 void AbstractMetaSpriteEditorGui::resetState()
@@ -24,20 +26,27 @@ void AbstractMetaSpriteEditorGui::resetState()
 void AbstractMetaSpriteEditorGui::viewMenu()
 {
     ImGui::MenuItem("Show Tile Hitbox", nullptr, &showTileHitbox);
+    ImGui::MenuItem("Show Shield Box", nullptr, &showShield);
+    ImGui::MenuItem("Show Hitbox", nullptr, &showHitbox);
+    ImGui::MenuItem("Show Hurtbox", nullptr, &showHurtbox);
     ImGui::MenuItem("Show Frame Objects", nullptr, &showFrameObjects);
     ImGui::MenuItem("Show Action Points", nullptr, &showActionPoints);
-    ImGui::MenuItem("Show Entity Hitboxes", nullptr, &showEntityHitboxes);
 }
 
 void AbstractMetaSpriteEditorGui::showLayerButtons() const
 {
     ImGui::ToggledButtonWithTooltip("TH##showTH", &showTileHitbox, "Show Tile Hitbox");
     ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("SB##showSB", &showShield, "Show Shield Box");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("HB##showHB", &showHitbox, "Show Hitbox");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("hb##showhb", &showHurtbox, "Show Hurtbox");
+    ImGui::SameLine();
     ImGui::ToggledButtonWithTooltip("FO##showFO", &showFrameObjects, "Show Frame Objects");
     ImGui::SameLine();
     ImGui::ToggledButtonWithTooltip("AP##showAP", &showActionPoints, "Show Action Points");
     ImGui::SameLine();
-    ImGui::ToggledButtonWithTooltip("EH##showEH", &showEntityHitboxes, "Show Entity Hitboxes");
 }
 
 static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::ExportOrderTree>& tree,

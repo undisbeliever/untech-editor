@@ -49,9 +49,12 @@ public:
     bool _animationHFlip;
     bool _animationVFlip;
 
-    static bool showFrameObjects;
     static bool showTileHitbox;
-    static bool showEntityHitboxes;
+    static bool showShield;
+    static bool showHitbox;
+    static bool showHurtbox;
+
+    static bool showFrameObjects;
     static bool showActionPoints;
 
 public:

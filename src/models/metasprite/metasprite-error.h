@@ -16,7 +16,11 @@ enum class MsErrorType {
     ANIMATION_FRAME,
     FRAME_OBJECT,
     ACTION_POINT,
-    ENTITY_HITBOX,
+
+    TILE_HITBOX,
+    SHIELD,
+    HIT_BOX,
+    HURT_BOX,
 };
 
 class MetaSpriteError : public GenericListError {

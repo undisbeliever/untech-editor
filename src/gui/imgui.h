@@ -30,6 +30,7 @@ class SnesColor;
 }
 
 namespace UnTech::Gui {
+class ToggleSelection;
 class SingleSelection;
 class MultipleSelection;
 class MultipleChildSelection;
@@ -38,9 +39,9 @@ class GroupMultipleSelection;
 
 namespace ImGui {
 
-inline void TextUnformatted(const std::string& text)
+inline void TextUnformatted(const std::string_view text)
 {
-    TextUnformatted(text.c_str(), text.c_str() + text.size());
+    TextUnformatted(text.data(), text.data() + text.size());
 }
 
 inline void TextUnformatted(const UnTech::idstring& text)
@@ -82,6 +83,7 @@ bool ToggledImageButton(ImTextureID user_texture_id, bool* selected, const ImVec
 // This tree node is open by default
 bool TreeNodeToggleSelection(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i);
 
+bool Selectable(const char* label, UnTech::Gui::ToggleSelection* sel, ImGuiSelectableFlags flags = 0);
 bool Selectable(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 bool Selectable(UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 bool Selectable(const char* label, UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);

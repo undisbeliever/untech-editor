@@ -323,6 +323,11 @@ public:
         }
     }
 
+    void toggleSelection()
+    {
+        _pending = !_selected;
+    }
+
     // Must be called after the GUI has been processed.
     void update()
     {

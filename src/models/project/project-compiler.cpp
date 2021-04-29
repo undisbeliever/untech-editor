@@ -58,8 +58,8 @@ static void writeMetaSpriteData(RomDataWriter& writer,
 
     writeNotNullData(msData.dmaTile16Data);
     writeNotNullData(msData.frameObjectData);
-    writeNotNullData(msData.entityHitboxData);
     writeNotNullData(msData.actionPointData);
+    writeNotNullData(msData.collisionBoxData);
 }
 
 static void writeEntityRomData(RomDataWriter& writer,

@@ -125,26 +125,22 @@ struct ActionPoint {
     bool operator!=(const ActionPoint& o) const { return !(*this == o); }
 };
 
-struct EntityHitbox {
+struct CollisionBox {
     urect aabb;
-    EntityHitboxType hitboxType;
+    bool exists;
 
-    EntityHitbox()
+    CollisionBox()
         : aabb(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
-        , hitboxType()
-    {
-    }
-    EntityHitbox(const urect& aabb, EntityHitboxType& hitboxType)
-        : aabb(aabb)
-        , hitboxType(hitboxType)
+        , exists(false)
     {
     }
 
-    bool operator==(const EntityHitbox& o) const
+    bool operator==(const CollisionBox& o) const
     {
-        return this->aabb == o.aabb && this->hitboxType == o.hitboxType;
+        return aabb == o.aabb
+               && exists == o.exists;
     }
-    bool operator!=(const EntityHitbox& o) const { return !(*this == o); }
+    bool operator!=(const CollisionBox& o) const { return !(*this == o); }
 };
 
 struct Frame {
@@ -152,15 +148,15 @@ struct Frame {
     FrameLocation location;
     std::vector<FrameObject> objects;
     std::vector<ActionPoint> actionPoints;
-    std::vector<EntityHitbox> entityHitboxes;
-    urect tileHitbox;
     SpriteOrderType spriteOrder = DEFAULT_SPRITE_ORDER;
-    bool solid;
+
+    CollisionBox tileHitbox;
+    CollisionBox shield;
+    CollisionBox hitbox;
+    CollisionBox hurtbox;
 
     Frame()
-        : tileHitbox(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
-        , spriteOrder(DEFAULT_SPRITE_ORDER)
-        , solid(false)
+        : spriteOrder(DEFAULT_SPRITE_ORDER)
     {
     }
 

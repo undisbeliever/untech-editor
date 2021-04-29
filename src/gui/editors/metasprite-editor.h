@@ -30,10 +30,12 @@ private:
     SingleSelection framesSel;
 
     ToggleSelection tileHitboxSel;
+    ToggleSelection shieldSel;
+    ToggleSelection hitboxSel;
+    ToggleSelection hurtboxSel;
 
     MultipleChildSelection frameObjectsSel;
     MultipleChildSelection actionPointsSel;
-    MultipleChildSelection entityHitboxesSel;
 
     SingleSelection smallTilesetSel;
     SingleSelection largeTilesetSel;
@@ -129,6 +131,9 @@ private:
     void updatePaletteTexture();
     void updateTilesetTexture();
     void updateSelection();
+
+    template <auto FieldPtr>
+    void collisionBox(const char* label, UnTech::MetaSprite::MetaSprite::Frame& frame, ToggleSelection* sel);
 };
 
 }

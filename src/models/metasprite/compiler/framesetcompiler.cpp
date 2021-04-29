@@ -65,60 +65,6 @@ static std::vector<uint8_t> processFrameObjects(const MS::Frame& frame,
     return romData;
 }
 
-static std::vector<uint8_t> processEntityHitboxes(const std::vector<MS::EntityHitbox>& entityHitboxes)
-{
-    assert(entityHitboxes.size() <= MAX_ENTITY_HITBOXES);
-
-    std::vector<uint8_t> romData;
-
-    if (entityHitboxes.size() == 0) {
-        return romData;
-    }
-
-    ms8rect outerAabb;
-    for (const MS::EntityHitbox& eh : entityHitboxes) {
-        outerAabb.extend(eh.aabb);
-    }
-    assert(outerAabb.width > 0 && outerAabb.height > 0);
-
-    // count starts at -1
-    unsigned count = entityHitboxes.size() - 1;
-    unsigned dataSize = 5 + 5 * entityHitboxes.size();
-
-    // a Hitbox with a single aabb is a special case.
-    if (count == 0) {
-        dataSize = 5 + 1;
-    }
-    romData.reserve(dataSize);
-
-    romData.push_back(count); // count
-
-    romData.push_back(outerAabb.x.romData()); // Outer::xOffset
-    romData.push_back(outerAabb.width - 1);   // Outer::width
-    romData.push_back(outerAabb.y.romData()); // Outer::yOffset
-    romData.push_back(outerAabb.height - 1);  // Outer::height
-
-    if (count > 0) {
-        for (const MS::EntityHitbox& eh : entityHitboxes) {
-            const ms8rect& innerAabb = eh.aabb;
-
-            assert(innerAabb.width > 0 && innerAabb.height > 0);
-
-            romData.push_back(eh.hitboxType.romValue()); // Inner:type
-            romData.push_back(innerAabb.x.romData());    // Inner::xOffset
-            romData.push_back(innerAabb.width - 1);      // Inner::width
-            romData.push_back(innerAabb.y.romData());    // Inner::yOffset
-            romData.push_back(innerAabb.height - 1);     // Inner::height
-        }
-    }
-    else {
-        const MS::EntityHitbox& eh = entityHitboxes.at(0);
-        romData.push_back(eh.hitboxType.romValue()); // SingleHitbox::type
-    }
-
-    return romData;
-}
-
 static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoint>& actionPoints,
                                                 const ActionPointMapping& actionPointMapping)
 {
@@ -145,10 +91,43 @@ static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoin
     return romData;
 }
 
+static std::array<uint8_t, 12> processCollisionBoxes(const MS::Frame& frame)
+{
+    std::array<uint8_t, 12> romData;
+
+    auto it = romData.begin();
+
+    auto writeBox = [&](const MS::CollisionBox& box) {
+        if (box.exists) {
+            assert(box.aabb.width > 0 && box.aabb.width <= MAX_COLLISION_BOX_SIZE);
+            assert(box.aabb.height > 0 && box.aabb.height <= MAX_COLLISION_BOX_SIZE);
+
+            *it++ = box.aabb.x.romData(); // xOffset
+            *it++ = box.aabb.width - 1;   // width
+            *it++ = box.aabb.y.romData(); // yOffset
+            *it++ = box.aabb.height - 1;  // height
+        }
+        else {
+            *it++ = 0xff; // xOffset
+            *it++ = 0xff; // width
+            *it++ = 0xff; // yOffset
+            *it++ = 0xff; // height
+        }
+    };
+
+    writeBox(frame.shield);
+    writeBox(frame.hurtbox);
+    writeBox(frame.hitbox);
+
+    assert(it == romData.end());
+
+    return romData;
+}
+
 static TileHitboxData processTileHitbox(const MS::Frame& frame)
 {
-    if (frame.solid) {
-        const ms8rect& hb = frame.tileHitbox;
+    if (frame.tileHitbox.exists) {
+        const ms8rect& hb = frame.tileHitbox.aabb;
 
         const auto left = -hb.left();
         const auto right = hb.right();
@@ -182,8 +161,8 @@ static FrameData processFrame(const MS::Frame& frame,
 {
     return {
         .frameObjects = processFrameObjects(frame, frameTileset),
-        .entityHitboxes = processEntityHitboxes(frame.entityHitboxes),
         .actionPoints = processActionPoints(frame.actionPoints, actionPointMapping),
+        .collisionBoxes = processCollisionBoxes(frame),
         .tileset = tilesetIndex,
         .tileHitbox = processTileHitbox(frame),
     };

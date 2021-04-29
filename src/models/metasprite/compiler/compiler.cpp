@@ -14,7 +14,7 @@ namespace UnTech::MetaSprite::Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-const int CompiledRomData::METASPRITE_FORMAT_VERSION = 39;
+const int CompiledRomData::METASPRITE_FORMAT_VERSION = 40;
 
 CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
     : tileData(memoryMap)
@@ -26,8 +26,8 @@ CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
     , frameData("Project.MS_FrameData")
     , frameList("Project.MS_FrameList")
     , frameObjectData("Project.MS_FrameObjectsData", true)
-    , entityHitboxData("Project.MS_EntityHitboxData", true)
     , actionPointData("Project.MS_ActionPointsData", true)
+    , collisionBoxData("Project.MS_CollisionBoxData", true)
     , frameSetData("Project.MS_FrameSetData")
     , valid(true)
 {
@@ -82,8 +82,8 @@ static uint16_t saveCompiledFrame(const FrameData& frameData,
     DataBlock frame(2 * 4 + 4);
 
     frame.addWord(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
-    frame.addWord(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
     frame.addWord(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
+    frame.addWord(out.collisionBoxData.addData_Index(frameData.collisionBoxes));
     frame.addWord(tilesetIndex);
 
     frame.addByte(frameData.tileHitbox.left);

@@ -342,6 +342,15 @@ bool TreeNodeToggleSelection(const char* label, UnTech::Gui::SingleSelection* se
     return open;
 }
 
+bool Selectable(const char* label, UnTech::Gui::ToggleSelection* sel, ImGuiSelectableFlags flags)
+{
+    bool s = Selectable(label, sel->isSelected(), flags);
+    if (s) {
+        sel->toggleSelection();
+    }
+    return s;
+}
+
 template <class SelectionT>
 static bool Selectable_(const char* label, SelectionT* sel, const unsigned i, ImGuiSelectableFlags flags)
 {

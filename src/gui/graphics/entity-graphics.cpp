@@ -384,8 +384,8 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
             ds.uvMin = ImVec2(node.x * uvX, node.y * uvY);
             ds.uvMax = ImVec2((node.x + node.width) * uvX, (node.y + node.height) * uvY);
 
-            if (ef.frame.solid) {
-                ds.hitboxRect = TwoPointRect(ef.frame.tileHitbox);
+            if (ef.frame.tileHitbox.exists) {
+                ds.hitboxRect = TwoPointRect(ef.frame.tileHitbox.aabb);
             }
             else {
                 ds.hitboxRect = NOT_SOLID_HITBOX_RECT;

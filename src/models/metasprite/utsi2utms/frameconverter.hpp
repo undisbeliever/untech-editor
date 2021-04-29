@@ -94,12 +94,30 @@ buildOverlappingObjectsSieve(const SI::Frame& siFrame, const unsigned frameIndex
     return sieve;
 }
 
-// processes everything except2 frameObject tiles
+static MS::CollisionBox convertCollisionBox(const SI::CollisionBox& box, const upoint& siFrameOrigin)
+{
+    MS::CollisionBox ret;
+
+    ret.exists = box.exists;
+
+    if (box.exists) {
+        ret.aabb = ms8rect::createFromOffset(box.aabb, siFrameOrigin);
+    }
+
+    return ret;
+}
+
+// processes everything except frameObject tiles
 static void processFrameExcludingTiles(MS::Frame& msFrame, const SI::Frame& siFrame)
 {
     msFrame.name = siFrame.name;
 
     const auto& siFrameOrigin = siFrame.location.origin;
+
+    msFrame.tileHitbox = convertCollisionBox(siFrame.tileHitbox, siFrameOrigin);
+    msFrame.shield = convertCollisionBox(siFrame.shield, siFrameOrigin);
+    msFrame.hitbox = convertCollisionBox(siFrame.hitbox, siFrameOrigin);
+    msFrame.hurtbox = convertCollisionBox(siFrame.hurtbox, siFrameOrigin);
 
     for (const SI::FrameObject& siObj : siFrame.objects) {
         MS::FrameObject msObj;
@@ -119,21 +137,7 @@ static void processFrameExcludingTiles(MS::Frame& msFrame, const SI::Frame& siFr
         msFrame.actionPoints.push_back(msAp);
     }
 
-    for (const SI::EntityHitbox& siEh : siFrame.entityHitboxes) {
-        MS::EntityHitbox msEh;
-
-        msEh.aabb = ms8rect::createFromOffset(siEh.aabb, siFrameOrigin);
-        msEh.hitboxType = siEh.hitboxType;
-
-        msFrame.entityHitboxes.push_back(msEh);
-    }
-
     msFrame.spriteOrder = siFrame.spriteOrder;
-
-    msFrame.solid = siFrame.solid;
-    if (siFrame.solid) {
-        msFrame.tileHitbox = ms8rect::createFromOffset(siFrame.tileHitbox, siFrameOrigin);
-    }
 }
 
 // Process frame object tiles not in sieve

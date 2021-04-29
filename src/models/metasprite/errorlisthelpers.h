@@ -22,6 +22,13 @@ inline std::unique_ptr<MetaSpriteError> frameError(const SpriteImporter::Frame& 
 }
 
 template <typename... Args>
+inline std::unique_ptr<MetaSpriteError> collisionBoxError(const SpriteImporter::Frame& frame, const unsigned frameIndex, const MsErrorType type, const Args... message)
+{
+    return std::make_unique<MetaSpriteError>(type, frameIndex,
+                                             stringBuilder("SI Frame ", frame.name, ": ", message...));
+}
+
+template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> frameObjectError(const SpriteImporter::Frame& frame, const unsigned frameIndex, const unsigned objectId,
                                                          const Args... message)
 {
@@ -38,17 +45,16 @@ inline std::unique_ptr<MetaSpriteError> actionPointError(const SpriteImporter::F
 }
 
 template <typename... Args>
-inline std::unique_ptr<MetaSpriteError> entityHitboxError(const SpriteImporter::Frame& frame, const unsigned frameIndex, const unsigned ehId,
-                                                          const Args... message)
-{
-    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, frameIndex, ehId,
-                                             stringBuilder("SI Frame ", frame.name, " (entity hitbox ", ehId, "): ", message...));
-}
-
-template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> frameError(const MetaSprite::Frame& frame, const unsigned frameIndex, const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, frameIndex,
+                                             stringBuilder("MS Frame ", frame.name, ": ", message...));
+}
+
+template <typename... Args>
+inline std::unique_ptr<MetaSpriteError> collisionBoxError(const MetaSprite::Frame& frame, const unsigned frameIndex, const MsErrorType type, const Args... message)
+{
+    return std::make_unique<MetaSpriteError>(type, frameIndex,
                                              stringBuilder("MS Frame ", frame.name, ": ", message...));
 }
 
@@ -66,14 +72,6 @@ inline std::unique_ptr<MetaSpriteError> actionPointError(const MetaSprite::Frame
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, frameIndex, apId,
                                              stringBuilder("MS Frame ", frame.name, " (action point ", apId, "): ", message...));
-}
-
-template <typename... Args>
-inline std::unique_ptr<MetaSpriteError> entityHitboxError(const MetaSprite::Frame& frame, const unsigned frameIndex, const unsigned ehId,
-                                                          const Args... message)
-{
-    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, frameIndex, ehId,
-                                             stringBuilder("MS Frame ", frame.name, " (entity hitbox ", ehId, "): ", message...));
 }
 
 template <typename... Args>

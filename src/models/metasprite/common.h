@@ -22,8 +22,9 @@ const static size_t MAX_EXPORT_NAMES = 254;
 const static size_t MAX_PALETTES = 254;
 const static size_t MAX_FRAME_OBJECTS = 32;
 const static size_t MAX_ACTION_POINTS = 8;
-const static size_t MAX_ENTITY_HITBOXES = 4;
 const static size_t MAX_ANIMATION_FRAMES = 126;
+
+const static size_t MAX_COLLISION_BOX_SIZE = 127;
 
 const static size_t MAX_ACTION_POINT_FUNCTIONS = 126;
 

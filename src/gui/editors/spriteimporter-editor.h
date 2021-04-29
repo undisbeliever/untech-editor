@@ -30,10 +30,12 @@ private:
     SingleSelection framesSel;
 
     ToggleSelection tileHitboxSel;
+    ToggleSelection shieldSel;
+    ToggleSelection hitboxSel;
+    ToggleSelection hurtboxSel;
 
     MultipleChildSelection frameObjectsSel;
     MultipleChildSelection actionPointsSel;
-    MultipleChildSelection entityHitboxesSel;
 
 public:
     SpriteImporterEditorData(ItemIndex itemIndex);
@@ -85,6 +87,9 @@ private:
 
     void updateImageTexture();
     void updateTransparentColorCombo();
+
+    template <auto FieldPtr>
+    void collisionBox(const char* label, UnTech::MetaSprite::SpriteImporter::Frame& frame, const usize& frameSize, ToggleSelection* sel);
 };
 
 }
