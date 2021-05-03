@@ -91,9 +91,43 @@ static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoin
     return romData;
 }
 
-static std::array<uint8_t, 12> processCollisionBoxes(const MS::Frame& frame)
+static auto processTileHitbox(const MS::Frame& frame, std::array<uint8_t, 16>::iterator it)
 {
-    std::array<uint8_t, 12> romData;
+    if (frame.tileHitbox.exists) {
+        const ms8rect& hb = frame.tileHitbox.aabb;
+
+        const auto left = -hb.left();
+        const auto right = hb.right();
+        const auto yOffset = -hb.top();
+        const auto height = hb.height;
+
+        auto assert_bounds = [](int v) {
+            assert(v >= 1 && v <= 127);
+        };
+        assert_bounds(left);
+        assert_bounds(right);
+        assert_bounds(yOffset);
+        assert_bounds(height);
+        assert(int(height) - yOffset > 0);
+
+        *it++ = uint8_t(left);
+        *it++ = uint8_t(right);
+        *it++ = uint8_t((yOffset ^ 0xff) + 1);
+        *it++ = height;
+    }
+    else {
+        *it++ = 0xff; // left
+        *it++ = 0xff; // right
+        *it++ = 0xff; // yOffset
+        *it++ = 0xff; // height
+    }
+
+    return it;
+}
+
+static std::array<uint8_t, 16> processCollisionBoxes(const MS::Frame& frame)
+{
+    std::array<uint8_t, 16> romData;
 
     auto it = romData.begin();
 
@@ -119,40 +153,11 @@ static std::array<uint8_t, 12> processCollisionBoxes(const MS::Frame& frame)
     writeBox(frame.hurtbox);
     writeBox(frame.hitbox);
 
+    it = processTileHitbox(frame, it);
+
     assert(it == romData.end());
 
     return romData;
-}
-
-static TileHitboxData processTileHitbox(const MS::Frame& frame)
-{
-    if (frame.tileHitbox.exists) {
-        const ms8rect& hb = frame.tileHitbox.aabb;
-
-        const auto left = -hb.left();
-        const auto right = hb.right();
-        const auto yOffset = -hb.top();
-        const auto height = hb.height;
-
-        auto assert_bounds = [](int v) {
-            assert(v >= 1 && v <= 127);
-        };
-        assert_bounds(left);
-        assert_bounds(right);
-        assert_bounds(yOffset);
-        assert_bounds(height);
-        assert(int(height) - yOffset > 0);
-
-        return {
-            .left = uint8_t(left),
-            .right = uint8_t(right),
-            .yOffset = uint8_t((yOffset ^ 0xff) + 1),
-            .height = height,
-        };
-    }
-    else {
-        return { 0xff, 0xff, 0xff, 0xff };
-    }
 }
 
 static FrameData processFrame(const MS::Frame& frame,
@@ -164,7 +169,6 @@ static FrameData processFrame(const MS::Frame& frame,
         .actionPoints = processActionPoints(frame.actionPoints, actionPointMapping),
         .collisionBoxes = processCollisionBoxes(frame),
         .tileset = tilesetIndex,
-        .tileHitbox = processTileHitbox(frame),
     };
 }
 

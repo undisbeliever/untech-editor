@@ -14,21 +14,13 @@
 
 namespace UnTech::MetaSprite::Compiler {
 
-struct TileHitboxData {
-    uint8_t left;
-    uint8_t right;
-    uint8_t yOffset;
-    uint8_t height;
-};
-
 struct FrameData {
     std::vector<uint8_t> frameObjects;
     std::vector<uint8_t> actionPoints;
-    std::array<uint8_t, 12> collisionBoxes;
+    std::array<uint8_t, 16> collisionBoxes;
 
     // Index into `FrameSetData::tileset`
     std::optional<unsigned> tileset;
-    TileHitboxData tileHitbox;
 };
 
 struct FrameSetData {
