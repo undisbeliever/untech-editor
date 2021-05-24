@@ -11,7 +11,7 @@
 
 namespace UnTech::Snes {
 
-template <size_t TS>
+template <std::size_t TS>
 class Tile;
 
 using Tile8px = Tile<8>;

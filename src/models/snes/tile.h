@@ -15,7 +15,7 @@
 
 namespace UnTech::Snes {
 
-template <size_t TS>
+template <std::size_t TS>
 class Tile {
 public:
     constexpr static unsigned TILE_SIZE = TS;
