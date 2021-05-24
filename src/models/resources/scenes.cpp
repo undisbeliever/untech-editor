@@ -588,6 +588,10 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
     const auto sceneSettingsMap = sceneSettingsIndexMap(resourceScenes.settings, err);
     valid &= sceneSettingsMap.has_value();
 
+    if (valid == false) {
+        return nullptr;
+    }
+
     auto out = std::make_shared<CompiledScenesData>();
 
     out->sceneSettings = compileSceneSettingsData(resourceScenes.settings, err);
