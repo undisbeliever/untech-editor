@@ -7,6 +7,7 @@
 #include "compiler.h"
 #include "../metasprite.h"
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #pragma once

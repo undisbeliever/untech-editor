@@ -11,6 +11,7 @@
 #include "models/common/optional.h"
 #include "models/enums.h"
 #include <memory>
+#include <optional>
 #include <shared_mutex>
 #include <unordered_map>
 #include <vector>

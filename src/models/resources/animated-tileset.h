@@ -9,6 +9,7 @@
 #include "models/common/grid.h"
 #include "models/snes/tile.h"
 #include "models/snes/tilemap.h"
+#include <optional>
 #include <vector>
 
 namespace UnTech {
