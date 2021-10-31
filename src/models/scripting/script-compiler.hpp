@@ -43,11 +43,11 @@ setupTempVariables(const std::vector<idstring> tempVars, const bool isFlag,
         if (!varName.isValid()) {
             addError(index, "Missing name");
         }
-        else if (gameStateVars.find(varName) != gameStateVars.end()) {
+        else if (gameStateVars.find(varName.str()) != gameStateVars.end()) {
             addError(index, "Name exists in GameState: ", varName);
         }
         else {
-            const auto [it, inserted] = map.emplace(varName, varId);
+            const auto [it, inserted] = map.emplace(varName.str(), varId);
             if (!inserted) {
                 addError(index, "Duplicate name detected");
             }
@@ -195,6 +195,7 @@ private:
         addLineError("Unknown flag: ", name);
         return 0;
     }
+    unsigned getFlagId(const idstring& name) { return getFlagId(name.str()); }
 
     unsigned getWordId(const std::string& name)
     {
@@ -214,6 +215,7 @@ private:
         addLineError("Unknown word: ", name);
         return 0;
     }
+    unsigned getWordId(const idstring& name) { return getWordId(name.str()); }
 
     unsigned getImmediateU16(const std::string& value)
     {
@@ -228,8 +230,14 @@ private:
         }
     }
 
-    unsigned getRoomScriptId(const std::string& name)
+    unsigned getRoomScriptId(const std::string& value)
     {
+        const auto name = idstring::fromString(value);
+        if (!name.isValid()) {
+            addLineError("Invalid script name: ", value);
+            return 0;
+        }
+
         const auto s = room.roomScripts.scripts.indexOf(name);
 
         if (s > room.roomScripts.scripts.size()) {
@@ -240,8 +248,14 @@ private:
         return s;
     }
 
-    unsigned getEntityGroupId(const std::string& name)
+    unsigned getEntityGroupId(const std::string& value)
     {
+        const auto name = idstring::fromString(value);
+        if (!name.isValid()) {
+            addLineError("Invalid entity group name: ", value);
+            return 0;
+        }
+
         const auto s = room.entityGroups.indexOf(name);
 
         if (s > room.entityGroups.size()) {
@@ -252,8 +266,14 @@ private:
         return s;
     }
 
-    unsigned getRoomId(const std::string& name)
+    unsigned getRoomId(const std::string& value)
     {
+        const auto name = idstring::fromString(value);
+        if (!name.isValid()) {
+            addLineError("Invalid room name: ", value);
+            return 0;
+        }
+
         const auto s = roomsList.indexOf(name);
 
         if (s > roomsList.size()) {
@@ -264,8 +284,14 @@ private:
         return s;
     }
 
-    unsigned getRoomEntranceId(const std::string& name, const Rooms::RoomInput& r)
+    unsigned getRoomEntranceId(const std::string& value, const Rooms::RoomInput& r)
     {
+        const auto name = idstring::fromString(value);
+        if (!name.isValid()) {
+            addLineError("Invalid room entrance name: ", value);
+            return 0;
+        }
+
         const auto s = r.entrances.indexOf(name);
 
         if (s > r.entrances.size()) {

@@ -23,7 +23,7 @@ std::string NameReference::str() const
         return stringBuilder(name, " (vFlip)");
     }
     else {
-        return name;
+        return name.str();
     }
 }
 

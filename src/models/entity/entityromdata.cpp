@@ -20,19 +20,19 @@ const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 6;
 
 #define BASE_ROM_STRUCT "BaseEntityRomStruct"
 #define ENTITY_ROM_STRUCT_NAMESPACE "Project.EntityRomStructs"
-static const idstring baseRomStruct{ BASE_ROM_STRUCT };
+static const idstring baseRomStruct = idstring::fromString(BASE_ROM_STRUCT);
 
 const std::unordered_set<idstring> INVALID_NAMES{
-    idstring{ "functionTable" },
-    idstring{ "defaultPalette" },
-    idstring{ "initialProjectileId" },
-    idstring{ "initialListId" },
-    idstring{ "frameSetId" },
-    idstring{ "Players" },
-    idstring{ "Projectiles" },
-    idstring{ "size" },
-    idstring{ "count" },
-    idstring{ "__STRUCT__" },
+    idstring::fromString("functionTable"),
+    idstring::fromString("defaultPalette"),
+    idstring::fromString("initialProjectileId"),
+    idstring::fromString("initialListId"),
+    idstring::fromString("frameSetId"),
+    idstring::fromString("Players"),
+    idstring::fromString("Projectiles"),
+    idstring::fromString("size"),
+    idstring::fromString("count"),
+    idstring::fromString("__STRUCT__"),
     baseRomStruct,
 };
 
@@ -553,7 +553,7 @@ static void writeIncFile_BaseRomStruct(std::ostream& out)
         << "\tbasestruct_offset(" << CompiledEntityRomData::ROM_DATA_LABEL << ")\n";
 
     auto writeField = [&](const char* name, DataType type) {
-        writeIncFile_StructField(out, StructField{ idstring{ name }, type, idstring{}, std::string{} });
+        writeIncFile_StructField(out, StructField{ idstring::fromString(name), type, std::string{}, std::string{} });
     };
 
     // If you make any changes to this code you MUST ALSO UPDATE the

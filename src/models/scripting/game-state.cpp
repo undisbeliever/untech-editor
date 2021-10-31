@@ -91,7 +91,7 @@ compileGameState(const GameState& input,
             if (item.name.isValid()) {
                 lastIndex = i;
 
-                const auto [it, inserted] = map.emplace(item.name, GameStateData::Value{ unsigned(i), item.room });
+                const auto [it, inserted] = map.emplace(item.name.str(), GameStateData::Value{ unsigned(i), item.room });
                 if (!inserted) {
                     addVariableError(item, i, "Duplicate ", typeName, " detected");
                 }

@@ -30,26 +30,26 @@ static std::array<std::string, 7> projectSettingNames{
 // ==============
 
 template <class T>
-static const idstring& itemNameString(const T& item)
+static const std::string& itemNameString(const T& item)
 {
-    return item.name;
+    return item.name.str();
 }
-static const idstring& itemNameString(const MetaSprite::FrameSetFile& item)
+static const std::string& itemNameString(const MetaSprite::FrameSetFile& item)
 {
-    return item.name();
+    return item.name().str();
 }
 
 template <class ListT>
 static const std::string& itemNameString(const ListT& list, unsigned index)
 {
-    return list.at(index).name;
+    return list.at(index).name.str();
 }
 template <class T>
 static std::string itemNameString(const ExternalFileList<T>& list, unsigned index)
 {
     const ExternalFileItem<T>& item = list.item(index);
     if (item.value) {
-        return item.value->name;
+        return item.value->name.str();
     }
     else {
         return item.filename.filename().string();
@@ -60,9 +60,9 @@ static const std::string& itemNameString(const std::array<std::string, N>& list,
 {
     return list.at(index);
 }
-static const idstring& itemNameString(const std::vector<MetaSprite::FrameSetFile>& list, unsigned index)
+static const std::string& itemNameString(const std::vector<MetaSprite::FrameSetFile>& list, unsigned index)
 {
-    return list.at(index).name();
+    return list.at(index).name().str();
 }
 
 template <typename T>
@@ -374,7 +374,7 @@ inline void ProjectDependencies::createDependencyGraph(const ProjectFile& projec
         for (auto [i, item] : const_enumerate(list)) {
             const idstring name = f(item);
 
-            mappings.dependants.emplace(name, i);
+            mappings.dependants.emplace(name.str(), i);
             mappings.preresquite.push_back(std::move(name));
         }
     };
@@ -396,7 +396,7 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
         const auto& oldName = mappings.preresquite.at(index);
 
         if (oldName != newName) {
-            const auto range = mappings.dependants.equal_range(oldName);
+            const auto range = mappings.dependants.equal_range(oldName.str());
             auto it = range.first;
             while (it != range.second) {
                 if (it->second == index) {
@@ -408,7 +408,7 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
             }
 
             mappings.preresquite.at(index) = newName;
-            mappings.dependants.emplace(newName, index);
+            mappings.dependants.emplace(newName.str(), index);
         }
     };
 
@@ -504,7 +504,7 @@ void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, cons
         }
     };
     auto markUnchecked = [&](const Mappings& mappings, ResourceListStatus& rls) {
-        markNameUnchecked(mappings, rls, BLANK_ID);
+        markNameUnchecked(mappings, rls, BLANK_ID.str());
         markNameUnchecked(mappings, rls, name);
         if (oldName != name) {
             markNameUnchecked(mappings, rls, oldName);

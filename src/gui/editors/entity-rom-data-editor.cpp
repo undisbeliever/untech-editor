@@ -535,7 +535,7 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
                 edited |= ImGui::IdStringCombo("frameSetId", &entry.frameSetId, projectFile.frameSets, false,
                                                [](auto& fsf) { return &fsf.name(); });
 
-                if (ImGui::BeginCombo("displayFrame", entry.displayFrame)) {
+                if (ImGui::BeginCombo("displayFrame", entry.displayFrame.str())) {
                     auto frameSetIt = std::find_if(projectFile.frameSets.begin(), projectFile.frameSets.end(),
                                                    [&](auto& fs) { return fs.name() == entry.frameSetId; });
 

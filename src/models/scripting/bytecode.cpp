@@ -24,18 +24,18 @@ std::unique_ptr<BytecodeError> instructionError(const Instruction& inst, const u
 }
 
 const std::vector<Instruction> BytecodeInput::BASE_INSTRUCTIONS{
-    { idstring{ "End_Script" }, {}, false },
-    { idstring{ "Set_Flag" }, { ArgumentType::Flag }, false },
-    { idstring{ "Clear_Flag" }, { ArgumentType::Flag }, false },
-    { idstring{ "Set_Word" }, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { idstring{ "Add_To_Word" }, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { idstring{ "Subtract_From_Word" }, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { idstring{ "Increment_Word" }, { ArgumentType::Word }, false },
-    { idstring{ "Decrement_Word" }, { ArgumentType::Word }, false },
-    { idstring{ "Sleep_AnimationTicks" }, { ArgumentType::ImmediateU16 }, true },
-    { idstring{ "Start_Script" }, { ArgumentType::RoomScript }, false },
-    { idstring{ "Spawn_Entity_Group" }, { ArgumentType::EntityGroup }, false },
-    { idstring{ "Load_Room" }, { ArgumentType::Room, ArgumentType::RoomEntrance }, false },
+    { idstring::fromString("End_Script"), {}, false },
+    { idstring::fromString("Set_Flag"), { ArgumentType::Flag }, false },
+    { idstring::fromString("Clear_Flag"), { ArgumentType::Flag }, false },
+    { idstring::fromString("Set_Word"), { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { idstring::fromString("Add_To_Word"), { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { idstring::fromString("Subtract_From_Word"), { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { idstring::fromString("Increment_Word"), { ArgumentType::Word }, false },
+    { idstring::fromString("Decrement_Word"), { ArgumentType::Word }, false },
+    { idstring::fromString("Sleep_AnimationTicks"), { ArgumentType::ImmediateU16 }, true },
+    { idstring::fromString("Start_Script"), { ArgumentType::RoomScript }, false },
+    { idstring::fromString("Spawn_Entity_Group"), { ArgumentType::EntityGroup }, false },
+    { idstring::fromString("Load_Room"), { ArgumentType::Room, ArgumentType::RoomEntrance }, false },
 };
 
 static unsigned argumentSize(const ArgumentType type)

@@ -75,7 +75,7 @@ inline void concat(std::string& str, const std::string_view source)
 
 inline void concat(std::string& str, const idstring& source)
 {
-    str.append(source);
+    str.append(source.str());
 }
 
 inline void concat(std::string& str, const char* c_str)

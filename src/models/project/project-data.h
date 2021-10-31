@@ -159,7 +159,7 @@ public:
     {
         std::shared_lock lock(_mutex);
 
-        auto it = _mapping.find(id);
+        auto it = _mapping.find(id.str());
         if (it != _mapping.end()) {
             return it->second;
         }
@@ -196,7 +196,7 @@ public:
     {
         std::shared_lock lock(_mutex);
 
-        auto it = _mapping.find(id);
+        auto it = _mapping.find(id.str());
         if (it != _mapping.end()) {
             return at(it->second);
         }

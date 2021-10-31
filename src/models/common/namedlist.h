@@ -44,7 +44,7 @@ public:
     size_type size() const { return _list.size(); }
 
     // returns INT_MAX if name is not found
-    size_type indexOf(const std::string& name) const
+    size_type indexOf(const idstring& name) const
     {
         for (const auto [i, item] : const_enumerate(_list)) {
             if (item.name == name) {
@@ -56,7 +56,7 @@ public:
 
     // NOTE: pointer may be null
     // pointer is valid until item is removed or replaced
-    optional<T&> find(const std::string& name)
+    optional<T&> find(const idstring& name)
     {
         for (T& i : _list) {
             if (i.name == name) {
@@ -68,7 +68,7 @@ public:
 
     // NOTE: pointer may be null
     // pointer is valid until item is removed or replaced
-    optional<const T&> find(const std::string& name) const
+    optional<const T&> find(const idstring& name) const
     {
         for (const T& i : _list) {
             if (i.name == name) {

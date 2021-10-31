@@ -140,7 +140,7 @@ public:
     inline idstring getAttributeId(const std::string_view aName) const
     {
         // No need to escape value - only alnum and underscore characters are valid
-        const idstring id(getAttribute_rawValue(aName));
+        const auto id = idstring::fromString(getAttribute_rawValue(aName));
 
         if (id.isValid()) {
             return id;
@@ -156,7 +156,7 @@ public:
 
         if (i < MAX_ATTRIBUTES) {
             // No need to escape value - only alnum and underscore characters are valid
-            const idstring id(attrRawValues.at(i));
+            const auto id = idstring::fromString(attrRawValues.at(i));
 
             if (id.isValid()) {
                 return id;
@@ -175,7 +175,7 @@ public:
                                          const MapT& map) const
     {
         // No need to escape value - only alnum and underscore characters are valid
-        const idstring id(getAttribute_rawValue(aName));
+        const auto id = idstring::fromString(getAttribute_rawValue(aName));
 
         if (map.contains(id)) {
             throw xml_error(*this, aName, "id already exists");

@@ -75,29 +75,29 @@ public:
 
     idstring() = default;
 
-    // fails silently
-    explicit idstring(const std::string_view s)
-        : data()
+    static idstring fromString(std::string&& s)
     {
+        idstring out;
         if (isValid(s)) {
-            data = s;
+            out.data = std::move(s);
         }
+
+        return out;
     }
 
-    // fails silently
-    // Required to fix a "call of overloaded ‘idstring(<brace-enclosed initializer list>)’ is ambiguous" compile error
-    explicit idstring(const char* s)
-        : idstring(std::string_view(s))
+    static idstring fromString(const std::string_view s)
     {
+        idstring out;
+        if (isValid(s)) {
+            out.data = s;
+        }
+
+        return out;
     }
 
-    // fails silently
-    explicit idstring(std::string&& s)
-        : data(std::move(s))
+    static idstring fromString(const char* s)
     {
-        if (!isValid(data)) {
-            data.clear();
-        }
+        return fromString(std::string_view(s));
     }
 
     inline bool isValid() const { return !data.empty(); }
@@ -105,17 +105,12 @@ public:
     // clang-format off
     inline const std::string& str() const { return data; }
     inline const char* c_str() const { return data.c_str(); }
-    inline operator const std::string&() const { return data; }
     // clang-format on
 
     void clear() { data.clear(); }
 
-    inline bool operator==(const idstring& o) const { return data == o.data; }
-    inline bool operator!=(const idstring& o) const { return data != o.data; }
-    inline bool operator<(const idstring& o) const { return data < o.data; }
-
-    inline bool operator==(const std::string& o) const { return data == o; }
-    inline bool operator!=(const std::string& o) const { return data != o; }
+    bool operator==(const idstring& o) const = default;
+    auto operator<=>(const idstring& o) const = default;
 };
 
 // useful in generating user messages

@@ -59,7 +59,7 @@ static bool validateAlternativesUnique(const bool isStillFrame,
                                        const unsigned enIndex,
                                        const std::vector<NameReference>& alts,
                                        const std::string& typeName,
-                                       const std::string& aName,
+                                       const idstring& aName,
                                        UnTech::ErrorList& err)
 {
     bool valid = true;

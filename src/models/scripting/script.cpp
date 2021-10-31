@@ -10,7 +10,7 @@ namespace UnTech::Scripting {
 
 using namespace std::string_literals;
 
-const idstring STARTUP_SCRIPT_NAME{ "Startup" };
+const idstring STARTUP_SCRIPT_NAME = idstring::fromString("Startup");
 
 RoomScripts::RoomScripts()
 {

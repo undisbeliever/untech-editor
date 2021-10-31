@@ -1378,8 +1378,8 @@ public:
             for (auto& item : projectFile.rooms) {
                 if (item.value && item.value->name.isValid()) {
                     const auto& roomName = item.value->name;
-                    if (ImGui::Selectable(roomName.c_str(), roomName == *value)) {
-                        *value = roomName;
+                    if (ImGui::Selectable(roomName.c_str(), roomName.str() == *value)) {
+                        *value = roomName.str();
                         edited = true;
                     }
                 }
@@ -1406,8 +1406,8 @@ public:
             if (const auto r = roomGetter()) {
                 for (const auto& en : r->entrances) {
                     if (en.name.isValid()) {
-                        if (ImGui::Selectable(en.name.c_str(), en.name == *value)) {
-                            *value = en.name;
+                        if (ImGui::Selectable(en.name.c_str(), en.name.str() == *value)) {
+                            *value = en.name.str();
                             edited = true;
                         }
                     }
@@ -1507,7 +1507,7 @@ public:
 
         ImGui::SameLine();
         edited |= roomEntranceArgument(argLabels.at(1), &arguments.at(1),
-                                       [&]() { return projectFile.rooms.find(arguments.at(0)); });
+                                       [&]() { return projectFile.rooms.find(idstring::fromString(arguments.at(0))); });
 
         return edited;
     }
