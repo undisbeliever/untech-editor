@@ -13,7 +13,6 @@
 #include <iostream>
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
-#include "opengl/imgui_impl_opengl3.hpp"
 #include "opengl/imgui_sdl_opengl3.hpp"
 #endif
 
