@@ -3,8 +3,8 @@ PROFILE     ?= release
 CXX         ?= g++
 CC          ?= gcc
 
-CXXFLAGS    += -std=c++17
-LDFLAGS     += -std=c++17
+CXXFLAGS    += -std=c++20
+LDFLAGS     += -std=c++20
 
 ifeq ($(OS),Windows_NT)
   BIN_EXT         := .exe
@@ -266,7 +266,7 @@ THIRD_PARTY_IMGUI_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, imgui.o imgui_dr
 
 THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl.o)
 IMGUI_CXXFLAGS              := -DIMGUI_IMPL_SDL_OPENGL -Isrc/vendor/gl3w/include
-IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui
+IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui -Wno-deprecated-enum-enum-conversion
 
 # Required to compile editor GUI in ubuntu. On ubuntu `sdl2-config --libs` does output `-pthread`
 IMGUI_LDFLAGS               := -pthread

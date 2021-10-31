@@ -37,7 +37,23 @@ class MultipleChildSelection;
 class GroupMultipleSelection;
 }
 
+// C++20 casting helpers
+// =====================
+inline const char* u8Cast(const char8_t* str)
+{
+    return reinterpret_cast<const char*>(str);
+}
+inline const char* u8Cast(const std::u8string& str)
+{
+    return reinterpret_cast<const char*>(str.c_str());
+}
+
 namespace ImGui {
+
+inline void TextUnformatted(const std::u8string_view text)
+{
+    TextUnformatted(u8Cast(text.data()), u8Cast(text.data() + text.size()));
+}
 
 inline void TextUnformatted(const std::string_view text)
 {

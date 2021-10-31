@@ -192,7 +192,7 @@ static bool testFilenameOfUnknownType(const std::filesystem::path& filePath)
 {
     const auto extension = filePath.extension();
 
-    std::string extWithoutDot = filePath.extension().u8string();
+    std::string extWithoutDot = filePath.extension().string();
     if (not extWithoutDot.empty() and extWithoutDot[0] == '.') {
         extWithoutDot.erase(0, 1);
     }

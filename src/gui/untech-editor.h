@@ -68,7 +68,7 @@ private:
     BackgroundThread _backgroundThread;
 
     const std::filesystem::path _filename;
-    const std::string _basename;
+    const std::u8string _basename;
 
     std::vector<std::unique_ptr<AbstractEditorGui>> _editorGuis;
 
@@ -80,7 +80,7 @@ private:
 
     bool _openUnsavedChangesOnExitPopup;
     bool _editorExited;
-    std::vector<std::string> _unsavedFilesList;
+    std::vector<std::u8string> _unsavedFilesList;
 
 private:
     UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf,

@@ -105,7 +105,7 @@ void XmlWriter::writeTagAttributeFilename(const std::string_view name, const std
     std::filesystem::path p = _useRelativePaths ? path.lexically_relative(_filePath.parent_path())
                                                 : std::filesystem::absolute(path);
 
-    writeTagAttribute(name, p.generic_u8string());
+    writeTagAttribute(name, p.generic_string());
 }
 
 void XmlWriter::writeTagAttributeHex(const std::string_view name, const unsigned value, unsigned width)

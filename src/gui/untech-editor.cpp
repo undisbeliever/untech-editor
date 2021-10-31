@@ -26,7 +26,7 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     , _projectData()
     , _backgroundThread(_projectFile, _projectData)
     , _filename(fn)
-    , _basename(fn.filename().string())
+    , _basename(fn.filename().u8string())
     , _editorGuis(createEditorGuis())
     , _editors()
     , _currentEditor(nullptr)
@@ -305,8 +305,8 @@ void UnTechEditor::processMenu()
                 }
             }
         }
-        const auto saveProjectLabel = "Save "s + _basename;
-        if (ImGui::MenuItem(saveProjectLabel.c_str(), "Ctrl+S")) {
+        const auto saveProjectLabel = u8"Save "s + _basename;
+        if (ImGui::MenuItem(u8Cast(saveProjectLabel), "Ctrl+S")) {
             saveProjectFile();
         }
         if (ImGui::MenuItem("Save All", "Ctrl+Shift+S")) {
@@ -419,7 +419,7 @@ void UnTechEditor::requestExitEditor()
 {
     const auto parentPath = _filename.parent_path();
 
-    std::vector<std::string> files;
+    std::vector<std::u8string> files;
     files.push_back(_basename);
 
     bool projectFileClean = _projectListWindow.isClean();
@@ -510,7 +510,7 @@ void UnTechEditor::unsavedChangesOnExitPopup()
         ImGui::SetNextItemWidth(-style.IndentSpacing);
         if (ImGui::BeginListBox("##UnsavedFiles", unsavedListSize)) {
             for (const auto& f : _unsavedFilesList) {
-                ImGui::TextUnformatted(f);
+                ImGui::TextUnformatted(u8Cast(f));
             }
             ImGui::EndListBox();
         }

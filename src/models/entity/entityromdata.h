@@ -48,11 +48,9 @@ struct EntityRomStruct;
 
 struct StructField {
     idstring name;
-    DataType type;
+    DataType type = DataType::UINT8;
     std::string defaultValue; // may be empty
     std::string comment;
-
-    StructField() = default;
 
     bool operator==(const StructField& o) const
     {

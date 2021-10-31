@@ -149,9 +149,9 @@ bool InputPngImageFilename(const char* label, std::filesystem::path* path)
     PushID(label);
 
     const float buttonWidth = CalcItemWidth();
-    std::string basename = path->filename().u8string();
+    std::u8string basename = path->filename().u8string();
 
-    if (Button(basename.data(), ImVec2(buttonWidth, 0))) {
+    if (Button(u8Cast(basename), ImVec2(buttonWidth, 0))) {
         if (!path->empty()) {
             std::error_code ec;
             auto p = std::filesystem::absolute(path->parent_path(), ec);

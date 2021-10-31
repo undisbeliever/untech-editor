@@ -455,4 +455,14 @@ bool ToggledButtonWithTooltip(const char* label, bool* selected, const char* too
     return pressed;
 }
 
+void TextUnformatted(const char8_t* text)
+{
+    TextUnformatted(reinterpret_cast<const char*>(text), nullptr);
+}
+
+bool Button(const char8_t* label, const ImVec2& size_arg)
+{
+    return Button(reinterpret_cast<const char*>(label), size_arg);
+}
+
 }

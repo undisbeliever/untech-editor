@@ -35,7 +35,7 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
 {
     std::ifstream in(filePath, std::ios::in | std::ios::binary);
     if (!in) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string()));
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string()));
     }
 
     in.seekg(0, std::ios::end);
@@ -43,12 +43,12 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
     in.seekg(0);
 
     if (pos < 0) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Cannot read file size"));
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string(), " : Cannot read file size"));
     }
     const size_t size = pos;
 
     if (size > limit) {
-        throw std::runtime_error(stringBuilder("Cannot open file : ", filePath.u8string(), " : file too large"));
+        throw std::runtime_error(stringBuilder("Cannot open file : ", filePath.string(), " : file too large"));
     }
 
     std::vector<uint8_t> ret(size);
@@ -56,7 +56,7 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
     in.close();
 
     if (!in) {
-        throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string()));
+        throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string()));
     }
 
     return ret;
@@ -70,7 +70,7 @@ std::string readUtf8TextFile(const std::filesystem::path& filePath)
 
     std::ifstream in(filePath, std::ios::in | std::ios::binary);
     if (!in) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string()));
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string()));
     }
 
     std::array<uint8_t, 4> header{};
@@ -83,10 +83,10 @@ std::string readUtf8TextFile(const std::filesystem::path& filePath)
     auto size = in.tellg();
 
     if (size < 0) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Cannot read file size"));
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string(), " : Cannot read file size"));
     }
     if (size > 25 * 1024 * 1024) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : too large"));
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string(), " : too large"));
     }
 
     // check for BOM
@@ -110,14 +110,14 @@ std::string readUtf8TextFile(const std::filesystem::path& filePath)
         in.close();
 
         if (read != size) {
-            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string(), " : Expected ", ptrdiff_t(size), " bytes got ", read, "."));
+            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string(), " : Expected ", ptrdiff_t(size), " bytes got ", read, "."));
         }
         if (atEof == false) {
-            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string(), " : Not at end of file"));
+            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string(), " : Not at end of file"));
         }
 
         if (!String::checkUtf8WellFormed(ret)) {
-            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string(), " : Not UTF-8 Well Formed"));
+            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string(), " : Not UTF-8 Well Formed"));
         }
     }
 
@@ -191,7 +191,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
 {
     using namespace std::string_literals;
 
-    const std::string filename = filePath.u8string();
+    const std::string filename = filePath.native();
 
     const size_t BLOCK_SIZE = 4096;
 
