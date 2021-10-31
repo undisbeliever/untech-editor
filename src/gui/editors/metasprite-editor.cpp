@@ -1117,7 +1117,8 @@ void MetaSpriteEditorGui::tilesetWindow()
 
         tilesetButtons();
 
-        ImGui::BeginChild("Scroll");
+        // AlwaysVerticalScrollbar fixes a graphical glitch where the tileset zoom changes every display frame.
+        ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
         const int z = std::max<int>(1, ImGui::GetContentRegionAvail().x / _tilesetTexture.width());
 
