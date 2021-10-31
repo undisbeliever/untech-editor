@@ -11,19 +11,21 @@
 
 namespace UnTech::MetaSprite {
 
-std::string NameReference::str() const
+std::string_view NameReference::flipStringSuffix() const
 {
+    using namespace std::string_view_literals;
+
     if (hFlip && vFlip) {
-        return stringBuilder(name, " (hvFlip)");
+        return " (hvFlip)"sv;
     }
     else if (hFlip) {
-        return stringBuilder(name, " (hFlip)");
+        return " (hFlip)"sv;
     }
     else if (vFlip) {
-        return stringBuilder(name, " (vFlip)");
+        return " (vFlip)"sv;
     }
     else {
-        return name.str();
+        return ""sv;
     }
 }
 

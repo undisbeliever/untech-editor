@@ -45,7 +45,7 @@ struct NameReference {
 
     NameReference() = default;
 
-    std::string str() const;
+    std::string_view flipStringSuffix() const;
 
     bool operator==(const NameReference&) const = default;
 };

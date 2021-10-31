@@ -78,7 +78,7 @@ static bool validateAlternativesUnique(const bool isStillFrame,
 
         auto jit = std::find(alts.begin(), it, alt);
         if (jit != it) {
-            addAltError(index, "Duplicate ", typeName, " alternative for ", aName, ": ", alt.str());
+            addAltError(index, "Duplicate ", typeName, " alternative for ", aName, ": ", alt.name, alt.flipStringSuffix());
         }
     }
 
