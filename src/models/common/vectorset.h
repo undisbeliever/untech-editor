@@ -115,8 +115,8 @@ public:
     const_reverse_iterator rbegin() const { return _vector.crbegin(); }
     const_reverse_iterator rend() const { return _vector.crend(); }
 
+    // Cannot use default here, there is no viable comparison function for `std::less<T>`.
     bool operator==(const vectorset<T, Compare>& o) const { return _vector == o._vector; }
-    bool operator!=(const vectorset<T, Compare>& o) const { return _vector != o._vector; }
 
 private:
     void sortAndRemoveDuplicates()
@@ -208,8 +208,7 @@ public:
     const T& front() const { return _vector.front(); }
     const T& back() const { return _vector.back(); }
 
-    bool operator==(const vectorset<T*>& o) const { return _vector == o._vector; }
-    bool operator!=(const vectorset<T*>& o) const { return _vector != o._vector; }
+    bool operator==(const vectorset<T*>&) const = default;
 
 private:
     void sortAndRemoveDuplicates()

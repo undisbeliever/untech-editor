@@ -37,15 +37,7 @@ struct _point {
     {
     }
 
-    bool operator==(const _point& o) const
-    {
-        return x == o.x && y == o.y;
-    }
-
-    bool operator!=(const _point& o) const
-    {
-        return x != o.x || y != o.y;
-    }
+    bool operator==(const _point&) const = default;
 };
 
 struct usize {
@@ -94,15 +86,7 @@ struct usize {
 
     inline bool contains(const urect& r) const;
 
-    bool operator==(const usize& o) const
-    {
-        return width == o.width && height == o.height;
-    }
-
-    bool operator!=(const usize& o) const
-    {
-        return width != o.width || height != o.height;
-    }
+    bool operator==(const usize&) const = default;
 };
 
 template <typename T>
@@ -238,15 +222,7 @@ struct _rect {
         return ret;
     }
 
-    bool operator==(const _rect& o) const
-    {
-        return x == o.x && y == o.y && width == o.width && height == o.height;
-    }
-
-    bool operator!=(const _rect& o) const
-    {
-        return x != o.x || y != o.y || width != o.width || height != o.height;
-    }
+    bool operator==(const _rect&) const = default;
 };
 
 inline usize usize::expand(const urect& r) const

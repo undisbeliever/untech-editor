@@ -39,6 +39,7 @@ struct FrameSetFile {
 
     FrameSetFile() = default;
 
+    // Cannot use default here.  I want std::unique_ptr value comparison.
     bool operator==(const FrameSetFile& o) const
     {
         if (filename != o.filename

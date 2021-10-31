@@ -17,12 +17,7 @@ struct TilesetInserterOutput {
     bool hFlip;
     bool vFlip;
 
-    bool operator==(const TilesetInserterOutput& o) const
-    {
-        return tileId == o.tileId
-               && hFlip == o.hFlip
-               && vFlip == o.vFlip;
-    }
+    bool operator==(const TilesetInserterOutput&) const = default;
 };
 
 template <size_t TS>

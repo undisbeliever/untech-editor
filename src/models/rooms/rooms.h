@@ -54,11 +54,7 @@ struct RoomSettings {
 
     unsigned roomDataSize = 16 * 1024;
 
-    bool operator==(const RoomSettings& o) const
-    {
-        return roomDataSize == o.roomDataSize;
-    }
-    bool operator!=(const RoomSettings& o) const { return !(*this == o); }
+    bool operator==(const RoomSettings&) const = default;
 };
 
 bool validate(const RoomSettings& input, ErrorList& err);
@@ -75,13 +71,7 @@ struct RoomEntrance {
     upoint position;
     RoomEntranceOrientation orientation;
 
-    bool operator==(const RoomEntrance& o) const
-    {
-        return name == o.name
-               && position == o.position
-               && orientation == o.orientation;
-    }
-    bool operator!=(const RoomEntrance& o) const { return !(*this == o); }
+    bool operator==(const RoomEntrance&) const = default;
 };
 
 struct EntityEntry {
@@ -92,14 +82,7 @@ struct EntityEntry {
 
     std::string parameter;
 
-    bool operator==(const EntityEntry& o) const
-    {
-        return name == o.name
-               && entityId == o.entityId
-               && position == o.position
-               && parameter == o.parameter;
-    }
-    bool operator!=(const EntityEntry& o) const { return !(*this == o); }
+    bool operator==(const EntityEntry&) const = default;
 };
 
 struct EntityGroup {
@@ -107,12 +90,7 @@ struct EntityGroup {
 
     std::vector<EntityEntry> entities;
 
-    bool operator==(const EntityGroup& o) const
-    {
-        return name == o.name
-               && entities == o.entities;
-    }
-    bool operator!=(const EntityGroup& o) const { return !(*this == o); }
+    bool operator==(const EntityGroup&) const = default;
 };
 
 struct ScriptTrigger {
@@ -121,12 +99,7 @@ struct ScriptTrigger {
 
     bool once;
 
-    bool operator==(const ScriptTrigger& o) const
-    {
-        return script == o.script
-               && aabb == o.aabb
-               && once == o.once;
-    }
+    bool operator==(const ScriptTrigger&) const = default;
 };
 
 struct RoomInput {
@@ -157,17 +130,7 @@ struct RoomInput {
 
     unsigned tileIndex(const upoint& p) const;
 
-    bool operator==(const RoomInput& o) const
-    {
-        return name == o.name
-               && scene == o.scene
-               && map == o.map
-               && entrances == o.entrances
-               && entityGroups == o.entityGroups
-               && roomScripts == o.roomScripts
-               && scriptTriggers == o.scriptTriggers;
-    }
-    bool operator!=(const RoomInput& o) const { return !(*this == o); }
+    bool operator==(const RoomInput&) const = default;
 };
 
 struct RoomData {

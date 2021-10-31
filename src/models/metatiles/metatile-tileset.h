@@ -98,10 +98,7 @@ struct TilePriorities {
         return { byteIndex, (data.at(byteIndex) & ~(1 << shift)) | (v << shift) };
     }
 
-    bool operator==(const TilePriorities& o) const
-    {
-        return data == o.data;
-    }
+    bool operator==(const TilePriorities&) const = default;
 };
 
 struct CrumblingTileChain {
@@ -121,14 +118,7 @@ struct CrumblingTileChain {
         return secondDelay != NO_THIRD_TRANSITION;
     }
 
-    bool operator==(const CrumblingTileChain& o) const
-    {
-        return firstTileId == o.firstTileId
-               && secondTileId == o.secondTileId
-               && thirdTileId == o.thirdTileId
-               && firstDelay == o.firstDelay
-               && secondDelay == o.secondDelay;
-    }
+    bool operator==(const CrumblingTileChain&) const = default;
 };
 
 struct MetaTileTilesetInput {
@@ -152,18 +142,7 @@ struct MetaTileTilesetInput {
 
     MetaTileTilesetInput();
 
-    bool operator==(const MetaTileTilesetInput& o) const
-    {
-        return name == o.name
-               && palettes == o.palettes
-               && animationFrames == o.animationFrames
-               && tileCollisions == o.tileCollisions
-               && tileFunctionTables == o.tileFunctionTables
-               && tilePriorities == o.tilePriorities
-               && crumblingTiles == o.crumblingTiles
-               && scratchpad == o.scratchpad;
-    }
-    bool operator!=(const MetaTileTilesetInput& o) const { return !(*this == o); }
+    bool operator==(const MetaTileTilesetInput&) const = default;
 };
 
 struct MetaTileTilesetData {

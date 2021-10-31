@@ -31,12 +31,7 @@ struct Instruction {
 
     bool yields = false;
 
-    bool operator==(const Instruction& o) const
-    {
-        return name == o.name
-               && arguments == o.arguments
-               && yields == o.yields;
-    }
+    bool operator==(const Instruction&) const = default;
 };
 
 struct BytecodeInput {
@@ -44,10 +39,7 @@ struct BytecodeInput {
 
     std::vector<Instruction> instructions;
 
-    bool operator==(const BytecodeInput& o) const
-    {
-        return instructions == o.instructions;
-    }
+    bool operator==(const BytecodeInput&) const = default;
 };
 
 struct InstructionData {

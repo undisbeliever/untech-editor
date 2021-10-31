@@ -28,13 +28,7 @@ struct MemoryMapSettings {
         return MappingMode::HIROM ? a : a + 0x8000;
     }
 
-    bool operator==(const MemoryMapSettings& o) const
-    {
-        return mode == o.mode
-               && firstBank == o.firstBank
-               && nBanks == o.nBanks;
-    }
-    bool operator!=(const MemoryMapSettings& o) const { return !(*this == o); }
+    bool operator==(const MemoryMapSettings&) const = default;
 };
 
 }

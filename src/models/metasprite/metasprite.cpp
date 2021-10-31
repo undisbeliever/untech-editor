@@ -108,17 +108,6 @@ Frame Frame::flip(bool hFlip, bool vFlip) const
     return ret;
 }
 
-bool Frame::operator==(const Frame& o) const
-{
-    return objects == o.objects
-           && actionPoints == o.actionPoints
-           && spriteOrder == o.spriteOrder
-           && tileHitbox == o.tileHitbox
-           && shield == o.shield
-           && hitbox == o.hitbox
-           && hurtbox == o.hurtbox;
-}
-
 /*
  * FRAME SET
  * =========
@@ -173,18 +162,6 @@ bool validate(const FrameSet& input, const ActionPointMapping& actionPointMappin
     }
 
     return valid;
-}
-
-bool FrameSet::operator==(const FrameSet& o) const
-{
-    return name == o.name
-           && tilesetType == o.tilesetType
-           && exportOrder == o.exportOrder
-           && smallTileset == o.smallTileset
-           && largeTileset == o.largeTileset
-           && palettes == o.palettes
-           && frames == o.frames
-           && animations == o.animations;
 }
 
 }

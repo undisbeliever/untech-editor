@@ -49,8 +49,7 @@ struct FrameSetGrid {
 
     usize originRange() const;
 
-    bool operator==(const FrameSetGrid& o) const;
-    bool operator!=(const FrameSetGrid& o) const { return !(*this == o); }
+    bool operator==(const FrameSetGrid&) const = default;
 };
 
 struct FrameLocation {
@@ -73,8 +72,7 @@ struct FrameLocation {
 
     usize originRange() const;
 
-    bool operator==(const FrameLocation& o) const;
-    bool operator!=(const FrameLocation& o) const { return !(*this == o); }
+    bool operator==(const FrameLocation&) const = default;
 };
 
 struct FrameObject {
@@ -100,11 +98,7 @@ struct FrameObject {
                       location.y + sizePx());
     }
 
-    bool operator==(const FrameObject& o) const
-    {
-        return this->location == o.location && this->size == o.size;
-    }
-    bool operator!=(const FrameObject& o) const { return !(*this == o); }
+    bool operator==(const FrameObject&) const = default;
 };
 
 struct ActionPoint {
@@ -118,11 +112,7 @@ struct ActionPoint {
     {
     }
 
-    bool operator==(const ActionPoint& o) const
-    {
-        return this->location == o.location && this->type == o.type;
-    }
-    bool operator!=(const ActionPoint& o) const { return !(*this == o); }
+    bool operator==(const ActionPoint&) const = default;
 };
 
 struct CollisionBox {
@@ -135,12 +125,7 @@ struct CollisionBox {
     {
     }
 
-    bool operator==(const CollisionBox& o) const
-    {
-        return aabb == o.aabb
-               && exists == o.exists;
-    }
-    bool operator!=(const CollisionBox& o) const { return !(*this == o); }
+    bool operator==(const CollisionBox&) const = default;
 };
 
 struct Frame {
@@ -162,8 +147,7 @@ struct Frame {
 
     usize minimumViableSize() const;
 
-    bool operator==(const Frame& o) const;
-    bool operator!=(const Frame& o) const { return !(*this == o); }
+    bool operator==(const Frame&) const = default;
 };
 
 struct UserSuppliedPalette {
@@ -196,13 +180,7 @@ struct UserSuppliedPalette {
         return usize(colorSize * PALETTE_COLORS, nPalettes * colorSize);
     }
 
-    bool operator==(const UserSuppliedPalette& o) const
-    {
-        return this->position == o.position
-               && this->nPalettes == o.nPalettes
-               && this->colorSize == o.colorSize;
-    }
-    bool operator!=(const UserSuppliedPalette& o) const { return !(*this == o); }
+    bool operator==(const UserSuppliedPalette&) const = default;
 };
 
 struct FrameSet {
@@ -225,8 +203,7 @@ struct FrameSet {
 
     void updateFrameLocations();
 
-    bool operator==(const FrameSet& o) const;
-    bool operator!=(const FrameSet& o) const { return !(*this == o); }
+    bool operator==(const FrameSet&) const = default;
 };
 
 bool validate(const FrameSet& fs, ErrorList& err);

@@ -25,6 +25,7 @@ struct ExternalFileItem {
     // may throw an exception
     void loadFile();
 
+    // Cannot use default here.  I want std::unique_ptr value comparison.
     bool operator==(const ExternalFileItem& o) const
     {
         if (filename != o.filename) {
@@ -42,7 +43,6 @@ struct ExternalFileItem {
         }
         return *value == *o.value;
     }
-    bool operator!=(const ExternalFileItem& o) const { return *this != o; }
 };
 
 template <typename T>
@@ -145,7 +145,6 @@ public:
         }
     }
 
-    bool operator==(const ExternalFileList& o) const { return _list == o._list; }
-    bool operator!=(const ExternalFileList& o) const { return _list != o._list; }
+    bool operator==(const ExternalFileList&) const = default;
 };
 }

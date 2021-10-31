@@ -77,34 +77,17 @@ struct ms8point {
         return flip(hFlip, vFlip, squareSize, squareSize);
     }
 
-    bool operator==(const ms8point& o) const
-    {
-        return x == o.x && y == o.y;
-    }
-
-    bool operator!=(const ms8point& o) const
-    {
-        return x != o.x || y != o.y;
-    }
+    bool operator==(const ms8point&) const = default;
 
     bool operator==(const point& o) const
     {
         return x == o.x && y == o.y;
     }
-
-    bool operator!=(const point& o) const
-    {
-        return x != o.x || y != o.y;
-    }
 };
 
 inline bool operator==(const point& a, const ms8point& b)
 {
-    return b == a;
-}
-inline bool operator!=(const point& a, const ms8point& b)
-{
-    return b != a;
+    return b.operator==(a);
 }
 
 struct ms8rect {
@@ -207,24 +190,11 @@ struct ms8rect {
         return r;
     }
 
-    bool operator==(const ms8rect& o) const
-    {
-        return x == o.x && y == o.y && width == o.width && height == o.height;
-    }
-
-    bool operator!=(const ms8rect& o) const
-    {
-        return x != o.x || y != o.y || width != o.width || height != o.height;
-    }
+    bool operator==(const ms8rect&) const = default;
 
     bool operator==(const rect& o) const
     {
         return x == o.x && y == o.y && width == o.width && height == o.height;
-    }
-
-    bool operator!=(const rect& o) const
-    {
-        return x != o.x || y != o.y || width != o.width || height != o.height;
     }
 };
 
@@ -232,8 +202,5 @@ inline bool operator==(const rect& a, const ms8rect& b)
 {
     return b == a;
 }
-inline bool operator!=(const rect& a, const ms8rect& b)
-{
-    return b != a;
-}
+
 }

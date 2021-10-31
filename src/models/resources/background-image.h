@@ -40,17 +40,7 @@ struct BackgroundImageInput {
 
     bool isBitDepthValid() const;
 
-    bool operator==(const BackgroundImageInput& o) const
-    {
-        return name == o.name
-               && bitDepth == o.bitDepth
-               && imageFilename == o.imageFilename
-               && conversionPlette == o.conversionPlette
-               && firstPalette == o.firstPalette
-               && nPalettes == o.nPalettes
-               && defaultOrder == o.defaultOrder;
-    }
-    bool operator!=(const BackgroundImageInput& o) const { return !(*this == o); }
+    bool operator==(const BackgroundImageInput&) const = default;
 };
 
 struct BackgroundImageData {

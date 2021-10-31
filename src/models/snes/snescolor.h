@@ -45,8 +45,7 @@ public:
     void setGreen(const uint8_t green);
     void setRed(const uint8_t red);
 
-    inline bool operator==(const SnesColor& o) const { return _data == o._data; }
-    inline bool operator!=(const SnesColor& o) const { return _data != o._data; }
+    bool operator==(const SnesColor&) const = default;
 };
 
 using Palette4bpp = std::array<SnesColor, 16>;

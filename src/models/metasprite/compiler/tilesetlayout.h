@@ -27,19 +27,8 @@ struct Tile16 {
     bool isLarge() const { return largeTileId != INVALID_SMALL_TILE; }
     bool isSmall() const { return largeTileId == INVALID_SMALL_TILE; }
 
-    bool operator==(const Tile16& o) const
-    {
-        return largeTileId == o.largeTileId && smallTileIds == o.smallTileIds;
-    }
-    bool operator!=(const Tile16& o) const
-    {
-        return !(*this == o);
-    }
-    bool operator<(const Tile16& o) const
-    {
-        return std::tie(largeTileId, smallTileIds)
-               < std::tie(o.largeTileId, o.smallTileIds);
-    }
+    bool operator==(const Tile16&) const = default;
+    auto operator<=>(const Tile16&) const = default;
 };
 
 struct TilesetLayout {

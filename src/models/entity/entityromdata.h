@@ -52,13 +52,7 @@ struct StructField {
     std::string defaultValue; // may be empty
     std::string comment;
 
-    bool operator==(const StructField& o) const
-    {
-        return name == o.name
-               && type == o.type
-               && defaultValue == o.defaultValue
-               && comment == o.comment;
-    }
+    bool operator==(const StructField&) const = default;
 };
 
 struct EntityRomStruct {
@@ -70,13 +64,7 @@ struct EntityRomStruct {
 
     EntityRomStruct() = default;
 
-    bool operator==(const EntityRomStruct& o) const
-    {
-        return name == o.name
-               && parent == o.parent
-               && comment == o.comment
-               && fields == o.fields;
-    }
+    bool operator==(const EntityRomStruct&) const = default;
 };
 
 using FieldList = std::vector<StructField>;
@@ -92,15 +80,7 @@ struct EntityFunctionTable {
 
     EntityFunctionTable() = default;
 
-    bool operator==(const EntityFunctionTable& o) const
-    {
-        return name == o.name
-               && entityType == o.entityType
-               && entityStruct == o.entityStruct
-               && exportOrder == o.exportOrder
-               && parameterType == o.parameterType
-               && comment == o.comment;
-    }
+    bool operator==(const EntityFunctionTable&) const = default;
 };
 
 using FunctionTableMap = std::unordered_map<idstring,
@@ -121,17 +101,7 @@ struct EntityRomEntry {
 
     std::unordered_map<idstring, std::string> fields;
 
-    bool operator==(const EntityRomEntry& o) const
-    {
-        return name == o.name
-               && functionTable == o.functionTable
-               && comment == o.comment
-               && initialProjectileId == o.initialProjectileId
-               && initialListId == o.initialListId
-               && frameSetId == o.frameSetId
-               && displayFrame == o.displayFrame
-               && fields == o.fields;
-    }
+    bool operator==(const EntityRomEntry&) const = default;
 };
 
 // Also validates the EntityRomDataStruct entries
@@ -147,15 +117,7 @@ struct EntityRomData {
     NamedList<EntityRomEntry> projectiles;
     NamedList<EntityRomEntry> players;
 
-    bool operator==(const EntityRomData& o) const
-    {
-        return listIds == o.listIds
-               && structs == o.structs
-               && functionTables == o.functionTables
-               && entities == o.entities
-               && projectiles == o.projectiles
-               && players == o.players;
-    }
+    bool operator==(const EntityRomData&) const = default;
 };
 
 struct CompiledEntityRomData {

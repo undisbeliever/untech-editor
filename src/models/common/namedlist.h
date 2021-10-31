@@ -137,10 +137,6 @@ public:
     void insert(const_iterator it, const T& value) { _list.insert(it, value); }
     void erase(const_iterator it) { _list.erase(it); }
 
-    bool operator==(const NamedList& o) const
-    {
-        return _list == o._list;
-    }
-    bool operator!=(const NamedList& o) const { return !(*this == o); }
+    bool operator==(const NamedList&) const = default;
 };
 }

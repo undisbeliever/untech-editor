@@ -53,13 +53,7 @@ struct SceneSettingsInput {
 
     std::array<LayerType, N_LAYERS> layerTypes;
 
-    bool operator==(const SceneSettingsInput& o) const
-    {
-        return name == o.name
-               && bgMode == o.bgMode
-               && layerTypes == o.layerTypes;
-    }
-    bool operator!=(const SceneSettingsInput& o) const { return !(*this == o); }
+    bool operator==(const SceneSettingsInput&) const = default;
 };
 
 struct SceneInput {
@@ -70,26 +64,14 @@ struct SceneInput {
 
     std::array<idstring, 4> layers;
 
-    bool operator==(const SceneInput& o) const
-    {
-        return name == o.name
-               && sceneSettings == o.sceneSettings
-               && palette == o.palette
-               && layers == o.layers;
-    }
-    bool operator!=(const SceneInput& o) const { return !(*this == o); }
+    bool operator==(const SceneInput&) const = default;
 };
 
 struct ResourceScenes {
     NamedList<SceneSettingsInput> settings;
     NamedList<SceneInput> scenes;
 
-    bool operator==(const ResourceScenes& o) const
-    {
-        return settings == o.settings
-               && scenes == o.scenes;
-    }
-    bool operator!=(const ResourceScenes& o) const { return !(*this == o); }
+    bool operator==(const ResourceScenes&) const = default;
 };
 
 struct SceneSettingsData {

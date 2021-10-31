@@ -22,15 +22,7 @@ struct ItemIndex {
     {
     }
 
-    bool operator==(const ItemIndex& o) const
-    {
-        return this->type == o.type
-               && this->index == o.index;
-    }
-    bool operator!=(const ItemIndex& o) const
-    {
-        return !(*this == o);
-    }
+    bool operator==(const ItemIndex&) const = default;
 };
 
 }

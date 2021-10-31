@@ -22,11 +22,7 @@ struct InteractiveTileFunctionTable {
     idstring name;
     rgba tint = rgba(255, 200, 0);
 
-    bool operator==(const InteractiveTileFunctionTable& o) const
-    {
-        return name == o.name
-               && tint == o.tint;
-    }
+    bool operator==(const InteractiveTileFunctionTable&) const = default;
 };
 
 struct InteractiveTiles {
@@ -48,10 +44,7 @@ struct InteractiveTiles {
         }
     }
 
-    bool operator==(const InteractiveTiles& o) const
-    {
-        return functionTables == o.functionTables;
-    }
+    bool operator==(const InteractiveTiles&) const = default;
 };
 
 struct InteractiveTilesData {

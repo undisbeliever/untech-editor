@@ -55,8 +55,7 @@ public:
         }
     }
 
-    bool operator==(const Tile& other) const { return this->_data == other._data; }
-    bool operator!=(const Tile& other) const { return this->_data != other._data; }
+    bool operator==(const Tile&) const = default;
 
 protected:
     std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};

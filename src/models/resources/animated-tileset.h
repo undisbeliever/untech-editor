@@ -39,15 +39,7 @@ struct AnimationFramesInput {
 
     bool isBitDepthValid() const;
 
-    bool operator==(const AnimationFramesInput& o) const
-    {
-        return frameImageFilenames == o.frameImageFilenames
-               && conversionPalette == o.conversionPalette
-               && animationDelay == o.animationDelay
-               && bitDepth == o.bitDepth
-               && addTransparentTile == o.addTransparentTile;
-    }
-    bool operator!=(const AnimationFramesInput& o) const { return !(*this == o); }
+    bool operator==(const AnimationFramesInput&) const = default;
 };
 
 struct AnimatedTilesetData {

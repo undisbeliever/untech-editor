@@ -68,14 +68,6 @@ usize FrameSetGrid::originRange() const
         std::min(MAX_ORIGIN, frameSize.height));
 }
 
-bool FrameSetGrid::operator==(const FrameSetGrid& o) const
-{
-    return frameSize == o.frameSize
-           && offset == o.offset
-           && padding == o.padding
-           && origin == o.origin;
-}
-
 /*
  * FRAME LOCATION
  * ==============
@@ -139,15 +131,6 @@ usize FrameLocation::originRange() const
     return usize(
         std::min(MAX_ORIGIN, aabb.width),
         std::min(MAX_ORIGIN, aabb.height));
-}
-
-bool FrameLocation::operator==(const FrameLocation& o) const
-{
-    return this->aabb == o.aabb
-           && this->origin == o.origin
-           && this->gridLocation == o.gridLocation
-           && this->useGridLocation == o.useGridLocation
-           && this->useGridOrigin == o.useGridOrigin;
 }
 
 /*
@@ -266,18 +249,6 @@ usize Frame::minimumViableSize() const
     }
 
     return limit;
-}
-
-bool Frame::operator==(const Frame& o) const
-{
-    return location == o.location
-           && objects == o.objects
-           && actionPoints == o.actionPoints
-           && spriteOrder == o.spriteOrder
-           && tileHitbox == o.tileHitbox
-           && shield == o.shield
-           && hitbox == o.hitbox
-           && hurtbox == o.hurtbox;
 }
 
 /*
@@ -401,19 +372,6 @@ void FrameSet::updateFrameLocations()
     for (Frame& frame : frames) {
         frame.location.update(grid, frame);
     }
-}
-
-bool FrameSet::operator==(const FrameSet& o) const
-{
-    return name == o.name
-           && tilesetType == o.tilesetType
-           && exportOrder == o.exportOrder
-           && imageFilename == o.imageFilename
-           && palette == o.palette
-           && grid == o.grid
-           && transparentColor == o.transparentColor
-           && frames == o.frames
-           && animations == o.animations;
 }
 
 }

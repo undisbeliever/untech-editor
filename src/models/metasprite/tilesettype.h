@@ -51,11 +51,9 @@ public:
 
     inline operator Enum() const { return _value; }
 
-    inline bool operator==(const TilesetType& o) const { return _value == o._value; }
-    inline bool operator==(Enum e) const { return _value == e; }
+    bool operator==(const TilesetType&) const = default;
 
-    inline bool operator!=(const TilesetType& o) const { return _value != o._value; }
-    inline bool operator!=(Enum e) const { return _value != e; }
+    bool operator==(Enum e) const { return _value == e; }
 
 private:
     Enum _value;

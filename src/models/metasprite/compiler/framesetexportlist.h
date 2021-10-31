@@ -19,15 +19,7 @@ struct AnimationListEntry {
     const bool hFlip;
     const bool vFlip;
 
-    inline bool operator==(const AnimationListEntry& o) const
-    {
-        return animation == o.animation && hFlip == o.hFlip && vFlip == o.vFlip;
-    }
-
-    inline bool operator<(const AnimationListEntry& o) const
-    {
-        return std::tie(animation, hFlip, vFlip) < std::tie(o.animation, o.hFlip, o.vFlip);
-    }
+    bool operator==(const AnimationListEntry&) const = default;
 };
 
 struct FrameListEntry {
@@ -35,15 +27,7 @@ struct FrameListEntry {
     const bool hFlip;
     const bool vFlip;
 
-    inline bool operator==(const FrameListEntry& o) const
-    {
-        return frame == o.frame && hFlip == o.hFlip && vFlip == o.vFlip;
-    }
-
-    inline bool operator<(const FrameListEntry& o) const
-    {
-        return std::tie(frame, hFlip, vFlip) < std::tie(o.frame, o.hFlip, o.vFlip);
-    }
+    bool operator==(const FrameListEntry&) const = default;
 };
 
 struct FrameSetExportList {

@@ -32,15 +32,7 @@ struct PaletteInput {
     // returns 0 frames if input is invalid
     unsigned nFrames() const;
 
-    bool operator==(const PaletteInput& o) const
-    {
-        return name == o.name
-               && paletteImageFilename == o.paletteImageFilename
-               && rowsPerFrame == o.rowsPerFrame
-               && animationDelay == o.animationDelay
-               && skipFirstFrame == o.skipFirstFrame;
-    }
-    bool operator!=(const PaletteInput& o) const { return !(*this == o); }
+    bool operator==(const PaletteInput&) const = default;
 };
 
 struct PaletteData {

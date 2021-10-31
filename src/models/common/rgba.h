@@ -69,20 +69,10 @@ struct alignas(4) rgba {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    inline bool operator==(const rgba& o) const
-    {
-        return red == o.red
-               && green == o.green
-               && blue == o.blue
-               && alpha == o.alpha;
-    }
+    bool operator==(const rgba&) const = default;
 
-    inline bool operator!=(const rgba& o) const
-    {
-        return !(*this == o);
-    }
-
-    inline bool operator<(const rgba& o) const
+    // Cannot default: Comparison preformed in reverse order
+    bool operator<(const rgba& o) const
     {
         return std::tie(alpha, blue, green, red) < std::tie(o.alpha, o.blue, o.green, o.red);
     }

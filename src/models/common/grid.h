@@ -196,13 +196,7 @@ public:
     const_reverse_iterator crbegin() const { return _grid.crbegin(); }
     const_reverse_iterator crend() const { return _grid.crend(); }
 
-    bool operator==(const grid<T>& o) const
-    {
-        return _width == o._width
-               && _height == o._height
-               && _grid == o._grid;
-    }
-    bool operator!=(const grid<T>& o) const { return !(*this == o); }
+    bool operator==(const grid<T>&) const = default;
 
 private:
     void _rangeCheck(unsigned x, unsigned y) const

@@ -46,33 +46,20 @@ struct Conditional {
     ComparisonType comparison;
     std::string value;
 
-    bool operator==(const Conditional& o) const
-    {
-        return type == o.type
-               && variable == o.variable
-               && comparison == o.comparison
-               && value == o.value;
-    }
+    bool operator==(const Conditional&) const = default;
 };
 
 struct Statement {
     idstring opcode;
     std::array<std::string, 2> arguments;
 
-    bool operator==(const Statement& o) const
-    {
-        return opcode == o.opcode
-               && arguments == o.arguments;
-    }
+    bool operator==(const Statement&) const = default;
 };
 
 struct Comment {
     std::string text;
 
-    bool operator==(const Comment& o) const
-    {
-        return text == o.text;
-    }
+    bool operator==(const Comment&) const = default;
 };
 
 struct IfStatement {
@@ -80,6 +67,7 @@ struct IfStatement {
     std::vector<ScriptNode> thenStatements;
     std::vector<ScriptNode> elseStatements;
 
+    // Cannot use default here, ScriptNode is incomplete.
     bool operator==(const IfStatement& o) const;
 };
 
@@ -87,6 +75,7 @@ struct WhileStatement {
     Conditional condition;
     std::vector<ScriptNode> statements;
 
+    // Cannot use default here, ScriptNode is incomplete.
     bool operator==(const WhileStatement& o) const;
 };
 
@@ -97,7 +86,7 @@ struct Script {
 
     std::vector<ScriptNode> statements;
 
-    bool operator==(const Script& o) const;
+    bool operator==(const Script&) const = default;
 };
 
 struct RoomScripts {
@@ -110,13 +99,7 @@ struct RoomScripts {
 
     NamedList<Scripting::Script> scripts;
 
-    bool operator==(const RoomScripts& o) const
-    {
-        return tempFlags == o.tempFlags
-               && tempWords == o.tempWords
-               && startupScript == o.startupScript
-               && scripts == o.scripts;
-    }
+    bool operator==(const RoomScripts&) const = default;
 };
 
 extern const idstring STARTUP_SCRIPT_NAME;
@@ -131,12 +114,6 @@ inline bool IfStatement::operator==(const IfStatement& o) const
 inline bool WhileStatement::operator==(const WhileStatement& o) const
 {
     return condition == o.condition
-           && statements == o.statements;
-}
-
-inline bool Script::operator==(const Script& o) const
-{
-    return name == o.name
            && statements == o.statements;
 }
 

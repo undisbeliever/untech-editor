@@ -47,15 +47,7 @@ struct NameReference {
 
     std::string str() const;
 
-    bool operator==(const NameReference& o) const
-    {
-        return name == o.name && hFlip == o.hFlip && vFlip == o.vFlip;
-    }
-
-    bool operator!=(const NameReference& o) const
-    {
-        return name != o.name || hFlip != o.hFlip || vFlip != o.vFlip;
-    }
+    bool operator==(const NameReference&) const = default;
 };
 
 struct ActionPointFunction {
@@ -65,11 +57,7 @@ struct ActionPointFunction {
     // "Project.ActionPoints" namespace.
     bool manuallyInvoked = false;
 
-    bool operator==(const ActionPointFunction& o) const
-    {
-        return name == o.name
-               && manuallyInvoked == o.manuallyInvoked;
-    }
+    bool operator==(const ActionPointFunction&) const = default;
 };
 
 using ActionPointMapping = std::unordered_map<idstring, uint8_t>;

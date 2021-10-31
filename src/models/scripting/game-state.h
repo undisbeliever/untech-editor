@@ -31,11 +31,7 @@ struct GameStateFlag {
     idstring name; // Is allowed to be empty
     idstring room; // If empty then flag is global
 
-    bool operator==(const GameStateFlag& o) const
-    {
-        return name == o.name
-               && room == o.room;
-    }
+    bool operator==(const GameStateFlag&) const = default;
 };
 
 struct GameStateWord {
@@ -43,12 +39,7 @@ struct GameStateWord {
     idstring room; // If empty then flag is global
     uint16_t initialValue = 0;
 
-    bool operator==(const GameStateWord& o) const
-    {
-        return name == o.name
-               && room == o.room
-               && initialValue == o.initialValue;
-    }
+    bool operator==(const GameStateWord&) const = default;
 };
 
 struct GameState {
@@ -62,14 +53,7 @@ struct GameState {
     std::vector<GameStateFlag> flags;
     std::vector<GameStateWord> words;
 
-    bool operator==(const GameState& o) const
-    {
-        return startingRoom == o.startingRoom
-               && startingEntrance == o.startingEntrance
-               && startingPlayer == o.startingPlayer
-               && flags == o.flags
-               && words == o.words;
-    }
+    bool operator==(const GameState&) const = default;
 };
 
 struct GameStateData {

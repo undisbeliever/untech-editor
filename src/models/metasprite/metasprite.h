@@ -53,13 +53,7 @@ struct FrameObject {
 
     inline unsigned sizePx() const { return static_cast<unsigned>(size); }
 
-    bool operator==(const FrameObject& o) const
-    {
-        return this->location == o.location && this->size == o.size
-               && this->tileId == o.tileId && this->hFlip == o.hFlip
-               && this->vFlip == o.vFlip;
-    }
-    bool operator!=(const FrameObject& o) const { return !(*this == o); }
+    bool operator==(const FrameObject&) const = default;
 };
 
 struct ActionPoint {
@@ -73,11 +67,7 @@ struct ActionPoint {
     {
     }
 
-    bool operator==(const ActionPoint& o) const
-    {
-        return this->location == o.location && this->type == o.type;
-    }
-    bool operator!=(const ActionPoint& o) const { return !(*this == o); }
+    bool operator==(const ActionPoint&) const = default;
 };
 
 struct CollisionBox {
@@ -90,12 +80,7 @@ struct CollisionBox {
     {
     }
 
-    bool operator==(const CollisionBox& o) const
-    {
-        return aabb == o.aabb
-               && exists == o.exists;
-    }
-    bool operator!=(const CollisionBox& o) const { return !(*this == o); }
+    bool operator==(const CollisionBox&) const = default;
 };
 
 struct Frame {
@@ -116,8 +101,7 @@ struct Frame {
 
     Frame flip(bool hFlip, bool vFlip) const;
 
-    bool operator==(const Frame& o) const;
-    bool operator!=(const Frame& o) const { return !(*this == o); }
+    bool operator==(const Frame&) const = default;
 };
 
 struct FrameSet {
@@ -145,8 +129,7 @@ struct FrameSet {
     {
     }
 
-    bool operator==(const FrameSet& o) const;
-    bool operator!=(const FrameSet& o) const { return !(*this == o); }
+    bool operator==(const FrameSet&) const = default;
 };
 
 bool validate(const FrameSet& input, const ActionPointMapping& actionPointMapping, ErrorList& errorList);

@@ -31,11 +31,7 @@ struct ProjectSettings {
     MemoryMapSettings memoryMap;
     Rooms::RoomSettings roomSettings;
 
-    bool operator==(const ProjectSettings& o) const
-    {
-        return memoryMap == o.memoryMap
-               && roomSettings == o.roomSettings;
-    }
+    bool operator==(const ProjectSettings&) const = default;
 };
 
 bool validateProjectSettings(const ProjectSettings& input, ErrorList& err);
@@ -66,23 +62,7 @@ struct ProjectFile {
 
     void loadAllFilesIgnoringErrors();
 
-    bool operator==(const ProjectFile& o) const
-    {
-        return projectSettings == o.projectSettings
-               && gameState == o.gameState
-               && bytecode == o.bytecode
-               && interactiveTiles == o.interactiveTiles
-               && entityRomData == o.entityRomData
-               && resourceScenes == o.resourceScenes
-               && palettes == o.palettes
-               && backgroundImages == o.backgroundImages
-               && metaTileTilesets == o.metaTileTilesets
-               && actionPointFunctions == o.actionPointFunctions
-               && frameSets == o.frameSets
-               && frameSetExportOrders == o.frameSetExportOrders
-               && rooms == o.rooms;
-    }
-    bool operator!=(const ProjectFile& o) const { return !(*this == o); }
+    bool operator==(const ProjectFile&) const = default;
 };
 
 std::unique_ptr<ProjectFile> loadProjectFile(const std::filesystem::path& filename);

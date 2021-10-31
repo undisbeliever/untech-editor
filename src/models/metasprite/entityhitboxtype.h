@@ -50,14 +50,7 @@ struct EntityHitboxType {
 
     static EntityHitboxType from_string(const std::string& string);
 
-    inline bool operator==(const EntityHitboxType& o) const
-    {
-        return weak == o.weak
-               && shield == o.shield
-               && attack == o.attack
-               && body == o.body;
-    }
-    inline bool operator!=(const EntityHitboxType& o) const { return !(*this == o); }
+    bool operator==(const EntityHitboxType&) const = default;
 };
 
 }

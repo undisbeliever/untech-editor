@@ -42,11 +42,9 @@ public:
 
     inline operator Enum() const { return _value; }
 
-    inline bool operator==(const DurationFormat& o) const { return _value == o._value; }
-    inline bool operator==(Enum e) const { return _value == e; }
+    bool operator==(const DurationFormat&) const = default;
 
-    inline bool operator!=(const DurationFormat& o) const { return _value != o._value; }
-    inline bool operator!=(Enum e) const { return _value != e; }
+    bool operator==(Enum e) const { return _value == e; }
 
 private:
     Enum _value;
