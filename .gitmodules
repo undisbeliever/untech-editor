@@ -11,3 +11,6 @@
 [submodule "src/vendor/imgui-filebrowser"]
 	path = src/vendor/imgui-filebrowser
 	url = https://github.com/AirGuanZ/imgui-filebrowser.git
+[submodule "src/vendor/gl3w/gl3w"]
+	path = src/vendor/gl3w/gl3w
+	url = https://github.com/skaslev/gl3w.git

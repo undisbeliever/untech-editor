@@ -265,8 +265,8 @@ THIRD_PARTY_OBJS := $(THIRD_PARTY_LODEPNG) $(THIRD_PARTY_LZ4)
 THIRD_PARTY_IMGUI_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, imgui.o imgui_draw.o imgui_tables.o imgui_widgets.o imgui_stdlib.o)
 
 THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl.o)
-IMGUI_CXXFLAGS              := -DIMGUI_IMPL_SDL_OPENGL -DIMGUI_IMPL_OPENGL_LOADER_GL3W -Isrc/vendor/imgui/examples/libs/gl3w
-IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui -Isrc/vendor/imgui/examples/libs/gl3w
+IMGUI_CXXFLAGS              := -DIMGUI_IMPL_SDL_OPENGL -DIMGUI_IMPL_OPENGL_LOADER_GL3W -Isrc/vendor/gl3w/include
+IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui -Isrc/vendor/gl3w/include
 
 # Required to compile editor GUI in ubuntu. On ubuntu `sdl2-config --libs` does output `-pthread`
 IMGUI_LDFLAGS               := -pthread
@@ -392,8 +392,8 @@ $(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/backends/%.cpp
 $(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/misc/cpp/%.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/examples/libs/gl3w/GL/%.c
-	$(CC) $(CFLAGS) $(CXXWARNINGS) -Isrc/vendor/imgui/examples/libs/gl3w -c -o $@ $<
+$(OBJ_DIR)/vendor/imgui/gl3w.o: src/vendor/gl3w/src/gl3w.c
+	$(CC) $(CFLAGS) $(CXXWARNINGS) -Isrc/vendor/gl3w/include -c -o $@ $<
 
 
 $(OBJ_DIR)/%.o: src/%.cpp

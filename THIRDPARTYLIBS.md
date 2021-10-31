@@ -19,3 +19,10 @@ directory:
  * [imgui-filebrowser](https://github.com/AirGuanZ/imgui-filebrowser) -
    Copyright (c) 2019-2020 Zhuang Guan,
    [MIT License](https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE)
+
+ * [gl3w](https://github.com/skaslev/gl3w),
+   [Public Domain](https://github.com/skaslev/gl3w/blob/master/UNLICENSE)
+
+ * glcorearb.h -
+   Copyright 2013-2020 The Khronos Group Inc.
+   [MIT License](src/vendor/gl3w/include/GL/glcorearb.h)

@@ -152,6 +152,20 @@ void processGui()
                                "MIT License, https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE  \n\n"s);
         ImGui::Unindent();
 
+#ifdef IMGUI_IMPL_OPENGL_LOADER_GL3W
+        ImGui::TextUnformatted("gl3w"s);
+        ImGui::Indent();
+        ImGui::TextUnformatted("https://github.com/skaslev/gl3w\n"
+                               "Public Domain, https://github.com/skaslev/gl3w/blob/master/UNLICENSE  \n\n"s);
+        ImGui::Unindent();
+
+        ImGui::TextUnformatted("glcorearb.h"s);
+        ImGui::Indent();
+        ImGui::TextUnformatted("Copyright 2013-2020 The Khronos Group Inc.\n"
+                               "MIT License  \n\n"s);
+        ImGui::Unindent();
+#endif
+
         ImGui::Unindent();
         ImGui::Spacing();
         ImGui::Separator();
