@@ -126,7 +126,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
     if (ImGui::Begin("Game State")) {
         const auto& style = ImGui::GetStyle();
 
-        const ImVec2 childSize = ImVec2((ImGui::GetWindowContentRegionWidth() - style.ItemSpacing.x) / 2, 0);
+        const ImVec2 childSize = ImVec2((ImGui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2, 0);
 
         if (ImGui::IdStringCombo("Starting Room", &gameState.startingRoom, projectFile.rooms)) {
             EditorActions<AP::GameState>::fieldEdited<

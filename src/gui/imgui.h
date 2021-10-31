@@ -103,9 +103,9 @@ bool ToggledButtonWithTooltip(const char* label, bool selected, const char* tool
 bool ToggledButtonWithTooltip(const char* label, bool* selected, const char* tooltip, const ImVec2& size = ImVec2(0, 0));
 
 template <class T>
-void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, const UnTech::NamedList<T>& list, int heightInItems = -1)
+void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, const UnTech::NamedList<T>& list)
 {
-    if (ImGui::ListBoxHeader(label, list.size(), heightInItems)) {
+    if (ImGui::BeginListBox(label)) {
         for (const auto [i, item] : enumerate(list)) {
             const char* name = item.name.c_str();
 
@@ -113,7 +113,7 @@ void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, cons
             ImGui::Selectable(name, sel, i);
             ImGui::PopID();
         }
-        ImGui::ListBoxFooter();
+        ImGui::EndListBox();
     }
 }
 

@@ -503,7 +503,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
         ListButtons<AP::Frames_EditName>(_data);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
+        ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames);
 
         ImGui::Spacing();
         ImGui::Separator();

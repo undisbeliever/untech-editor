@@ -271,6 +271,10 @@ IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui
 # Required to compile editor GUI in ubuntu. On ubuntu `sdl2-config --libs` does output `-pthread`
 IMGUI_LDFLAGS               := -pthread
 
+# Disable to-be-obsoleted Dear ImGui symbols
+IMGUI_CXXFLAGS += -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS
+
+
 $(OBJ_DIR)/gui/main.o: IMGUI_CXXFLAGS += -Isrc/vendor/imgui
 
 

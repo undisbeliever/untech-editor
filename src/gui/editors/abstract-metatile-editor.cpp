@@ -506,8 +506,8 @@ void AbstractMetaTileEditorGui::drawTileset(const Geometry& geo)
         const ImVec2 pMin = geo.tilePosToVec2(x, y);
         const ImVec2 pMax = pMin + geo.tileSize + ImVec2(1.0f, 1.0f);
 
-        drawList->AddRectFilled(pMin, pMax, Style::tileSelectionFillColor, 0.0f, ImDrawCornerFlags_None);
-        drawList->AddRect(pMin, pMax, Style::tileSelectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRectFilled(pMin, pMax, Style::tileSelectionFillColor, 0.0f, ImDrawFlags_RoundCornersNone);
+        drawList->AddRect(pMin, pMax, Style::tileSelectionOutlineColor, 0.0f, ImDrawFlags_RoundCornersNone);
     }
 
     const bool sc = tilesetSelector.processSelection(&_data->selectedTilesetTiles, geo,
@@ -634,8 +634,8 @@ void AbstractMetaTileEditorGui::drawSelection(const upoint_vectorset& selection,
         const ImVec2 pMin = geo.tilePosToVec2(p);
         const ImVec2 pMax = pMin + geo.tileSize + ImVec2(1.0f, 1.0f);
 
-        drawList->AddRectFilled(pMin, pMax, Style::tileSelectionFillColor, 0.0f, ImDrawCornerFlags_None);
-        drawList->AddRect(pMin, pMax, Style::tileSelectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRectFilled(pMin, pMax, Style::tileSelectionFillColor, 0.0f, ImDrawFlags_RoundCornersNone);
+        drawList->AddRect(pMin, pMax, Style::tileSelectionOutlineColor, 0.0f, ImDrawFlags_RoundCornersNone);
     }
 }
 
@@ -796,7 +796,7 @@ void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, con
                     const ImU32 color = bounds.contains(point(x, y)) ? Style::tileCursorInBoundsOutline : Style::tileCursorOutOfBoundsOutline;
                     const ImVec2 pMax = p + geo.tileSize + ImVec2(1.0f, 1.0f);
 
-                    drawList->AddRect(p, pMax, color, 0.0f, ImDrawCornerFlags_None);
+                    drawList->AddRect(p, pMax, color, 0.0f, ImDrawFlags_RoundCornersNone);
                 }
                 p.x += geo.tileSize.x;
             }

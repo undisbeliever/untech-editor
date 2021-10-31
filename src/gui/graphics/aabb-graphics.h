@@ -307,7 +307,7 @@ public:
         const auto pos = ImGui::GetWindowPos();
         const auto size = ImGui::GetWindowSize();
 
-        drawList->AddRectFilled(pos, pos + size, color, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRectFilled(pos, pos + size, color, 0.0f, ImDrawFlags_RoundCornersNone);
     }
 
     template <typename RectT>
@@ -342,19 +342,19 @@ public:
 
         // top
         if (wp1.y < p1.y) {
-            drawList->AddRectFilled(ImVec2(wp1.x, wp1.y), ImVec2(wp2.x, p1.y), color, 0.0f, ImDrawCornerFlags_None);
+            drawList->AddRectFilled(ImVec2(wp1.x, wp1.y), ImVec2(wp2.x, p1.y), color, 0.0f, ImDrawFlags_RoundCornersNone);
         }
         // bottom
         if (wp2.y > p2.y) {
-            drawList->AddRectFilled(ImVec2(wp1.x, p2.y), ImVec2(wp2.x, wp2.y), color, 0.0f, ImDrawCornerFlags_None);
+            drawList->AddRectFilled(ImVec2(wp1.x, p2.y), ImVec2(wp2.x, wp2.y), color, 0.0f, ImDrawFlags_RoundCornersNone);
         }
         // left
         if (wp1.x < p1.x && p2.y > p1.y) {
-            drawList->AddRectFilled(ImVec2(wp1.x, p1.y), ImVec2(p1.x, p2.y), color, 0.0f, ImDrawCornerFlags_None);
+            drawList->AddRectFilled(ImVec2(wp1.x, p1.y), ImVec2(p1.x, p2.y), color, 0.0f, ImDrawFlags_RoundCornersNone);
         }
         // right
         if (wp2.x > p2.x && p2.y > p1.y) {
-            drawList->AddRectFilled(ImVec2(p2.x, p1.y), ImVec2(wp2.x, p2.y), color, 0.0f, ImDrawCornerFlags_None);
+            drawList->AddRectFilled(ImVec2(p2.x, p1.y), ImVec2(wp2.x, p2.y), color, 0.0f, ImDrawFlags_RoundCornersNone);
         }
     }
 
@@ -363,8 +363,8 @@ public:
         const ImVec2 pMin = toVec2(rect.x1, rect.y1);
         const ImVec2 pMax = toVec2(rect.x2, rect.y2);
 
-        drawList->AddRectFilled(pMin, pMax, fillCol, 0.0f, ImDrawCornerFlags_None);
-        drawList->AddRect(pMin, pMax, outlineCol, 0.0f, ImDrawCornerFlags_None, filledOutlineThickness);
+        drawList->AddRectFilled(pMin, pMax, fillCol, 0.0f, ImDrawFlags_RoundCornersNone);
+        drawList->AddRect(pMin, pMax, outlineCol, 0.0f, ImDrawFlags_RoundCornersNone, filledOutlineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, outlineCol);
@@ -377,7 +377,7 @@ public:
         const ImVec2 pMin = toVec2(point->x, point->y);
         const ImVec2 pMax = toVec2(point->x + 1, point->y + 1);
 
-        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, lineThickness);
+        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawFlags_RoundCornersNone, lineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, color);
@@ -390,7 +390,7 @@ public:
         const ImVec2 pMin = toVec2(rect->left(), rect->top());
         const ImVec2 pMax = toVec2(rect->right(), rect->bottom());
 
-        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, lineThickness);
+        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawFlags_RoundCornersNone, lineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, color);
@@ -404,8 +404,8 @@ public:
         const ImVec2 pMin = toVec2(rect.x1, rect.y1);
         const ImVec2 pMax = toVec2(rect.x2, rect.y2);
 
-        drawList->AddRectFilled(pMin, pMax, fillColor, 0.0f, ImDrawCornerFlags_None);
-        drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
+        drawList->AddRectFilled(pMin, pMax, fillColor, 0.0f, ImDrawFlags_RoundCornersNone);
+        drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawFlags_RoundCornersNone, lineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, outlineColor);
@@ -805,7 +805,7 @@ public:
         const ImVec2 pMin = toVec2(point->x, point->y);
         const ImVec2 pMax = toVec2(point->x + squareSize, point->y + squareSize);
 
-        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, lineThickness);
+        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawFlags_RoundCornersNone, lineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, color);
@@ -885,7 +885,7 @@ public:
             case State::NONE:
             case State::CLICK:
             case State::SELECT_DRAG: {
-                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
+                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawFlags_RoundCornersNone, lineThickness);
             } break;
 
             case State::MOVE_DRAG:
@@ -956,7 +956,7 @@ public:
         if (_isHovered || selected) {
 
             if (selected) {
-                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
+                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawFlags_RoundCornersNone, lineThickness);
                 _selectedAabb.emplace_back(pMin, pMax, outlineColor);
             }
             else {
@@ -965,7 +965,7 @@ public:
                 case State::NONE:
                 case State::CLICK:
                 case State::SELECT_DRAG: {
-                    drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
+                    drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawFlags_RoundCornersNone, lineThickness);
                 } break;
 
                 case State::MOVE_DRAG:
@@ -992,7 +992,7 @@ public:
         // MUST not use _mousePos, _bounds or _dragSelect in the function.
 
         for (const auto& sel : _selectedAabb) {
-            drawList->AddRect(sel.pMin, sel.pMax, sel.col, 0.0f, ImDrawCornerFlags_None, selectedLineThickness);
+            drawList->AddRect(sel.pMin, sel.pMax, sel.col, 0.0f, ImDrawFlags_RoundCornersNone, selectedLineThickness);
         }
 
         switch (_currentState) {
@@ -1023,8 +1023,8 @@ public:
             const ImVec2 p1 = ImGui::GetMousePos();
             const ImVec2 p2 = p1 - ImGui::GetMouseDragDelta(0);
 
-            drawList->AddRectFilled(p1, p2, dragSelectCol, 0.0f, ImDrawCornerFlags_None);
-            drawList->AddRect(p1, p2, dragSelectOutline, 0.0f, ImDrawCornerFlags_None, 1.0f);
+            drawList->AddRectFilled(p1, p2, dragSelectCol, 0.0f, ImDrawFlags_RoundCornersNone);
+            drawList->AddRect(p1, p2, dragSelectOutline, 0.0f, ImDrawFlags_RoundCornersNone, 1.0f);
         } break;
 
         case State::MOVE_DRAG:

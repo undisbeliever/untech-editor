@@ -551,7 +551,7 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
         ListButtons<AP::Frames_EditName>(_data);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
+        ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames);
 
         ImGui::Spacing();
         ImGui::Separator();
@@ -1052,8 +1052,8 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
                           offset.y + int(tileId / TILES_PER_ROW) * tileSize);
         const ImVec2 pMax(pMin.x + tileSize, pMin.y + tileSize);
 
-        drawList->AddRect(pMin, pMax, IM_COL32_WHITE, 0.0f, ImDrawCornerFlags_None, 3.0f);
-        drawList->AddRect(pMin, pMax, IM_COL32_BLACK, 0.0f, ImDrawCornerFlags_None, 1.0f);
+        drawList->AddRect(pMin, pMax, IM_COL32_WHITE, 0.0f, ImDrawFlags_RoundCornersNone, 3.0f);
+        drawList->AddRect(pMin, pMax, IM_COL32_BLACK, 0.0f, ImDrawFlags_RoundCornersNone, 1.0f);
     }
 
     ImGui::InvisibleButton(label, imageSize);
@@ -1119,7 +1119,7 @@ void MetaSpriteEditorGui::tilesetWindow()
 
         ImGui::BeginChild("Scroll");
 
-        const int z = std::max<int>(1, ImGui::GetContentRegionAvailWidth() / _tilesetTexture.width());
+        const int z = std::max<int>(1, ImGui::GetContentRegionAvail().x / _tilesetTexture.width());
 
         auto* drawList = ImGui::GetWindowDrawList();
 

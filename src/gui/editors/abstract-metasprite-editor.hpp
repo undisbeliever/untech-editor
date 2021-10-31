@@ -40,7 +40,7 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
         ListButtons<typename AP::Animations_EditName>(editor);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::NamedListListBox("##AnimationList", &editor->animationsSel, frameSet->animations, 8);
+        ImGui::NamedListListBox("##AnimationList", &editor->animationsSel, frameSet->animations);
 
         ImGui::Spacing();
         ImGui::Separator();

@@ -46,7 +46,7 @@ void InvalidImageErrorGraphics::draw(ImDrawList* drawList, const ImVec2& zoom, c
         const ImVec2 p1(tile.rect.x1 * zoom.x + screenOffset.x, tile.rect.y1 * zoom.y + screenOffset.y);
         const ImVec2 p2(tile.rect.x2 * zoom.x + screenOffset.x, tile.rect.y2 * zoom.y + screenOffset.y);
 
-        drawList->AddRect(p1, p2, Style::invalidOutlineColor, 0.0, ImDrawCornerFlags_None, lineThickness);
+        drawList->AddRect(p1, p2, Style::invalidOutlineColor, 0.0, ImDrawFlags_RoundCornersNone, lineThickness);
     }
 
     if (ImGui::IsWindowHovered()) {

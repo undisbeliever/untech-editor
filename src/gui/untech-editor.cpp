@@ -506,12 +506,13 @@ void UnTechEditor::unsavedChangesOnExitPopup()
 
         ImGui::Indent();
 
+        const ImVec2 unsavedListSize(0, ImGui::GetTextLineHeightWithSpacing() * 4.25f);
         ImGui::SetNextItemWidth(-style.IndentSpacing);
-        if (ImGui::ListBoxHeader("##UnsavedFiles", _unsavedFilesList.size(), 4)) {
+        if (ImGui::BeginListBox("##UnsavedFiles", unsavedListSize)) {
             for (const auto& f : _unsavedFilesList) {
                 ImGui::TextUnformatted(f);
             }
-            ImGui::ListBoxFooter();
+            ImGui::EndListBox();
         }
 
         ImGui::Unindent();
