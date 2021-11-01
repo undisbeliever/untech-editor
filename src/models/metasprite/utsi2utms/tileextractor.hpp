@@ -66,7 +66,7 @@ public:
         assert(xOffset + TILE_SIZE <= image.size().width);
 
         Snes::Tile<TILE_SIZE> tile;
-        uint8_t* tData = tile.rawData();
+        auto tData = tile.data().begin();
 
         for (const auto y : range(TILE_SIZE)) {
             const auto imgBits = image.scanline(yOffset + y).subspan(xOffset, TILE_SIZE);
@@ -75,6 +75,7 @@ public:
                 *tData++ = colorMap.at(c);
             }
         }
+        assert(tData == tile.data().end());
 
         return tile;
     }
@@ -104,8 +105,6 @@ markOverlappedPixels(const Snes::Tile<OVER_SIZE>& overTile,
     constexpr int overSize = OVER_SIZE;
     constexpr int underSize = UNDER_SIZE;
 
-    const uint8_t* overTileData = overTile.rawData();
-
     std::array<bool, underSize* underSize> ret = {};
 
     for (const auto oY : irange(overSize)) {
@@ -116,7 +115,7 @@ markOverlappedPixels(const Snes::Tile<OVER_SIZE>& overTile,
                 int uX = oX + xOffset;
 
                 if (uX >= 0 && uX < underSize) {
-                    if (overTileData[oY * overSize + oX] != 0) {
+                    if (overTile.pixel(oX, oY) != 0) {
                         ret[uY * underSize + uX] = true;
                     }
                 }
@@ -139,9 +138,6 @@ static void clearCommonOverlappedTiles(Snes::Tile<OVER_SIZE>& overTile,
     constexpr int overSize = OVER_SIZE;
     constexpr int underSize = UNDER_SIZE;
 
-    uint8_t* overTileData = overTile.rawData();
-    uint8_t* underTileData = underTile.rawData();
-
     for (const auto oY : irange(overSize)) {
         int uY = oY + yOffset;
 
@@ -150,8 +146,8 @@ static void clearCommonOverlappedTiles(Snes::Tile<OVER_SIZE>& overTile,
                 int uX = oX + xOffset;
 
                 if (uX >= 0 && uX < underSize) {
-                    if (overTileData[oY * overSize + oX] == underTileData[uY * underSize + uX]) {
-                        overTileData[oY * overSize + oX] = 0;
+                    if (overTile.pixel(oX, oY) == underTile.pixel(uX, uY)) {
+                        overTile.setPixel(oX, oY, 0);
                     }
                 }
             }

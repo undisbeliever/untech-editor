@@ -9,9 +9,8 @@
 #include "../common/image.h"
 #include "models/common/attributes.h"
 #include <array>
-#include <cassert>
 #include <cstdint>
-#include <vector>
+#include <span>
 
 namespace UnTech::Snes {
 
@@ -27,11 +26,17 @@ public:
     Tile() = default;
 
 public:
-    inline uint8_t* rawData() { return _data.data(); }
-    inline const uint8_t* rawData() const { return _data.data(); }
+    inline tileArray_t& data() { return _data; }
+    inline const tileArray_t& data() const { return _data; }
+    inline void setData(const tileArray_t& data) { _data = data; }
 
-    inline const auto& data() const { return _data; }
-    inline void setData(std::array<uint8_t, TILE_ARRAY_SIZE> data) { _data = data; }
+    inline std::span<const uint8_t> sliver(const unsigned y) const
+    {
+        if (y >= TILE_SIZE) {
+            throw std::invalid_argument("Tile::sliver: y too large");
+        }
+        return std::span(_data.data() + y * TILE_SIZE, TILE_SIZE);
+    }
 
     Tile flip(bool hFlip, bool vFlip) const;
     Tile hFlip() const;

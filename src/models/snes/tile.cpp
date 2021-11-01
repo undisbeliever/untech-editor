@@ -14,17 +14,18 @@ template <size_t TS>
 Tile<TS> Tile<TS>::flip(bool hFlip, bool vFlip) const
 {
     Tile<TS> ret;
-    const uint8_t* pixelData = this->rawData();
+    auto pixelData = _data.cbegin();
 
     for (const auto y : range(TS)) {
         unsigned fy = (vFlip == false) ? y : TS - 1 - y;
-        uint8_t* retRow = ret.rawData() + fy * TS;
+        auto retRow = ret._data.begin() + fy * TS;
 
         for (const auto x : range(TS)) {
             unsigned fx = (hFlip == false) ? x : TS - 1 - x;
             retRow[fx] = *pixelData++;
         }
     }
+    assert(pixelData == _data.cend());
 
     return ret;
 }
@@ -53,24 +54,27 @@ template class Snes::Tile<16>;
 std::array<Tile8px, 4> splitLargeTile(const Tile16px& largeTile)
 {
     std::array<Tile8px, 4> ret;
-    const uint8_t* tile16 = largeTile.rawData();
 
-    auto transform = [&tile16](Tile8px& tile8,
-                               unsigned xPos, unsigned yPos) {
-        const uint8_t* t16 = tile16 + (yPos * 16 + xPos);
-        uint8_t* t8 = tile8.rawData();
+    auto transform = [&largeTile](Tile8px& leftTile, Tile8px& rightTile,
+                                  unsigned yPos) {
+        auto lIt = leftTile.data().begin();
+        auto rIt = rightTile.data().begin();
 
-        for ([[maybe_unused]] const auto y : range(8)) {
-            memcpy(t8, t16, 8);
-            t16 += 16;
-            t8 += 8;
+        for (const auto y : range(8)) {
+            const auto sliver = largeTile.sliver(y + yPos);
+
+            const auto lSliver = sliver.first(8);
+            lIt = std::copy(lSliver.begin(), lSliver.end(), lIt);
+
+            const auto rSliver = sliver.subspan(8, 8);
+            rIt = std::copy(rSliver.begin(), rSliver.end(), rIt);
         }
+        assert(lIt == leftTile.data().end());
+        assert(rIt == rightTile.data().end());
     };
 
-    transform(ret[0], 0, 0);
-    transform(ret[1], 8, 0);
-    transform(ret[2], 0, 8);
-    transform(ret[3], 8, 8);
+    transform(ret[0], ret[1], 0);
+    transform(ret[2], ret[3], 8);
 
     return ret;
 }
@@ -78,17 +82,17 @@ std::array<Tile8px, 4> splitLargeTile(const Tile16px& largeTile)
 Tile16px combineSmallTiles(const std::array<Tile8px, 4>& tiles)
 {
     Tile<16> ret;
-    uint8_t* tile16 = ret.rawData();
 
-    auto transform = [&tile16](const Tile8px& tile8,
-                               unsigned xPos, unsigned yPos) {
-        const uint8_t* t8 = tile8.rawData();
-        uint8_t* t16 = tile16 + (yPos * 16 + xPos);
+    auto transform = [&ret](const Tile8px& tile8,
+                            unsigned xPos, unsigned yPos) {
+        auto retIt = ret.data().begin() + yPos * ret.TILE_SIZE + xPos;
 
-        for ([[maybe_unused]] const auto y : range(8)) {
-            memcpy(t16, t8, 8);
-            t8 += 8;
-            t16 += 16;
+        for (const auto y : range(8)) {
+            const auto sliver = tile8.sliver(y);
+
+            std::copy(sliver.begin(), sliver.end(), retIt);
+
+            retIt += ret.TILE_SIZE;
         }
     };
 

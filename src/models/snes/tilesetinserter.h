@@ -59,7 +59,7 @@ public:
         unsigned bestScore = 0;
         TilesetInserterOutput ret = { 0, false, false };
 
-        const uint8_t* underTileData = underTile.rawData();
+        const auto& underTileData = underTile.data();
 
         // Using _tileset instead of _map to ensure the tiles are tested in a deterministic order.
         for (const auto [tileId, tile] : const_enumerate(_tileset)) {
@@ -69,7 +69,7 @@ public:
 
                 const TileT toTest = tileId == 0 ? tile
                                                  : tile.flip(hFlip, vFlip);
-                const uint8_t* toTestData = toTest.rawData();
+                const auto& toTestData = toTest.data();
 
                 unsigned score = 0;
                 bool found = true;

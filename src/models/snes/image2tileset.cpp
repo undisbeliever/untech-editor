@@ -99,7 +99,7 @@ void ImageToTileset::processTileset(const IndexedImage& image)
     for (const auto tileY : range(tileHeight)) {
         for (const auto tileX : range(tileWidth)) {
             Tile8px& tile = *tilesetIt++;
-            uint8_t* tData = tile.rawData();
+            auto tData = tile.data().begin();
 
             assert(tileX * TILE_SIZE <= image.size().width && tileY * TILE_SIZE <= image.size().height);
 
@@ -110,6 +110,7 @@ void ImageToTileset::processTileset(const IndexedImage& image)
                     *tData++ = c & pixelMask;
                 }
             }
+            assert(tData == tile.data().end());
         }
     }
     assert(tilesetIt == _tileset.end());

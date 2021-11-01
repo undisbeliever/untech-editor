@@ -36,7 +36,7 @@ static inline uint8_t* writeSnesTile(uint8_t* out, const Tile8px& tile)
     static_assert(BIT_DEPTH == 8 || (BIT_DEPTH >= 1 && BIT_DEPTH <= 4));
 
     for (const auto y : range(TILE_SIZE)) {
-        const uint8_t* const sliver = tile.rawData() + y * TILE_SIZE;
+        const auto sliver = tile.sliver(y);
 
         // Force loop unrolling (GCC -O2 does not unroll `writeBitRow` if I place it inside a for loop)
         auto writeBitRow = [&](const unsigned b) {
@@ -81,7 +81,7 @@ static inline const uint8_t* readSnesTile(Tile8px& tile, const uint8_t* input)
 
     static_assert(BIT_DEPTH == 8 || (BIT_DEPTH >= 1 && BIT_DEPTH <= 4));
 
-    auto tileIt = tile.rawData();
+    auto tileIt = tile.data().begin();
 
     for (const auto y : range(TILE_SIZE)) {
         for (const auto x : range(TILE_SIZE)) {
@@ -115,7 +115,7 @@ static inline const uint8_t* readSnesTile(Tile8px& tile, const uint8_t* input)
             *tileIt++ = pixel;
         }
     }
-    assert(tileIt == tile.rawData() + tile.data().size());
+    assert(tileIt == tile.data().end());
 
     return input + TILE_DATA_SIZE;
 }
