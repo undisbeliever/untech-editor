@@ -40,10 +40,10 @@ static vectorset<rgba> getColorsFromImage(const SI::FrameSet& siFrameSet, const 
             assert(ly + obj.sizePx() <= image.size().height);
 
             for (const auto y : range(obj.sizePx())) {
-                const rgba* p = image.scanline(ly + y) + lx;
+                const auto p = image.scanline(ly + y);
 
                 for (const auto x : range(obj.sizePx())) {
-                    const bool newColor = colors.insert(p[x]);
+                    const bool newColor = colors.insert(p[lx + x]);
                     if (newColor) {
                         if (colors.size() > PALETTE_COLORS) {
                             throw std::runtime_error("Too many colors, expected a maximum of 16 colors");
@@ -106,20 +106,20 @@ static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Im
     assert(xPos + colorSize * PALETTE_COLORS <= image.size().width);
     assert(yPos + colorSize <= image.size().height);
 
-    const rgba* startOfPalette = image.scanline(yPos) + xPos;
+    const auto startOfPalette = image.scanline(yPos).subspan(xPos, colorSize * PALETTE_COLORS);
 
     // ensure the pixel columns of the palette are equal
     for (const auto l : range(1, colorSize)) {
-        const rgba* imgBitstoTest = image.scanline(yPos + l) + xPos;
+        const auto imgBitstoTest = image.scanline(yPos + l).subspan(xPos, colorSize * PALETTE_COLORS);
 
-        if (std::memcmp(startOfPalette, imgBitstoTest, sizeof(rgba) * colorSize * PALETTE_COLORS) != 0) {
+        if (not std::equal(startOfPalette.begin(), startOfPalette.end(), imgBitstoTest.begin())) {
             throw std::runtime_error("Custom Palette is invalid");
         }
     }
 
     // ensure each of the palette colors are equally colored squares
     for (const auto c : range(PALETTE_COLORS)) {
-        const rgba* imgBits = startOfPalette + c * colorSize;
+        const auto imgBits = startOfPalette.subspan(c * colorSize, colorSize);
 
         for (const auto i : range(1, colorSize)) {
             if (imgBits[0] != imgBits[i]) {

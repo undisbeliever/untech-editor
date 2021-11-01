@@ -21,7 +21,7 @@ Image::Image(const usize size)
     : _size(size)
     , _errorString()
     , _imageData(reinterpret_cast<rgba*>(malloc(size.width * size.height * sizeof(rgba))))
-    , _imageDataEnd(_imageData + (size.width * size.height))
+    , _dataSize(size.width * size.height)
 {
     assert(_size.width > 0 && _size.height > 0);
 
@@ -37,7 +37,7 @@ Image::Image(const usize size, rgba*&& data, Image::PrivateToken)
     : _size(size)
     , _errorString()
     , _imageData(data)
-    , _imageDataEnd(_imageData + (size.width * size.height))
+    , _dataSize(size.width * size.height)
 {
     assert(_size.width > 0 && _size.height > 0);
 
@@ -53,7 +53,7 @@ Image::Image(std::string&& errorString, Image::PrivateToken)
     : _size(0, 0)
     , _errorString(std::move(errorString))
     , _imageData(nullptr)
-    , _imageDataEnd(nullptr)
+    , _dataSize(0)
 {
 }
 
@@ -71,7 +71,8 @@ void Image::fill(const rgba& color)
         return;
     }
 
-    std::fill(_imageData, _imageDataEnd, color);
+    auto imageData = this->data();
+    std::fill(imageData.begin(), imageData.end(), color);
 }
 
 std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& filename)
@@ -100,8 +101,8 @@ std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& f
             assert(buffersize == size.width * size.height * sizeof(rgba));
 
             auto image = std::make_shared<Image>(size, std::move(pixels), PrivateToken{});
-
-            std::for_each(image->begin(), image->end(),
+            auto imageData = image->data();
+            std::for_each(imageData.begin(), imageData.end(),
                           [](rgba& c) { if (c.alpha == 0) { c = rgba(0, 0, 0, 0); } });
 
             return image;

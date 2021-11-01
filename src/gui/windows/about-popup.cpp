@@ -60,14 +60,17 @@ static Texture createLogoTexture()
     const rgba white(255, 255, 255, 255);
     const rgba transparent(0, 0, 0, 0);
 
-    rgba* imgData = image.data();
+    auto imgData = image.data();
+    assert(imgData.size() == pixels.size());
+
+    auto imgIt = imgData.begin();
     constexpr unsigned dataSize = width * height;
 
     static_assert(sizeof(pixels) == dataSize);
     for (const auto p : pixels) {
-        *imgData++ = p == '*' ? white : transparent;
+        *imgIt++ = p == '*' ? white : transparent;
     }
-    assert(imgData == image.dataEnd());
+    assert(imgIt == imgData.end());
 
     return Texture::createFromImage(image);
 }

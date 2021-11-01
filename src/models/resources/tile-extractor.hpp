@@ -18,17 +18,19 @@ struct TileAndPalette {
     unsigned palette;
 };
 
-inline bool extractTile8px(Snes::Tile8px& tile, const rgba* imgBits, unsigned pixelsPerScanline,
+inline bool extractTile8px(Snes::Tile8px& tile,
+                           const Image& image, const unsigned x, const unsigned y,
                            const std::vector<Snes::SnesColor>::const_iterator pBegin,
                            const std::vector<Snes::SnesColor>::const_iterator pEnd)
 {
     const static unsigned TS = tile.TILE_SIZE;
 
-    for (const auto y : range(TS)) {
-        const rgba* scanline = imgBits + y * pixelsPerScanline;
+    assert(x + TS <= image.size().width && x + TS <= image.size().height);
 
-        for (const auto x : range(TS)) {
-            const Snes::SnesColor c = Snes::toSnesColor(scanline[x]);
+    for (const auto ty : range(TS)) {
+        auto imgBits = image.scanline(y + ty).subspan(x, TS);
+        for (const auto tx : range(TS)) {
+            const Snes::SnesColor c = Snes::toSnesColor(imgBits[tx]);
 
             auto pIt = std::find(pBegin, pEnd, c);
             if (pIt == pEnd) {
@@ -36,7 +38,7 @@ inline bool extractTile8px(Snes::Tile8px& tile, const rgba* imgBits, unsigned pi
                 return false;
             }
 
-            tile.setPixel(x, y, std::distance(pBegin, pIt));
+            tile.setPixel(tx, ty, std::distance(pBegin, pIt));
         }
     }
 
@@ -47,9 +49,6 @@ inline bool extractTileAndPalette(TileAndPalette& ft, const Image& image, const 
                                   const std::vector<Snes::SnesColor>& palette, const unsigned colorsPerPalette,
                                   const unsigned firstPalette, const unsigned nPalettes)
 {
-    const unsigned pps = image.pixelsPerScanline();
-    const rgba* imgBits = image.scanline(y) + x;
-
     const unsigned firstColor = firstPalette * colorsPerPalette;
     const unsigned lastColor = std::min<size_t>(firstColor + nPalettes * colorsPerPalette, palette.size());
 
@@ -58,7 +57,7 @@ inline bool extractTileAndPalette(TileAndPalette& ft, const Image& image, const 
         auto pEnd = pIndex + colorsPerPalette < lastColor ? pStart + colorsPerPalette
                                                           : palette.begin() + lastColor;
 
-        bool s = extractTile8px(ft.tile, imgBits, pps, pStart, pEnd);
+        bool s = extractTile8px(ft.tile, image, x, y, pStart, pEnd);
 
         if (s) {
             ft.palette = pId;

@@ -62,14 +62,17 @@ public:
         unsigned xOffset = frame.location.aabb.x + obj.location.x;
         unsigned yOffset = frame.location.aabb.y + obj.location.y;
 
+        assert(yOffset + TILE_SIZE <= image.size().height);
+        assert(xOffset + TILE_SIZE <= image.size().width);
+
         Snes::Tile<TILE_SIZE> tile;
         uint8_t* tData = tile.rawData();
 
         for (const auto y : range(TILE_SIZE)) {
-            const rgba* const imgBits = image.scanline(yOffset + y) + xOffset;
+            const auto imgBits = image.scanline(yOffset + y).subspan(xOffset, TILE_SIZE);
 
-            for (const auto x : range(TILE_SIZE)) {
-                *tData++ = colorMap.at(imgBits[x]);
+            for (const auto& c : imgBits) {
+                *tData++ = colorMap.at(c);
             }
         }
 

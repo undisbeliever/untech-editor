@@ -83,11 +83,11 @@ public:
         glBindTexture(GL_TEXTURE_2D, _textureId);
 
         if (image.size() == _size) {
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _size.width, _size.height, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _size.width, _size.height, GL_RGBA, GL_UNSIGNED_BYTE, image.data().data());
         }
         else {
             _size = image.size();
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _size.width, _size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _size.width, _size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data().data());
         }
     }
 

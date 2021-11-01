@@ -11,8 +11,9 @@
 #include <cassert>
 #include <cstdint>
 #include <filesystem>
+#include <span>
+#include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace UnTech {
 
@@ -35,7 +36,7 @@ private:
     const usize _size;
     const std::string _errorString;
     uint8_t* const _imageData;
-    uint8_t* const _imageDataEnd;
+    const size_t _dataSize;
     std::vector<rgba> _palette;
 
 public:
@@ -88,30 +89,27 @@ public:
     // Only sets pixels if `color < palette().size()`
     void fill(const uint8_t color);
 
-    inline uint8_t* data() { return _imageData; }
-    inline const uint8_t* data() const { return _imageData; }
-
-    inline uint8_t* dataEnd() { return _imageDataEnd; }
-    inline const uint8_t* dataEnd() const { return _imageDataEnd; }
+    std::span<uint8_t> data() { return std::span{ _imageData, _dataSize }; }
+    std::span<const uint8_t> data() const { return std::span{ _imageData, _dataSize }; }
 
     inline unsigned pixelsPerScanline() const { return _size.width; }
 
-    inline uint8_t* scanline(unsigned y)
+    std::span<uint8_t> scanline(unsigned y)
     {
         if (y >= _size.height) {
             throw std::out_of_range("Image::scanline out of range");
         }
         assert(_imageData);
-        return _imageData + (y * pixelsPerScanline());
+        return std::span(_imageData + (y * _size.width), _size.width);
     }
 
-    inline const uint8_t* scanline(unsigned y) const
+    std::span<const uint8_t> scanline(unsigned y) const
     {
         if (y >= _size.height) {
             throw std::out_of_range("Image::scanline out of range");
         }
         assert(_imageData);
-        return _imageData + (y * pixelsPerScanline());
+        return std::span(_imageData + (y * _size.width), _size.width);
     }
 
     inline uint8_t getPixel(unsigned x, unsigned y) const
@@ -131,14 +129,5 @@ public:
         assert(_imageData);
         _imageData[x + y * pixelsPerScanline()] = p;
     }
-
-    iterator begin() { return _imageData; }
-    iterator end() { return _imageDataEnd; }
-
-    const_iterator begin() const { return _imageData; }
-    const_iterator end() const { return _imageDataEnd; }
-
-    const_iterator cbegin() const { return _imageData; }
-    const_iterator cend() const { return _imageDataEnd; }
 };
 }

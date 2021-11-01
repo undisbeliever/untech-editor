@@ -182,15 +182,18 @@ private:
     inline void loadTile(const IndexedImage& image, unsigned x, unsigned y)
     {
         std::array<uint8_t, TILE_DATA_SIZE> tile;
-        uint8_t* tData = tile.data();
+        auto tData = tile.begin();
+
+        assert(x + TILE_SIZE < image.size().width && y + TILE_SIZE < image.size().height);
 
         for (const auto py : range(TILE_SIZE)) {
-            const uint8_t* imgData = image.scanline(y + py) + x;
+            const auto imgBits = image.scanline(y + py).subspan(x, TILE_SIZE);
 
-            for (const auto px : range(TILE_SIZE)) {
-                *tData++ = imgData[px];
+            for (const auto& c : imgBits) {
+                *tData++ = c;
             }
         }
+        assert(tData = tile.end());
 
         tiles.emplace_back(tile);
     }

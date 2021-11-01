@@ -116,10 +116,10 @@ convertPalette(const PaletteInput& input, ErrorList& err)
 
         const unsigned frameYOffset = frameId * input.rowsPerFrame;
         for (const auto fy : range(input.rowsPerFrame)) {
-            const auto* imgBits = paletteImage->scanline(frameYOffset + fy);
+            auto imgBits = paletteImage->scanline(frameYOffset + fy);
 
-            for (const auto fx : range(imgSize.width)) {
-                *frameIt++ = Snes::toSnesColor(imgBits[fx]);
+            for (const auto& c : imgBits) {
+                *frameIt++ = Snes::toSnesColor(c);
             }
         }
         assert(frameIt == frame.end());

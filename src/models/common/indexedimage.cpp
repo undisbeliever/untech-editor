@@ -19,7 +19,7 @@ IndexedImage::IndexedImage(const usize size)
     : _size(size)
     , _errorString()
     , _imageData(reinterpret_cast<uint8_t*>(malloc(size.width * size.height)))
-    , _imageDataEnd(_imageData + (size.width * size.height))
+    , _dataSize(size.width * size.height)
 {
     assert(_size.width > 0 && _size.height > 0);
 
@@ -32,7 +32,7 @@ IndexedImage::IndexedImage(const usize size, uint8_t*&& data, IndexedImage::Priv
     : _size(size)
     , _errorString()
     , _imageData(data)
-    , _imageDataEnd(_imageData + (size.width * size.height))
+    , _dataSize(size.width * size.height)
 {
     assert(_size.width > 0 && _size.height > 0);
 
@@ -45,7 +45,7 @@ IndexedImage::IndexedImage(std::string&& errorString, IndexedImage::PrivateToken
     : _size(0, 0)
     , _errorString(std::move(errorString))
     , _imageData(nullptr)
-    , _imageDataEnd(nullptr)
+    , _dataSize(0)
     , _palette()
 {
 }
@@ -61,7 +61,8 @@ IndexedImage::~IndexedImage()
 void IndexedImage::fill(uint8_t color)
 {
     if (color < _palette.size()) {
-        std::fill(_imageData, _imageDataEnd, color);
+        auto imageData = this->data();
+        std::fill(imageData.begin(), imageData.end(), color);
     }
 }
 

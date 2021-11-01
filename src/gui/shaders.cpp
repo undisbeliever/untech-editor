@@ -32,11 +32,12 @@ static void drawPaletteImage(Texture& texture, const Resources::PaletteData& pal
     for (auto [palIndex, palFrame] : enumerate(palette.paletteFrames)) {
         const unsigned nColors = std::min<unsigned>(palFrame.size(), UINT8_MAX);
 
-        rgba* imgBits = image.scanline(palIndex);
+        auto imgBits = image.scanline(palIndex);
+        assert(imgBits.size() >= nColors);
+
         for (const auto i : range(nColors)) {
-            *imgBits++ = Snes::toRgb(palFrame.at(i));
+            imgBits[i] = Snes::toRgb(palFrame.at(i));
         }
-        assert(imgBits <= image.dataEnd());
     }
 
     texture.replace(image);
@@ -124,7 +125,10 @@ void MtTileset::setInteractiveTilesData(const MetaTiles::MetaTileTilesetInput& t
 
     image.fill(rgba(0, 0, 0, 0));
 
-    auto* imgIt = image.data();
+    auto imgBits = image.data();
+    assert(imgBits.size() == tileset.tileFunctionTables.size());
+
+    auto imgIt = imgBits.begin();
     for (const auto& ftName : tileset.tileFunctionTables) {
         if (ftName.isValid()) {
             auto it = interactiveTiles->tileFunctionMap.find(ftName);
@@ -138,7 +142,7 @@ void MtTileset::setInteractiveTilesData(const MetaTiles::MetaTileTilesetInput& t
 
         imgIt++;
     }
-    assert(imgIt == image.dataEnd());
+    assert(imgIt == imgBits.end());
 
     _interactiveTilesTexture.replace(image);
     _interactiveTilesDataValid = true;

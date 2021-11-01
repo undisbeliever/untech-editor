@@ -11,9 +11,9 @@
 #include <cassert>
 #include <cstdint>
 #include <filesystem>
+#include <span>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace UnTech {
 
@@ -51,7 +51,7 @@ private:
     const usize _size;
     const std::string _errorString;
     rgba* const _imageData;
-    rgba* const _imageDataEnd;
+    const size_t _dataSize;
 
 public:
     // Images cannot be moved or copied.
@@ -83,30 +83,27 @@ public:
 
     void fill(const rgba& color);
 
-    inline rgba* data() { return _imageData; }
-    inline const rgba* data() const { return _imageData; }
-
-    inline rgba* dataEnd() { return _imageDataEnd; }
-    inline const rgba* dataEnd() const { return _imageDataEnd; }
+    std::span<rgba> data() { return std::span{ _imageData, _dataSize }; }
+    std::span<const rgba> data() const { return std::span{ _imageData, _dataSize }; }
 
     inline unsigned pixelsPerScanline() const { return _size.width; }
 
-    inline rgba* scanline(unsigned y)
+    std::span<rgba> scanline(unsigned y)
     {
         if (y >= _size.height) {
             throw std::out_of_range("Image::scanline out of range");
         }
         assert(_imageData);
-        return _imageData + (y * pixelsPerScanline());
+        return std::span(_imageData + (y * _size.width), _size.width);
     }
 
-    inline const rgba* scanline(unsigned y) const
+    std::span<const rgba> scanline(unsigned y) const
     {
         if (y >= _size.height) {
             throw std::out_of_range("Image::scanline out of range");
         }
         assert(_imageData);
-        return _imageData + (y * pixelsPerScanline());
+        return std::span(_imageData + (y * _size.width), _size.width);
     }
 
     inline rgba getPixel(unsigned x, unsigned y) const
@@ -126,14 +123,5 @@ public:
         assert(_imageData);
         _imageData[x + y * pixelsPerScanline()] = p;
     }
-
-    iterator begin() { return _imageData; }
-    iterator end() { return _imageDataEnd; }
-
-    const_iterator begin() const { return _imageData; }
-    const_iterator end() const { return _imageDataEnd; }
-
-    const_iterator cbegin() const { return _imageData; }
-    const_iterator cend() const { return _imageDataEnd; }
 };
 }

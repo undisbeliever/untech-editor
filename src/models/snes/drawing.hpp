@@ -153,9 +153,9 @@ void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const bool vFl
 template <size_t TS>
 inline void drawTile_transparent(const Tile<TS>& tile,
                                  rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
-                                 const rgba* palette, const unsigned nColors)
+                                 const std::span<const rgba> palette)
 {
-    const unsigned PIXEL_MASK = pixelMaskForPaletteSize(nColors);
+    const unsigned PIXEL_MASK = pixelMaskForPaletteSize(palette.size());
 
     drawTile_noFlip(tile,
                     imgBits, imgBitsEnd, stride,
@@ -176,10 +176,12 @@ inline void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const b
     if ((xOffset + TS) < image.size().width
         && (yOffset + TS) < image.size().height) {
 
+        const unsigned stride = image.pixelsPerScanline();
+        const rgba* const imgBitsEnd = image.data().data() + image.data().size();
+        rgba* imgBits = image.data().data() + (yOffset * stride + xOffset);
+
         drawTile_transparent(tile, hFlip, vFlip,
-                             image.data() + yOffset * image.pixelsPerScanline() + xOffset,
-                             image.dataEnd(),
-                             image.pixelsPerScanline(),
+                             imgBits, imgBitsEnd, stride,
                              palette);
     }
 }
@@ -199,26 +201,31 @@ inline void drawTile_transparent(const std::vector<Tile<TS>>& tileset, unsigned 
 // ASSUMES `imgBits` points to the start of an image scanline.
 template <size_t TS>
 void drawTileset_transparent(const std::vector<Tile<TS>>& tileset,
-                             rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
-                             const rgba* palette, const unsigned nColors)
+                             Image& image, const unsigned yOffset,
+                             const std::span<const rgba> palette)
 {
     if (tileset.empty()) {
         return;
     }
 
     static_assert(TS > 1);
-    assert(stride % TS == 0);
+    assert(image.pixelsPerScanline() % TS == 0);
 
-    const size_t tilesPerLine = stride / TS;
+    const size_t tilesPerLine = image.pixelsPerScanline() / TS;
     const size_t nLines = (tileset.size() - 1) / tilesPerLine + 1;
 
+    assert(yOffset + nLines * TS <= image.size().height);
+
+    const unsigned stride = image.pixelsPerScanline();
+    const rgba* const imgBitsEnd = image.data().data() + image.data().size();
+    rgba* imgBits = image.data().data() + yOffset * stride;
+
     assert(imgBitsEnd > imgBits);
-    assert(size_t(imgBitsEnd - imgBits) >= stride * nLines * TS);
 
     unsigned x = 0;
 
     for (const Tile<TS>& tile : tileset) {
-        drawTile_transparent(tile, imgBits, imgBitsEnd, stride, palette, nColors);
+        drawTile_transparent(tile, imgBits, imgBitsEnd, stride, palette);
 
         imgBits += TS;
 

@@ -262,7 +262,9 @@ static bool isTransparentColorValid(const FrameSet& input, const Image& image)
         return true;
     }
     if (input.transparentColor.alpha == 0) {
-        bool hasTransparent = std::any_of(image.begin(), image.end(),
+        const auto imgBits = image.data();
+
+        bool hasTransparent = std::any_of(imgBits.begin(), imgBits.end(),
                                           [&](const rgba& c) { return c.alpha == 0; });
 
         return hasTransparent && input.transparentColor == rgba(0, 0, 0, 0);

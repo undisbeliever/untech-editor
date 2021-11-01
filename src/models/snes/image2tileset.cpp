@@ -101,11 +101,13 @@ void ImageToTileset::processTileset(const IndexedImage& image)
             Tile8px& tile = *tilesetIt++;
             uint8_t* tData = tile.rawData();
 
-            for (const auto py : range(TILE_SIZE)) {
-                const uint8_t* imgData = image.scanline(tileY * TILE_SIZE + py) + tileX * TILE_SIZE;
+            assert(tileX * TILE_SIZE <= image.size().width && tileY * TILE_SIZE <= image.size().height);
 
-                for (const auto px : range(TILE_SIZE)) {
-                    *tData++ = imgData[px] & pixelMask;
+            for (const auto py : range(TILE_SIZE)) {
+                const auto imgBits = image.scanline(tileY * TILE_SIZE + py).subspan(tileX * TILE_SIZE, TILE_SIZE);
+
+                for (const auto& c : imgBits) {
+                    *tData++ = c & pixelMask;
                 }
             }
         }
