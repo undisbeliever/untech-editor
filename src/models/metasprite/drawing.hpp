@@ -17,14 +17,14 @@ inline void drawFrame(Image& image,
 {
     for (const auto& obj : reverse(frame.objects)) {
         if (obj.size == ObjectSize::SMALL) {
-            Snes::drawTile_transparent(frameSet.smallTileset, obj.tileId, obj.hFlip, obj.vFlip,
-                                       palette, image,
-                                       xOffset + obj.location.x, yOffset + obj.location.y);
+            Snes::drawTile_transparent_safe(image, xOffset + obj.location.x, yOffset + obj.location.y,
+                                            frameSet.smallTileset, obj.tileId, obj.hFlip, obj.vFlip,
+                                            palette);
         }
         else {
-            Snes::drawTile_transparent(frameSet.largeTileset, obj.tileId, obj.hFlip, obj.vFlip,
-                                       palette, image,
-                                       xOffset + obj.location.x, yOffset + obj.location.y);
+            Snes::drawTile_transparent_safe(image, xOffset + obj.location.x, yOffset + obj.location.y,
+                                            frameSet.largeTileset, obj.tileId, obj.hFlip, obj.vFlip,
+                                            palette);
         }
     }
 }

@@ -10,6 +10,7 @@
 #include "stringbuilder.h"
 #include "models/common/iterators.h"
 #include <cassert>
+#include <span>
 #include <stdexcept>
 #include <vector>
 
@@ -73,6 +74,22 @@ public:
     const container& gridData() const { return _grid; }
 
     usize size() const { return usize(_width, _height); }
+
+    std::span<T> scanline(unsigned y)
+    {
+        if (y >= _height) {
+            throw std::out_of_range("grid::scanline out of range");
+        }
+        return std::span(_grid.data() + (y * _width), _width);
+    }
+
+    std::span<const T> scanline(unsigned y) const
+    {
+        if (y >= _height) {
+            throw std::out_of_range("grid::scanline out of range");
+        }
+        return std::span(_grid.data() + (y * _width), _width);
+    }
 
     T& at(unsigned x, unsigned y)
     {

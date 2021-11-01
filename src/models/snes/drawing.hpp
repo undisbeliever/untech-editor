@@ -13,118 +13,121 @@
 
 namespace UnTech::Snes {
 
-inline constexpr unsigned pixelMaskForPaletteSize(unsigned paletteSize)
+inline constexpr unsigned pixelMaskForPaletteSize(const unsigned paletteSize)
 {
-    assert(isPowerOfTwo(paletteSize));
+    if (!isPowerOfTwo(paletteSize)) {
+        throw std::invalid_argument("paletteSize not power of two");
+    }
 
     return paletteSize - 1;
 }
 
-template <size_t TS, typename PixelT>
-inline void assertCanDrawTile(PixelT* imgBits, const PixelT* const imgBitsEnd, const size_t stride)
+template <size_t TS, typename ImageT>
+inline void assertCanDrawTile(const ImageT& image, const unsigned x, const unsigned y)
 {
-    const PixelT* tileEnd = imgBits + stride * (TS - 1) + TS;
-    assert(tileEnd <= imgBitsEnd);
+    assert(x + TS <= image.size().width && y + TS <= image.size().height);
 };
 
-template <size_t TS, typename PixelT, typename DrawPixelFunction>
-void drawTile_noFlip(const Tile<TS>& tile,
-                     PixelT* imgBits, const PixelT* const imgBitsEnd, const size_t stride,
-                     DrawPixelFunction drawPixel)
+template <size_t TS, typename ImageT, typename DrawPixelFunction>
+void drawTile_noFlip(ImageT& image, const unsigned xOffset, const unsigned yOffset,
+                     const Tile<TS>& tile, DrawPixelFunction drawPixel)
 {
-    assertCanDrawTile<TS>(imgBits, imgBitsEnd, stride);
+    assertCanDrawTile<TS>(image, xOffset, yOffset);
 
     auto tilePos = tile.data().cbegin();
 
-    for ([[maybe_unused]] const auto y : range(TS)) {
-        for ([[maybe_unused]] const auto x : range(TS)) {
-            drawPixel(*imgBits++, *tilePos++);
+    for (const auto y : range(TS)) {
+        auto imgBits = image.scanline(yOffset + y).subspan(xOffset, TS);
+
+        for (const auto x : range(TS)) {
+            drawPixel(imgBits[x], *tilePos++);
         }
-        imgBits += (stride - TS);
     }
     assert(tilePos == tile.data().cend());
 }
 
-template <size_t TS, typename PixelT, typename DrawPixelFunction>
-void drawTile_hFlip(const Tile<TS>& tile,
-                    PixelT* imgBits, const PixelT* const imgBitsEnd, const size_t stride,
-                    DrawPixelFunction drawPixel)
+template <size_t TS, typename ImageT, typename DrawPixelFunction>
+void drawTile_hFlip(ImageT& image, const unsigned xOffset, const unsigned yOffset,
+                    const Tile<TS>& tile, DrawPixelFunction drawPixel)
 {
-    assertCanDrawTile<TS>(imgBits, imgBitsEnd, stride);
+    assertCanDrawTile<TS>(image, xOffset, yOffset);
 
-    const auto& tileData = tile.data();
+    auto tilePos = tile.data().cbegin();
 
     for (const auto y : range(TS)) {
+        auto imgBits = image.scanline(y + yOffset).subspan(xOffset, TS);
+
         for (const auto x : reverse_range(TS)) {
-            drawPixel(*imgBits++, tileData[y * TS + x]);
+            drawPixel(imgBits[x], *tilePos++);
         }
-        imgBits += (stride - TS);
     }
+    assert(tilePos == tile.data().cend());
 }
 
-template <size_t TS, typename PixelT, typename DrawPixelFunction>
-void drawTile_vFlip(const Tile<TS>& tile,
-                    PixelT* imgBits, const PixelT* const imgBitsEnd, const size_t stride,
-                    DrawPixelFunction drawPixel)
+template <size_t TS, typename ImageT, typename DrawPixelFunction>
+void drawTile_vFlip(ImageT& image, const unsigned xOffset, const unsigned yOffset,
+                    const Tile<TS>& tile, DrawPixelFunction drawPixel)
 {
-    assertCanDrawTile<TS>(imgBits, imgBitsEnd, stride);
+    assertCanDrawTile<TS>(image, xOffset, yOffset);
 
-    const auto& tileData = tile.data();
+    auto tilePos = tile.data().cbegin();
 
     for (const auto y : reverse_range(TS)) {
+        auto imgBits = image.scanline(y + yOffset).subspan(xOffset, TS);
+
         for (const auto x : range(TS)) {
-            drawPixel(*imgBits++, tileData[y * TS + x]);
+            drawPixel(imgBits[x], *tilePos++);
         }
-        imgBits += (stride - TS);
     }
+    assert(tilePos == tile.data().cend());
 }
 
-template <size_t TS, typename PixelT, typename DrawPixelFunction>
-void drawTile_hvFlip(const Tile<TS>& tile,
-                     PixelT* imgBits, const PixelT* const imgBitsEnd, const size_t stride,
-                     DrawPixelFunction drawPixel)
+template <size_t TS, typename ImageT, typename DrawPixelFunction>
+void drawTile_hvFlip(ImageT& image, const unsigned xOffset, const unsigned yOffset,
+                     const Tile<TS>& tile, DrawPixelFunction drawPixel)
 {
-    assertCanDrawTile<TS>(imgBits, imgBitsEnd, stride);
+    assertCanDrawTile<TS>(image, xOffset, yOffset);
 
     auto tilePos = tile.data().crbegin();
 
-    for ([[maybe_unused]] const auto y : range(TS)) {
-        for ([[maybe_unused]] const auto x : range(TS)) {
-            drawPixel(*imgBits++, *tilePos++);
+    for (const auto y : range(TS)) {
+        auto imgBits = image.scanline(yOffset + y).subspan(xOffset, TS);
+
+        for (const auto x : range(TS)) {
+            drawPixel(imgBits[x], *tilePos++);
         }
-        imgBits += (stride - TS);
     }
     assert(tilePos == tile.data().crend());
 }
 
-template <size_t TS, typename PixelT, typename DrawPixelFunction>
-inline void drawTile(const Tile<TS>& tile, const bool hFlip, const bool vFlip,
-                     PixelT* imgBits, const PixelT* const imgBitsEnd, const size_t stride,
+template <size_t TS, typename ImageT, typename DrawPixelFunction>
+inline void drawTile(ImageT& image, const unsigned xOffset, const unsigned yOffset,
+                     const Tile<TS>& tile, const bool hFlip, const bool vFlip,
                      DrawPixelFunction drawPixel)
 {
     if (!hFlip && !vFlip) {
-        return drawTile_noFlip(tile, imgBits, imgBitsEnd, stride, drawPixel);
+        return drawTile_noFlip(image, xOffset, yOffset, tile, drawPixel);
     }
     else if (hFlip && !vFlip) {
-        return drawTile_hFlip(tile, imgBits, imgBitsEnd, stride, drawPixel);
+        return drawTile_hFlip(image, xOffset, yOffset, tile, drawPixel);
     }
     else if (!hFlip && vFlip) {
-        return drawTile_vFlip(tile, imgBits, imgBitsEnd, stride, drawPixel);
+        return drawTile_vFlip(image, xOffset, yOffset, tile, drawPixel);
     }
     else if (hFlip && vFlip) {
-        return drawTile_hvFlip(tile, imgBits, imgBitsEnd, stride, drawPixel);
+        return drawTile_hvFlip(image, xOffset, yOffset, tile, drawPixel);
     }
 }
 
 template <size_t TS, size_t PS>
-void drawTile_transparent(const Tile<TS>& tile,
-                          rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
+void drawTile_transparent(Image& image, const unsigned xOffset, const unsigned yOffset,
+                          const Tile<TS>& tile,
                           const std::array<rgba, PS>& palette)
 {
     constexpr unsigned PIXEL_MASK = pixelMaskForPaletteSize(PS);
 
-    drawTile_noFlip(tile,
-                    imgBits, imgBitsEnd, stride,
+    drawTile_noFlip(image, xOffset, yOffset,
+                    tile,
                     [&](rgba& img, uint8_t p) {
                         p &= PIXEL_MASK;
                         if (p != 0) {
@@ -134,14 +137,14 @@ void drawTile_transparent(const Tile<TS>& tile,
 }
 
 template <size_t TS, size_t PS>
-void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const bool vFlip,
-                          rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
+void drawTile_transparent(Image& image, const unsigned xOffset, const unsigned yOffset,
+                          const Tile<TS>& tile, const bool hFlip, const bool vFlip,
                           const std::array<rgba, PS>& palette)
 {
     constexpr unsigned PIXEL_MASK = pixelMaskForPaletteSize(PS);
 
-    drawTile(tile, hFlip, vFlip,
-             imgBits, imgBitsEnd, stride,
+    drawTile(image, xOffset, yOffset,
+             tile, hFlip, vFlip,
              [&](rgba& img, uint8_t p) {
                  p &= PIXEL_MASK;
                  if (p != 0) {
@@ -151,57 +154,41 @@ void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const bool vFl
 }
 
 template <size_t TS>
-inline void drawTile_transparent(const Tile<TS>& tile,
-                                 rgba* imgBits, const rgba* const imgBitsEnd, const size_t stride,
+inline void drawTile_transparent(Image& image, const unsigned xOffset, const unsigned yOffset,
+                                 const Tile<TS>& tile,
                                  const std::span<const rgba> palette)
 {
-    const unsigned PIXEL_MASK = pixelMaskForPaletteSize(palette.size());
+    const unsigned pixelMask = pixelMaskForPaletteSize(palette.size());
 
-    drawTile_noFlip(tile,
-                    imgBits, imgBitsEnd, stride,
+    drawTile_noFlip(image, xOffset, yOffset,
+                    tile,
                     [&](rgba& img, uint8_t p) {
-                        p &= PIXEL_MASK;
+                        p &= pixelMask;
                         if (p != 0) {
                             img = palette[p];
                         }
                     });
 }
 
-// Fails silently if offset is invalid
-template <size_t TS, size_t PS>
-inline void drawTile_transparent(const Tile<TS>& tile, const bool hFlip, const bool vFlip,
-                                 const std::array<rgba, PS>& palette,
-                                 Image& image, unsigned xOffset, unsigned yOffset)
-{
-    if ((xOffset + TS) < image.size().width
-        && (yOffset + TS) < image.size().height) {
-
-        const unsigned stride = image.pixelsPerScanline();
-        const rgba* const imgBitsEnd = image.data().data() + image.data().size();
-        rgba* imgBits = image.data().data() + (yOffset * stride + xOffset);
-
-        drawTile_transparent(tile, hFlip, vFlip,
-                             imgBits, imgBitsEnd, stride,
-                             palette);
-    }
-}
-
 // Fails silently if tileId or offset is invalid
 template <size_t TS, size_t PS>
-inline void drawTile_transparent(const std::vector<Tile<TS>>& tileset, unsigned tileId, const bool hFlip, const bool vFlip,
-                                 const std::array<rgba, PS>& palette,
-                                 Image& image, unsigned xOffset, unsigned yOffset)
+inline void drawTile_transparent_safe(Image& image, const unsigned xOffset, const unsigned yOffset,
+                                      const std::vector<Tile<TS>>& tileset, unsigned tileId, const bool hFlip, const bool vFlip,
+                                      const std::array<rgba, PS>& palette)
 {
     if (tileId < tileset.size()) {
-        drawTile_transparent(tileset.at(tileId), hFlip, vFlip, palette, image, xOffset, yOffset);
+        if (xOffset + TS <= image.size().width) {
+            if (yOffset + TS <= image.size().height) {
+                drawTile_transparent(image, xOffset, yOffset, tileset.at(tileId), hFlip, vFlip, palette);
+            }
+        }
     }
 }
 
-// NOTE: Image MUST be large enough to hold tileset.
-// ASSUMES `imgBits` points to the start of an image scanline.
+// Image MUST be large enough to hold tileset.
 template <size_t TS>
-void drawTileset_transparent(const std::vector<Tile<TS>>& tileset,
-                             Image& image, const unsigned yOffset,
+void drawTileset_transparent(Image& image, const unsigned yOffset,
+                             const std::vector<Tile<TS>>& tileset,
                              const std::span<const rgba> palette)
 {
     if (tileset.empty()) {
@@ -209,30 +196,24 @@ void drawTileset_transparent(const std::vector<Tile<TS>>& tileset,
     }
 
     static_assert(TS > 1);
-    assert(image.pixelsPerScanline() % TS == 0);
 
-    const size_t tilesPerLine = image.pixelsPerScanline() / TS;
+    const size_t width = image.size().width;
+    const size_t tilesPerLine = width / TS;
     const size_t nLines = (tileset.size() - 1) / tilesPerLine + 1;
 
+    assert(width % TS == 0);
     assert(yOffset + nLines * TS <= image.size().height);
 
-    const unsigned stride = image.pixelsPerScanline();
-    const rgba* const imgBitsEnd = image.data().data() + image.data().size();
-    rgba* imgBits = image.data().data() + yOffset * stride;
-
-    assert(imgBitsEnd > imgBits);
-
+    unsigned y = yOffset;
     unsigned x = 0;
 
     for (const Tile<TS>& tile : tileset) {
-        drawTile_transparent(tile, imgBits, imgBitsEnd, stride, palette);
+        drawTile_transparent(image, x, y, tile, palette);
 
-        imgBits += TS;
-
-        x++;
-        if (x >= tilesPerLine) {
+        x += TS;
+        if (x >= width) {
             x = 0;
-            imgBits += stride * (TS - 1);
+            y += TS;
         }
     }
 }

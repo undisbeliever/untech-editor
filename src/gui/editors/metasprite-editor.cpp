@@ -1507,8 +1507,8 @@ void MetaSpriteEditorGui::updateTilesetTexture()
         assert(stride == _tilesetImage->pixelsPerScanline());
         assert(palette.size() == N_PALETTE_COLORS);
 
-        Snes::drawTileset_transparent(fs.smallTileset, *_tilesetImage, 0, palette);
-        Snes::drawTileset_transparent(fs.largeTileset, *_tilesetImage, nSmallRows * SMALL_TILE_SIZE, palette);
+        Snes::drawTileset_transparent(*_tilesetImage, 0, fs.smallTileset, palette);
+        Snes::drawTileset_transparent(*_tilesetImage, nSmallRows * SMALL_TILE_SIZE, fs.largeTileset, palette);
     }
 
     _tilesetTexture.replace(*_tilesetImage);
