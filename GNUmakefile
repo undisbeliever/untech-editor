@@ -215,7 +215,7 @@ endif
 
 
 ifeq ($(CXXWARNINGS),)
-  CXXWARNINGS := -Wall -Wextra -Wdeprecated -Wvla
+  CXXWARNINGS := -Wall -Wextra -Wdeprecated -Wvla -pedantic
 
   ifneq ($(findstring g++,$(CXX)),)
     GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
