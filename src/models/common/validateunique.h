@@ -17,7 +17,7 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
                                         const std::string& typeName,
                                         ErrorList& err)
 {
-    static const idstring countString = idstring::fromString("count");
+    static const idstring countString = "count"_id;
 
     bool valid = true;
 
@@ -65,7 +65,7 @@ inline bool validateNamesUnique(const NamedList<T>& list,
                                 const std::string& typeName,
                                 ErrorFunction err)
 {
-    static const idstring countString = idstring::fromString("count");
+    static const idstring countString = "count"_id;
 
     bool valid = true;
     auto addError = [&](const unsigned index, const auto... message) {

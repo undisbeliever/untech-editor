@@ -24,18 +24,18 @@ std::unique_ptr<BytecodeError> instructionError(const Instruction& inst, const u
 }
 
 const std::vector<Instruction> BytecodeInput::BASE_INSTRUCTIONS{
-    { idstring::fromString("End_Script"), {}, false },
-    { idstring::fromString("Set_Flag"), { ArgumentType::Flag }, false },
-    { idstring::fromString("Clear_Flag"), { ArgumentType::Flag }, false },
-    { idstring::fromString("Set_Word"), { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { idstring::fromString("Add_To_Word"), { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { idstring::fromString("Subtract_From_Word"), { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { idstring::fromString("Increment_Word"), { ArgumentType::Word }, false },
-    { idstring::fromString("Decrement_Word"), { ArgumentType::Word }, false },
-    { idstring::fromString("Sleep_AnimationTicks"), { ArgumentType::ImmediateU16 }, true },
-    { idstring::fromString("Start_Script"), { ArgumentType::RoomScript }, false },
-    { idstring::fromString("Spawn_Entity_Group"), { ArgumentType::EntityGroup }, false },
-    { idstring::fromString("Load_Room"), { ArgumentType::Room, ArgumentType::RoomEntrance }, false },
+    { "End_Script"_id, {}, false },
+    { "Set_Flag"_id, { ArgumentType::Flag }, false },
+    { "Clear_Flag"_id, { ArgumentType::Flag }, false },
+    { "Set_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { "Add_To_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { "Subtract_From_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { "Increment_Word"_id, { ArgumentType::Word }, false },
+    { "Decrement_Word"_id, { ArgumentType::Word }, false },
+    { "Sleep_AnimationTicks"_id, { ArgumentType::ImmediateU16 }, true },
+    { "Start_Script"_id, { ArgumentType::RoomScript }, false },
+    { "Spawn_Entity_Group"_id, { ArgumentType::EntityGroup }, false },
+    { "Load_Room"_id, { ArgumentType::Room, ArgumentType::RoomEntrance }, false },
 };
 
 static unsigned argumentSize(const ArgumentType type)

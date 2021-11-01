@@ -20,19 +20,19 @@ const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 6;
 
 #define BASE_ROM_STRUCT "BaseEntityRomStruct"
 #define ENTITY_ROM_STRUCT_NAMESPACE "Project.EntityRomStructs"
-static const idstring baseRomStruct = idstring::fromString(BASE_ROM_STRUCT);
+static const idstring baseRomStruct = "BASE_ROM_STRUCT"_id;
 
 const std::unordered_set<idstring> INVALID_NAMES{
-    idstring::fromString("functionTable"),
-    idstring::fromString("defaultPalette"),
-    idstring::fromString("initialProjectileId"),
-    idstring::fromString("initialListId"),
-    idstring::fromString("frameSetId"),
-    idstring::fromString("Players"),
-    idstring::fromString("Projectiles"),
-    idstring::fromString("size"),
-    idstring::fromString("count"),
-    idstring::fromString("__STRUCT__"),
+    "functionTable"_id,
+    "defaultPalette"_id,
+    "initialProjectileId"_id,
+    "initialListId"_id,
+    "frameSetId"_id,
+    "Players"_id,
+    "Projectiles"_id,
+    "size"_id,
+    "count"_id,
+    "__STRUCT__"_id,
     baseRomStruct,
 };
 
@@ -192,7 +192,7 @@ static bool validate(const EntityRomStruct& input, const unsigned structIndex, E
     if (INVALID_NAMES.find(input.name) != INVALID_NAMES.end()) {
         addError("Invalid name ", input.name);
     }
-    if (input.name.str() == BASE_ROM_STRUCT) {
+    if (input.name == baseRomStruct) {
         addError("Name cannot be " BASE_ROM_STRUCT);
     }
     if (input.parent.isValid() && input.parent == input.name) {

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cassert>
 #include <ostream>
 #include <string>
 #include <string_view>
@@ -112,6 +113,13 @@ public:
     bool operator==(const idstring& o) const = default;
     auto operator<=>(const idstring& o) const = default;
 };
+
+inline idstring operator"" _id(const char* str, const size_t size)
+{
+    const auto id = idstring::fromString(std::string_view(str, size));
+    assert(id.isValid());
+    return id;
+}
 
 // useful in generating user messages
 inline std::string operator+(const char* c, const idstring& i)

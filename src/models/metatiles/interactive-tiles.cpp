@@ -10,7 +10,7 @@
 
 namespace UnTech::MetaTiles {
 
-static const idstring BLANK_TILE_FUNCTION = idstring::fromString("NoTileInteraction");
+static const idstring BLANK_TILE_FUNCTION = "NoTileInteraction"_id;
 
 const std::array<InteractiveTileFunctionTable, InteractiveTiles::N_FIXED_FUNCTION_TABLES> InteractiveTiles::FIXED_FUNCTION_TABLES{ {
     InteractiveTileFunctionTable{ BLANK_TILE_FUNCTION, rgba(0, 0, 0, 0) },
