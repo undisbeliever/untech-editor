@@ -62,13 +62,9 @@ public:
         const auto& underTileData = underTile.data();
 
         // Using _tileset instead of _map to ensure the tiles are tested in a deterministic order.
-        for (const auto [tileId, tile] : const_enumerate(_tileset)) {
-            for (const auto flip : range(4)) {
-                bool hFlip = flip & 1;
-                bool vFlip = flip & 2;
-
-                const TileT toTest = tileId == 0 ? tile
-                                                 : tile.flip(hFlip, vFlip);
+        for (const auto [i, tile] : const_enumerate(_tileset)) {
+            const auto tileId = i;
+            auto testTile = [&](const TileT& toTest, const bool hFlip, const bool vFlip) {
                 const auto& toTestData = toTest.data();
 
                 unsigned score = 0;
@@ -88,7 +84,12 @@ public:
                     bestScore = score;
                     ret = { unsigned(tileId), hFlip, vFlip };
                 }
-            }
+            };
+
+            testTile(tile, false, false);
+            testTile(tile.hFlip(), true, false);
+            testTile(tile.vFlip(), false, true);
+            testTile(tile.hvFlip(), true, true);
         }
 
         if (bestScore != 0) {

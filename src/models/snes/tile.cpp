@@ -11,41 +11,64 @@
 namespace UnTech::Snes {
 
 template <size_t TS>
-Tile<TS> Tile<TS>::flip(bool hFlip, bool vFlip) const
+Tile<TS> Tile<TS>::hFlip() const
 {
     Tile<TS> ret;
-    auto pixelData = _data.cbegin();
+    auto retIt = ret.data().begin();
 
     for (const auto y : range(TS)) {
-        unsigned fy = (vFlip == false) ? y : TS - 1 - y;
-        auto retRow = ret._data.begin() + fy * TS;
-
-        for (const auto x : range(TS)) {
-            unsigned fx = (hFlip == false) ? x : TS - 1 - x;
-            retRow[fx] = *pixelData++;
-        }
+        const auto s = this->sliver(y);
+        retIt = std::copy(s.rbegin(), s.rend(), retIt);
     }
-    assert(pixelData == _data.cend());
+    assert(retIt == ret.data().cend());
 
     return ret;
 }
 
 template <size_t TS>
-Tile<TS> Tile<TS>::hFlip() const
-{
-    return flip(true, false);
-}
-
-template <size_t TS>
 Tile<TS> Tile<TS>::vFlip() const
 {
-    return flip(false, true);
+    Tile<TS> ret;
+    auto retIt = ret.data().begin();
+
+    for (const auto y : reverse_range(TS)) {
+        const auto s = this->sliver(y);
+        retIt = std::copy(s.begin(), s.end(), retIt);
+    }
+    assert(retIt == ret.data().cend());
+
+    return ret;
 }
 
 template <size_t TS>
 Tile<TS> Tile<TS>::hvFlip() const
 {
-    return flip(true, true);
+    Tile<TS> ret;
+
+    std::copy(_data.crbegin(), _data.crend(), ret._data.begin());
+
+    return ret;
+}
+
+template <std::size_t TS>
+Tile<TS> Tile<TS>::flip(bool h_flip, bool v_flip) const
+{
+    if (!h_flip) {
+        if (!v_flip) {
+            return *this;
+        }
+        else {
+            return vFlip();
+        }
+    }
+    else {
+        if (!v_flip) {
+            return hFlip();
+        }
+        else {
+            return hvFlip();
+        }
+    }
 }
 
 template class Snes::Tile<8>;

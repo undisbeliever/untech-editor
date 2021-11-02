@@ -38,10 +38,11 @@ public:
         return std::span(_data.data() + y * TILE_SIZE, TILE_SIZE);
     }
 
-    Tile flip(bool hFlip, bool vFlip) const;
     Tile hFlip() const;
     Tile vFlip() const;
     Tile hvFlip() const;
+
+    Tile flip(bool h_flip, bool v_flip) const;
 
     uint8_t pixel(unsigned x, unsigned y) const
     {
