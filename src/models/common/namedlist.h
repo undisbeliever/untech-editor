@@ -54,8 +54,6 @@ public:
         return INT_MAX;
     }
 
-    // NOTE: pointer may be null
-    // pointer is valid until item is removed or replaced
     optional<T&> find(const idstring& name)
     {
         for (T& i : _list) {
@@ -66,8 +64,6 @@ public:
         return {};
     }
 
-    // NOTE: pointer may be null
-    // pointer is valid until item is removed or replaced
     optional<const T&> find(const idstring& name) const
     {
         for (const T& i : _list) {
@@ -78,7 +74,6 @@ public:
         return {};
     }
 
-    // pointer is valid until item is removed or replaced
     T& at(size_type index) { return _list.at(index); }
     const T& at(size_type index) const { return _list.at(index); }
 

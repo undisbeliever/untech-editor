@@ -53,7 +53,7 @@ compileGameState(const GameState& input,
     const auto roomId = rooms.indexOf(input.startingRoom);
     unsigned entranceId = INT_MAX;
     if (roomId < rooms.size()) {
-        if (const auto* room = rooms.at(roomId)) {
+        if (const auto room = rooms.at(roomId)) {
             entranceId = room->entrances.indexOf(input.startingEntrance);
         }
     }

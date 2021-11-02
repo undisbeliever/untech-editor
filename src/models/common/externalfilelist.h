@@ -8,6 +8,7 @@
 
 #include "idstring.h"
 #include "iterators.h"
+#include "optional.h"
 #include <cassert>
 #include <climits>
 #include <filesystem>
@@ -69,28 +70,26 @@ public:
 
     size_type size() const { return _list.size(); }
 
-    // NOTE: pointer may be null
-    // pointer is valid until item removed or reloaded
-    T* find(const idstring& name)
+    // return reference is valid until the item is removed or reloaded
+    optional<T&> find(const idstring& name)
     {
         for (const Item& item : _list) {
             if (item.value && item.value->name == name) {
-                return item.value.get();
+                return item.value;
             }
         }
-        return nullptr;
+        return optional<T&>{};
     }
 
-    // NOTE: pointer may be null
-    // pointer is valid until item removed or reloaded
-    const T* find(const idstring& name) const
+    // return reference is valid until the item is removed or reloaded
+    optional<const T&> find(const idstring& name) const
     {
         for (const Item& item : _list) {
             if (item.value && item.value->name == name) {
-                return item.value.get();
+                return item.value;
             }
         }
-        return nullptr;
+        return optional<const T&>{};
     }
 
     // returns INT_MAX if name is not found
@@ -107,10 +106,9 @@ public:
     Item& item(size_type index) { return _list.at(index); }
     const Item& item(size_type index) const { return _list.at(index); }
 
-    // NOTE: pointer may be null
-    // pointer is valid until item is removed, replaced or reloaded
-    T* at(size_type index) { return _list.at(index).value.get(); }
-    const T* at(size_type index) const { return _list.at(index).value.get(); }
+    // return reference is valid until the item is removed or reloaded
+    optional<T&> at(size_type index) { return _list.at(index).value; }
+    optional<const T&> at(size_type index) const { return _list.at(index).value; }
 
     iterator begin() { return _list.begin(); }
     iterator end() { return _list.end(); }

@@ -34,7 +34,7 @@ struct FrameSetExportOrderEditorData::AP {
         {
             const auto i = itemIndex.index;
             if (i < projectFile.frameSetExportOrders.size()) {
-                return projectFile.frameSetExportOrders.at(i);
+                return projectFile.frameSetExportOrders.at(i).ptr();
             }
             return nullptr;
         }

@@ -221,8 +221,8 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
 {
     const size_t oldErrorCount = errorList.errorCount();
 
-    const auto* exportOrder = project.frameSetExportOrders.find(frameSet.exportOrder);
-    if (exportOrder == nullptr) {
+    const auto exportOrder = project.frameSetExportOrders.find(frameSet.exportOrder);
+    if (not exportOrder) {
         errorList.addErrorString("Missing MetaSprite Export Order Document");
         return nullptr;
     }

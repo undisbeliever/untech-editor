@@ -1266,9 +1266,9 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     const bool mtDataChanged = mtData != _tilesetShader.tilesetData();
 
     if (mtDataChanged || !mtData) {
-        const auto* tileset = tilesetIndex < projectFile.metaTileTilesets.size()
-                                  ? projectFile.metaTileTilesets.at(tilesetIndex)
-                                  : nullptr;
+        auto tileset = tilesetIndex < projectFile.metaTileTilesets.size()
+                           ? projectFile.metaTileTilesets.at(tilesetIndex)
+                           : std::nullopt;
 
         if (tileset) {
             _scratchpad = tileset->scratchpad;

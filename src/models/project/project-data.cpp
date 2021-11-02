@@ -440,7 +440,7 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
     }
 
     case ResourceType::MataTileTilesets: {
-        const auto* tileset = project.metaTileTilesets.at(index);
+        const auto tileset = project.metaTileTilesets.at(index);
         const auto& pal = tileset ? tileset->animationFrames.conversionPalette : BLANK_ID;
         update(_palette_metaTileTilesets, pal);
 
@@ -606,7 +606,7 @@ compileListItem(ConvertFunction convertFunction,
                 const ExternalFileList<InputT>& inputList, const unsigned index,
                 const PreresquitesT&... preresquites)
 {
-    const auto* input = inputList.at(index);
+    const optional<const InputT&> input = inputList.at(index);
 
     if (input) {
         return compileData<DataT>(convertFunction, *input, preresquites...);
@@ -714,7 +714,7 @@ inline bool ProjectData::validateList(const ValidateFunction validateFunction, R
 
     for (const auto index : range(inputList.size())) {
         if (statusList.state(index) == ResourceState::Unchecked) {
-            const auto* input = inputList.at(index);
+            const optional<const InputT&> input = inputList.at(index);
 
             ResourceStatus status;
 

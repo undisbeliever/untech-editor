@@ -355,7 +355,7 @@ private:
         unsigned entranceId = 0;
 
         if (roomId < roomsList.size()) {
-            if (const auto* r = roomsList.at(roomId)) {
+            if (const auto r = roomsList.at(roomId)) {
                 entranceId = getRoomEntranceId(arguments.at(1), *r);
             }
         }

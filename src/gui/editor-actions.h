@@ -41,7 +41,7 @@ T* fileListData(ExternalFileList<T>* list, const typename ExternalFileList<T>::s
 {
     if (list) {
         if (index < list->size()) {
-            return list->at(index);
+            return list->at(index).ptr();
         }
     }
     return nullptr;

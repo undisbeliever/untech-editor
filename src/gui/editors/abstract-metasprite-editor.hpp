@@ -380,7 +380,7 @@ void AbstractMetaSpriteEditorGui::updateExportOderTree(const FrameSetT& frameSet
     _eoStillFrames.clear();
     _eoAnimations.clear();
 
-    const UnTech::MetaSprite::FrameSetExportOrder* eo = projectFile.frameSetExportOrders.find(frameSet.exportOrder);
+    optional<const UnTech::MetaSprite::FrameSetExportOrder&> eo = projectFile.frameSetExportOrders.find(frameSet.exportOrder);
     if (eo) {
         buildExportOrderTree(&_eoStillFrames, eo->stillFrames, frameSet.frames);
         buildExportOrderTree(&_eoAnimations, eo->animations, frameSet.animations);

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <stdexcept>
 
 namespace UnTech {
@@ -88,11 +89,16 @@ private:
     bool _exists;
 };
 
-// Once created an optional reference cannot be changed, only moved.
+// An optional reference cannot be changed, only moved.
 template <typename T>
 class optional<T&> {
 public:
     optional()
+        : _ptr(nullptr)
+    {
+    }
+
+    optional(std::nullopt_t)
         : _ptr(nullptr)
     {
     }
@@ -103,6 +109,13 @@ public:
     }
 
     optional(const std::unique_ptr<T>& v)
+        : _ptr(v.get())
+    {
+    }
+
+    template <typename U = T>
+    requires std::is_const_v<T>
+    optional(const std::unique_ptr<std::remove_const_t<T>>& v)
         : _ptr(v.get())
     {
     }
@@ -142,6 +155,9 @@ public:
         return _ptr ? *_ptr : defaultValue;
     }
 
+    // May return none
+    inline T* ptr() { return _ptr; }
+
     inline T* operator->() { return &value(); }
     inline const T* operator->() const { return &value(); }
     inline T& operator*() { return value(); }
@@ -154,4 +170,5 @@ public:
 private:
     T* const _ptr;
 };
+
 }

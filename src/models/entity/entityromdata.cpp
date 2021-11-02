@@ -244,7 +244,7 @@ static bool validate(const EntityFunctionTable& input, const unsigned ftIndex, c
     }
 
     if (input.exportOrder.isValid()) {
-        if (project.frameSetExportOrders.find(input.exportOrder) == nullptr) {
+        if (not project.frameSetExportOrders.find(input.exportOrder)) {
             addError("Cannot find FrameSet Export Order ", input.exportOrder);
         }
     }

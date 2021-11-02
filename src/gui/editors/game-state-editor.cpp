@@ -134,7 +134,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
         }
 
         if (ImGui::BeginCombo("Starting Entrance", gameState.startingEntrance.str())) {
-            if (const auto* room = projectFile.rooms.find(gameState.startingRoom)) {
+            if (const auto room = projectFile.rooms.find(gameState.startingRoom)) {
                 const bool changed = ImGui::IdStringComboSelection(&gameState.startingEntrance, room->entrances, true);
                 if (changed) {
                     EditorActions<AP::GameState>::fieldEdited<
