@@ -495,7 +495,7 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
     return fieldMap;
 }
 
-// WARNING: output contains pointers.
+// WARNING: output contains references.
 // Output is only valid (and safe) so long as `functionTables` and `structFieldMap remain unchanged
 // This function is static (local-only) because of the lifetime restrictions.
 static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTable>& functionTables,
