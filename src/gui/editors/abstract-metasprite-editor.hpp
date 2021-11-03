@@ -17,6 +17,7 @@
 #include "models/common/clamp.h"
 #include "models/common/iterators.h"
 #include "models/metasprite/animation/animation.h"
+#include "models/metasprite/animation/getters.h"
 #include <cmath>
 
 namespace UnTech::Gui {
@@ -131,30 +132,17 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
     ImGui::End();
 }
 
-template <typename EditorDataT>
-void AbstractMetaSpriteEditorGui::setMetaSpriteData(EditorDataT* data)
-{
-    if (data) {
-        _animationState.setAnimationList(&data->data.animations);
-        _animationState.setAnimationIndex(data->animationsSel.selectedIndex());
-    }
-    else {
-        _animationState.setAnimationList(nullptr);
-    }
-
-    _animationTimer.stop();
-    _animationState.setNextAnimationIndex(INT_MAX);
-}
-
 template <typename EditorDataT, typename DrawFunction>
 void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel, EditorDataT* data, DrawFunction drawFunction)
 {
     assert(data);
     const auto& fs = data->data;
+    const NamedList<UnTech::MetaSprite::Animation::Animation>& animations = fs.animations;
 
     if (data->animationsSel.selectedIndex() != prevAnimationIndex) {
         prevAnimationIndex = data->animationsSel.selectedIndex();
-        _animationState.setAnimationIndex(prevAnimationIndex);
+        _animationState.animationIndex = prevAnimationIndex;
+        _animationState.resetAnimation();
     }
 
     ImGui::SetNextWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
@@ -166,21 +154,19 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
 
             if (ImGui::ButtonWithTooltip("N##Next", "Next Display Frame")) {
                 _animationTimer.stop();
-                _animationState.processDisplayFrame();
+                _animationState.processDisplayFrame(animations);
             }
             ImGui::SameLine();
 
             if (ImGui::ButtonWithTooltip("S##Skip", "Skip Animation Frame")) {
                 _animationTimer.stop();
-                _animationState.nextAnimationFrame();
+                _animationState.nextAnimationFrame(animations);
             }
             ImGui::SameLine();
 
             if (ImGui::ButtonWithTooltip("R##Reset", "Reset")) {
-                _animationTimer.reset();
-                _animationState.setAnimationIndex(data->animationsSel.selectedIndex());
-                _animationState.setPositionInt(point(0, 0));
-                _animationState.resetFrameCount();
+                _animationState.resetAnimation();
+                _animationState.animationIndex = data->animationsSel.selectedIndex();
             }
             ImGui::SameLine(0.0f, 12.0f);
 
@@ -191,7 +177,11 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
         }
 
         _animationTimer.process([&]() {
-            _animationState.processDisplayFrame();
+            _animationState.processDisplayFrame(animations);
+
+            if (!_animationState.running) {
+                _animationTimer.stop();
+            }
         });
 
         ImGui::Separator();
@@ -212,38 +202,32 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
 
             ImGui::SingleSelectionNamedListCombo("Animation", &data->animationsSel, fs.animations, false);
 
-            // ::TODO remove nextAnimationIndex in _animationState, replace with idstring::
-            unsigned nextAnimationIndex = _animationState.nextAnimationIndex();
-            if (ImGui::SingleSelectionNamedListCombo("Next Animation", &nextAnimationIndex, fs.animations, true)) {
-                _animationState.setNextAnimationIndex(nextAnimationIndex);
-            }
+            ImGui::SingleSelectionNamedListCombo("Override Next Animation", &_animationState.overrideNextAnimationIndex, fs.animations, true);
 
             using PreviewState = decltype(_animationState);
             constexpr float MAX_VELOCITY = 3.0f;
             constexpr float DIVISOR = 1 << PreviewState::FP_SHIFT;
 
-            auto velocityFp = _animationState.velocityFp();
-
-            float velocityX = velocityFp.x / DIVISOR;
-            float velocityY = velocityFp.y / DIVISOR;
+            float velocityX = _animationState.velocityFP.x / DIVISOR;
+            float velocityY = _animationState.velocityFP.y / DIVISOR;
 
             if (ImGui::SliderFloat("X Velocity", &velocityX, -MAX_VELOCITY, MAX_VELOCITY)) {
-                velocityFp.x = velocityX * DIVISOR;
-                _animationState.setVelocityFp(velocityFp);
+                _animationState.velocityFP.x = velocityX * DIVISOR;
             }
             if (ImGui::SliderFloat("Y Velocity", &velocityY, -MAX_VELOCITY, MAX_VELOCITY)) {
-                velocityFp.y = velocityY * DIVISOR;
-                _animationState.setVelocityFp(velocityFp);
+                _animationState.velocityFP.y = velocityY * DIVISOR;
             }
         }
         ImGui::NextColumn();
 
-        if (_animationState.animationIndex() < fs.animations.size()) {
-            const auto msFrame = _animationState.frame();
+        const auto [ani, aniFrame] = MetaSprite::Animation::getAnimationAndFrame(animations, _animationState.animationIndex, _animationState.aFrameIndex);
 
-            ImGui::Text("Display Frame: %u", _animationState.displayFrameCount());
-            ImGui::Text("Animation Frame: %s.%u", _animationState.animationId().c_str(), _animationState.animationFrameIndex());
-            ImGui::Text("Next Animation: %s", _animationState.nextAnimationId().c_str());
+        if (ani && aniFrame) {
+            const auto& msFrame = aniFrame->frame;
+
+            ImGui::Text("Display Frame: %u", _animationState.displayFrameCount);
+            ImGui::Text("Animation Frame: %s.%u", ani->name.c_str(), _animationState.aFrameIndex);
+            ImGui::Text("Next Animation: %s", ani->nextAnimationText().c_str());
             ImGui::Text("MetaSprite Frame: %s%s", msFrame.name.c_str(), msFrame.flipStringSuffix().data());
         }
         else {
@@ -312,20 +296,20 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
                 drawPos = ImVec2(pos.x * zoom.x + centerOffset.x, pos.y * zoom.y + centerOffset.y);
             }
 
-            const auto& animationFrame = _animationState.frame();
+            if (aniFrame) {
+                if (const auto f = fs.frames.find(aniFrame->frame.name)) {
 
-            if (auto f = fs.frames.find(animationFrame.name)) {
+                    // ::TODO confirm flip is bit perfect against a SNES console::
+                    ImVec2 z = zoom;
+                    if (aniFrame->frame.hFlip ^ _animationHFlip) {
+                        z.x = -z.x;
+                    }
+                    if (aniFrame->frame.vFlip ^ _animationVFlip) {
+                        z.y = -z.y;
+                    }
 
-                // ::TODO confirm flip is bit perfect against a SNES console::
-                ImVec2 z = zoom;
-                if (animationFrame.hFlip ^ _animationHFlip) {
-                    z.x = -z.x;
+                    drawFunction(drawPos, z, *f);
                 }
-                if (animationFrame.vFlip ^ _animationVFlip) {
-                    z.y = -z.y;
-                }
-
-                drawFunction(drawPos, z, *f);
             }
             else {
                 auto* drawList = ImGui::GetWindowDrawList();

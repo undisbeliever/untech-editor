@@ -21,62 +21,51 @@ public:
     };
 
 public:
-    PreviewState();
+    // NOTE: Indexes may be out of bounds.
 
-    void setAnimationList(const NamedList<Animation>* list) { _animations = list; }
-    void setAnimationIndex(size_t index);
-    void setNextAnimationIndex(size_t index);
+    unsigned animationIndex;
 
-    void setRegion(Region region) { _region = region; }
+    unsigned overrideNextAnimationIndex;
 
-    void setVelocityFp(const point& v) { _velocity = v; }
+    unsigned aFrameIndex;
+    unsigned frameTime;
 
-    void setPositionFp(const point& p) { _position = p; }
-    void setPositionInt(const point& p) { _position = point(p.x << FP_SHIFT, p.y << FP_SHIFT); }
+    unsigned displayFrameCount;
 
-    void resetFrameCount() { _displayFrameCount = 0; }
-
-    // return true if frame changes
-    bool processDisplayFrame();
-    void nextAnimationFrame();
-
-    const NameReference& frame() const;
-    bool isRunning() const;
-    const idstring& animationId() const;
-
-    size_t animationIndex() const { return _animationIndex; }
-
-    size_t nextAnimationIndex() const { return _nextAnimationIndex; }
-    const idstring& nextAnimationId() const;
-
-    unsigned animationFrameIndex() const { return _aFrameIndex; }
-    unsigned displayFrameCount() const { return _displayFrameCount; }
-
-    const point& velocityFp() const { return _velocity; }
-    const point& positionFp() const { return _position; }
-    point positionInt() const { return point(_position.x >> FP_SHIFT, _position.y >> FP_SHIFT); }
-
-private:
-    const Animation* getAnimation() const;
-    const Animation* getAnimation(size_t index) const;
-    const AnimationFrame* getAnimationFrame() const;
-
-    unsigned calcTimeToNextFrame() const;
-
-private:
-    const NamedList<Animation>* _animations;
-    size_t _animationIndex;
-    size_t _nextAnimationIndex;
-    unsigned _aFrameIndex;
-    unsigned _frameTime;
-
-    unsigned _displayFrameCount;
-
-    Region _region;
+    Region region;
 
     // fixed point
-    point _velocity;
-    point _position;
+    point velocityFP;
+    point positionFP;
+
+    bool running;
+
+public:
+    PreviewState()
+    {
+        region = Region::NTSC;
+        resetState();
+    }
+
+    void resetState();
+    void resetAnimation();
+
+    void setAnimation(const size_t aniIndex);
+
+    // returns true if frame changes
+    bool processDisplayFrame(const NamedList<Animation>& animations);
+
+    void nextAnimationFrame(const NamedList<Animation>& animations);
+
+    void setPositionInt(const point& p)
+    {
+        positionFP.x = p.x << FP_SHIFT;
+        positionFP.y = p.y << FP_SHIFT;
+    }
+    point positionInt() const { return point(positionFP.x >> FP_SHIFT, positionFP.y >> FP_SHIFT); }
+
+private:
+    void nextAnimationFrame(const Animation& currentAnimation, const NamedList<Animation>& animations);
 };
 
 }

@@ -23,6 +23,16 @@ void AbstractMetaSpriteEditorGui::resetState()
     _exportOrderValid = false;
 }
 
+void AbstractMetaSpriteEditorGui::setMetaSpriteData(AbstractMetaSpriteEditorData* data)
+{
+    _animationState.resetState();
+    _animationTimer.stop();
+
+    if (data) {
+        _animationState.animationIndex = data->animationsSel.selectedIndex();
+    }
+}
+
 void AbstractMetaSpriteEditorGui::viewMenu()
 {
     ImGui::MenuItem("Show Tile Hitbox", nullptr, &showTileHitbox);

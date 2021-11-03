@@ -5,213 +5,126 @@
  */
 
 #include "previewstate.h"
+#include "getters.h"
 #include <cassert>
 #include <cmath>
 
 namespace UnTech::MetaSprite::Animation {
 
-PreviewState::PreviewState()
-    : _animations(nullptr)
-    , _animationIndex(INT_MAX)
-    , _nextAnimationIndex(INT_MAX)
-    , _aFrameIndex(0)
-    , _frameTime(0)
-    , _displayFrameCount(0)
-    , _region(Region::NTSC)
-    , _velocity(0, 0)
-    , _position(0, 0)
+static unsigned calcTimeToNextFrame(const Animation& ani, const AnimationFrame& aniFrame)
 {
-}
+    switch (ani.durationFormat.value()) {
+    case DurationFormat::Enum::FRAME:
+        return aniFrame.duration;
 
-const Animation* PreviewState::getAnimation(size_t index) const
-{
-    if (_animations) {
-        if (index < _animations->size()) {
-            return &_animations->at(index);
-        }
-    }
-    return nullptr;
-}
+    case DurationFormat::Enum::TIME:
+        return aniFrame.duration << 1;
 
-const Animation* PreviewState::getAnimation() const
-{
-    return getAnimation(_animationIndex);
-}
-
-const AnimationFrame* PreviewState::getAnimationFrame() const
-{
-    const Animation* ani = getAnimation();
-    if (ani == nullptr) {
-        return nullptr;
+    case DurationFormat::Enum::DISTANCE_HORIZONTAL:
+    case DurationFormat::Enum::DISTANCE_VERTICAL:
+        return aniFrame.duration << 3;
     }
 
-    if (_aFrameIndex >= ani->frames.size()) {
-        return nullptr;
-    }
-    return &ani->frames.at(_aFrameIndex);
+    return 0;
 }
 
-const NameReference& PreviewState::frame() const
+void PreviewState::resetState()
 {
-    const static NameReference BLANK_FRAME = {};
+    resetAnimation();
 
-    const Animation* ani = getAnimation();
-    if (ani == nullptr || _aFrameIndex >= ani->frames.size()) {
-        return BLANK_FRAME;
-    }
-    else {
-        return ani->frames.at(_aFrameIndex).frame;
-    }
+    animationIndex = INT_MAX;
+
+    velocityFP = point(0, 0);
+    positionFP = point(0, 0);
 }
 
-bool PreviewState::isRunning() const
+void PreviewState::resetAnimation()
 {
-    const Animation* ani = getAnimation();
-    if (ani == nullptr) {
+    running = true;
+
+    overrideNextAnimationIndex = INT_MAX;
+
+    aFrameIndex = 0;
+
+    frameTime = 0;
+    displayFrameCount = 0;
+}
+
+bool PreviewState::processDisplayFrame(const NamedList<Animation>& animations)
+{
+    const auto [ani, aniFrame] = getAnimationAndFrame(animations, animationIndex, aFrameIndex);
+
+    running = ani && aniFrame;
+    if (!running) {
         return false;
     }
 
-    return ani->frames.size() > 0;
-}
+    displayFrameCount++;
 
-const idstring& PreviewState::animationId() const
-{
-    const static idstring BLANK_ID;
-
-    if (auto* ani = getAnimation()) {
-        return ani->name;
-    }
-    else {
-        return BLANK_ID;
-    }
-}
-
-const idstring& PreviewState::nextAnimationId() const
-{
-    const static idstring BLANK_ID;
-
-    if (auto* ani = getAnimation(_nextAnimationIndex)) {
-        return ani->name;
-    }
-    else {
-        return BLANK_ID;
-    }
-}
-
-void PreviewState::setAnimationIndex(size_t index)
-{
-    assert(_animations);
-
-    _animationIndex = index;
-    _nextAnimationIndex = INT_MAX;
-    _aFrameIndex = 0;
-    _frameTime = 0;
-
-    if (auto* ani = getAnimation(_animationIndex)) {
-        if (ani->oneShot) {
-            _nextAnimationIndex = INT_MAX;
-        }
-        else if (ani->nextAnimation.isValid()) {
-            _nextAnimationIndex = _animations->indexOf(ani->nextAnimation);
-        }
-        else {
-            _nextAnimationIndex = _animationIndex;
-        }
-    }
-}
-
-void PreviewState::setNextAnimationIndex(size_t index)
-{
-    _nextAnimationIndex = index;
-}
-
-bool PreviewState::processDisplayFrame()
-{
-    if (!isRunning()) {
-        return false;
-    }
-
-    const Animation* ani = getAnimation();
-    assert(ani != nullptr);
-
-    _displayFrameCount++;
-
-    _position.x += _velocity.x;
-    _position.y += _velocity.y;
+    positionFP.x += velocityFP.x;
+    positionFP.y += velocityFP.y;
 
     switch (ani->durationFormat) {
     case DurationFormat::Enum::FRAME:
-        _frameTime += 1;
+        frameTime += 1;
         break;
 
     case DurationFormat::Enum::TIME:
-        _frameTime += _region == PAL ? 6 : 5;
+        frameTime += region == PAL ? 6 : 5;
         break;
 
     case DurationFormat::Enum::DISTANCE_VERTICAL:
-        _frameTime += abs(_velocity.y >> (FP_SHIFT - 8));
+        frameTime += abs(velocityFP.y >> (FP_SHIFT - 8));
         break;
 
     case DurationFormat::Enum::DISTANCE_HORIZONTAL:
-        _frameTime += abs(_velocity.x >> (FP_SHIFT - 8));
+        frameTime += abs(velocityFP.x >> (FP_SHIFT - 8));
         break;
     }
 
-    if (_frameTime >= calcTimeToNextFrame()) {
-        nextAnimationFrame();
+    if (frameTime >= calcTimeToNextFrame(*ani, *aniFrame)) {
+        nextAnimationFrame(*ani, animations);
         return true;
     }
 
     return false;
 }
 
-void PreviewState::nextAnimationFrame()
+void PreviewState::nextAnimationFrame(const Animation& ani, const NamedList<Animation>& animations)
 {
-    if (!isRunning()) {
-        return;
-    }
+    running = true;
+    frameTime = 0;
 
-    assert(_animations);
-    const Animation* ani = getAnimation();
-    assert(ani);
+    aFrameIndex++;
+    if (aFrameIndex >= ani.frames.size()) {
+        aFrameIndex = 0;
+        frameTime = 0;
 
-    _frameTime = 0;
-
-    _aFrameIndex++;
-    if (_aFrameIndex >= ani->frames.size()) {
-        if (_nextAnimationIndex < _animations->size()) {
-            setAnimationIndex(_nextAnimationIndex);
+        if (overrideNextAnimationIndex < animations.size()) {
+            animationIndex = overrideNextAnimationIndex;
+            overrideNextAnimationIndex = INT_MAX;
         }
-        else {
-            // untech-engine does not do this.
-            // This is required for `frame()` to work after the animation ends.
-            _aFrameIndex = ani->frames.size() - 1;
+        else if (ani.oneShot) {
+            // Ensure the last frame is visible in the animation preview.
+            aFrameIndex = ani.frames.size() - 1;
+            running = false;
+        }
+        else if (ani.nextAnimation.isValid()) {
+            animationIndex = animations.indexOf(ani.nextAnimation);
         }
     }
 }
 
-unsigned PreviewState::calcTimeToNextFrame() const
+void PreviewState::nextAnimationFrame(const NamedList<Animation>& animations)
 {
-    const Animation* ani = getAnimation();
-    const AnimationFrame* aFrame = getAnimationFrame();
+    const auto ani = getAnimation(animations, animationIndex);
 
-    if (ani == nullptr || aFrame == nullptr) {
-        return 0;
+    if (ani) {
+        nextAnimationFrame(*ani, animations);
     }
-
-    switch (ani->durationFormat.value()) {
-    case DurationFormat::Enum::FRAME:
-        return aFrame->duration;
-
-    case DurationFormat::Enum::TIME:
-        return aFrame->duration << 1;
-
-    case DurationFormat::Enum::DISTANCE_HORIZONTAL:
-    case DurationFormat::Enum::DISTANCE_VERTICAL:
-        return aFrame->duration << 3;
+    else {
+        running = false;
     }
-
-    return 0;
 }
 
 }

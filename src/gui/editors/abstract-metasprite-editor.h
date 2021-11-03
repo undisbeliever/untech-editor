@@ -68,8 +68,7 @@ protected:
     void showLayerButtons() const;
 
     // Must be called in `setEditorData`
-    template <typename EditorDataT>
-    void setMetaSpriteData(EditorDataT* data);
+    void setMetaSpriteData(AbstractMetaSpriteEditorData* data);
 
     template <typename AP, typename EditorT, typename FrameSetT>
     void animationPropertiesWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);

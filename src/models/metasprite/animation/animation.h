@@ -50,6 +50,16 @@ struct Animation {
         return !oneShot && !nextAnimation.isValid();
     }
 
+    const idstring& nextAnimationText() const
+    {
+        if (loopsItself()) {
+            return name;
+        }
+        else {
+            return nextAnimation;
+        }
+    }
+
     bool operator==(const Animation&) const = default;
 };
 
