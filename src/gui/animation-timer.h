@@ -68,7 +68,7 @@ public:
 };
 
 class SingleAnimationTimer {
-private:
+public:
     static constexpr unsigned TICKS_PER_SECOND = 300;
     static constexpr unsigned TICKS_PER_NTSC_FRAME = TICKS_PER_SECOND / 60;
     static constexpr unsigned TICKS_PER_PAL_FRAME = TICKS_PER_SECOND / 50;
@@ -122,7 +122,7 @@ public:
 };
 
 class DualAnimationTimer {
-private:
+public:
     static constexpr unsigned TICKS_PER_SECOND = 300;
     static constexpr unsigned TICKS_PER_NTSC_FRAME = TICKS_PER_SECOND / 60;
     static constexpr unsigned TICKS_PER_PAL_FRAME = TICKS_PER_SECOND / 50;

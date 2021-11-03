@@ -13,6 +13,7 @@
 namespace UnTech::MetaSprite::Animation {
 
 class DurationFormat {
+
 public:
     enum class Enum : uint_fast8_t {
         FRAME = 0x00,
@@ -21,6 +22,10 @@ public:
         DISTANCE_HORIZONTAL = 0x06,
     };
 
+private:
+    Enum _value;
+
+public:
     static const EnumMap<Enum> enumMap;
 
     DurationFormat(const Enum v = Enum::FRAME)
@@ -45,9 +50,6 @@ public:
     bool operator==(const DurationFormat&) const = default;
 
     bool operator==(Enum e) const { return _value == e; }
-
-private:
-    Enum _value;
 };
 
 }

@@ -11,6 +11,7 @@
 namespace UnTech {
 
 class StringParser {
+private:
     const std::string _inputString;
     std::string::const_iterator _pos;
     unsigned _lineNo;

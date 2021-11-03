@@ -22,6 +22,9 @@ public:
 
     typedef std::array<uint8_t, TILE_ARRAY_SIZE> tileArray_t;
 
+protected:
+    std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};
+
 public:
     Tile() = default;
 
@@ -62,9 +65,6 @@ public:
     }
 
     bool operator==(const Tile&) const = default;
-
-protected:
-    std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};
 };
 
 using Tile8px = Tile<8>;

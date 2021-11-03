@@ -17,8 +17,16 @@ class ImageCachePrivate {
     friend class UnTech::ImageCache;
     using ImageCacheMap_t = std::unordered_map<std::filesystem::path::string_type, const std::shared_ptr<const Image>>;
 
+private:
+    std::mutex mutex;
+    ImageCacheMap_t cache;
+
     static const std::shared_ptr<const Image> BLANK_IMAGE;
 
+private:
+    ImageCachePrivate() = default;
+
+public:
     static ImageCachePrivate& instance()
     {
         static ImageCachePrivate i;
@@ -79,12 +87,6 @@ class ImageCachePrivate {
 
         cache.clear();
     }
-
-private:
-    ImageCachePrivate() = default;
-
-    std::mutex mutex;
-    ImageCacheMap_t cache;
 };
 
 const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = Image::invalidImageWithErrorMessage("Invalid filename"s);

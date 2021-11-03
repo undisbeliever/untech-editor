@@ -12,6 +12,7 @@
 namespace UnTech::MetaSprite {
 
 class TilesetType {
+
 public:
     enum class Enum : uint_fast8_t {
         ONE_TILE_FIXED = 0x00,
@@ -24,6 +25,10 @@ public:
         TWO_ROWS = 0x0E
     };
 
+private:
+    Enum _value;
+
+public:
     static const EnumMap<Enum> enumMap;
 
     TilesetType(const Enum v = Enum::ONE_TILE)
@@ -54,9 +59,6 @@ public:
     bool operator==(const TilesetType&) const = default;
 
     bool operator==(Enum e) const { return _value == e; }
-
-private:
-    Enum _value;
 };
 
 }

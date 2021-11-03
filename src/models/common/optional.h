@@ -21,6 +21,11 @@ public:
 // Should only be used with simple types
 template <typename T>
 class optional {
+
+private:
+    T _value;
+    bool _exists;
+
 public:
     optional()
         : _value()
@@ -83,15 +88,15 @@ public:
     inline T& operator()() { return value(); }
     inline const T& operator()() const { return value(); }
     inline const T& operator()(const T& defaultValue) const { return value_or(defaultValue); }
-
-private:
-    T _value;
-    bool _exists;
 };
 
 // An optional reference cannot be changed, only moved.
 template <typename T>
 class optional<T&> {
+
+private:
+    T* const _ptr;
+
 public:
     optional()
         : _ptr(nullptr)
@@ -166,9 +171,6 @@ public:
     inline T& operator()() { return value(); }
     inline const T& operator()() const { return value(); }
     inline const T& operator()(const T& defaultValue) const { return _ptr ? *_ptr : defaultValue; }
-
-private:
-    T* const _ptr;
 };
 
 }

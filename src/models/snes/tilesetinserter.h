@@ -22,8 +22,14 @@ struct TilesetInserterOutput {
 
 template <size_t TS>
 class TilesetInserter {
+public:
     using TileT = Tile<TS>;
     using TilesetT = std::vector<TileT>;
+
+private:
+    TilesetT& _tileset;
+
+    std::unordered_map<TileT, TilesetInserterOutput> _map;
 
 public:
     TilesetInserter(TilesetT& tileset)
@@ -123,11 +129,6 @@ private:
         _map.insert({ tile.vFlip(), { tileId, false, true } });
         _map.insert({ tile.hvFlip(), { tileId, true, true } });
     }
-
-private:
-    TilesetT& _tileset;
-
-    std::unordered_map<TileT, TilesetInserterOutput> _map;
 };
 
 typedef TilesetInserter<8> TilesetInserter8px;

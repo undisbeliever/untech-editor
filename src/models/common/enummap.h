@@ -26,6 +26,10 @@ public:
     using const_iterator = typename container::const_iterator;
     using size_type = typename container::size_type;
 
+private:
+    const std::vector<value_type> _map;
+
+public:
     EnumMap(std::initializer_list<value_type> l)
         : _map(l.begin(), l.end())
     {
@@ -83,8 +87,5 @@ public:
     inline iterator end() const { return _map.cend(); }
     inline const_iterator cbegin() const { return _map.cbegin(); }
     inline const_iterator cend() const { return _map.cend(); }
-
-private:
-    const std::vector<value_type> _map;
 };
 }

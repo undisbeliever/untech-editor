@@ -21,14 +21,15 @@ namespace UnTech {
  * A simple image container class that contains a 32bpp RGBA image.
  */
 class Image {
-private:
-    // Used to "privatize" the constructors while still allowing `std::make_shared`.
-    struct PrivateToken {
-    };
-
 public:
     using iterator = rgba*;
     using const_iterator = const rgba*;
+
+private:
+    const usize _size;
+    const std::string _errorString;
+    rgba* const _imageData;
+    const size_t _dataSize;
 
 public:
     /**
@@ -48,10 +49,9 @@ public:
     static std::shared_ptr<Image> invalidImageWithErrorMessage(std::string&& error);
 
 private:
-    const usize _size;
-    const std::string _errorString;
-    rgba* const _imageData;
-    const size_t _dataSize;
+    // Used to "privatize" the constructors while still allowing `std::make_shared`.
+    struct PrivateToken {
+    };
 
 public:
     // Images cannot be moved or copied.

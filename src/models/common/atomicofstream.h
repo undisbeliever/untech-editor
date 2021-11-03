@@ -21,6 +21,18 @@ namespace UnTech {
  * `commit()`.
  */
 class AtomicOfStream : public std::ostringstream {
+
+private:
+    enum State {
+        WRITING,
+        ABORTED,
+        COMMITTED
+    };
+
+private:
+    const std::filesystem::path _filePath;
+    State _state;
+
 public:
     AtomicOfStream() = delete;
     AtomicOfStream(const AtomicOfStream&) = delete;
@@ -39,16 +51,5 @@ public:
      * Raises an exception if an error occurred when writing the file.
      */
     void commit();
-
-private:
-    enum State {
-        WRITING,
-        ABORTED,
-        COMMITTED
-    };
-
-private:
-    const std::filesystem::path _filePath;
-    State _state;
 };
 }

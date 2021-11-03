@@ -35,12 +35,6 @@ void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd);
 // NOTE: This class is NOT thread safe.
 struct MtTileset {
 private:
-    MtTileset(const MtTileset&) = delete;
-    MtTileset(MtTileset&&) = delete;
-    MtTileset& operator=(const MtTileset&) = delete;
-    MtTileset& operator=(MtTileset&&) = delete;
-
-private:
     constexpr static unsigned TEXTURE_SIZE = 256;
     constexpr static unsigned TC_TEXTURE_SIZE = 16;
     constexpr static unsigned N_METATILES = 256;
@@ -75,6 +69,12 @@ private:
     bool _showTiles;
     bool _showInteractiveTiles;
     bool _showTileCollisions;
+
+private:
+    MtTileset(const MtTileset&) = delete;
+    MtTileset(MtTileset&&) = delete;
+    MtTileset& operator=(const MtTileset&) = delete;
+    MtTileset& operator=(MtTileset&&) = delete;
 
 public:
     MtTileset();

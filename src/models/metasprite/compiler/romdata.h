@@ -33,6 +33,12 @@ class RomAddrTable {
 public:
     static const unsigned ADDR_PER_LINE = 8;
 
+private:
+    const std::string _label;
+    const std::string _dataLabel;
+    std::vector<uint32_t> _offsets;
+    bool _nullableType;
+
 public:
     RomAddrTable(const std::string& label,
                  const std::string& dataLabel, bool nullableType = false)
@@ -79,15 +85,14 @@ public:
     }
 
     unsigned addNull() { return addOffset(~0U); }
-
-private:
-    const std::string _label;
-    const std::string _dataLabel;
-    std::vector<uint32_t> _offsets;
-    bool _nullableType;
 };
 
 class DataBlock {
+
+private:
+    std::vector<uint8_t> _data;
+    unsigned _pos;
+
 public:
     DataBlock(size_t size)
         : _data(size)
@@ -116,13 +121,15 @@ public:
     bool atEnd() const { return _pos == _data.size(); }
 
     const std::vector<uint8_t>& data() const { return _data; }
-
-private:
-    std::vector<uint8_t> _data;
-    unsigned _pos;
 };
 
 class RomBinData {
+
+private:
+    const std::string _label;
+    std::vector<uint8_t> _data;
+    bool _nullableType;
+
 public:
     RomBinData(const std::string& label, bool nullableType = false)
         : _label(label)
@@ -189,11 +196,6 @@ public:
 
         return IndexPlusOne{ addData_Index(sData) + 1U };
     }
-
-private:
-    const std::string _label;
-    std::vector<uint8_t> _data;
-    bool _nullableType;
 };
 
 }

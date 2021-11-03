@@ -52,6 +52,7 @@ private:
     const std::string _blockName;
     const std::string _blockRodata;
 
+private:
     [[noreturn]] void throwOutOfRomSpaceException(size_t size)
     {
         throw std::runtime_error(stringBuilder("Unable to store ", size, " bytes of data, please add more banks to the Memory Map."));

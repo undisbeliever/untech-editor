@@ -59,10 +59,17 @@ struct TilemapEntry {
 };
 
 class Tilemap {
+
 public:
     const static unsigned MAP_SIZE = 32;
     using map_t = std::array<TilemapEntry, MAP_SIZE * MAP_SIZE>;
 
+private:
+    unsigned _width;
+    unsigned _height;
+    std::vector<map_t> _maps;
+
+public:
     Tilemap(unsigned width = 1, unsigned height = 1);
     Tilemap(const Tilemap&) = default;
     Tilemap(Tilemap&&) = default;
@@ -83,11 +90,6 @@ public:
 
     // NOTE: overrides data
     void readSnesData(const std::vector<uint8_t>& data);
-
-private:
-    unsigned _width;
-    unsigned _height;
-    std::vector<map_t> _maps;
 };
 
 }

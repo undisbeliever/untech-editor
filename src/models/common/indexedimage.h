@@ -23,11 +23,6 @@ namespace UnTech {
  * The image contains a maximum of 256 colors.
  */
 class IndexedImage {
-private:
-    // Used to "privatize" the constructors while still allowing `std::make_shared`.
-    struct PrivateToken {
-    };
-
 public:
     using iterator = uint8_t*;
     using const_iterator = const uint8_t*;
@@ -38,6 +33,11 @@ private:
     uint8_t* const _imageData;
     const size_t _dataSize;
     std::vector<rgba> _palette;
+
+private:
+    // Used to "privatize" the constructors while still allowing `std::make_shared`.
+    struct PrivateToken {
+    };
 
 public:
     /**

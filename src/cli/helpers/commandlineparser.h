@@ -22,6 +22,13 @@ public:
         UNSIGNED
     };
 
+private:
+    Type _type;
+    bool _boolean;
+    unsigned _uint;
+    std::string _string;
+
+public:
     OptionValue(bool boolean = false);
     OptionValue(const std::string& str);
     OptionValue(unsigned uint);
@@ -31,12 +38,6 @@ public:
     bool boolean() const { return _boolean; }
     unsigned uint() const { return _uint; }
     const std::string& string() const { return _string; }
-
-private:
-    Type _type;
-    bool _boolean;
-    unsigned _uint;
-    std::string _string;
 };
 
 enum class OptionType {
@@ -68,6 +69,14 @@ struct Config {
 };
 
 class Parser {
+
+private:
+    const Config& _config;
+    std::string _programExec;
+
+    std::list<std::string> _filenames;
+    std::map<std::string, OptionValue> _options;
+
 public:
     Parser(const Config& config);
 
@@ -89,13 +98,6 @@ private:
     template <typename... Args>
     void error(const Args... message);
     void error(const char* message, const Argument& config, bool isShort);
-
-private:
-    const Config& _config;
-    std::string _programExec;
-
-    std::list<std::string> _filenames;
-    std::map<std::string, OptionValue> _options;
 };
 
 }

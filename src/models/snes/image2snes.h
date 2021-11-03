@@ -17,6 +17,19 @@
 namespace UnTech::Snes {
 
 class Image2Snes {
+
+private:
+    unsigned _tileOffset = 0;
+    unsigned _maxTiles = 1024;
+    unsigned _paletteOffset = 0;
+    unsigned _maxPalettes = 8;
+    bool _order = 0;
+
+    const unsigned _bitDepth;
+    std::vector<Tile8px> _tileset;
+    std::vector<SnesColor> _palette;
+    Tilemap _tilemap;
+
 public:
     Image2Snes(int bitDepth);
 
@@ -35,18 +48,6 @@ public:
     std::vector<uint8_t> paletteSnesData() const;
 
     void process(const IndexedImage& image);
-
-private:
-    unsigned _tileOffset = 0;
-    unsigned _maxTiles = 1024;
-    unsigned _paletteOffset = 0;
-    unsigned _maxPalettes = 8;
-    bool _order = 0;
-
-    const unsigned _bitDepth;
-    std::vector<Tile8px> _tileset;
-    std::vector<SnesColor> _palette;
-    Tilemap _tilemap;
 };
 
 }
