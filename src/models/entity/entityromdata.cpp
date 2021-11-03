@@ -36,6 +36,11 @@ const std::unordered_set<idstring> INVALID_NAMES{
     baseRomStruct,
 };
 
+// WARNING: contains references
+// Values are only valid (and safe) so long as `functionTables` and `structFieldMap remain unchanged
+using FunctionTableMap = std::unordered_map<idstring,
+                                            std::pair<const EntityFunctionTable&, const FieldList&>>;
+
 static const char* entityTypeString(const EntityType entityType)
 {
     switch (entityType) {
@@ -252,7 +257,8 @@ static bool validate(const EntityFunctionTable& input, const unsigned ftIndex, c
     return valid;
 }
 
-static bool validate(const EntityRomEntry& input, const EntityType entityType, const unsigned index, const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err)
+static bool validate(const EntityRomEntry& input, const EntityType entityType, const unsigned index,
+                     const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -301,8 +307,8 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
 
     auto fieldsIt = ftMap.find(input.functionTable);
     if (fieldsIt != ftMap.end()) {
-        const auto& ft = *fieldsIt->second.first;
-        const auto& ftFields = *fieldsIt->second.second;
+        const EntityFunctionTable& ft = fieldsIt->second.first;
+        const FieldList& ftFields = fieldsIt->second.second;
 
         if (ft.entityType != entityType) {
             addError("Function Table is the wrong type (expected ", entityTypeString(entityType), " but ", ft.name, " is a ", entityTypeString(ft.entityType), ")");
@@ -339,7 +345,7 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
                 }
 
                 if (fieldsIt != ftMap.end()) {
-                    const EntityFunctionTable& fTable = *fieldsIt->second.first;
+                    const EntityFunctionTable& fTable = fieldsIt->second.first;
                     if (fTable.exportOrder != frameSet.exportOrder) {
                         addError("export order for frameSet ", frameSet.name, " is not ", fTable.exportOrder);
                     }
@@ -515,7 +521,7 @@ static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunc
             continue;
         }
 
-        auto s = ftFieldMap.emplace(ft.name, std::make_pair(&ft, &fieldsIt->second));
+        auto s = ftFieldMap.emplace(ft.name, FunctionTableMap::mapped_type(ft, fieldsIt->second));
         if (s.second == false) {
             addError(ft, i, "Duplicate functionTable detected");
         }
@@ -712,7 +718,7 @@ static void processEntry(const EntityType entityType,
     romData.push_back(initialListId);
     writeValue(frameSetId, 2);
 
-    for (auto& field : *ftMap.at(entry.functionTable).second) {
+    for (const StructField& field : ftMap.at(entry.functionTable).second) {
         auto it = entry.fields.find(field.name);
         const std::string& valueStr = it != entry.fields.end() ? it->second : field.defaultValue;
         const int64_t value = *String::toLong(valueStr);
@@ -827,9 +833,9 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     for (auto [i, entity] : const_enumerate(data.entities)) {
         const auto it = ftMap.find(entity.functionTable);
         assert(it != ftMap.end());
-        const EntityFunctionTable* ft = it->second.first;
+        const EntityFunctionTable& ft = it->second.first;
 
-        ret->entityNameMap.emplace(entity.name, std::make_pair(i, ft->parameterType));
+        ret->entityNameMap.emplace(entity.name, std::make_pair(i, ft.parameterType));
     }
 
     return ret;

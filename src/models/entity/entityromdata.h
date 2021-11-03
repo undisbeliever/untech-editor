@@ -83,9 +83,6 @@ struct EntityFunctionTable {
     bool operator==(const EntityFunctionTable&) const = default;
 };
 
-using FunctionTableMap = std::unordered_map<idstring,
-                                            std::pair<const EntityFunctionTable*, const FieldList*>>;
-
 struct EntityRomEntry {
     idstring name;
     idstring functionTable;
