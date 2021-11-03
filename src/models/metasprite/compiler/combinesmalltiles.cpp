@@ -20,18 +20,18 @@ namespace UnTech::MetaSprite::Compiler::CombineSmallTiles {
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
 struct TileGraphItem {
-    // Graph of tileId => frames that use that tile.
+    // Graph of tileId => frame indexes that use that tile.
     // frames may be repeated if the same tile is used multiple times in the same frame (including flipped frames).
 
     const unsigned tileId;
-    const std::vector<const MetaSprite::Frame*> frames;
+    const std::vector<unsigned> frames;
 
     TileGraphItem()
         : tileId(INVALID_SMALL_TILE)
         , frames()
     {
     }
-    TileGraphItem(unsigned t, std::vector<const MetaSprite::Frame*>&& f)
+    TileGraphItem(unsigned t, std::vector<unsigned>&& f)
         : tileId(t)
         , frames(std::move(f))
     {
@@ -51,7 +51,7 @@ struct FirstPassOutput {
     size_t nFrames() const { return firstTile.frames.size() + secondTile.frames.size(); }
 };
 
-static int scoreTilesVec(const std::vector<const MetaSprite::Frame*>& a, const std::vector<const MetaSprite::Frame*>& b)
+static int scoreTilesVec(const std::vector<unsigned>& a, const std::vector<unsigned>& b)
 {
     int score = 0;
     for (const auto& f : a) {
@@ -82,15 +82,15 @@ static int scoreTiles(const FirstPassOutput& a, const FirstPassOutput& b)
 
 // To improve packing the size of the output is always a multiple of four (4).
 static std::vector<TileGraphItem> buildSmallTileGraph(const MetaSprite::FrameSet& frameSet,
-                                                      const std::vector<FrameListEntry>& frameEntries)
+                                                      const std::vector<ExportIndex>& frameEntries)
 {
-    std::vector<std::vector<const MetaSprite::Frame*>> tileFrames(frameSet.smallTileset.size());
+    std::vector<std::vector<unsigned>> tileFrames(frameSet.smallTileset.size());
     for (const auto& fle : frameEntries) {
-        if (fle.frame != nullptr) {
-            for (const auto& obj : fle.frame->objects) {
-                if (obj.size == ObjectSize::SMALL) {
-                    tileFrames.at(obj.tileId).emplace_back(fle.frame);
-                }
+        const auto frame = frameSet.frames.at(fle.fsIndex);
+
+        for (const auto& obj : frame.objects) {
+            if (obj.size == ObjectSize::SMALL) {
+                tileFrames.at(obj.tileId).emplace_back(fle.fsIndex);
             }
         }
     }
@@ -214,7 +214,7 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
 namespace UnTech::MetaSprite::Compiler {
 
 SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
-                                 const std::vector<FrameListEntry>& frameEntries)
+                                 const std::vector<ExportIndex>& frameEntries)
 {
     if (frameSet.smallTileset.empty()) {
         return SmallTileMap_t();

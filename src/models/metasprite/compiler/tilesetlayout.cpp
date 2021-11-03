@@ -32,13 +32,14 @@ static void addFrameToTileset(vectorset<Tile16>& tiles,
     }
 }
 
-static vectorset<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frames,
+static vectorset<Tile16> fixedTilesetData(const std::vector<ExportIndex>& frames,
+                                          const MS::FrameSet& frameSet,
                                           const SmallTileMap_t& smallTileMap)
 {
     vectorset<Tile16> tiles;
 
     for (const auto& entry : frames) {
-        addFrameToTileset(tiles, *entry.frame, smallTileMap);
+        addFrameToTileset(tiles, frameSet.frames.at(entry.fsIndex), smallTileMap);
     }
 
     return tiles;
@@ -55,14 +56,17 @@ struct DynamicTileset {
     }
 };
 
-static std::vector<DynamicTileset> tilesForEachFrame(const std::vector<FrameListEntry>& frameEntries,
+static std::vector<DynamicTileset> tilesForEachFrame(const std::vector<ExportIndex>& frameEntries,
+                                                     const MS::FrameSet& frameSet,
                                                      const SmallTileMap_t& smallTileMap)
 {
     std::vector<DynamicTileset> ret;
 
     for (auto [frameId, entry] : const_enumerate(frameEntries)) {
+        const auto frame = frameSet.frames.at(entry.fsIndex);
+
         vectorset<Tile16> tileset;
-        addFrameToTileset(tileset, *entry.frame, smallTileMap);
+        addFrameToTileset(tileset, frame, smallTileMap);
 
         auto it = std::find_if(ret.begin(), ret.end(),
                                [&](auto& i) { return i.tiles == tileset; });
@@ -156,16 +160,16 @@ static std::vector<Tile16> tile_difference(const vectorset<Tile16>& tiles,
 }
 
 TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
-                          const std::vector<FrameListEntry>& exportFrames,
+                          const std::vector<ExportIndex>& exportFrames,
                           ErrorList& errorList)
 {
     TilesetLayout ret;
 
     const TilesetType tilesetType = frameSet.tilesetType;
 
-    auto smallTileMap = buildSmallTileMap(frameSet, exportFrames);
+    const auto smallTileMap = buildSmallTileMap(frameSet, exportFrames);
 
-    auto tiles = fixedTilesetData(exportFrames, smallTileMap);
+    const auto tiles = fixedTilesetData(exportFrames, frameSet, smallTileMap);
 
     if (tiles.size() < tilesetType.nTiles() || tilesetType.isFixed()) {
         // Fixed tileset
@@ -191,7 +195,7 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
     }
     else {
         // Dynamic tileset
-        const auto frameTiles = tilesForEachFrame(exportFrames, smallTileMap);
+        const auto frameTiles = tilesForEachFrame(exportFrames, frameSet, smallTileMap);
         ret.staticTiles = calculateStaticTiles(frameTiles, tilesetType);
         ret.tilesetType = tilesetType;
 
@@ -210,8 +214,9 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
                 }
                 else {
                     for (unsigned frameId : ft.frameIds) {
+                        const unsigned frameIndex = exportFrames.at(frameId).fsIndex;
                         errorList.addError(frameError(
-                            *exportFrames.at(frameId).frame, frameId,
+                            frameSet.frames.at(frameIndex), frameIndex,
                             "Too many tiles in frame (", nTiles, ")", dynamicTiles.size(), " ", ret.staticTiles.size()));
                     }
                 }

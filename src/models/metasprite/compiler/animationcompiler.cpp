@@ -26,24 +26,23 @@ static inline auto indexOf_throw(const std::vector<T>& vector, const T& item)
     return std::distance(vector.begin(), it);
 }
 
-static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
-                                             const FrameSetExportList& exportList)
+static std::vector<uint8_t> processAnimation(const ExportIndex& aniEntry,
+                                             const FrameSetExportList& exportList,
+                                             const MS::FrameSet& frameSet)
 {
-    const auto& frameSet = exportList.frameSet;
     const auto& frames = exportList.frames;
     const auto& animations = exportList.animations;
 
-    assert(aniEntry.animation != nullptr);
-    const ANI::Animation& animation = *aniEntry.animation;
+    const ANI::Animation& animation = frameSet.animations.at(aniEntry.fsIndex);
 
     assert(animation.frames.empty() == false);
 
     uint8_t nextAnimationId = 0xff;
     {
         if (animation.oneShot == false) {
-            const ANI::Animation* nextAnimation = &animation;
+            unsigned nextAnimation = aniEntry.fsIndex;
             if (animation.nextAnimation.isValid()) {
-                nextAnimation = &frameSet.animations.find(animation.nextAnimation).value();
+                nextAnimation = frameSet.animations.indexOf(animation.nextAnimation);
             }
 
             nextAnimationId = indexOf_throw(animations, { nextAnimation, aniEntry.hFlip, aniEntry.vFlip });
@@ -60,7 +59,7 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
     for (const auto& aFrame : animation.frames) {
         const auto& frameRef = aFrame.frame;
 
-        uint8_t frameId = indexOf_throw(frames, { &*frameSet.frames.find(frameRef.name),
+        uint8_t frameId = indexOf_throw(frames, { unsigned(frameSet.frames.indexOf(frameRef.name)),
                                                   static_cast<bool>(frameRef.hFlip ^ aniEntry.hFlip),
                                                   static_cast<bool>(frameRef.vFlip ^ aniEntry.vFlip) });
 
@@ -71,7 +70,8 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
     return data;
 }
 
-std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList)
+std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList,
+                                                    const MS::FrameSet& frameSet)
 {
     const size_t nAnimations = exportList.animations.size();
 
@@ -81,7 +81,7 @@ std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& ex
     assert(nAnimations <= MAX_EXPORT_NAMES);
 
     for (const auto& ani : exportList.animations) {
-        ret.push_back(processAnimation(ani, exportList));
+        ret.push_back(processAnimation(ani, exportList, frameSet));
     }
 
     return ret;

@@ -14,7 +14,8 @@ namespace UnTech::MetaSprite::Compiler {
 
 struct CompiledRomData;
 
-std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList);
+std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList,
+                                                    const MetaSprite::FrameSet& frameSet);
 
 uint16_t saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out);
 

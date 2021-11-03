@@ -30,7 +30,7 @@ struct FrameSetData {
     std::vector<std::vector<uint8_t>> animations;
     std::vector<std::array<uint8_t, 30>> palettes;
 
-    // Only set on SpriteImporter FrameSets
+    // Only created for SpriteImporter FrameSets
     std::unique_ptr<const UnTech::MetaSprite::MetaSprite::FrameSet> msFrameSet;
 };
 

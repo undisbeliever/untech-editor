@@ -39,7 +39,7 @@ void writeExportOrderReferences(const ProjectFile& project, std::ostream& out)
     out << "namespace MSEO {\n";
 
     for (const auto& it : project.frameSetExportOrders) {
-        const FrameSetExportOrder* eo = it.value.get();
+        const auto& eo = it.value;
         if (eo == nullptr) {
             throw std::runtime_error(stringBuilder("Unable to read Export Order: ", it.filename.string()));
         }

@@ -14,27 +14,19 @@
 
 namespace UnTech::MetaSprite::Compiler {
 
-struct AnimationListEntry {
-    const Animation::Animation* animation;
+struct ExportIndex {
+    // index into `MS::FrameSet::frames` or `MS::FrameSet::animations`
+    const unsigned fsIndex;
+
     const bool hFlip;
     const bool vFlip;
 
-    bool operator==(const AnimationListEntry&) const = default;
-};
-
-struct FrameListEntry {
-    const MetaSprite::Frame* frame;
-    const bool hFlip;
-    const bool vFlip;
-
-    bool operator==(const FrameListEntry&) const = default;
+    bool operator==(const ExportIndex&) const = default;
 };
 
 struct FrameSetExportList {
-    const MetaSprite::FrameSet& frameSet;
-    const FrameSetExportOrder& exportOrder;
-    const std::vector<AnimationListEntry> animations;
-    const std::vector<FrameListEntry> frames;
+    const std::vector<ExportIndex> animations;
+    const std::vector<ExportIndex> frames;
 };
 
 // NOTE: Can return an invalid FrameSetExportList

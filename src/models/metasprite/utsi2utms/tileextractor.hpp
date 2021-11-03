@@ -102,10 +102,12 @@ markOverlappedPixels(const Snes::Tile<OVER_SIZE>& overTile,
     static_assert(OVER_SIZE > 0 && OVER_SIZE < 64, "bad OVER_SIZE");
     static_assert(UNDER_SIZE > 0 && UNDER_SIZE < 64, "bad UNDER_SIZE");
 
+    constexpr size_t RET_SIZE = UNDER_SIZE * UNDER_SIZE;
+
     constexpr int overSize = OVER_SIZE;
     constexpr int underSize = UNDER_SIZE;
 
-    std::array<bool, underSize* underSize> ret = {};
+    std::array<bool, RET_SIZE> ret = {};
 
     for (const auto oY : irange(overSize)) {
         int uY = oY + yOffset;

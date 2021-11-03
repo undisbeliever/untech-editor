@@ -15,5 +15,5 @@ namespace UnTech::MetaSprite::Compiler {
 typedef std::vector<std::array<uint16_t, 4>> SmallTileMap_t;
 
 SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
-                                 const std::vector<FrameListEntry>& frameEntries);
+                                 const std::vector<ExportIndex>& frameEntries);
 }

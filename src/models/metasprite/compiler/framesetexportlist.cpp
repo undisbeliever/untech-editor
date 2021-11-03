@@ -13,22 +13,25 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
 
 using ExportName = FrameSetExportOrder::ExportName;
 
-static std::vector<AnimationListEntry>
-processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& animations)
+template <typename T>
+static std::vector<ExportIndex> baseExportList(const NamedList<T>& fsList, const NamedList<ExportName>& exportList)
 {
-    std::vector<AnimationListEntry> ret;
-    ret.reserve(animations.size());
+    std::vector<ExportIndex> ret;
+    ret.reserve(exportList.size());
 
-    for (const auto& en : animations) {
-        if (auto ani = frameSet.animations.find(en.name)) {
-            ret.push_back({ &*ani, false, false });
+    for (const auto& en : exportList) {
+        const unsigned aniIndex = fsList.indexOf(en.name);
+        if (aniIndex < fsList.size()) {
+            ret.push_back({ aniIndex, false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                if (auto altAni = frameSet.animations.find(alt.name)) {
-                    ret.push_back({ &*altAni, alt.hFlip, alt.vFlip });
+                const unsigned altIndex = fsList.indexOf(alt.name);
+
+                if (altIndex < fsList.size()) {
+                    ret.push_back({ altIndex, alt.hFlip, alt.vFlip });
 
                     success = true;
                     break;
@@ -38,21 +41,29 @@ processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& ani
         }
     }
 
-    // Include the animations referenced in the nextAnimation field
+    return ret;
+}
 
+static std::vector<ExportIndex>
+processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& animations)
+{
+    auto ret = baseExportList(frameSet.animations, animations);
+
+    // Include the animations referenced in the nextAnimation field
     // Must use an old-style for loop, ret is resized inside this loop.
     for (unsigned toTestIndex = 0; toTestIndex < ret.size(); toTestIndex++) {
         const auto& ani = ret[toTestIndex];
+        const auto& animation = frameSet.animations.at(ani.fsIndex);
 
-        if (ani.animation->oneShot == false && ani.animation->nextAnimation.isValid()) {
-            const idstring& nextAnimation = ani.animation->nextAnimation;
+        if (animation.oneShot == false && animation.nextAnimation.isValid()) {
+            const idstring& nextAnimation = animation.nextAnimation;
 
-            auto a = frameSet.animations.find(nextAnimation);
-            assert(a);
+            const auto nextIndex = frameSet.animations.indexOf(nextAnimation);
+            assert(nextIndex < frameSet.animations.size());
 
-            AnimationListEntry toAdd = { &*a, ani.hFlip, ani.vFlip };
+            ExportIndex toAdd = { unsigned(nextIndex), ani.hFlip, ani.vFlip };
 
-            auto it = std::find(ret.begin(), ret.end(), toAdd);
+            const auto it = std::find(ret.begin(), ret.end(), toAdd);
             if (it == ret.end()) {
                 ret.push_back(toAdd);
             }
@@ -62,48 +73,29 @@ processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& ani
     return ret;
 }
 
-static std::vector<FrameListEntry>
+static std::vector<ExportIndex>
 processStillFrames(const MS::FrameSet& frameSet,
                    const NamedList<ExportName>& stillFrames,
-                   const std::vector<AnimationListEntry>& animations)
+                   const std::vector<ExportIndex>& animations)
 {
-    std::vector<FrameListEntry> ret;
-    ret.reserve(stillFrames.size());
-
-    for (const auto& en : stillFrames) {
-        if (const auto frame = frameSet.frames.find(en.name)) {
-            ret.push_back({ &*frame, false, false });
-        }
-        else {
-            bool success = false;
-
-            for (const auto& alt : en.alternatives) {
-                if (auto altFrame = frameSet.frames.find(alt.name)) {
-                    ret.push_back({ &*altFrame, alt.hFlip, alt.vFlip });
-
-                    success = true;
-                    break;
-                }
-            }
-            assert(success);
-        }
-    }
+    auto ret = baseExportList(frameSet.frames, stillFrames);
 
     // Add frames from animation.
     // Ensure that the frames added are unique.
 
-    for (const AnimationListEntry& ani : animations) {
-        for (const auto& aFrame : ani.animation->frames) {
+    for (const ExportIndex& ani : animations) {
+        const auto& animation = frameSet.animations.at(ani.fsIndex);
+        for (const auto& aFrame : animation.frames) {
             const auto& frameRef = aFrame.frame;
 
-            auto frame = frameSet.frames.find(frameRef.name);
-            assert(frame);
+            const auto frameIndex = frameSet.frames.indexOf(frameRef.name);
+            assert(frameIndex < frameSet.frames.size());
 
-            FrameListEntry e = { &*frame,
-                                 static_cast<bool>(frameRef.hFlip ^ ani.hFlip),
-                                 static_cast<bool>(frameRef.vFlip ^ ani.vFlip) };
+            ExportIndex e = { unsigned(frameIndex),
+                              static_cast<bool>(frameRef.hFlip ^ ani.hFlip),
+                              static_cast<bool>(frameRef.vFlip ^ ani.vFlip) };
 
-            auto it = std::find(ret.begin(), ret.end(), e);
+            const auto it = std::find(ret.begin(), ret.end(), e);
             if (it == ret.end()) {
                 // new entry
                 ret.push_back(e);
@@ -120,8 +112,6 @@ FrameSetExportList buildExportList(const MS::FrameSet& frameSet, const FrameSetE
     const auto frames = processStillFrames(frameSet, exportOrder.stillFrames, animations);
 
     return {
-        frameSet,
-        exportOrder,
         std::move(animations),
         std::move(frames),
     };

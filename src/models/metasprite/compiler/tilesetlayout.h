@@ -42,7 +42,7 @@ struct TilesetLayout {
 };
 
 TilesetLayout layoutTiles(const MetaSprite::FrameSet& frameSet,
-                          const std::vector<FrameListEntry>& exportFrames,
+                          const std::vector<ExportIndex>& exportFrames,
                           ErrorList& errorList);
 
 }

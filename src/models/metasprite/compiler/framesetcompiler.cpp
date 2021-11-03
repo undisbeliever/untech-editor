@@ -172,21 +172,22 @@ static FrameData processFrame(const MS::Frame& frame,
     };
 }
 
-static FrameData processFrame(const FrameListEntry& fle,
+static FrameData processFrame(const MS::Frame& frame, const bool hFlip, const bool vFlip,
                               const std::optional<unsigned> tilesetIndex, const FrameTilesetData& frameTileset,
                               const ActionPointMapping& actionPointMapping)
 {
-    if (fle.hFlip == false && fle.vFlip == false) {
-        return processFrame(*fle.frame, tilesetIndex, frameTileset, actionPointMapping);
+    if (hFlip == false && vFlip == false) {
+        return processFrame(frame, tilesetIndex, frameTileset, actionPointMapping);
     }
     else {
-        auto flippedFrame = fle.frame->flip(fle.hFlip, fle.vFlip);
+        auto flippedFrame = frame.flip(hFlip, vFlip);
         return processFrame(flippedFrame, tilesetIndex, frameTileset, actionPointMapping);
     }
 }
 
 static std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData,
-                                               const ActionPointMapping& actionPointMapping)
+                                               const ActionPointMapping& actionPointMapping,
+                                               const MS::FrameSet& frameSet)
 {
     const auto& frameList = exportList.frames;
 
@@ -194,11 +195,11 @@ static std::vector<FrameData> processFrameList(const FrameSetExportList& exportL
     frames.reserve(frameList.size());
 
     for (auto [frameId, fle] : const_enumerate(frameList)) {
-        assert(fle.frame);
+        const auto& frame = frameSet.frames.at(fle.fsIndex);
 
         const auto& tilesetIndex = tilesetData.tilesetIndexForFrameId(frameId);
         const auto& frameTileset = tilesetData.getTileset(tilesetIndex);
-        frames.push_back(processFrame(fle, tilesetIndex, frameTileset, actionPointMapping));
+        frames.push_back(processFrame(frame, fle.hFlip, fle.vFlip, tilesetIndex, frameTileset, actionPointMapping));
     }
 
     return frames;
@@ -241,8 +242,8 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
 
     out->tileset = processTileset(frameSet, tilesetLayout);
-    out->frames = processFrameList(exportList, out->tileset, actionPointMapping);
-    out->animations = processAnimations(exportList);
+    out->frames = processFrameList(exportList, out->tileset, actionPointMapping, frameSet);
+    out->animations = processAnimations(exportList, frameSet);
     out->palettes = processPalettes(frameSet.palettes);
 
     if (errorList.errorCount() != oldErrorCount) {
