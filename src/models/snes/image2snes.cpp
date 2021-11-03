@@ -496,15 +496,16 @@ void Image2Snes::process(const IndexedImage& image)
 
 std::vector<uint8_t> Image2Snes::paletteSnesData() const
 {
-    std::vector<uint8_t> data(_palette.size() * 2);
-    auto* ptr = data.data();
+    std::vector<uint8_t> out(_palette.size() * 2);
+    auto outIt = out.begin();
 
     for (const auto& c : _palette) {
-        *ptr++ = c.data() & 0xFF;
-        *ptr++ = c.data() >> 8;
+        *outIt++ = c.data() & 0xFF;
+        *outIt++ = c.data() >> 8;
     }
+    assert(outIt == out.end());
 
-    return data;
+    return out;
 }
 
 }

@@ -28,7 +28,7 @@ constexpr static inline unsigned tileOffset(const unsigned bitDepth, const unsig
 }
 
 template <unsigned BIT_DEPTH>
-static inline uint8_t* writeSnesTile(uint8_t* out, const Tile8px& tile)
+static inline std::vector<uint8_t>::iterator writeSnesTile(std::vector<uint8_t>::iterator out, const Tile8px& tile)
 {
     constexpr unsigned TILE_SIZE = 8;
     constexpr unsigned TILE_DATA_SIZE = TILE_SIZE * TILE_SIZE * BIT_DEPTH / 8;
@@ -74,7 +74,7 @@ static inline uint8_t* writeSnesTile(uint8_t* out, const Tile8px& tile)
 }
 
 template <unsigned BIT_DEPTH>
-static inline const uint8_t* readSnesTile(Tile8px& tile, const uint8_t* input)
+static inline const std::vector<uint8_t>::const_iterator readSnesTile(Tile8px& tile, const std::vector<uint8_t>::const_iterator input)
 {
     constexpr unsigned TILE_SIZE = 8;
     constexpr unsigned TILE_DATA_SIZE = TILE_SIZE * TILE_SIZE * BIT_DEPTH / 8;
@@ -128,12 +128,12 @@ static inline std::vector<uint8_t> tilesToSnesData(const std::vector<Tile8px>& t
 
     std::vector<uint8_t> out(tiles.size() * TILE_DATA_SIZE);
 
-    uint8_t* outIt = out.data();
+    auto outIt = out.begin();
 
     for (const auto& tile : tiles) {
         outIt = writeSnesTile<BIT_DEPTH>(outIt, tile);
     }
-    assert(outIt == out.data() + out.size());
+    assert(outIt == out.end());
 
     return out;
 }
@@ -145,7 +145,7 @@ std::vector<uint8_t> snesTileData4bppTile16(const std::vector<Tile16px>& tileset
     constexpr unsigned TILE_DATA_SIZE = TILE_SIZE * TILE_SIZE * BIT_DEPTH / 8;
 
     std::vector<uint8_t> out(TILE_DATA_SIZE * tileset.size());
-    uint8_t* outIt = out.data();
+    auto outIt = out.begin();
 
     for (const Tile16px& tile : tileset) {
         const auto smallTiles = splitLargeTile(tile);
@@ -154,7 +154,7 @@ std::vector<uint8_t> snesTileData4bppTile16(const std::vector<Tile16px>& tileset
             outIt = writeSnesTile<BIT_DEPTH>(outIt, subTile);
         }
     }
-    assert(outIt == out.data() + out.size());
+    assert(outIt == out.end());
 
     return out;
 }
@@ -171,13 +171,12 @@ static inline std::vector<Tile8px> snesDataToTiles(const std::vector<uint8_t>& i
 
     std::vector<Tile8px> out(in.size() / TILE_DATA_SIZE);
 
-    const uint8_t* inIt = in.data();
+    auto inIt = in.cbegin();
 
     for (Tile8px& tile : out) {
         inIt = readSnesTile<BIT_DEPTH>(tile, inIt);
     }
-
-    assert(inIt == in.data() + in.size());
+    assert(inIt == in.cend());
 
     return out;
 }
@@ -194,7 +193,7 @@ std::vector<Tile16px> readSnesTileData4bppTile16(const std::vector<uint8_t>& in)
 
     std::vector<Tile16px> out(in.size() / TILE_DATA_SIZE);
 
-    const uint8_t* inIt = in.data();
+    auto inIt = in.cbegin();
 
     for (Tile16px& tile : out) {
         std::array<Tile8px, 4> smallTiles;
@@ -205,8 +204,7 @@ std::vector<Tile16px> readSnesTileData4bppTile16(const std::vector<uint8_t>& in)
 
         tile = combineSmallTiles(smallTiles);
     }
-
-    assert(inIt == in.data() + in.size());
+    assert(inIt == in.cend());
 
     return out;
 }

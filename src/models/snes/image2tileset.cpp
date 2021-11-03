@@ -44,17 +44,16 @@ void ImageToTileset::writeTileset(const std::filesystem::path& filename) const
 
 void ImageToTileset::writePalette(const std::filesystem::path& filename) const
 {
-    std::vector<uint8_t> data(_palette.size() * 2);
-    auto* ptr = data.data();
+    std::vector<uint8_t> out(_palette.size() * 2);
+    auto outIt = out.begin();
 
     for (const auto& c : _palette) {
-        *ptr++ = c.data() & 0xFF;
-        *ptr++ = c.data() >> 8;
+        *outIt++ = c.data() & 0xFF;
+        *outIt++ = c.data() >> 8;
     }
+    assert(outIt == out.end());
 
-    assert(ptr == data.data() + data.size());
-
-    File::atomicWrite(filename, data);
+    File::atomicWrite(filename, out);
 }
 
 void ImageToTileset::process(const IndexedImage& image)
