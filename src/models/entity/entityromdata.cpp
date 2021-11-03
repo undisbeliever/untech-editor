@@ -428,28 +428,28 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
     StructFieldMap fieldMap(toProcess.size() + 1);
     fieldMap.emplace(idstring(), FieldList());
 
+    // returns true if the struct is to be removed from the process list
     auto processStruct = [&](const unsigned structIndex) -> bool {
-        // returns true if the struct is to be removed from the process list
-        const EntityRomStruct* s = &structs.at(structIndex);
+        const EntityRomStruct& s = structs.at(structIndex);
 
         // Check name is unique and valid
-        if (!s->name.isValid()) {
+        if (!s.name.isValid()) {
             return true;
         }
-        auto it = fieldMap.find(s->name);
+        auto it = fieldMap.find(s.name);
         if (it != fieldMap.end()) {
-            err.addError(entityRomStructError(*s, structIndex, "Duplicate name detected"));
+            err.addError(entityRomStructError(s, structIndex, "Duplicate name detected"));
             return true;
         }
 
-        if (s->parent.isValid() == false) {
+        if (s.parent.isValid() == false) {
             // no parent
 
-            fieldMap.emplace(s->name, s->fields);
+            fieldMap.emplace(s.name, s.fields);
             return true;
         }
         else {
-            auto parentIt = fieldMap.find(s->parent);
+            auto parentIt = fieldMap.find(s.parent);
             if (parentIt == fieldMap.end()) {
                 // parent hasn't been processed yet
                 return false;
@@ -459,19 +459,19 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
 
             const auto& parentFields = parentIt->second;
 
-            for (auto f : const_enumerate(s->fields)) {
+            for (auto f : const_enumerate(s.fields)) {
                 bool overridesField = std::any_of(parentFields.begin(), parentFields.end(), [&](const auto& o) { return f.second.name == o.name; });
                 if (overridesField) {
-                    err.addError(structFieldError(*s, structIndex, f.first, "Cannot override field in parent struct"));
+                    err.addError(structFieldError(s, structIndex, f.first, "Cannot override field in parent struct"));
                 }
             }
 
             std::vector<StructField> fields;
-            fields.reserve(parentFields.size() + s->fields.size());
+            fields.reserve(parentFields.size() + s.fields.size());
             fields.insert(fields.end(), parentFields.begin(), parentFields.end());
-            fields.insert(fields.end(), s->fields.begin(), s->fields.end());
+            fields.insert(fields.end(), s.fields.begin(), s.fields.end());
 
-            fieldMap.emplace(s->name, std::move(fields));
+            fieldMap.emplace(s.name, std::move(fields));
             return true;
         }
     };
