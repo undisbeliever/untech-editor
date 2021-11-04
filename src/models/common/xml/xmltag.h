@@ -197,18 +197,20 @@ public:
 
     inline int getAttributeInteger(const std::string_view aName) const
     {
+        static_assert(std::is_same_v<int, int32_t>);
+
         // No need to escape value - only digit characters and '-' are valid
-        auto v = String::toInt(getAttribute_rawValue(aName));
+        const auto v = String::toInt32(getAttribute_rawValue(aName));
 
         if (!v) {
-            throw xml_error(*this, aName, "Not a number");
+            throw xml_error(*this, aName, "Cannot convert value to int32_t");
         }
         return v.value();
     }
 
     inline int getAttributeInteger(const std::string_view aName, int min, int max) const
     {
-        int i = getAttributeInteger(aName);
+        const int i = getAttributeInteger(aName);
 
         if (i < min) {
             throw xml_error(*this, aName, "Number too small");
@@ -219,39 +221,50 @@ public:
         return i;
     }
 
-    inline unsigned getAttributeUnsigned(const std::string_view aName, unsigned min = 0, unsigned max = UINT_MAX) const
+    inline unsigned getAttributeUnsigned(const std::string_view aName) const
     {
-        // No need to escape value - only digit characters are valid
-        const auto v = String::toLong(getAttribute_rawValue(aName));
+        static_assert(std::is_same_v<unsigned, uint32_t>);
+
+        const auto v = String::toUint32(getAttribute_rawValue(aName));
 
         if (!v) {
-            throw xml_error(*this, aName, "Not a number");
+            throw xml_error(*this, aName, "Cannot convert value to uint32_t");
         }
-        if (v.value() < 0) {
-            throw xml_error(*this, aName, "Only positive numbers allowed");
-        }
-        if ((unsigned long)v.value() < min) {
-            throw xml_error(*this, aName, "Number too small");
-        }
-        if ((unsigned long)v.value() > max) {
-            throw xml_error(*this, aName, "Number too large");
-        }
-        return (unsigned)v.value();
+
+        return v.value();
     }
 
-    inline int8_t getAttributeInt8(const std::string_view aName) const
+    inline unsigned getAttributeUnsigned(const std::string_view aName, unsigned min, unsigned max = UINT_MAX) const
     {
-        return (int8_t)getAttributeInteger(aName, INT8_MIN, INT8_MAX);
+        const unsigned v = getAttributeUnsigned(aName);
+
+        if (v < min) {
+            throw xml_error(*this, aName, "Number too small");
+        }
+        if (v > max) {
+            throw xml_error(*this, aName, "Number too large");
+        }
+        return v;
     }
 
     inline uint8_t getAttributeUint8(const std::string_view aName) const
     {
-        return (uint8_t)getAttributeUnsigned(aName, 0, UINT8_MAX);
+        const std::optional<uint8_t> v = String::toUint8(getAttribute_rawValue(aName));
+
+        if (!v) {
+            throw xml_error(*this, aName, "Cannot convert value to uint8_t");
+        }
+        return *v;
     }
 
     inline uint16_t getAttributeUint16(const std::string_view aName) const
     {
-        return (uint16_t)getAttributeUnsigned(aName, 0, UINT16_MAX);
+        const std::optional<uint16_t> v = String::toUint16(getAttribute_rawValue(aName));
+
+        if (!v) {
+            throw xml_error(*this, aName, "Cannot convert value to uint16_t");
+        }
+        return *v;
     }
 
     inline int_ms8_t getAttributeIntMs8(const std::string_view aName) const
@@ -332,7 +345,7 @@ public:
     inline unsigned getAttributeUnsignedHex(const std::string_view aName) const
     {
         // No need to escape value, only 0-9 and a-f characters are valid
-        auto v = String::hexToUnsigned(getAttribute_rawValue(aName));
+        auto v = String::hexToUint32(getAttribute_rawValue(aName));
 
         if (!v) {
             throw xml_error(*this, aName, "Not a hexadecimal number");

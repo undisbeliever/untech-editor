@@ -242,7 +242,7 @@ bool Parser::parseSwitch(const Argument& argument, bool isShort, const char* nex
         return true;
 
     case OptionType::UNSIGNED: {
-        auto n = String::toUnsigned(nextArg);
+        const auto n = String::toUint32(nextArg);
         if (n) {
             _options[argument.longName] = n.value();
         }

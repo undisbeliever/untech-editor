@@ -219,7 +219,7 @@ private:
 
     unsigned getImmediateU16(const std::string& value)
     {
-        auto u16 = String::toUint16(value);
+        auto u16 = String::decimalOrHexToUint16(value);
 
         if (u16) {
             return *u16;

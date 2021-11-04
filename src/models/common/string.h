@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include "optional.h"
 #include <climits>
 #include <cstdint>
-#include <cstdlib>
+#include <optional>
 #include <string>
 
 namespace UnTech::String {
@@ -49,139 +48,15 @@ static inline std::string& trim(std::string& s)
     return ltrim(rtrim(s));
 }
 
-/* Convert a string to an integer.
- * String may be encased in spaces.
- */
-static inline optional<int> toInt(const std::string_view s)
-{
-    using namespace std::literals;
+std::optional<int32_t> toInt32(const std::string_view s);
+std::optional<uint32_t> toUint32(const std::string_view s);
+std::optional<uint16_t> toUint16(const std::string_view s);
+std::optional<uint8_t> toUint8(const std::string_view s);
 
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r"sv, s.npos);
-    char* parseEnd;
+std::optional<uint32_t> hexToUint32(const std::string_view s);
 
-    int ret = strtol(cstr, &parseEnd, 0);
-
-    if (parseEnd == cstr || parseEnd != last + 1) {
-        optional<int>();
-    }
-    return ret;
-}
-
-/* Convert a string to an unsigned integer.
- * String may be encased in spaces.
- */
-static inline optional<unsigned> toUnsigned(const std::string_view s)
-{
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
-    char* parseEnd;
-
-    long ret = strtol(cstr, &parseEnd, 0);
-
-    if (parseEnd == cstr || parseEnd != last + 1
-        || ret < 0 || ret > long(UINT_MAX)) {
-
-        optional<unsigned>();
-    }
-    return ret;
-}
-
-/* Convert a string to an uint8.
- * String may be encased in spaces.
- */
-static inline optional<uint8_t> toUint8(const std::string_view s)
-{
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
-    char* parseEnd;
-
-    long ret = strtol(cstr, &parseEnd, 0);
-
-    if (parseEnd == cstr || parseEnd != last + 1
-        || ret < 0 || ret > UINT8_MAX) {
-        return optional<uint8_t>();
-    }
-    return (uint8_t)ret;
-}
-
-/* Convert a string to an uint16.
- * String may be encased in spaces.
- */
-static inline optional<uint16_t> toUint16(const std::string_view s)
-{
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
-    char* parseEnd;
-
-    long ret = strtol(cstr, &parseEnd, 0);
-
-    if (parseEnd == cstr || parseEnd != last + 1
-        || ret < 0 || ret > UINT16_MAX) {
-        return optional<uint16_t>();
-    }
-    return (uint16_t)ret;
-}
-
-/* Convert a string to an integer.
- * Returns a default value if given invalid input.
- * String may be encased in spaces.
- */
-static inline int toInt(const std::string_view s, int def)
-{
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
-    char* parseEnd;
-
-    int ret = strtol(cstr, &parseEnd, 0);
-
-    if (parseEnd == cstr || parseEnd != last + 1) {
-        return def;
-    }
-    return ret;
-}
-
-static inline optional<long> toLong(const std::string_view s)
-{
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
-    char* parseEnd;
-
-    long ret = strtol(cstr, &parseEnd, 0);
-
-    if (parseEnd == cstr || parseEnd != last + 1) {
-        return optional<long>();
-    }
-    return ret;
-}
-
-static inline long toLong(const std::string_view s, long def)
-{
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
-    char* parseEnd;
-
-    long ret = strtol(cstr, &parseEnd, 0);
-
-    if (parseEnd == cstr || parseEnd != last + 1) {
-        return def;
-    }
-    return ret;
-}
-
-static inline optional<unsigned> hexToUnsigned(const std::string_view s)
-{
-    const char* cstr = s.data();
-    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
-    char* parseEnd;
-
-    unsigned ret = strtoul(cstr, &parseEnd, 16);
-
-    if (parseEnd == cstr || parseEnd != last + 1
-        || ret > UINT_MAX) {
-        return optional<unsigned>();
-    }
-    return ret;
-}
+std::optional<int32_t> decimalOrHexToInt32(const std::string_view s);
+std::optional<uint32_t> decimalOrHexToUint32(const std::string_view s);
+std::optional<uint16_t> decimalOrHexToUint16(const std::string_view s);
 
 }

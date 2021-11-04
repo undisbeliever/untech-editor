@@ -642,7 +642,7 @@ static uint8_t processEntityParameter(const std::string& parameter, const Entity
 
     case Entity::ParameterType::UNSIGNED_BYTE: {
         const auto v = String::toUint8(parameter);
-        if (!v.exists()) {
+        if (!v.has_value()) {
             addEntityError("Invalid parameter: ", parameter);
         }
         return v.value_or(0);

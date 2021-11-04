@@ -115,36 +115,39 @@ static const char* fieldComment(DataType type)
 
 static bool validateFieldValue(DataType type, const std::string& str)
 {
-    auto testInteger = [&](long min, long max) {
-        auto v = String::toLong(str);
-        return v.exists()
-               && v() >= min && v() <= max;
+    auto testUnsigned = [&](uint32_t max) -> bool {
+        const auto v = String::decimalOrHexToUint32(str);
+        return v && *v <= max;
+    };
+    auto testSigned = [&](int32_t min, int32_t max) -> bool {
+        const auto v = String::decimalOrHexToInt32(str);
+        return v && *v >= min && *v <= max;
     };
 
     switch (type) {
     case DataType::UINT8:
-        return testInteger(0, UINT8_MAX);
+        return testUnsigned(UINT8_MAX);
 
     case DataType::UINT16:
-        return testInteger(0, UINT16_MAX);
+        return testUnsigned(UINT16_MAX);
 
     case DataType::UINT24:
-        return testInteger(0, (1 << 24) - 1);
+        return testUnsigned((1 << 24) - 1);
 
     case DataType::UINT32:
-        return testInteger(0, UINT32_MAX);
+        return testUnsigned(UINT32_MAX);
 
     case DataType::SINT8:
-        return testInteger(INT8_MIN, INT8_MAX);
+        return testSigned(INT8_MIN, INT8_MAX);
 
     case DataType::SINT16:
-        return testInteger(INT16_MIN, INT16_MAX);
+        return testSigned(INT16_MIN, INT16_MAX);
 
     case DataType::SINT24:
-        return testInteger(-(1 << 23), (1 << 23) - 1);
+        return testSigned(-(1 << 23), (1 << 23) - 1);
 
     case DataType::SINT32:
-        return testInteger(INT32_MIN, INT32_MAX);
+        return testSigned(INT32_MIN, INT32_MAX);
     }
 
     return false;
@@ -683,16 +686,6 @@ static void processEntry(const EntityType entityType,
                          std::vector<uint8_t>& romData, const EntityRomEntry& entry,
                          const FunctionTableMap& ftMap, const Project::ProjectFile& project)
 {
-    auto writeValue = [&](const int64_t value, const unsigned length) {
-        // confirm int64_t is two's complement
-        static_assert(static_cast<uint64_t>(int64_t{ -1 }) == 0xffffffffffffffff);
-
-        const uint64_t v = static_cast<uint64_t>(value);
-        for (const auto i : range(length)) {
-            romData.push_back(v >> (i * 8));
-        }
-    };
-
     const auto& frameSets = project.frameSets;
     const auto& projectiles = project.entityRomData.projectiles;
     const auto& listIds = project.entityRomData.listIds;
@@ -716,32 +709,63 @@ static void processEntry(const EntityType entityType,
     romData.push_back(entry.defaultPalette);
     romData.push_back(initialProjectileId);
     romData.push_back(initialListId);
-    writeValue(frameSetId, 2);
+
+    romData.push_back(frameSetId);
+    romData.push_back(frameSetId >> 8);
 
     for (const StructField& field : ftMap.at(entry.functionTable).second) {
         auto it = entry.fields.find(field.name);
         const std::string& valueStr = it != entry.fields.end() ? it->second : field.defaultValue;
-        const int64_t value = *String::toLong(valueStr);
+
+        auto writeUnsigned = [&](const unsigned length) {
+            const auto value = String::decimalOrHexToUint32(valueStr);
+            const uint32_t v = value.value_or(0);
+            for (const auto i : range(length)) {
+                romData.push_back(v >> (i * 8));
+            }
+        };
+        auto writeSigned = [&](const unsigned length) {
+            // confirm int32_t is two's complement
+            static_assert(static_cast<uint32_t>(int32_t{ -1 }) == 0xffffffff);
+
+            const auto value = String::decimalOrHexToInt32(valueStr);
+            const uint64_t v = static_cast<uint32_t>(value.value_or(0));
+            for (const auto i : range(length)) {
+                romData.push_back(v >> (i * 8));
+            }
+        };
 
         switch (field.type) {
         case DataType::UINT8:
-        case DataType::SINT8:
-            writeValue(value, 1);
+            writeUnsigned(1);
             break;
 
         case DataType::UINT16:
-        case DataType::SINT16:
-            writeValue(value, 2);
+            writeUnsigned(2);
             break;
 
         case DataType::UINT24:
-        case DataType::SINT24:
-            writeValue(value, 3);
+            writeUnsigned(3);
             break;
 
         case DataType::UINT32:
+            writeUnsigned(4);
+            break;
+
+        case DataType::SINT8:
+            writeSigned(1);
+            break;
+
+        case DataType::SINT16:
+            writeSigned(2);
+            break;
+
+        case DataType::SINT24:
+            writeSigned(3);
+            break;
+
         case DataType::SINT32:
-            writeValue(value, 4);
+            writeSigned(4);
             break;
         }
     }
