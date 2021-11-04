@@ -163,13 +163,14 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
                           const std::vector<ExportIndex>& exportFrames,
                           ErrorList& errorList)
 {
-    TilesetLayout ret;
-
     const TilesetType tilesetType = frameSet.tilesetType;
 
     const auto smallTileMap = buildSmallTileMap(frameSet, exportFrames);
-
     const auto tiles = fixedTilesetData(exportFrames, frameSet, smallTileMap);
+
+    TilesetLayout ret;
+    ret.tilesetType = frameSet.tilesetType;
+    ret.frameTilesets.resize(exportFrames.size(), -1);
 
     if (tiles.size() < tilesetType.nTiles() || tilesetType.isFixed()) {
         // Fixed tileset
@@ -184,10 +185,6 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
             }
             ret.tilesetType = smallestType;
             ret.staticTiles = std::move(tiles);
-
-            ret.tilesetType = tilesetType;
-
-            ret.frameTilesets.resize(exportFrames.size(), -1);
         }
         else {
             errorList.addErrorString("Unable to fit ", tiles.size(), " Tile16 tiles inside a ", tilesetType.string());
@@ -197,9 +194,7 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
         // Dynamic tileset
         const auto frameTiles = tilesForEachFrame(exportFrames, frameSet, smallTileMap);
         ret.staticTiles = calculateStaticTiles(frameTiles, tilesetType);
-        ret.tilesetType = tilesetType;
 
-        ret.frameTilesets.resize(exportFrames.size(), -1);
         for (const auto& ft : frameTiles) {
             auto dynamicTiles = tile_difference(ft.tiles, ret.staticTiles);
             if (dynamicTiles.empty() == false) {
