@@ -20,6 +20,8 @@ const std::array<const char*, 4> flipsComboItems = {
 template <typename EnumT>
 bool EnumCombo(const char* label, EnumT* value, const char* const items[], int items_count, int height_in_items = -1)
 {
+    static_assert(std::is_same_v<std::underlying_type_t<EnumT>, int>);
+
     int v = static_cast<int>(*value);
 
     bool c = ImGui::Combo(label, &v, items, items_count, height_in_items);

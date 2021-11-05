@@ -10,7 +10,7 @@
 
 namespace UnTech::Project {
 
-enum MappingMode {
+enum class MappingMode {
     LOROM,
     HIROM,
 };
@@ -25,7 +25,7 @@ struct MemoryMapSettings {
     unsigned bankAddress(const unsigned bankNumber) const
     {
         const unsigned a = (firstBank + bankNumber) * 0x10000;
-        return MappingMode::HIROM ? a : a + 0x8000;
+        return mode == MappingMode::HIROM ? a : a + 0x8000;
     }
 
     bool operator==(const MemoryMapSettings&) const = default;
