@@ -45,8 +45,8 @@ enum class TilesetType {
 };
 
 enum class ObjectSize {
-    SMALL = 8,
-    LARGE = 16
+    SMALL,
+    LARGE,
 };
 
 struct NameReference {

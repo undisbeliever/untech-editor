@@ -90,7 +90,8 @@ struct FrameObject {
     {
     }
 
-    inline unsigned sizePx() const { return static_cast<unsigned>(size); }
+    inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
+
     inline upoint bottomRight() const
     {
         return upoint(location.x + sizePx(),

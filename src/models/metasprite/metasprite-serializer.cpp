@@ -20,6 +20,9 @@
 using namespace UnTech::Xml;
 
 namespace UnTech::MetaSprite {
+// defined in `spriteimporter-serializer.cpp`
+extern const EnumMap<ObjectSize> objectSizeEnumMap;
+
 // Declared in `spriteimporter-serializer.cpp`
 extern const EnumMap<TilesetType> tilesetTypeEnumMap;
 }
@@ -137,17 +140,7 @@ private:
             if (childTag.name == "object") {
                 FrameObject obj;
 
-                std::string sizeStr = childTag.getAttribute("size");
-                if (sizeStr == "small") {
-                    obj.size = ObjectSize::SMALL;
-                }
-                else if (sizeStr == "large") {
-                    obj.size = ObjectSize::LARGE;
-                }
-                else {
-                    throw xml_error(childTag, "size", "Unknown size");
-                }
-
+                obj.size = childTag.getAttributeEnum("size", objectSizeEnumMap);
                 obj.location = childTag.getAttributeMs8point();
                 obj.tileId = childTag.getAttributeUnsigned("tile");
                 obj.hFlip = childTag.getAttributeBoolean("hflip");
@@ -265,13 +258,7 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
     for (const FrameObject& obj : frame.objects) {
         xml.writeTag("object");
 
-        if (obj.size == ObjectSize::SMALL) {
-            xml.writeTagAttribute("size", "small");
-        }
-        else {
-            xml.writeTagAttribute("size", "large");
-        }
-
+        xml.writeTagAttributeEnum("size", obj.size, objectSizeEnumMap);
         xml.writeTagAttributeMs8point(obj.location);
         xml.writeTagAttribute("tile", obj.tileId);
         xml.writeTagAttribute("hflip", obj.hFlip);

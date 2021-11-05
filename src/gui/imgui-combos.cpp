@@ -60,30 +60,11 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::TilesetType* v)
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::ObjectSize* v)
 {
-    using ObjectSize = UnTech::MetaSprite::ObjectSize;
-
-    static const char* smallText = "Small";
-    static const char* largeText = "Large";
-
-    const char* text = *v == ObjectSize::SMALL ? smallText : largeText;
-
-    bool changed = false;
-    if (ImGui::BeginCombo(label, text)) {
-        auto sel = [&](const char* t, ObjectSize s) {
-            if (ImGui::Selectable(t, *v == s)) {
-                if (*v != s) {
-                    *v = s;
-                    changed = true;
-                }
-            }
-        };
-        sel(smallText, ObjectSize::SMALL);
-        sel(largeText, ObjectSize::LARGE);
-
-        ImGui::EndCombo();
-    }
-
-    return changed;
+    static constexpr const char* items[] = {
+        "Small",
+        "Large",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }
 
 bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxType* value)

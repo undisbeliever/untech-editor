@@ -16,8 +16,8 @@ public:
     constexpr static unsigned FP_SHIFT = 8;
 
     enum Region {
-        NTSC = 0,
-        PAL = 1
+        NTSC,
+        PAL
     };
 
 public:

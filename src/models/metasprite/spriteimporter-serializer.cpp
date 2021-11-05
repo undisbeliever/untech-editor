@@ -18,6 +18,11 @@ using namespace UnTech::Xml;
 
 namespace UnTech::MetaSprite {
 
+extern const EnumMap<ObjectSize> objectSizeEnumMap = {
+    { "small", ObjectSize::SMALL },
+    { "large", ObjectSize::LARGE },
+};
+
 extern const EnumMap<TilesetType> tilesetTypeEnumMap = {
     { "ONE_TILE", TilesetType::ONE_TILE },
     { "TWO_TILES", TilesetType::TWO_TILES },
@@ -202,17 +207,7 @@ private:
             if (childTag.name == "object") {
                 FrameObject obj;
 
-                std::string sizeStr = childTag.getAttribute("size");
-                if (sizeStr == "small") {
-                    obj.size = ObjectSize::SMALL;
-                }
-                else if (sizeStr == "large") {
-                    obj.size = ObjectSize::LARGE;
-                }
-                else {
-                    throw xml_error(childTag, "Unknown object size");
-                }
-
+                obj.size = childTag.getAttributeEnum("size", objectSizeEnumMap);
                 obj.location = childTag.getAttributeUpoint();
 
                 frame.objects.push_back(obj);
@@ -333,12 +328,7 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
     for (const FrameObject& obj : frame.objects) {
         xml.writeTag("object");
 
-        if (obj.size == ObjectSize::SMALL) {
-            xml.writeTagAttribute("size", "small");
-        }
-        else {
-            xml.writeTagAttribute("size", "large");
-        }
+        xml.writeTagAttributeEnum("size", obj.size, objectSizeEnumMap);
         xml.writeTagAttributeUpoint(obj.location);
 
         xml.writeCloseTag();
