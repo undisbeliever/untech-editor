@@ -105,13 +105,6 @@ public:
         writeTagAttribute(name, T(v));
     }
 
-    template <class T>
-    inline void writeTagAttributeEnum(const std::string_view name, const T& value)
-    {
-        const auto& enumMap = T::enumMap;
-        writeTagAttribute_noEscape(name, enumMap.nameOf(value.value()));
-    }
-
     template <typename T>
     inline void writeTagAttributeEnum(const std::string_view name, const T& value, const EnumMap<T>& enumMap)
     {

@@ -17,30 +17,6 @@ const std::array<const char*, 4> flipsComboItems = {
     "hvFlip"
 };
 
-// ::TODO only allow increment by one enums in enumMap::
-// ::TODO remove enumMap enums::
-template <typename EnumT>
-bool oldStyleEnumClassCombo(const char* label, EnumT* v)
-{
-    bool changed = false;
-    if (ImGui::BeginCombo(label, v->string())) {
-        for (const auto& e : v->enumMap) {
-            ImGui::PushID(static_cast<int>(e.second));
-
-            if (ImGui::Selectable(e.first.c_str(), *v == e.second)) {
-                *v = e.second;
-                changed = true;
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::EndCombo();
-    }
-
-    return changed;
-}
-
 template <typename EnumT>
 bool EnumCombo(const char* label, EnumT* value, const char* const items[], int items_count, int height_in_items = -1)
 {
