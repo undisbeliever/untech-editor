@@ -85,4 +85,6 @@ protected:
     virtual void addAnimation(const idstring& name) = 0;
 };
 
+void durationFormatText(const MetaSprite::Animation::DurationFormat df, uint8_t duration);
+
 }

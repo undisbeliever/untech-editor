@@ -13,15 +13,15 @@ namespace UnTech::MetaSprite::Animation {
 
 static unsigned calcTimeToNextFrame(const Animation& ani, const AnimationFrame& aniFrame)
 {
-    switch (ani.durationFormat.value()) {
-    case DurationFormat::Enum::FRAME:
+    switch (ani.durationFormat) {
+    case DurationFormat::FRAME:
         return aniFrame.duration;
 
-    case DurationFormat::Enum::TIME:
+    case DurationFormat::TIME:
         return aniFrame.duration << 1;
 
-    case DurationFormat::Enum::DISTANCE_HORIZONTAL:
-    case DurationFormat::Enum::DISTANCE_VERTICAL:
+    case DurationFormat::DISTANCE_HORIZONTAL:
+    case DurationFormat::DISTANCE_VERTICAL:
         return aniFrame.duration << 3;
     }
 
@@ -65,19 +65,19 @@ bool PreviewState::processDisplayFrame(const NamedList<Animation>& animations)
     positionFP.y += velocityFP.y;
 
     switch (ani->durationFormat) {
-    case DurationFormat::Enum::FRAME:
+    case DurationFormat::FRAME:
         frameTime += 1;
         break;
 
-    case DurationFormat::Enum::TIME:
+    case DurationFormat::TIME:
         frameTime += region == PAL ? 6 : 5;
         break;
 
-    case DurationFormat::Enum::DISTANCE_VERTICAL:
+    case DurationFormat::DISTANCE_VERTICAL:
         frameTime += abs(velocityFP.y >> (FP_SHIFT - 8));
         break;
 
-    case DurationFormat::Enum::DISTANCE_HORIZONTAL:
+    case DurationFormat::DISTANCE_HORIZONTAL:
         frameTime += abs(velocityFP.x >> (FP_SHIFT - 8));
         break;
     }

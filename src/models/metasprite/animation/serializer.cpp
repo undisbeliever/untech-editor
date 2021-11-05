@@ -13,6 +13,13 @@ namespace UnTech::MetaSprite::Animation {
 
 namespace Ani = UnTech::MetaSprite::Animation;
 
+static const EnumMap<DurationFormat> durationFormatEnumMap = {
+    { "FRAME", DurationFormat::FRAME },
+    { "TIME", DurationFormat::TIME },
+    { "DISTANCE_VERTICAL", DurationFormat::DISTANCE_VERTICAL },
+    { "DISTANCE_HORIZONTAL", DurationFormat::DISTANCE_HORIZONTAL }
+};
+
 void readAnimationFrame(const Xml::XmlTag& tag, AnimationFrame& aFrame);
 
 void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& animations)
@@ -24,7 +31,7 @@ void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& anim
 
     animation.name = tag.getAttributeId("id");
 
-    animation.durationFormat = tag.getAttributeEnum("durationformat", DurationFormat::enumMap);
+    animation.durationFormat = tag.getAttributeEnum("durationformat", durationFormatEnumMap);
 
     animation.oneShot = tag.getAttributeBoolean("oneshot");
 
@@ -80,7 +87,7 @@ void writeAnimations(XmlWriter& xml, const NamedList<Animation>& animations)
         xml.writeTag("animation");
 
         xml.writeTagAttribute("id", animation.name);
-        xml.writeTagAttributeEnum("durationformat", animation.durationFormat);
+        xml.writeTagAttributeEnum("durationformat", animation.durationFormat, durationFormatEnumMap);
 
         if (animation.oneShot) {
             xml.writeTagAttribute("oneshot", animation.oneShot);

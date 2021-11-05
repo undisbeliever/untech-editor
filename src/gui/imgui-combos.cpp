@@ -58,8 +58,13 @@ bool EnumCombo(const char* label, EnumT* value, const char* const items[], int i
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::Animation::DurationFormat* v)
 {
-    // ::TODO convert DurationFormat to a regular enum::
-    return oldStyleEnumClassCombo(label, v);
+    static constexpr const char* items[] = {
+        "FRAME",
+        "TIME",
+        "DISTANCE_VERTICAL",
+        "DISTANCE_HORIZONTAL",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::TilesetType* v)

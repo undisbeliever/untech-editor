@@ -126,4 +126,28 @@ void AbstractMetaSpriteEditorGui::exportOrderWindow(const char* windowLabel)
     ImGui::End();
 }
 
+void durationFormatText(const MetaSprite::Animation::DurationFormat df, uint8_t duration)
+{
+    using DurationFormat = UnTech::MetaSprite::Animation::DurationFormat;
+
+    if (duration == 0) {
+        duration = 1;
+    }
+
+    switch (df) {
+    case DurationFormat::FRAME:
+        ImGui::Text("%d frames", int(duration));
+        break;
+
+    case DurationFormat::TIME:
+        ImGui::Text("%d ms", int(duration * 1000 / 75));
+        break;
+
+    case DurationFormat::DISTANCE_HORIZONTAL:
+    case DurationFormat::DISTANCE_VERTICAL:
+        ImGui::Text("%0.3f px", double(duration) / 32);
+        break;
+    }
+}
+
 }

@@ -113,7 +113,7 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
                     ImGui::SetNextItemWidth(-1);
                     edited |= ImGui::InputUint8("##duration", &aFrame.duration, 0);
 
-                    ImGui::TextUnformatted(animation.durationFormat.durationToString(aFrame.duration));
+                    durationFormatText(animation.durationFormat, aFrame.duration);
                     ImGui::NextColumn();
 
                     if (edited) {

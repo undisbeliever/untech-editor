@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "durationformat.h"
 #include "../common.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
@@ -27,6 +26,17 @@ struct FrameSet;
 namespace UnTech::MetaSprite::Animation {
 
 struct Animation;
+
+enum class DurationFormat {
+    FRAME,
+    TIME,
+    DISTANCE_VERTICAL,
+    DISTANCE_HORIZONTAL,
+};
+inline uint8_t engineValue(const DurationFormat df)
+{
+    return static_cast<uint8_t>(df) * 2;
+}
 
 struct AnimationFrame {
     NameReference frame;
