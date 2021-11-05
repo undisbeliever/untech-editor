@@ -33,6 +33,17 @@ const static size_t PALETTE_COLORS = 16;
 typedef UnsignedBits<3, uint_fast8_t> SpriteOrderType;
 const static SpriteOrderType DEFAULT_SPRITE_ORDER = 2;
 
+enum class TilesetType {
+    ONE_TILE_FIXED,
+    TWO_TILES_FIXED,
+    ONE_ROW_FIXED,
+    TWO_ROWS_FIXED,
+    ONE_TILE,
+    TWO_TILES,
+    ONE_ROW,
+    TWO_ROWS
+};
+
 enum class ObjectSize {
     SMALL = 8,
     LARGE = 16

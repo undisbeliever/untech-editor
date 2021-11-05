@@ -16,6 +16,21 @@
 
 using namespace UnTech::Xml;
 
+namespace UnTech::MetaSprite {
+
+extern const EnumMap<TilesetType> tilesetTypeEnumMap = {
+    { "ONE_TILE", TilesetType::ONE_TILE },
+    { "TWO_TILES", TilesetType::TWO_TILES },
+    { "ONE_ROW", TilesetType::ONE_ROW },
+    { "TWO_ROWS", TilesetType::TWO_ROWS },
+    { "ONE_TILE_FIXED", TilesetType::ONE_TILE_FIXED },
+    { "TWO_TILES_FIXED", TilesetType::TWO_TILES_FIXED },
+    { "ONE_ROW_FIXED", TilesetType::ONE_ROW_FIXED },
+    { "TWO_ROWS_FIXED", TilesetType::TWO_ROWS_FIXED },
+};
+
+}
+
 namespace UnTech::MetaSprite::SpriteImporter {
 
 const std::string FrameSet::FILE_EXTENSION = "utsi";
@@ -77,7 +92,7 @@ public:
         assert(frameSet.frames.size() == 0);
 
         frameSet.name = tag.getAttributeId("id");
-        frameSet.tilesetType = tag.getAttributeEnum("tilesettype", TilesetType::enumMap);
+        frameSet.tilesetType = tag.getAttributeEnum("tilesettype", tilesetTypeEnumMap);
 
         if (tag.hasAttribute("exportorder")) {
             frameSet.exportOrder = tag.getAttributeId("exportorder");
@@ -358,7 +373,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTag("spriteimporter");
 
     xml.writeTagAttribute("id", frameSet.name);
-    xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType);
+    xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType, tilesetTypeEnumMap);
 
     if (frameSet.exportOrder.isValid()) {
         xml.writeTagAttribute("exportorder", frameSet.exportOrder);

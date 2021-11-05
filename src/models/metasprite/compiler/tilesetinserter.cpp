@@ -6,6 +6,7 @@
 
 #include "tilesetinserter.h"
 #include "tilesetlayout.h"
+#include "tilesettype.hpp"
 #include "models/common/iterators.h"
 #include "models/snes/tilesetinserter.h"
 
@@ -58,8 +59,10 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             const std::vector<Snes::Tile16px>& largeTileset, const std::vector<Snes::Tile8px>& smallTileset,
             Snes::TilesetInserter16px& tileInserter)
 {
+    const unsigned tilesetType_nTiles = numberOfTilesetTiles(tilesetType);
+
     assert(tiles.empty() == false);
-    assert(tiles.size() + tileOffset <= tilesetType.nTiles());
+    assert(tiles.size() + tileOffset <= tilesetType_nTiles);
 
     FrameTilesetData tileset;
     tileset.tiles.reserve(tiles.size());
@@ -74,7 +77,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
         return a;
     };
 
-    CharAttrPos charAttrPos(tilesetType.tilesetSplitPoint(), tileOffset);
+    CharAttrPos charAttrPos(tilesetSplitPoint(tilesetType), tileOffset);
 
     for (const Tile16& tile16 : tiles) {
         if (tile16.isLarge()) {
@@ -173,13 +176,15 @@ TilesetData processTileset(const MetaSprite::FrameSet& frameSet, const TilesetLa
 
     Snes::TilesetInserter16px tileInserter(ret.tiles);
 
-    ret.tilesetType = tilesetLayout.tilesetType;
+    ret.tilesetTypeByte = tilesetTypeRomValue(tilesetLayout.tilesetType);
     ret.frameTilesets = tilesetLayout.frameTilesets;
 
+    const unsigned tilesetType_nTiles = numberOfTilesetTiles(tilesetLayout.tilesetType);
+
     unsigned staticTilesOffset = 0;
-    if (ret.tilesetType.isFixed() == false) {
-        assert(ret.tilesetType.nTiles() >= tilesetLayout.staticTiles.size());
-        staticTilesOffset = ret.tilesetType.nTiles() - tilesetLayout.staticTiles.size();
+    if (not isFixedTilesetType(tilesetLayout.tilesetType)) {
+        assert(tilesetType_nTiles >= tilesetLayout.staticTiles.size());
+        staticTilesOffset = tilesetType_nTiles - tilesetLayout.staticTiles.size();
     }
 
     ret.staticTileset = insertStaticTileset(tilesetLayout.staticTiles, tilesetLayout.tilesetType, staticTilesOffset,

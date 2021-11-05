@@ -64,8 +64,17 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::Animation::DurationFormat*
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::TilesetType* v)
 {
-    // ::TODO convert TilesetType to a regular enum::
-    return oldStyleEnumClassCombo(label, v);
+    static constexpr const char* items[] = {
+        "ONE_TILE_FIXED",
+        "TWO_TILES_FIXED",
+        "ONE_ROW_FIXED",
+        "TWO_ROWS_FIXED",
+        "ONE_TILE",
+        "TWO_TILES",
+        "ONE_ROW",
+        "TWO_ROWS",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::ObjectSize* v)

@@ -7,6 +7,7 @@
 #include "tilesetlayout.h"
 #include "combinesmalltiles.h"
 #include "tilesetinserter.h"
+#include "tilesettype.hpp"
 #include "models/common/errorlist.h"
 #include "models/common/iterators.h"
 #include "models/common/vectorset.h"
@@ -107,13 +108,15 @@ static std::vector<std::pair<Tile16, unsigned>> countTileUsage(const std::vector
 static vectorset<Tile16> calculateStaticTiles(const std::vector<DynamicTileset>& ftVector,
                                               const TilesetType tilesetType)
 {
+    const unsigned tilesetType_nTiles = numberOfTilesetTiles(tilesetType);
+
     auto popularTiles = countTileUsage(ftVector);
 
     std::stable_sort(popularTiles.begin(), popularTiles.end(),
                      [](auto& l, auto& r) { return l.second > r.second; });
 
-    if (popularTiles.size() > tilesetType.nTiles() - 1) {
-        popularTiles.resize(tilesetType.nTiles() - 1);
+    if (popularTiles.size() > tilesetType_nTiles - 1) {
+        popularTiles.resize(tilesetType_nTiles - 1);
     }
 
     while (popularTiles.size() > 0) {
@@ -132,7 +135,7 @@ static vectorset<Tile16> calculateStaticTiles(const std::vector<DynamicTileset>&
             }
         }
 
-        if (maxDynamicTiles + popularTiles.size() <= tilesetType.nTiles()) {
+        if (maxDynamicTiles + popularTiles.size() <= tilesetType_nTiles) {
             break;
         }
         popularTiles.resize(popularTiles.size() - 1);
@@ -164,6 +167,8 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
                           ErrorList& errorList)
 {
     const TilesetType tilesetType = frameSet.tilesetType;
+    const unsigned tilesetType_nTiles = numberOfTilesetTiles(tilesetType);
+    const bool tilesetType_isFixed = isFixedTilesetType(tilesetType);
 
     const auto smallTileMap = buildSmallTileMap(frameSet, exportFrames);
     const auto tiles = fixedTilesetData(exportFrames, frameSet, smallTileMap);
@@ -172,22 +177,22 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
     ret.tilesetType = frameSet.tilesetType;
     ret.frameTilesets.resize(exportFrames.size(), -1);
 
-    if (tiles.size() < tilesetType.nTiles() || tilesetType.isFixed()) {
+    if (tiles.size() < tilesetType_nTiles || tilesetType_isFixed) {
         // Fixed tileset
-        if (tilesetType.isFixed() == false) {
+        if (not tilesetType_isFixed) {
             errorList.addWarningString("Tileset can be fixed, making it so.");
         }
 
-        if (tiles.size() <= tilesetType.nTiles()) {
-            TilesetType smallestType = TilesetType::smallestFixedTileset(tiles.size());
-            if (smallestType.nTiles() != tilesetType.nTiles()) {
-                errorList.addWarningString("TilesetType shrunk to ", smallestType.string());
+        if (tiles.size() <= tilesetType_nTiles) {
+            const TilesetType smallestType = smallestFixedTilesetType(tiles.size());
+            if (numberOfTilesetTiles(smallestType) != tilesetType_nTiles) {
+                errorList.addWarningString("TilesetType shrunk to ", ttString(smallestType));
             }
             ret.tilesetType = smallestType;
             ret.staticTiles = std::move(tiles);
         }
         else {
-            errorList.addErrorString("Unable to fit ", tiles.size(), " Tile16 tiles inside a ", tilesetType.string());
+            errorList.addErrorString("Unable to fit ", tiles.size(), " Tile16 tiles inside a ", ttString(tilesetType));
         }
     }
     else {
@@ -200,7 +205,7 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
             if (dynamicTiles.empty() == false) {
                 unsigned nTiles = dynamicTiles.size() + ret.staticTiles.size();
 
-                if (nTiles <= tilesetType.nTiles()) {
+                if (nTiles <= tilesetType_nTiles) {
                     int tilesetId = ret.dynamicTiles.size();
                     ret.dynamicTiles.push_back(std::move(dynamicTiles));
                     for (unsigned frameId : ft.frameIds) {

@@ -8,7 +8,6 @@
 
 #include "common.h"
 #include "entityhitboxtype.h"
-#include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/idstring.h"
 #include "models/common/ms8aabb.h"
@@ -119,7 +118,7 @@ struct FrameSet {
 
     FrameSet()
         : name()
-        , tilesetType(TilesetType::Enum::ONE_ROW)
+        , tilesetType(TilesetType::ONE_ROW)
         , exportOrder()
         , frames()
         , animations()

@@ -31,8 +31,6 @@ struct FrameTilesetData {
 };
 
 struct TilesetData {
-    TilesetType tilesetType;
-
     std::vector<Snes::Tile16px> tiles;
 
     FrameTilesetData staticTileset;
@@ -42,6 +40,8 @@ struct TilesetData {
     // if -1 then there are no dynamic tiles;
     // ::TODO change to std::optional<uint16_t>::
     std::vector<int> frameTilesets;
+
+    uint8_t tilesetTypeByte;
 
     std::optional<unsigned> tilesetIndexForFrameId(unsigned frameId) const
     {

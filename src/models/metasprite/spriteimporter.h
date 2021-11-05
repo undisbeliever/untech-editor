@@ -8,7 +8,6 @@
 
 #include "common.h"
 #include "entityhitboxtype.h"
-#include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/aabb.h"
 #include "models/common/idstring.h"
@@ -187,7 +186,7 @@ struct FrameSet {
     static const std::string FILE_EXTENSION;
 
     idstring name;
-    TilesetType tilesetType;
+    TilesetType tilesetType = TilesetType::ONE_ROW;
     idstring exportOrder;
     NamedList<Frame> frames;
     NamedList<Animation::Animation> animations;

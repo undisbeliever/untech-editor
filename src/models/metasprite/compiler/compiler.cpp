@@ -118,14 +118,14 @@ void CompiledRomData::addFrameSetData(const FrameSetData& data)
 
     DataBlock fsItem(12);
 
-    fsItem.addWord(fsPalettes);                          // paletteTable
-    fsItem.addByte(data.palettes.size());                // nPalettes
-    fsItem.addWord(staticTileset);                       // tileset
-    fsItem.addByte(data.tileset.tilesetType.romValue()); // tilesetType
-    fsItem.addWord(frameTableAddr);                      // frameTable
-    fsItem.addByte(data.frames.size());                  // nFrames
-    fsItem.addWord(fsAnimations);                        // animationsTable
-    fsItem.addByte(data.animations.size());              // nAnimations
+    fsItem.addWord(fsPalettes);                   // paletteTable
+    fsItem.addByte(data.palettes.size());         // nPalettes
+    fsItem.addWord(staticTileset);                // tileset
+    fsItem.addByte(data.tileset.tilesetTypeByte); // tilesetType
+    fsItem.addWord(frameTableAddr);               // frameTable
+    fsItem.addByte(data.frames.size());           // nFrames
+    fsItem.addWord(fsAnimations);                 // animationsTable
+    fsItem.addByte(data.animations.size());       // nAnimations
 
     assert(fsItem.atEnd());
 

@@ -19,6 +19,11 @@
 
 using namespace UnTech::Xml;
 
+namespace UnTech::MetaSprite {
+// Declared in `spriteimporter-serializer.cpp`
+extern const EnumMap<TilesetType> tilesetTypeEnumMap;
+}
+
 namespace UnTech::MetaSprite::MetaSprite {
 
 const std::string FrameSet::FILE_EXTENSION = "utms";
@@ -77,7 +82,7 @@ public:
         assert(frameSet.frames.size() == 0);
 
         frameSet.name = tag.getAttributeId("id");
-        frameSet.tilesetType = tag.getAttributeEnum("tilesettype", TilesetType::enumMap);
+        frameSet.tilesetType = tag.getAttributeEnum("tilesettype", tilesetTypeEnumMap);
 
         if (tag.hasAttribute("exportorder")) {
             frameSet.exportOrder = tag.getAttributeId("exportorder");
@@ -292,7 +297,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTag("metasprite");
 
     xml.writeTagAttribute("id", frameSet.name);
-    xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType);
+    xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType, tilesetTypeEnumMap);
 
     if (frameSet.exportOrder.isValid()) {
         xml.writeTagAttribute("exportorder", frameSet.exportOrder);
