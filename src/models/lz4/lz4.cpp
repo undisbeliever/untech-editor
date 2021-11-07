@@ -9,9 +9,9 @@
 #endif
 
 #include "lz4.h"
+#include "models/common/exceptions.h"
 #include "models/common/stringbuilder.h"
 #include "vendor/lz4/lib/lz4hc.h"
-#include <stdexcept>
 
 namespace UnTech {
 
@@ -21,11 +21,11 @@ lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
     if (limit > UINT16_MAX
         || source.size() > UINT16_MAX) {
 
-        throw std::runtime_error("Cannot compress >= 64KiB of data");
+        throw runtime_error("Cannot compress >= 64KiB of data");
     }
 
     if (source.empty()) {
-        throw std::runtime_error("Cannot compress an empty data block");
+        throw runtime_error("Cannot compress an empty data block");
     }
 
     const int HEADER_SIZE = 2;
@@ -43,13 +43,12 @@ lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
         LZ4HC_CLEVEL_MAX);
 
     if (cSize <= 0) {
-        throw std::runtime_error("LZ4_compress_HC failed");
+        throw runtime_error("LZ4_compress_HC failed");
     }
 
     unsigned outSize = cSize + HEADER_SIZE;
     if (outSize > limit) {
-        throw std::runtime_error(
-            stringBuilder("Compressed data exceeds limit (", outSize, " bytes, limit: ", limit, ")"));
+        throw runtime_error("Compressed data exceeds limit (", outSize, " bytes, limit: ", limit, ")");
     }
 
     out.resize(outSize);

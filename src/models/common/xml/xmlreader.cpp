@@ -11,30 +11,29 @@
 #include "../string.h"
 #include "../stringparser.hpp"
 #include <cassert>
-#include <stdexcept>
 
 namespace UnTech::Xml {
 
 xml_error::xml_error(const XmlTag& tag, const std::string_view message)
-    : std::runtime_error(tag.generateErrorString(message))
+    : runtime_error(tag.generateErrorString(message))
     , _filePath(tag.xml->filePath())
 {
 }
 
 xml_error::xml_error(const XmlTag& tag, const std::string_view aName, const std::string_view message)
-    : std::runtime_error(tag.generateErrorString(aName, message))
+    : runtime_error(tag.generateErrorString(aName, message))
     , _filePath(tag.xml->filePath())
 {
 }
 
 xml_error::xml_error(const XmlReader& xml, const std::string_view message)
-    : std::runtime_error(xml.generateErrorString(message))
+    : runtime_error(xml.generateErrorString(message))
     , _filePath(xml.filePath())
 {
 }
 
 xml_error::xml_error(const XmlReader& xml, const std::string_view message, const std::exception& ex)
-    : std::runtime_error(xml.generateErrorString(message, ex))
+    : runtime_error(xml.generateErrorString(message, ex))
     , _filePath(xml.filePath())
 {
 }
@@ -115,7 +114,7 @@ XmlReader::XmlReader(std::string&& xml, const std::filesystem::path& filePath)
     , _input(std::move(xml))
 {
     if (_input.atEnd()) {
-        throw std::runtime_error("Empty XML file");
+        throw runtime_error("Empty XML file");
     }
 
     parseDocument();

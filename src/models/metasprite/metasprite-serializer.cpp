@@ -15,7 +15,6 @@
 #include "models/snes/tile-data.h"
 #include <cassert>
 #include <fstream>
-#include <stdexcept>
 
 using namespace UnTech::Xml;
 

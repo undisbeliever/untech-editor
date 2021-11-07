@@ -5,6 +5,7 @@
  */
 
 #include "helpers/commandlineparser.h"
+#include "models/common/exceptions.h"
 #include "models/common/file.h"
 #include "models/common/string.h"
 #include "models/snes/cartridge.h"
@@ -37,7 +38,7 @@ int process(const CommandLine::Parser& args)
     const std::filesystem::path& filename = std::filesystem::u8path(args.filenames().front());
 
     if (filename.extension() != sfcExtension) {
-        throw std::runtime_error("Invalid file extension, expected a .sfc file");
+        throw runtime_error("Invalid file extension, expected a .sfc file");
     }
 
     bool verbose = args.options().at("verbose").boolean();
@@ -50,14 +51,14 @@ int process(const CommandLine::Parser& args)
         memoryMap = MemoryMap::HIROM;
     }
     else {
-        throw std::runtime_error("expected --lorom or --hirom");
+        throw runtime_error("expected --lorom or --hirom");
     }
 
     std::vector<uint8_t> rom = File::readBinaryFile(filename, 16 * 1024 * 1024);
 
     // prevents user from accidentally corrupting a file that was not made by untech-engine.
     if (isHeaderValid(rom, memoryMap) == false) {
-        throw std::runtime_error("Could not find header. Header must match `snes_header.inc`");
+        throw runtime_error("Could not find header. Header must match `snes_header.inc`");
     }
 
     uint16_t oldChecksum = readChecksum(rom, memoryMap);

@@ -37,7 +37,7 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     , _unsavedFilesList()
 {
     if (_filename.empty()) {
-        throw std::invalid_argument("filename cannot be empty");
+        throw invalid_argument("filename cannot be empty");
     }
 }
 

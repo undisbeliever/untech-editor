@@ -6,6 +6,7 @@
 
 #include "framesetfile.h"
 #include "models/common/errorlist.h"
+#include "models/common/exceptions.h"
 #include "models/common/string.h"
 #include "models/common/validateunique.h"
 #include "utsi2utms/utsi2utms.h"
@@ -71,7 +72,7 @@ void FrameSetFile::loadFile()
         break;
 
     case FrameSetType::UNKNOWN:
-        throw std::runtime_error(stringBuilder("Cannot load ", filename.string(), ": Unknown frameset type"));
+        throw runtime_error("Cannot load ", filename.string(), ": Unknown frameset type");
         break;
     }
 }

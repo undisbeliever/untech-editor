@@ -8,6 +8,7 @@
 #include "background-image.h"
 #include "errorlisthelpers.h"
 #include "scene-bgmode.hpp"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
@@ -181,7 +182,7 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
 // SceneLayoutData
 // ---------------
 
-// thows std::logic_error if layout is not valid
+// thows `logic_error` if layout is not valid
 static void confirmLayoutIsValid(const std::array<SceneLayoutsData::LayerLayout, N_LAYERS>& layers)
 {
     std::array<bool, SceneLayoutsData::N_VRAM_BLOCKS> usedBlocks;
@@ -190,7 +191,7 @@ static void confirmLayoutIsValid(const std::array<SceneLayoutsData::LayerLayout,
     auto testBlock = [&](const unsigned start, const unsigned size) {
         for (const auto i : range(start, start + size)) {
             if (usedBlocks.at(i)) {
-                throw std::logic_error("Layout invalid");
+                throw logic_error("Layout invalid");
             }
             usedBlocks.at(i) = true;
         }
@@ -236,7 +237,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         }
 
         if (nBlocks > freeBlocks.size()) {
-            throw std::runtime_error("nBlocks is too large");
+            throw runtime_error("nBlocks is too large");
         }
 
         for (unsigned b = 0; b < freeBlocks.size(); b += align) {
@@ -258,7 +259,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         }
 
         if (nBlocks > freeBlocks.size()) {
-            throw std::runtime_error("nBlocks is too large");
+            throw runtime_error("nBlocks is too large");
         }
 
         unsigned b = freeBlocks.size() - align;
@@ -377,7 +378,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
     confirmLayoutIsValid(layout);
 
     if (_sceneLayouts.size() >= UINT8_MAX) {
-        throw std::runtime_error("Too many scene layouts");
+        throw runtime_error("Too many scene layouts");
     }
     const uint8_t layoutId = _sceneLayouts.size();
 

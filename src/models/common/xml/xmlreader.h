@@ -10,6 +10,7 @@
 #include "../base64.h"
 #include "../string.h"
 #include "../stringparser.h"
+#include "models/common/exceptions.h"
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -26,7 +27,7 @@ struct XmlTag;
 // NOTE: Will only unescape sequences created by `XmlWriter`
 std::string unescapeXmlString(const std::string_view xmlString);
 
-class xml_error : public std::runtime_error {
+class xml_error : public runtime_error {
 public:
     explicit xml_error(const XmlTag& tag, const std::string_view message);
     explicit xml_error(const XmlTag& tag, const std::string_view attr, const std::string_view message);
@@ -52,7 +53,7 @@ private:
  * It is inspired by Qt's QXmlStreamReader, but is simpler and will cause an
  * exception if it tries to process malformed XML.
  *
- * The parser functions can raise a std::runtime_error with a human readable
+ * The parser functions can raise a `runtime_error` with a human readable
  * description of the parsing error and its location.
  *
  * CHANGELOG:

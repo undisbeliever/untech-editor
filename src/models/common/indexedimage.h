@@ -7,12 +7,12 @@
 #pragma once
 
 #include "aabb.h"
+#include "exceptions.h"
 #include "rgba.h"
 #include <cassert>
 #include <cstdint>
 #include <filesystem>
 #include <span>
-#include <stdexcept>
 #include <string>
 
 namespace UnTech {
@@ -97,7 +97,7 @@ public:
     std::span<uint8_t> scanline(unsigned y)
     {
         if (y >= _size.height) {
-            throw std::out_of_range("Image::scanline out of range");
+            throw out_of_range("Image::scanline out of range");
         }
         assert(_imageData);
         return std::span(_imageData + (y * _size.width), _size.width);
@@ -106,7 +106,7 @@ public:
     std::span<const uint8_t> scanline(unsigned y) const
     {
         if (y >= _size.height) {
-            throw std::out_of_range("Image::scanline out of range");
+            throw out_of_range("Image::scanline out of range");
         }
         assert(_imageData);
         return std::span(_imageData + (y * _size.width), _size.width);
@@ -115,7 +115,7 @@ public:
     inline uint8_t getPixel(unsigned x, unsigned y) const
     {
         if (x >= _size.width || y >= _size.height) {
-            throw std::out_of_range("Image::getPixel out of range");
+            throw out_of_range("Image::getPixel out of range");
         }
         assert(_imageData);
         return _imageData[x + y * pixelsPerScanline()];
@@ -124,7 +124,7 @@ public:
     inline void setPixel(unsigned x, unsigned y, const uint8_t p)
     {
         if (x >= _size.width || y >= _size.height) {
-            throw std::out_of_range("Image::setPixel out of range");
+            throw out_of_range("Image::setPixel out of range");
         }
         assert(_imageData);
         _imageData[x + y * pixelsPerScanline()] = p;

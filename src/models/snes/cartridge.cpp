@@ -5,13 +5,13 @@
  */
 
 #include "cartridge.h"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include <array>
 #include <cassert>
 #include <climits>
 #include <fstream>
-#include <stdexcept>
 
 namespace UnTech::Snes::Cartridge {
 
@@ -35,7 +35,7 @@ size_t headerAddress(MemoryMap memoryMap)
         return HEADER_ADDR;
     }
 
-    throw std::invalid_argument("invalid MemoryMap");
+    throw invalid_argument("invalid MemoryMap");
 }
 
 static inline size_t checksumCompelementAddress(MemoryMap memoryMap)
@@ -95,10 +95,10 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
     static_assert(INT_MAX > MAX_ROM_SIZE * 256, "int too small");
 
     if (rom.size() < MIN_ROM_SIZE) {
-        throw std::runtime_error("ROM is to small (minimum " MIN_ROM_STRING ").");
+        throw runtime_error("ROM is to small (minimum " MIN_ROM_STRING ").");
     }
     if (rom.size() > MAX_ROM_SIZE) {
-        throw std::runtime_error("ROM is to large (maximum " MAX_ROM_STRING ").");
+        throw runtime_error("ROM is to large (maximum " MAX_ROM_STRING ").");
     }
 
     unsigned part1Size = 1;
@@ -120,7 +120,7 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 
         part2Count = part1Size / part2Size;
         if (part1Size % part2Size != 0) {
-            throw std::runtime_error("Invalid ROM size.");
+            throw runtime_error("Invalid ROM size.");
         }
 
         for (const auto i : range(part1Size, rom.size())) {
@@ -152,7 +152,7 @@ void writeChecksum(const std::filesystem::path& filename, uint16_t checksum, Mem
 
     std::ofstream out(filename, std::ios::out | std::ios::in | std::ios::binary);
     if (!out) {
-        throw std::runtime_error(stringBuilder("Error opening file: ", filename.string()));
+        throw runtime_error("Error opening file: ", filename.string());
     }
 
     out.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);

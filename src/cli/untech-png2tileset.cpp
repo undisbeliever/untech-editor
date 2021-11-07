@@ -5,6 +5,7 @@
  */
 
 #include "helpers/commandlineparser.h"
+#include "models/common/exceptions.h"
 #include "models/common/indexedimage.h"
 #include "models/snes/image2tileset.h"
 #include <cstdlib>
@@ -35,7 +36,7 @@ int process(const CommandLine::Parser& args)
     assert(image);
 
     if (image->empty()) {
-        throw std::runtime_error(image->errorString());
+        throw runtime_error(image->errorString());
     }
 
     const std::string& tilesetFile = args.options().at("output").string();

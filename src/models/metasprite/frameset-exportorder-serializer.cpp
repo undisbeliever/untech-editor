@@ -7,11 +7,11 @@
 #include "frameset-exportorder.h"
 
 #include "models/common/atomicofstream.h"
+#include "models/common/exceptions.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
-#include <stdexcept>
 
 using namespace UnTech::Xml;
 
@@ -132,7 +132,7 @@ std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml
         const auto tag = xml.parseTag();
 
         if (tag.name != "fsexportorder") {
-            throw std::runtime_error(xml.filename() + ": Not frame set export order file");
+            throw runtime_error(xml.filename() + ": Not frame set export order file");
         }
 
         auto exportOrder = std::make_unique<FrameSetExportOrder>();

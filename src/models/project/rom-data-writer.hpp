@@ -8,6 +8,7 @@
 
 #include "memorymap.h"
 #include "rom-bank-data.h"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include <cassert>
@@ -55,7 +56,7 @@ private:
 private:
     [[noreturn]] void throwOutOfRomSpaceException(size_t size)
     {
-        throw std::runtime_error(stringBuilder("Unable to store ", size, " bytes of data, please add more banks to the Memory Map."));
+        throw runtime_error("Unable to store ", size, " bytes of data, please add more banks to the Memory Map.");
     }
 
 public:
@@ -82,10 +83,10 @@ public:
     {
         auto& bank = _romBanks.at(bankId);
         if (!bank.empty() || bank.currentAddress() != addr) {
-            throw std::runtime_error("Cannot store data in Rom Bank: incorrect address");
+            throw runtime_error("Cannot store data in Rom Bank: incorrect address");
         }
         if (data.size() > _bankSize) {
-            throw std::overflow_error("Cannot store data in Rom Bank: data is too large");
+            throw runtime_error("Cannot store data in Rom Bank: data is too large");
         }
 
         _romBanks.at(bankId).addData(data);
@@ -212,7 +213,7 @@ public:
         binData.reserve(_bankSize * _romBanks.size());
         for (const RomBankData& bank : _romBanks) {
             if (bank.valid() == false) {
-                throw std::logic_error("RomBankData is too large");
+                throw logic_error("RomBankData is too large");
             }
             if (!bank.empty()) {
                 binData.insert(binData.end(), bank.data().begin(), bank.data().end());

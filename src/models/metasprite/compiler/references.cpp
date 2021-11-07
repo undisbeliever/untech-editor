@@ -5,6 +5,7 @@
  */
 
 #include "references.h"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 
 namespace UnTech::MetaSprite::Compiler {
@@ -41,7 +42,7 @@ void writeExportOrderReferences(const ProjectFile& project, std::ostream& out)
     for (const auto& it : project.frameSetExportOrders) {
         const auto& eo = it.value;
         if (eo == nullptr) {
-            throw std::runtime_error(stringBuilder("Unable to read Export Order: ", it.filename.string()));
+            throw runtime_error("Unable to read Export Order: ", it.filename.string());
         }
 
         out << "\tnamespace " << eo->name << " {\n";

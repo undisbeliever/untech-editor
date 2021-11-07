@@ -23,13 +23,13 @@ size_t headerAddress(MemoryMap memoryMap);
 // returns true if the ROM header matches that of `snes_header.inc`
 bool isHeaderValid(const std::vector<uint8_t>& rom, MemoryMap memoryMap);
 
-// throws std::out_of_range if the rom is an invalid size
+// throws `out_of_range` if the rom is an invalid size
 uint16_t readChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap);
 
-// throws std::runtime_error if the rom is an invalid size
+// throws `runtime_error` if the rom is an invalid size
 uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap);
 
-// throws exception is unable to write to file
+// throws an exception if writeChecksum is unable to write to file
 void writeChecksum(const std::filesystem::path& filename, uint16_t checksum, MemoryMap memoryMap);
 
 }

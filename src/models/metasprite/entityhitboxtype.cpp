@@ -67,7 +67,7 @@ EntityHitboxType EntityHitboxType::from_string(const std::string& string)
     }
 
     if (string.size() > 4) {
-        throw std::out_of_range(stringBuilder("Cannot convert `", string, "` to EntityHitboxType"));
+        throw out_of_range("Cannot convert `", string, "` to EntityHitboxType");
     }
 
     // Order does not matter (in the event I change the order)
@@ -91,7 +91,7 @@ EntityHitboxType EntityHitboxType::from_string(const std::string& string)
             eht.body = true;
         }
         else {
-            throw std::out_of_range(stringBuilder("Cannot convert `", string, "` to EntityHitboxType"));
+            throw out_of_range("Cannot convert `", string, "` to EntityHitboxType");
         }
     }
 

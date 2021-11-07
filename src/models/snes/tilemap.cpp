@@ -5,8 +5,8 @@
  */
 
 #include "tilemap.h"
+#include "models/common/exceptions.h"
 #include "models/common/stringbuilder.h"
-#include <stdexcept>
 
 namespace UnTech::Snes {
 
@@ -16,7 +16,7 @@ Tilemap::Tilemap(unsigned width, unsigned height)
     , _maps(width * height)
 {
     if (_width == 0 || _height == 0) {
-        throw std::invalid_argument("Tilemap width/height cannot be 0");
+        throw invalid_argument("Tilemap width/height cannot be 0");
     }
 }
 
@@ -41,8 +41,7 @@ void Tilemap::readSnesData(const std::vector<uint8_t>& in)
     size_t expectedSize = _maps.size() * MAP_SIZE * MAP_SIZE * 2;
 
     if (in.size() != expectedSize) {
-        throw std::runtime_error(stringBuilder(
-            "Tilemap data is the incorrect size, expected ", expectedSize, " bytes"));
+        throw runtime_error("Tilemap data is the incorrect size, expected ", expectedSize, " bytes");
     }
 
     auto inIt = in.begin();

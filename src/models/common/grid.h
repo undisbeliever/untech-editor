@@ -7,11 +7,11 @@
 #pragma once
 
 #include "aabb.h"
+#include "exceptions.h"
 #include "stringbuilder.h"
 #include "models/common/iterators.h"
 #include <cassert>
 #include <span>
-#include <stdexcept>
 #include <vector>
 
 namespace UnTech {
@@ -55,7 +55,7 @@ public:
         , _grid(std::move(data))
     {
         if (_grid.size() != _width * _height) {
-            throw std::invalid_argument("grid data size must equal width * height");
+            throw invalid_argument("grid data size must equal width * height");
         }
     }
 
@@ -78,7 +78,7 @@ public:
     std::span<T> scanline(unsigned y)
     {
         if (y >= _height) {
-            throw std::out_of_range("grid::scanline out of range");
+            throw out_of_range("grid::scanline out of range");
         }
         return std::span(_grid.data() + (y * _width), _width);
     }
@@ -86,7 +86,7 @@ public:
     std::span<const T> scanline(unsigned y) const
     {
         if (y >= _height) {
-            throw std::out_of_range("grid::scanline out of range");
+            throw out_of_range("grid::scanline out of range");
         }
         return std::span(_grid.data() + (y * _width), _width);
     }
@@ -219,20 +219,20 @@ private:
     void _rangeCheck(unsigned x, unsigned y) const
     {
         if (x >= _width) {
-            throw std::range_error(stringBuilder("grid: x (", x, ") >= width (", _width, ")"));
+            throw out_of_range("grid: x (", x, ") >= width (", _width, ")");
         }
         if (y >= _height) {
-            throw std::range_error(stringBuilder("grid: y (", y, ") >= height (", _height, ")"));
+            throw out_of_range("grid: y (", y, ") >= height (", _height, ")");
         }
     }
     void _rangeCheck(unsigned x, unsigned y, unsigned width, unsigned height) const
     {
         _rangeCheck(x, y);
         if (x + width > _width) {
-            throw std::range_error(stringBuilder("grid: x + width (", (x + width), ") > width (", _width, ")"));
+            throw out_of_range("grid: x + width (", (x + width), ") > width (", _width, ")");
         }
         if (y + height > _height) {
-            throw std::range_error(stringBuilder("grid: y + height(", (y + height), ") > height (", _height, ")"));
+            throw out_of_range("grid: y + height(", (y + height), ") > height (", _height, ")");
         }
     }
 };

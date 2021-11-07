@@ -7,7 +7,6 @@
 #include "base64.h"
 #include <cassert>
 #include <sstream>
-#include <stdexcept>
 
 namespace UnTech::Base64 {
 

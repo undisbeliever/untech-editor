@@ -5,8 +5,8 @@
  */
 
 #include "atomicofstream.h"
+#include "exceptions.h"
 #include "file.h"
-#include <stdexcept>
 
 namespace UnTech {
 
@@ -16,7 +16,7 @@ AtomicOfStream::AtomicOfStream(const std::filesystem::path& filePath, ios_base::
     , _state(State::WRITING)
 {
     if (filePath.empty()) {
-        throw std::invalid_argument("Empty filename");
+        throw invalid_argument("Empty filename");
     }
 }
 

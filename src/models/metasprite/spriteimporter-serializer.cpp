@@ -12,7 +12,6 @@
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
 #include <fstream>
-#include <stdexcept>
 
 using namespace UnTech::Xml;
 

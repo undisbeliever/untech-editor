@@ -6,11 +6,11 @@
 
 #pragma once
 
+#include "models/common/exceptions.h"
 #include <algorithm>
 #include <cassert>
 #include <climits>
 #include <cstdint>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -60,7 +60,7 @@ public:
     unsigned getOrInsertTable(const std::vector<uint32_t>& table)
     {
         if (table.size() == 0) {
-            throw std::invalid_argument("Cannot add an empty table");
+            throw invalid_argument("Cannot add an empty table");
         }
 
         auto it = std::search(_offsets.begin(), _offsets.end(),
@@ -152,7 +152,7 @@ public:
     uint32_t addData_Index(const std::vector<uint8_t>& sData)
     {
         if (sData.size() == 0) {
-            throw std::invalid_argument("Cannot add empty data");
+            throw invalid_argument("Cannot add empty data");
         }
 
         auto it = std::search(_data.begin(), _data.end(),

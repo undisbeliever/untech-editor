@@ -7,6 +7,7 @@
 #include "image2snes.h"
 #include "bit-depth.h"
 #include "tilesetinserter.h"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
 #include "models/snes/convert-snescolor.h"
@@ -61,16 +62,16 @@ public:
         , tilePaletteId()
     {
         if (maxTiles > MAX_N_TILES) {
-            throw std::invalid_argument(stringBuilder("maxTiles is too large (expected <= ", MAX_N_TILES, ")"));
+            throw invalid_argument("maxTiles is too large (expected <= ", MAX_N_TILES, ")");
         }
         if (tileOffset + maxTiles > MAX_N_TILES) {
-            throw std::invalid_argument(stringBuilder("tileOffset is out of bounds (tileOffset + maxTiles must be <= ", MAX_N_TILES, ")"));
+            throw invalid_argument("tileOffset is out of bounds (tileOffset + maxTiles must be <= ", MAX_N_TILES, ")");
         }
         if (maxPalettes > MAX_N_PALETTES) {
-            throw std::invalid_argument(stringBuilder("maxPalettes is too large (expected <= ", MAX_N_PALETTES, ")"));
+            throw invalid_argument("maxPalettes is too large (expected <= ", MAX_N_PALETTES, ")");
         }
         if (paletteOffset + maxPalettes > MAX_N_PALETTES) {
-            throw std::invalid_argument(stringBuilder("paletteOffset is out of bounds (paletteOffset + maxPalettes must be <= ", MAX_N_PALETTES, ")"));
+            throw invalid_argument("paletteOffset is out of bounds (paletteOffset + maxPalettes must be <= ", MAX_N_PALETTES, ")");
         }
     }
 
@@ -118,8 +119,7 @@ public:
         }
 
         if (tileset.size() > maxTiles) {
-            throw std::runtime_error(stringBuilder(
-                "Too many tiles in the image (", tileset.size(), " tiles required, maxTiles is ", maxTiles, ")"));
+            throw runtime_error("Too many tiles in the image (", tileset.size(), " tiles required, maxTiles is ", maxTiles, ")");
         }
 
         return tilemap;
@@ -146,7 +146,7 @@ private:
         // tiles are rearranged to match the SNES tilemap order.
 
         if (image.size().width % TILE_SIZE != 0 || image.size().height % TILE_SIZE != 0) {
-            throw std::runtime_error(stringBuilder("Image size is not divisible by ", TILE_SIZE));
+            throw runtime_error("Image size is not divisible by ", TILE_SIZE);
         }
 
         constexpr unsigned MAP_SIZE = Tilemap::MAP_SIZE;
@@ -326,7 +326,7 @@ private:
             for (const uint8_t pixel : tile) {
                 if (pixel != 0 && tp.containsColor(pixel) == false) {
                     if (tp.nColors >= colorsPerPalette) {
-                        throw std::runtime_error("Tile contains too many colors");
+                        throw runtime_error("Tile contains too many colors");
                     }
                     else {
                         tp.addColor(pixel);
@@ -402,8 +402,7 @@ private:
         }
 
         if (newPalette.size() > maxPalettes) {
-            throw std::runtime_error(stringBuilder(
-                "Could not rearrange the palette (", newPalette.size(), " palettes required, maxPalettes is ", maxPalettes, ")"));
+            throw runtime_error("Could not rearrange the palette (", newPalette.size(), " palettes required, maxPalettes is ", maxPalettes, ")");
         }
 
         return newPalette;

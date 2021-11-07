@@ -6,9 +6,8 @@
 
 #pragma once
 
-#include "models/common/stringbuilder.h"
+#include "models/common/exceptions.h"
 #include <algorithm>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -59,12 +58,12 @@ public:
                             [&](auto& p) { return p.second == value; });
     }
 
-    // throws out_of_range if string is not found
+    // throws `out_of_range` if string is not found
     T valueOf(const std::string& string) const
     {
         auto it = find(string);
         if (it == end()) {
-            throw std::out_of_range(stringBuilder("Cannot convert `", string, "` to Enum"));
+            throw out_of_range("Cannot convert `", string, "` to Enum");
         }
         return it->second;
     }

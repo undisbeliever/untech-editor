@@ -450,7 +450,7 @@ private:
         }
         }
 
-        throw std::invalid_argument("Invalid ConditionalType");
+        throw invalid_argument("Invalid ConditionalType");
     }
 
     void writeWordAt(unsigned i, uint16_t word)

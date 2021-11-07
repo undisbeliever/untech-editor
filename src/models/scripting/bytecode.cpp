@@ -7,6 +7,7 @@
 #include "bytecode.h"
 #include "game-state.h"
 #include "scripting-error.h"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include <climits>
 
@@ -66,7 +67,7 @@ static unsigned argumentSize(const ArgumentType type)
         return 1;
     }
 
-    throw std::invalid_argument("Unknown ArgumentType");
+    throw invalid_argument("Unknown ArgumentType");
 }
 
 static unsigned numberOfOpcodes(const Instruction& inst)

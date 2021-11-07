@@ -7,12 +7,12 @@
 #pragma once
 
 #include "romdata.h"
+#include "models/common/exceptions.h"
 #include "models/project/memorymap.h"
 #include "models/snes/tile.h"
 #include <cassert>
 #include <cstdint>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -56,7 +56,7 @@ private:
     void createTileBank()
     {
         if (_tileBanks.size() >= _memoryMap.nBanks) {
-            throw std::runtime_error("Cannot create Tile Data Bank: not enough ROM Banks");
+            throw runtime_error("Cannot create Tile Data Bank: not enough ROM Banks");
         }
         const unsigned bankId = _memoryMap.nBanks - _tileBanks.size() - 1;
 

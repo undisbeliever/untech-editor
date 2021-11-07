@@ -23,7 +23,7 @@ inline const std::string& ttString(const TilesetType tt)
 inline TilesetType smallestFixedTilesetType(unsigned tilesetSize)
 {
     if (tilesetSize > 16) {
-        throw std::invalid_argument("too many tiles");
+        throw invalid_argument("too many tiles");
     }
     else if (tilesetSize > 8) {
         return TilesetType::TWO_ROWS_FIXED;

@@ -17,7 +17,6 @@
 #include "../optional.h"
 #include <climits>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 

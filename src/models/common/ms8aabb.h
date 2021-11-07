@@ -7,9 +7,9 @@
 #pragma once
 
 #include "aabb.h"
+#include "exceptions.h"
 #include "int_ms8_t.h"
 #include <algorithm>
-#include <stdexcept>
 
 namespace UnTech {
 
@@ -35,10 +35,10 @@ struct ms8point {
         int py = int(p.y) - int(offset.y);
 
         if (!int_ms8_t::isValid(px)) {
-            throw std::out_of_range("upoint.x");
+            throw out_of_range("upoint.x");
         }
         if (!int_ms8_t::isValid(py)) {
-            throw std::out_of_range("upoint.y");
+            throw out_of_range("upoint.y");
         }
 
         return ms8point(px, py);
@@ -126,16 +126,16 @@ struct ms8rect {
         int ry = int(r.y) - int(offset.y);
 
         if (!int_ms8_t::isValid(rx)) {
-            throw std::out_of_range("urect.x");
+            throw out_of_range("urect.x");
         }
         if (!int_ms8_t::isValid(ry)) {
-            throw std::out_of_range("urect.y");
+            throw out_of_range("urect.y");
         }
         if (r.width > UINT8_MAX) {
-            throw std::out_of_range("urect.width");
+            throw out_of_range("urect.width");
         }
         if (r.height > UINT8_MAX) {
-            throw std::out_of_range("urect.height");
+            throw out_of_range("urect.height");
         }
 
         return ms8rect(rx, ry, r.width, r.height);

@@ -7,6 +7,7 @@
 #include "tilesetinserter.h"
 #include "tilesetlayout.h"
 #include "tilesettype.hpp"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include "models/snes/tilesetinserter.h"
 
@@ -99,7 +100,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
         }
         else {
             if (tile16.smallTileIds == INVALID_SMALL_TILES_ARRAY) {
-                throw std::logic_error("Invalid smallTileIds");
+                throw logic_error("Invalid smallTileIds");
             }
 
             std::array<Snes::Tile8px, 4> smallTiles = {};

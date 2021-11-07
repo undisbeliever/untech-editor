@@ -6,13 +6,14 @@
 
 #include "file.h"
 #include "string.h"
+#include "models/common/exceptions.h"
 #include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <stdexcept>
 #include <string>
+#include <system_error>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define PLATFORM_WINDOWS
@@ -35,7 +36,7 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
 {
     std::ifstream in(filePath, std::ios::in | std::ios::binary);
     if (!in) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string()));
+        throw runtime_error("Cannot open file: ", filePath.string());
     }
 
     in.seekg(0, std::ios::end);
@@ -43,12 +44,12 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
     in.seekg(0);
 
     if (pos < 0) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string(), " : Cannot read file size"));
+        throw runtime_error("Cannot open file: ", filePath.string(), " : Cannot read file size");
     }
     const size_t size = pos;
 
     if (size > limit) {
-        throw std::runtime_error(stringBuilder("Cannot open file : ", filePath.string(), " : file too large"));
+        throw runtime_error("Cannot open file : ", filePath.string(), " : file too large");
     }
 
     std::vector<uint8_t> ret(size);
@@ -56,7 +57,7 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
     in.close();
 
     if (!in) {
-        throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string()));
+        throw runtime_error("Error reading file: ", filePath.string());
     }
 
     return ret;
@@ -70,7 +71,7 @@ std::string readUtf8TextFile(const std::filesystem::path& filePath)
 
     std::ifstream in(filePath, std::ios::in | std::ios::binary);
     if (!in) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string()));
+        throw runtime_error("Cannot open file: ", filePath.string());
     }
 
     std::array<uint8_t, 4> header{};
@@ -83,10 +84,10 @@ std::string readUtf8TextFile(const std::filesystem::path& filePath)
     auto size = in.tellg();
 
     if (size < 0) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string(), " : Cannot read file size"));
+        throw runtime_error("Cannot open file: ", filePath.string(), " : Cannot read file size");
     }
     if (size > 25 * 1024 * 1024) {
-        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.string(), " : too large"));
+        throw runtime_error("Cannot open file: ", filePath.string(), " : too large");
     }
 
     // check for BOM
@@ -110,14 +111,14 @@ std::string readUtf8TextFile(const std::filesystem::path& filePath)
         in.close();
 
         if (read != size) {
-            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string(), " : Expected ", ptrdiff_t(size), " bytes got ", read, "."));
+            throw runtime_error("Error reading file: ", filePath.string(), " : Expected ", ptrdiff_t(size), " bytes got ", read, ".");
         }
         if (atEof == false) {
-            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string(), " : Not at end of file"));
+            throw runtime_error("Error reading file: ", filePath.string(), " : Not at end of file");
         }
 
         if (!String::checkUtf8WellFormed(ret)) {
-            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.string(), " : Not UTF-8 Well Formed"));
+            throw runtime_error("Error reading file: ", filePath.string(), " : Not UTF-8 Well Formed");
         }
     }
 
@@ -153,10 +154,10 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
 
     if (hFile == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_FILE_EXISTS) {
-            throw std::runtime_error(stringBuilder("Temporary file already exists: ", tmpFilename.string()));
+            throw runtime_error("Temporary file already exists: ", tmpFilename.string());
         }
         else {
-            throw std::runtime_error(stringBuilder("Cannot open temporary file ", tmpFilename.string()));
+            throw runtime_error("Cannot open temporary file ", tmpFilename.string());
         }
     }
 
@@ -171,7 +172,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
 
         if (ret == FALSE || written != toWrite) {
             CloseHandle(hFile);
-            throw std::runtime_error("Error writing file");
+            throw runtime_error("Error writing file");
         }
 
         ptr += toWrite;
@@ -183,7 +184,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
     bool s = MoveFileExW(tmpFilename.c_str(), filePath.c_str(),
                          MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
     if (!s) {
-        throw std::runtime_error("MoveFileEx failed");
+        throw runtime_error("MoveFileEx failed");
     }
 }
 #else
@@ -203,7 +204,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
     // Using lstat to detect if the filename is a symbolic link
     if (lstat(filename.c_str(), &statbuf) == 0) {
         if (S_ISLNK(statbuf.st_mode)) {
-            throw std::runtime_error("Cannot write to a symbolic link");
+            throw runtime_error("Cannot write to a symbolic link");
         }
 
         // check if we can write to file
@@ -211,7 +212,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
                         || ((getgid() == statbuf.st_gid) && (statbuf.st_mode & S_IWGRP))
                         || (statbuf.st_mode & S_IWOTH);
         if (!canWrite) {
-            throw std::runtime_error(stringBuilder("User can not write to ", filename));
+            throw runtime_error("User can not write to ", filename);
         }
 
         fd = mkstemp(tmpFilename.data());

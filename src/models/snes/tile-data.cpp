@@ -6,6 +6,7 @@
 
 #include "tile-data.h"
 #include "tile.h"
+#include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include <cstring>
 
@@ -166,7 +167,7 @@ static inline std::vector<Tile8px> snesDataToTiles(const std::vector<uint8_t>& i
     constexpr unsigned TILE_DATA_SIZE = TILE_SIZE * TILE_SIZE * BIT_DEPTH / 8;
 
     if (in.size() % TILE_DATA_SIZE != 0) {
-        throw std::runtime_error("snesDataToTiles: invalid data size");
+        throw runtime_error("snesDataToTiles: invalid data size");
     }
 
     std::vector<Tile8px> out(in.size() / TILE_DATA_SIZE);
@@ -188,7 +189,7 @@ std::vector<Tile16px> readSnesTileData4bppTile16(const std::vector<uint8_t>& in)
     constexpr unsigned TILE_DATA_SIZE = TILE_SIZE * TILE_SIZE * BIT_DEPTH / 8;
 
     if (in.size() % TILE_DATA_SIZE != 0) {
-        throw std::runtime_error("readSnesData4bppTile16: invalid data size");
+        throw runtime_error("readSnesData4bppTile16: invalid data size");
     }
 
     std::vector<Tile16px> out(in.size() / TILE_DATA_SIZE);
@@ -253,7 +254,7 @@ std::vector<uint8_t> snesTileData(const std::vector<Tile8px>& tiles, const unsig
         return snesTileData8bpp(tiles);
     }
 
-    throw std::runtime_error("Invalid bitdepth");
+    throw runtime_error("Invalid bitdepth");
 }
 
 std::vector<Tile8px> readSnesTileData1bpp(const std::vector<uint8_t>& in)
@@ -300,7 +301,7 @@ std::vector<Tile8px> readSnesTileData(const std::vector<uint8_t>& in, const unsi
         return readSnesTileData8bpp(in);
     }
 
-    throw std::runtime_error("Invalid bitdepth");
+    throw runtime_error("Invalid bitdepth");
 }
 
 }

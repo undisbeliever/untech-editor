@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include <exception>
 #include <memory>
 #include <optional>
-#include <stdexcept>
 
 namespace UnTech {
 

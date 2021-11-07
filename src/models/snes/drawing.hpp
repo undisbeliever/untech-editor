@@ -16,7 +16,7 @@ namespace UnTech::Snes {
 inline constexpr unsigned pixelMaskForPaletteSize(const unsigned paletteSize)
 {
     if (!isPowerOfTwo(paletteSize)) {
-        throw std::invalid_argument("paletteSize not power of two");
+        throw invalid_argument("paletteSize not power of two");
     }
 
     return paletteSize - 1;

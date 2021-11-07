@@ -47,18 +47,18 @@ static void validateReaderAndWriter(const std::filesystem::path& filename, const
         output = readerFunction(xml);
     }
     catch (const std::exception& ex) {
-        throw std::runtime_error(std::string("Unable to read xmlString1: ") + ex.what());
+        throw runtime_error("Unable to read xmlString1: ", ex.what());
     }
 
     assert(output);
     if ((*output == input) == false) {
-        throw std::runtime_error(stringBuilder(filename.string(), ": output != input"));
+        throw runtime_error(filename.string(), ": output != input");
     }
 
     const std::string xmlString2 = writeXmlString(*output, filename, writerFunction);
 
     if (xmlString1 != xmlString2) {
-        throw std::runtime_error(stringBuilder(filename.string(), ": xmlString1 != xmlString2"));
+        throw runtime_error(filename.string(), ": xmlString1 != xmlString2");
     }
 }
 
