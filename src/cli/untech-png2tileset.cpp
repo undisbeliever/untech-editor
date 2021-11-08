@@ -17,14 +17,11 @@ using namespace UnTech::Snes;
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech png2tileset",
-    true,
-    true,
-    false,
     "png file",
     {
         { 'b', "bpp", OT::UNSIGNED, true, {}, "bits per pixel" },
-        { 'o', "output", OT::STRING, true, {}, "tileset output file" },
-        { 'p', "palette", OT::STRING, false, {}, "palette output file" },
+        { 'o', "output", OT::FILENAME, true, {}, "tileset output file" },
+        { 'p', "palette", OT::FILENAME, false, {}, "palette output file" },
         { '\0', "version", OT::VERSION, false, {}, "display version information" },
         { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
@@ -32,15 +29,15 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int process(const CommandLine::Parser& args)
 {
-    const auto image = IndexedImage::loadPngImage_shared(args.filenames().front());
+    const auto image = IndexedImage::loadPngImage_shared(args.inputFilename());
     assert(image);
 
     if (image->empty()) {
         throw runtime_error(image->errorString());
     }
 
-    const std::string& tilesetFile = args.options().at("output").string();
-    const std::string& paletteFile = args.options().at("palette").string();
+    const std::filesystem::path& tilesetFile = args.options().at("output").path();
+    const std::filesystem::path& paletteFile = args.options().at("palette").path();
 
     const unsigned bitDepth = args.options().at("bpp").uint();
 

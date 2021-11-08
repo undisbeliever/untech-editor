@@ -19,9 +19,6 @@ using namespace UnTech::Snes::Cartridge;
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech Write Sfc Header Utility",
-    true,
-    true,
-    false,
     "sfc file",
     {
         { 0, "lorom", OT::BOOLEAN, false, {}, "LoROM mapping" },
@@ -35,7 +32,7 @@ int process(const CommandLine::Parser& args)
 {
     static const std::filesystem::path sfcExtension(".sfc");
 
-    const std::filesystem::path& filename = std::filesystem::u8path(args.filenames().front());
+    const std::filesystem::path& filename = args.inputFilename();
 
     if (filename.extension() != sfcExtension) {
         throw runtime_error("Invalid file extension, expected a .sfc file");

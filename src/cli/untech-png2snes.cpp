@@ -19,15 +19,12 @@ using namespace UnTech::Snes;
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech png2snes",
-    true,
-    true,
-    false,
     "png file",
     {
         { 'b', "bpp", OT::UNSIGNED, true, {}, "bits per pixel" },
-        { 't', "tileset", OT::STRING, true, {}, "tileset output file" },
-        { 'm', "tilemap", OT::STRING, true, {}, "tilemap output file" },
-        { 'p', "palette", OT::STRING, true, {}, "palette output file" },
+        { 't', "tileset", OT::FILENAME, true, {}, "tileset output file" },
+        { 'm', "tilemap", OT::FILENAME, true, {}, "tilemap output file" },
+        { 'p', "palette", OT::FILENAME, true, {}, "palette output file" },
         { '\0', "tile-offset", OT::UNSIGNED, false, 0U, "tilemap char offset" },
         { '\0', "max-tiles", OT::UNSIGNED, false, 1024U, "maximum number of tiles" },
         { '\0', "palette-offset", OT::UNSIGNED, false, 0U, "palette offset" },
@@ -41,7 +38,7 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int process(const CommandLine::Parser& args)
 {
-    const std::string& inputFile = args.filenames().front();
+    const std::filesystem::path& inputFile = args.inputFilename();
 
     const unsigned bitDepth = args.options().at("bpp").uint();
     const unsigned tileOffset = args.options().at("tile-offset").uint();
@@ -106,9 +103,9 @@ int process(const CommandLine::Parser& args)
                   << std::endl;
     }
 
-    const std::string& tilesetFile = args.options().at("tileset").string();
-    const std::string& tilemapFile = args.options().at("tilemap").string();
-    const std::string& paletteFile = args.options().at("palette").string();
+    const std::filesystem::path& tilesetFile = args.options().at("tileset").path();
+    const std::filesystem::path& tilemapFile = args.options().at("tilemap").path();
+    const std::filesystem::path& paletteFile = args.options().at("palette").path();
 
     File::atomicWrite(tilesetFile, image2Snes.tilesetSnesData());
     File::atomicWrite(tilemapFile, image2Snes.tilemap().snesData());

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <list>
 #include <map>
 #include <ostream>
@@ -18,7 +19,7 @@ class OptionValue {
 public:
     enum class Type {
         BOOLEAN,
-        STRING,
+        FILENAME,
         UNSIGNED
     };
 
@@ -26,24 +27,23 @@ private:
     Type _type;
     bool _boolean;
     unsigned _uint;
-    std::string _string;
+    std::filesystem::path _path;
 
 public:
     OptionValue(bool boolean = false);
-    OptionValue(const std::string& str);
     OptionValue(unsigned uint);
+    OptionValue(std::filesystem::path&& p);
 
     Type type() const { return _type; }
     operator bool() const { return _boolean; }
     bool boolean() const { return _boolean; }
     unsigned uint() const { return _uint; }
-    const std::string& string() const { return _string; }
+    const std::filesystem::path& path() const { return _path; }
 };
 
 enum class OptionType {
     BOOLEAN,
     FILENAME,
-    STRING,
     UNSIGNED,
     VERSION,
     HELP,
@@ -63,8 +63,7 @@ struct Argument {
 
 struct Config {
     std::string programName;
-    bool usesFiles, requireFile, multipleFiles;
-    std::string fileType;
+    std::string inputFileType;
     std::vector<Argument> arguments;
 };
 
@@ -74,7 +73,7 @@ private:
     const Config& _config;
     std::string _programExec;
 
-    std::list<std::string> _filenames;
+    std::filesystem::path _inputFilename;
     std::map<std::string, OptionValue> _options;
 
 public:
@@ -86,7 +85,7 @@ public:
     void printHelpText();
     void printVersion();
 
-    const auto& filenames() const { return _filenames; }
+    const std::filesystem::path& inputFilename() const { return _inputFilename; }
     const auto& options() const { return _options; }
 
 private:
@@ -101,5 +100,3 @@ private:
 };
 
 }
-
-std::ostream& operator<<(std::ostream&, const UnTech::CommandLine::OptionValue&);

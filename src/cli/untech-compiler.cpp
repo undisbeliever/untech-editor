@@ -17,13 +17,10 @@ using namespace UnTech::Project;
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech Compiler",
-    true,
-    true,
-    false,
     ProjectFile::FILE_EXTENSION + " file",
     {
-        { 0, "output-inc", OT::STRING, true, {}, "output inc file" },
-        { 0, "output-bin", OT::STRING, true, {}, "output bin file" },
+        { 0, "output-inc", OT::FILENAME, true, {}, "output inc file" },
+        { 0, "output-bin", OT::FILENAME, true, {}, "output bin file" },
         { 0, "version", OT::VERSION, false, {}, "display version information" },
         { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
@@ -31,11 +28,11 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int compile(const CommandLine::Parser& args)
 {
-    const std::filesystem::path projectFilePath = std::filesystem::u8path(args.filenames().front());
-    const std::filesystem::path incFilePath = std::filesystem::u8path(args.options().at("output-inc").string());
-    const std::filesystem::path binaryFilePath = std::filesystem::u8path(args.options().at("output-bin").string());
+    const std::filesystem::path& projectFilePath = args.inputFilename();
+    const std::filesystem::path& incFilePath = args.options().at("output-inc").path();
+    const std::filesystem::path& binaryFilePath = args.options().at("output-bin").path();
 
-    const std::filesystem::path relativeBinaryFilePath = binaryFilePath.lexically_relative(incFilePath.parent_path());
+    const std::filesystem::path& relativeBinaryFilePath = binaryFilePath.lexically_relative(incFilePath.parent_path());
 
     std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilePath);
     project->loadAllFiles();

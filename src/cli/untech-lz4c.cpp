@@ -16,12 +16,10 @@ typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech LZ4 HC block compressor."
     "\nWARNING: This compressor uses a modified block frame and is incompatible with the lz4 standard.",
-    true,
-    true,
-    false,
+
     "input file",
     {
-        { 'o', "output", OT::STRING, true, {}, "output file" },
+        { 'o', "output", OT::FILENAME, true, {}, "output file" },
         { 'l', "limit", OT::UNSIGNED, false, 0xffffU, "limit output file size in bytes" },
         { 'v', "verbose", OT::BOOLEAN, false, {}, "verbose output" },
         { '\0', "version", OT::VERSION, false, {}, "display version information" },
@@ -31,8 +29,8 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int process(const CommandLine::Parser& args)
 {
-    const std::string& inputFilename = args.filenames().front();
-    const std::string& outputFilename = args.options().at("output").string();
+    const std::filesystem::path& inputFilename = args.inputFilename();
+    const std::filesystem::path& outputFilename = args.options().at("output").path();
     const unsigned limit = args.options().at("limit").uint();
     const bool verbose = args.options().at("verbose").boolean();
 

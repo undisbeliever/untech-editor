@@ -17,7 +17,7 @@ OptionValue::OptionValue(bool boolean)
     : _type(Type::BOOLEAN)
     , _boolean(boolean)
     , _uint(boolean)
-    , _string()
+    , _path()
 {
 }
 
@@ -25,48 +25,32 @@ OptionValue::OptionValue(unsigned uint)
     : _type(Type::UNSIGNED)
     , _boolean(true)
     , _uint(uint)
-    , _string()
+    , _path()
 {
 }
 
-OptionValue::OptionValue(const std::string& string)
-    : _type(Type::STRING)
+OptionValue::OptionValue(std::filesystem::path&& p)
+    : _type(Type::FILENAME)
     , _boolean(true)
     , _uint()
-    , _string(string)
+    , _path(std::move(p))
 {
-}
-
-std::ostream& operator<<(std::ostream& os, const OptionValue& v)
-{
-    switch (v.type()) {
-    case OptionValue::Type::BOOLEAN:
-        os << (v ? "true" : "false");
-        break;
-
-    case OptionValue::Type::STRING:
-        os << v.string();
-        break;
-
-    case OptionValue::Type::UNSIGNED:
-        os << v.uint();
-        break;
-    }
-
-    return os;
 }
 
 bool Argument::hasParameter() const
 {
     switch (type) {
     case OptionType::FILENAME:
-    case OptionType::STRING:
     case OptionType::UNSIGNED:
         return true;
 
-    default:
+    case OptionType::BOOLEAN:
+    case OptionType::VERSION:
+    case OptionType::HELP:
         return false;
     }
+
+    abort();
 }
 
 const char* optionString(const OptionType type)
@@ -76,9 +60,6 @@ const char* optionString(const OptionType type)
     case OptionType::VERSION:
     case OptionType::HELP:
         return "boolean";
-
-    case OptionType::STRING:
-        return "string";
 
     case OptionType::FILENAME:
         return "filename";
@@ -96,7 +77,7 @@ const char* optionString(const OptionType type)
 Parser::Parser(const Config& config)
     : _config(config)
     , _programExec()
-    , _filenames()
+    , _inputFilename()
     , _options()
 {
 }
@@ -137,7 +118,10 @@ void Parser::parse(int argc, const char* argv[])
             }
         }
         else {
-            _filenames.emplace_back(arg);
+            if (!_inputFilename.empty()) {
+                error("Too many ", _config.inputFileType, " file arguments");
+            }
+            _inputFilename = arg;
         }
     }
 
@@ -153,21 +137,8 @@ void Parser::parse(int argc, const char* argv[])
         }
     }
 
-    // verify number of files
-    if (_config.usesFiles) {
-        if (_config.requireFile) {
-            if (_filenames.size() == 0) {
-                error("Expected ", _config.fileType);
-            }
-        }
-        if (!_config.multipleFiles && _filenames.size() > 1) {
-            error("Too many ", _config.fileType, " arguments");
-        }
-    }
-    else {
-        if (_filenames.size() != 0) {
-            error("Unexpected argument ", _filenames.front());
-        }
+    if (_inputFilename.empty()) {
+        error("Expected ", _config.inputFileType);
     }
 }
 
@@ -237,8 +208,7 @@ bool Parser::parseSwitch(const Argument& argument, bool isShort, const char* nex
         return false;
 
     case OptionType::FILENAME:
-    case OptionType::STRING:
-        _options[argument.longName] = std::string(nextArg);
+        _options[argument.longName] = std::filesystem::path(nextArg);
         return true;
 
     case OptionType::UNSIGNED: {
@@ -282,10 +252,6 @@ void Parser::printHelpText()
             std::cout << " <file>";
             spacing -= 7;
         }
-        else if (a.type == OptionType::STRING) {
-            std::cout << " <str>";
-            spacing -= 6;
-        }
         else if (a.type == OptionType::UNSIGNED) {
             std::cout << " <uint>";
             spacing -= 7;
@@ -305,24 +271,9 @@ void Parser::printHelpText()
 
     std::cout << _config.programName << "\n\n";
 
-    std::cout << "Usage: " << _programExec << " [options]";
+    std::cout << "Usage: " << _programExec << " [options] <" << _config.inputFileType << ">\n";
 
-    if (_config.usesFiles) {
-        std::cout << ' ';
-
-        if (!_config.requireFile) {
-            std::cout << "[";
-        }
-        std::cout << '<' << _config.fileType << '>';
-        if (_config.multipleFiles) {
-            std::cout << "...";
-        }
-        if (!_config.requireFile) {
-            std::cout << ']';
-        }
-    }
-
-    std::cout << "\n\nRequired arguments:";
+    std::cout << "\nRequired arguments:";
     for (const auto& a : _config.arguments) {
         if (a.required) {
             printArgument(a);
