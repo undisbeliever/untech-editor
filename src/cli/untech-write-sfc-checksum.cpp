@@ -66,11 +66,8 @@ int process(const CommandLine::Parser& args)
 
     if (oldChecksum != newChecksum || oldComplement != newComplement) {
         if (verbose) {
-            std::cout << std::hex << std::setfill('0')
-                      << "old checksum: 0x" << std::setw(4) << oldChecksum
-                      << " (complement 0x" << std::setw(4) << oldComplement << ")\n"
-                      << "new checksum: 0x" << std::setw(4) << newChecksum
-                      << " (complement 0x" << std::setw(4) << newComplement << ")\n";
+            std::cout << stringBuilder("old checksum: 0x", hex_4(oldChecksum), " (complement 0x", hex_4(oldComplement), ")\n",
+                                       "new checksum: 0x", hex_4(newChecksum), " (complement 0x", hex_4(newComplement), ")\n");
         }
 
         writeChecksum(filename, newChecksum, memoryMap);
@@ -81,9 +78,7 @@ int process(const CommandLine::Parser& args)
     }
     else {
         if (verbose) {
-            std::cout << std::hex << std::setfill('0')
-                      << "checksum ok: 0x" << std::setw(4) << newChecksum
-                      << " (complement 0x" << std::setw(4) << newComplement << ")\n";
+            std::cout << stringBuilder("checksum ok: 0x", hex_4(newChecksum), " (complement 0x", hex_4(newComplement), ")\n");
         }
     }
 

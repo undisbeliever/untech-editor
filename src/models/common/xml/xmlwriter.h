@@ -57,7 +57,11 @@ public:
     void writeTagAttribute(const std::string_view name, const std::string_view value);
     void writeTagAttribute(const std::string_view name, const int value);
     void writeTagAttribute(const std::string_view name, const unsigned value);
-    void writeTagAttributeHex(const std::string_view name, const unsigned value, unsigned width);
+
+    // no padding
+    void writeTagAttributeHex(const std::string_view name, const unsigned value);
+    // 6 digits of padding
+    void writeTagAttributeHex6(const std::string_view name, const unsigned value);
 
     void writeTagAttribute(const std::string_view name, const char* value)
     {

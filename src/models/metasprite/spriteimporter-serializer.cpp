@@ -374,8 +374,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     if (frameSet.transparentColor.alpha == 0xff) {
         static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
 
-        unsigned rgb = frameSet.transparentColor.rgb();
-        xml.writeTagAttributeHex("transparent", rgb, 6);
+        xml.writeTagAttributeHex6("transparent", frameSet.transparentColor.rgb());
     }
 
     writeFrameSetGrid(xml, frameSet.grid);

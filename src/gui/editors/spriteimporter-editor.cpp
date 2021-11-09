@@ -351,8 +351,7 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
 
                 ImColor c(fs.transparentColor.rgb());
 
-                char tcString[16];
-                std::snprintf(tcString, IM_ARRAYSIZE(tcString), "#%06X", fs.transparentColor.rgbHex());
+                const std::string tcString = fs.transparentColor.rgbHexString();
 
                 if (ImGui::BeginCombo("Transparent Color", tcString)) {
                     updateTransparentColorCombo();
@@ -999,11 +998,7 @@ void SpriteImporterEditorGui::updateTransparentColorCombo()
 
         bool newColor = colorSet.insert(color).second;
         if (newColor) {
-            // ::TODO add rgba::toHexString function::
-            char str[12];
-            std::snprintf(str, IM_ARRAYSIZE(str), "#%06X", pixel.rgbHex());
-
-            _transparentColorCombo.emplace_back(color, str);
+            _transparentColorCombo.emplace_back(color, pixel.rgbHexString());
 
             if (_transparentColorCombo.size() >= MAX_COLORS) {
                 return;

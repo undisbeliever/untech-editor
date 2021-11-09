@@ -160,7 +160,7 @@ static void validateColorMap(const ColorMapT& colorMap, const unsigned paletteId
         out << "Palette " << paletteId << " is invalid (missing";
 
         for (const rgba& c : colorSet) {
-            out << " " << std::hex << std::setfill('0') << std::setw(6) << c.rgb();
+            out << stringBuilder(" ", hex_6(c.rgbHex()));
         }
         out << ")";
 

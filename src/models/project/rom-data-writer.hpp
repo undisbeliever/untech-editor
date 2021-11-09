@@ -179,16 +179,13 @@ public:
 
                 // std::filesystem::path operator<< will automatically add quotes to relativeBinFilename
                 incData << "rodata(" << _blockRodata << bankId << ")\n"
-                        << "assert(pc() == 0x" << std::hex << _memoryMap.bankAddress(bankId) << ")\n"
-                        << std::dec
+                        << "assert(pc() == 0x" << stringBuilder(hex_6(_memoryMap.bankAddress(bankId))) << ")\n"
                         << "  insert Data" << bankId << ", " << relativeBinFilename << ", " << offset << ", " << bSize << '\n';
 
                 offset += bSize;
             }
         }
         incData << "}\n";
-
-        incData << std::dec;
 
         for (auto& nc : _nameDataCounts) {
             incData << "\nconstant " << nc.name << " = " << nc.value;
@@ -197,14 +194,10 @@ public:
             incData << "\n\n";
         }
 
-        incData << std::hex;
-
         for (const auto& nd : _namedData) {
-            incData << "\nconstant " << nd.name << " = 0x" << nd.address;
+            incData << "\nconstant " << nd.name << " = 0x" << stringBuilder(hex_6(nd.address));
         }
         incData << "\n\n";
-
-        incData << std::dec;
     }
 
     std::vector<uint8_t> writeBinaryData() const

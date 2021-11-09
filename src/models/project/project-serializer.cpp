@@ -41,7 +41,7 @@ static void writeMemoryMapSettings(XmlWriter& xml, const MemoryMapSettings& mmap
 {
     xml.writeTag("memory-map");
     xml.writeTagAttributeEnum("mode", mmap.mode, mappingModeEnumMap);
-    xml.writeTagAttributeHex("first-bank", mmap.firstBank, 2);
+    xml.writeTagAttributeHex("first-bank", mmap.firstBank);
     xml.writeTagAttribute("n-banks", mmap.nBanks);
     xml.writeCloseTag();
 }

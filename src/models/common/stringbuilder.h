@@ -14,6 +14,32 @@
 
 namespace UnTech::StringBuilder {
 
+// StringBuilder placeholder for a hex string with exactly N digits
+// If N is zero there will be no padding
+template <unsigned N>
+struct hex {
+    static_assert(N <= 8);
+
+    const uint32_t value;
+
+    constexpr explicit hex(uint32_t v)
+        : value(v)
+    {
+        constexpr uint32_t maxValue = N > 0 ? (uint64_t(1) << (N * 4)) - 1
+                                            : UINT32_MAX;
+        assert(value <= maxValue);
+    }
+
+    constexpr explicit hex(uint16_t v) requires(N == 4)
+        : value(v)
+    {
+    }
+
+    // Only allow `uint32_t` (or maybe `uint16_t`) to be converted to a hex string
+    template <class T>
+    hex(T) = delete;
+};
+
 // Disable automated type casting on stringBuilder
 template <typename T>
 size_t stringSize(T s) = delete;
@@ -25,6 +51,10 @@ inline constexpr size_t stringSize(int32_t) { return 12; }
 inline constexpr size_t stringSize(int64_t) { return 21; }
 inline constexpr size_t stringSize(uint32_t) { return 11; }
 inline constexpr size_t stringSize(uint64_t) { return 21; }
+
+template <unsigned N>
+inline constexpr size_t stringSize(const hex<N>) { return N; }
+inline constexpr size_t stringSize(const hex<0>) { return 8; }
 
 // Disable automated type casting on stringBuilder
 template <typename T>
@@ -54,6 +84,10 @@ char* concat(char* ptr, char* const end, int32_t value);
 char* concat(char* ptr, char* const end, int64_t value);
 char* concat(char* ptr, char* const end, uint32_t value);
 char* concat(char* ptr, char* const end, uint64_t value);
+
+template <unsigned N>
+char* concat(char* ptr, char* const end, const hex<N> value);
+char* concat(char* ptr, char* const end, const hex<0> value);
 
 // Template magic to convert `const char*` to std::string_view.
 inline std::string_view convert(const char* a) { return a; }
@@ -87,6 +121,11 @@ inline std::string buildString(const Args&... args)
 }
 
 namespace UnTech {
+
+using hex = StringBuilder::hex<0>;
+using hex_4 = StringBuilder::hex<4>;
+using hex_6 = StringBuilder::hex<6>;
+using hex_8 = StringBuilder::hex<8>;
 
 template <typename... Args>
 inline std::string stringBuilder(const Args&... args)

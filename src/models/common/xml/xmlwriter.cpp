@@ -108,16 +108,14 @@ void XmlWriter::writeTagAttributeFilename(const std::string_view name, const std
     writeTagAttribute(name, p.generic_string());
 }
 
-void XmlWriter::writeTagAttributeHex(const std::string_view name, const unsigned value, unsigned width)
+void XmlWriter::writeTagAttributeHex(const std::string_view name, const unsigned value)
 {
-    assert(_inTag);
-    assert(isName(name));
+    writeTagAttribute_noEscape(name, stringBuilder(hex(value)));
+}
 
-    _file << ' ' << name << "=\""
-          << std::hex << std::setw(width) << std::setfill('0')
-          << value
-          << std::dec << std::setw(0)
-          << '"';
+void XmlWriter::writeTagAttributeHex6(const std::string_view name, const unsigned value)
+{
+    writeTagAttribute_noEscape(name, stringBuilder(hex_6(value)));
 }
 
 void XmlWriter::writeTagAttributeOptional(const std::string_view name, const std::string_view value)

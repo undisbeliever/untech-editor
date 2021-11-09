@@ -105,7 +105,7 @@ void writeInteractiveTiles(XmlWriter& xml, const InteractiveTiles& interactiveTi
     for (auto& ft : interactiveTiles.functionTables) {
         xml.writeTag("tile-function-table");
         xml.writeTagAttribute("name", ft.name);
-        xml.writeTagAttributeHex("tint", ft.tint.rgbHex(), 6);
+        xml.writeTagAttributeHex6("tint", ft.tint.rgbHex());
         xml.writeCloseTag();
     }
     xml.writeCloseTag();

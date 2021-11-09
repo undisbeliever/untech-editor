@@ -5,9 +5,15 @@
  */
 
 #include "rgba.h"
+#include "stringbuilder.h"
 
 namespace UnTech {
 
 static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
+
+std::string rgba::rgbHexString() const
+{
+    return stringBuilder(hex_6(rgbHex()));
+}
 
 }
