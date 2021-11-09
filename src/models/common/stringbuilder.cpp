@@ -10,41 +10,32 @@
 namespace UnTech::StringBuilder {
 
 template <typename T>
-static void concat_int(std::string& str, const T value)
+static char* concat_int(char* ptr, char* const end, const T value)
 {
-    const size_t initialSize = str.size();
-    constexpr size_t bSize = stringSize(T());
-
-    str.resize(initialSize + bSize);
-
-    char* start = str.data();
-    char* ptr = start + initialSize;
-    char* end = ptr + bSize;
-
     auto r = std::to_chars(ptr, end, value);
     assert(r.ec == std::errc());
 
-    str.resize(r.ptr - start);
+    return r.ptr;
 }
 
-void concat(std::string& str, int64_t value)
+char* concat(char* ptr, char* const end, int32_t value)
 {
-    concat_int(str, value);
+    return concat_int(ptr, end, value);
 }
 
-void concat(std::string& str, uint64_t value)
+char* concat(char* ptr, char* const end, int64_t value)
 {
-    concat_int(str, value);
+    return concat_int(ptr, end, value);
 }
 
-void concat(std::string& str, int32_t value)
+char* concat(char* ptr, char* const end, uint32_t value)
 {
-    concat_int(str, value);
+    return concat_int(ptr, end, value);
 }
 
-void concat(std::string& str, uint32_t value)
+char* concat(char* ptr, char* const end, uint64_t value)
 {
-    concat_int(str, value);
+    return concat_int(ptr, end, value);
 }
 
 }
