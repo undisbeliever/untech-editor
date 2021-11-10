@@ -86,6 +86,6 @@ compileGameState(const GameState& input,
                  const ExternalFileList<Rooms::RoomInput>& rooms, const Entity::EntityRomData& entityRomData,
                  ErrorList& err);
 
-void writeGameStateConstants(const GameState& input, const GameStateData& inputData, std::ostream& out);
+void writeGameStateConstants(const GameState& input, const GameStateData& inputData, StringStream& out);
 
 }

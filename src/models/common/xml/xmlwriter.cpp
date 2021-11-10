@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <cassert>
 #include <iomanip>
-#include <sstream>
 
 namespace UnTech::Xml {
 
@@ -21,18 +20,18 @@ static inline std::string_view toStringView(const std::string_view::const_iterat
     return std::string_view(&*begin, std::distance(begin, end));
 }
 
-XmlWriter::XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string_view doctype)
-    : _file(output)
+XmlWriter::XmlWriter(const std::filesystem::path& filePath, const std::string_view doctype, size_t bufferSize)
+    : _out(bufferSize)
     , _filePath(filePath)
     , _tagStack()
     , _inTag(false)
     , _useRelativePaths(!filePath.empty())
 {
-    _file << "<?xml version=\"1.0\" encoding=\"UTF_8\"?>\n";
+    _out.write("<?xml version=\"1.0\" encoding=\"UTF_8\"?>\n");
 
     if (!doctype.empty()) {
         assert(isName(doctype));
-        _file << "<!DOCTYPE " << doctype << ">\n";
+        _out.write("<!DOCTYPE ", doctype, ">\n");
     }
 
     _inTag = false;
@@ -53,10 +52,10 @@ void XmlWriter::writeTag(const std::string_view name)
 
     // Indent
     for (size_t i = 0; i < _tagStack.size(); i++) {
-        _file << "  ";
+        _out.write("  ");
     }
 
-    _file << "<" << name;
+    _out.write("<", name);
 
     _tagStack.emplace(name);
     _inTag = true;
@@ -67,7 +66,7 @@ void XmlWriter::writeTagAttribute_noEscape(const std::string_view name, const st
     assert(_inTag);
     assert(isName(name));
 
-    _file << ' ' << name << "=\"" << value << '"';
+    _out.write(" ", name, "=\"", value, "\"");
 }
 
 void XmlWriter::writeTagAttribute(const std::string_view name, const std::string_view value)
@@ -75,29 +74,25 @@ void XmlWriter::writeTagAttribute(const std::string_view name, const std::string
     assert(_inTag);
     assert(isName(name));
 
-    _file << ' ' << name << "=\"";
+    _out.write(" ", name, "=\"");
     escapeAndWrite(value);
-    _file << '"';
+    _out.write("\"");
 }
 
 void XmlWriter::writeTagAttribute(const std::string_view name, const int value)
 {
     assert(_inTag);
     assert(isName(name));
-    assert(_file.width() == 0);
-    assert((_file.flags() & std::ios_base::basefield) == std::ios_base::dec);
 
-    _file << ' ' << name << "=\"" << value << '"';
+    _out.write(" ", name, "=\"", value, "\"");
 }
 
 void XmlWriter::writeTagAttribute(const std::string_view name, const unsigned value)
 {
     assert(_inTag);
     assert(isName(name));
-    assert(_file.width() == 0);
-    assert((_file.flags() & std::ios_base::basefield) == std::ios_base::dec);
 
-    _file << ' ' << name << "=\"" << value << '"';
+    _out.write(" ", name, "=\"", value, "\"");
 }
 
 void XmlWriter::writeTagAttributeFilename(const std::string_view name, const std::filesystem::path& path)
@@ -140,7 +135,7 @@ void XmlWriter::writeBase64(const uint8_t* data, const size_t size)
         writeCloseTagHead();
     }
 
-    Base64::encode(data, size, _file, _tagStack.size() * 2);
+    Base64::encode(data, size, _out, _tagStack.size() * 2);
 }
 
 void XmlWriter::writeBase64(const std::vector<uint8_t>& data)
@@ -151,16 +146,16 @@ void XmlWriter::writeBase64(const std::vector<uint8_t>& data)
 void XmlWriter::writeCloseTag()
 {
     if (_inTag) {
-        _file << "/>\n";
+        _out.write("/>\n");
     }
     else {
         assert(_tagStack.size() > 0);
 
         for (size_t i = 1; i < _tagStack.size(); i++) {
-            _file << "  ";
+            _out.write("  ");
         }
 
-        _file << "</" << _tagStack.top() << ">\n";
+        _out.write("</", _tagStack.top(), ">\n");
     }
 
     _inTag = false;
@@ -171,7 +166,7 @@ inline void XmlWriter::writeCloseTagHead()
 {
     assert(_inTag);
 
-    _file << ">\n";
+    _out.write(">\n");
 
     _inTag = false;
 }
@@ -192,28 +187,28 @@ void XmlWriter::escapeAndWrite(const std::string_view text)
                                  toMatch.begin(), toMatch.end());
 
     while (it != text.end()) {
-        _file << toStringView(start, it);
+        _out.write(toStringView(start, it));
 
         const char c = *it;
         switch (c) {
         case '&':
-            _file << "&amp;"sv;
+            _out.write("&amp;");
             break;
 
         case '<':
-            _file << "&lt;"sv;
+            _out.write("&lt;");
             break;
 
         case '>':
-            _file << "&gt;"sv;
+            _out.write("&gt;");
             break;
 
         case '"':
-            _file << "&quot;"sv;
+            _out.write("&quot;");
             break;
 
         case '\'':
-            _file << "&apos;"sv;
+            _out.write("&apos;");
             break;
 
         default:
@@ -225,7 +220,7 @@ void XmlWriter::escapeAndWrite(const std::string_view text)
                                 toMatch.begin(), toMatch.end());
     }
 
-    _file << toStringView(start, text.end());
+    _out.write(toStringView(start, text.end()));
 }
 
 }

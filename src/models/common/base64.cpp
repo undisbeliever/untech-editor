@@ -5,8 +5,8 @@
  */
 
 #include "base64.h"
+#include "models/common/stringstream.h"
 #include <cassert>
-#include <sstream>
 
 namespace UnTech::Base64 {
 
@@ -19,14 +19,14 @@ char lookup[64] = {
     '+', '/'
 };
 
-void encode(const uint8_t* ptr, const size_t size, std::ostream& file, unsigned indent)
+void encode(const uint8_t* ptr, const size_t size, StringStream& out, unsigned indent)
 {
     const unsigned CHARS_PER_LINE = 64;
     const unsigned BLOCKS_PER_LINE = CHARS_PER_LINE / 4;
 
-    for (unsigned u = 0; u < indent; u++) {
-        file.put(' ');
-    }
+    const std::string padding(indent, ' ');
+
+    out.write(padding);
 
     const uint8_t* const endPtr = ptr + size;
 
@@ -48,11 +48,12 @@ void encode(const uint8_t* ptr, const size_t size, std::ostream& file, unsigned 
             ptr++;
         }
         else {
-            file.put(lookup[tmp0]);
-            file.put(lookup[tmp1]);
-            file.put('=');
-            file.put('=');
-            file.put('\n');
+            out.writeCharacters(std::array<char, 5>{
+                lookup[tmp0],
+                lookup[tmp1],
+                '=',
+                '=',
+                '\n' });
             break;
         }
 
@@ -62,40 +63,40 @@ void encode(const uint8_t* ptr, const size_t size, std::ostream& file, unsigned 
 
             ptr++;
 
-            file.put(lookup[tmp0]);
-            file.put(lookup[tmp1]);
-            file.put(lookup[tmp2]);
-            file.put(lookup[tmp3]);
+            out.writeCharacters(std::array<char, 4>{
+                lookup[tmp0],
+                lookup[tmp1],
+                lookup[tmp2],
+                lookup[tmp3] });
 
             if (ptr < endPtr) {
                 blocksOnLine++;
                 if (blocksOnLine >= BLOCKS_PER_LINE) {
-                    file.put('\n');
-                    for (unsigned u = 0; u < indent; u++) {
-                        file.put(' ');
-                    }
+                    out.write("\n", padding);
+
                     blocksOnLine = 0;
                 }
             }
             else {
-                file.put('\n');
+                out.write("\n");
                 break;
             }
         }
         else {
-            file.put(lookup[tmp0]);
-            file.put(lookup[tmp1]);
-            file.put(lookup[tmp2]);
-            file.put('=');
-            file.put('\n');
+            out.writeCharacters(std::array<char, 5>{
+                lookup[tmp0],
+                lookup[tmp1],
+                lookup[tmp2],
+                '=',
+                '\n' });
             break;
         }
     }
 }
 
-void encode(const std::vector<uint8_t>& data, std::ostream& file, unsigned indent)
+void encode(const std::vector<uint8_t>& data, StringStream& out, unsigned indent)
 {
-    encode(data.data(), data.size(), file, indent);
+    encode(data.data(), data.size(), out, indent);
 }
 
 inline uint8_t get_val(const char& c)

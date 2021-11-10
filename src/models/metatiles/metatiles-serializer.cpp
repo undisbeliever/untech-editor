@@ -343,10 +343,11 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesy
 
 void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::filesystem::path& filename)
 {
-    AtomicOfStream file(filename);
-    XmlWriter xml(file, filename, "untech");
+    // utmt files contain a large base64 text block, use a larger buffer.
+    XmlWriter xml(filename, "untech", 128 * 1024);
     writeMetaTileTilesetInput(xml, input);
-    file.commit();
+
+    File::atomicWrite(filename, xml.string_view());
 }
 
 }

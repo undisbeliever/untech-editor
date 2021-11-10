@@ -70,6 +70,6 @@ struct BytecodeMapping {
 std::shared_ptr<const BytecodeMapping>
 compileBytecode(const BytecodeInput& input, ErrorList& err);
 
-void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out);
+void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out);
 
 }

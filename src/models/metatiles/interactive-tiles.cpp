@@ -6,6 +6,7 @@
 
 #include "interactive-tiles.h"
 #include "metatiles-error.h"
+#include "models/common/stringstream.h"
 #include "models/common/validateunique.h"
 
 namespace UnTech::MetaTiles {
@@ -77,15 +78,14 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
     return ret;
 }
 
-static void writeTable(std::stringstream& incData, const InteractiveTiles& input, const std::string& tableName, bool last = false)
+static void writeTable(StringStream& incData, const InteractiveTiles& input, const std::string& tableName, bool last = false)
 {
-    incData << "code()\n"
-               "Project.InteractiveTiles."
-            << tableName << "_FunctionTable:\n";
+    incData.write("code()\n",
+                  "Project.InteractiveTiles.", tableName, "_FunctionTable:\n");
 
     unsigned nFunctions = 0;
     auto writeTable = [&](const idstring& name) {
-        incData << "\tdw  InteractiveTiles." << name << '.' << tableName << '\n';
+        incData.write("\tdw  InteractiveTiles.", name, ".", tableName, "\n");
         nFunctions++;
     };
 
@@ -101,15 +101,15 @@ static void writeTable(std::stringstream& incData, const InteractiveTiles& input
     assert(nFunctions == MAX_INTERACTIVE_TILE_FUNCTION_TABLES);
 
     if (last) {
-        incData << "Project.InteractiveTiles.EndFunctionTables:\n";
+        incData.write("Project.InteractiveTiles.EndFunctionTables:\n");
     }
 }
 
-void writeFunctionTables(std::stringstream& incData, const InteractiveTiles& input)
+void writeFunctionTables(StringStream& incData, const InteractiveTiles& input)
 {
     using namespace std::string_literals;
 
-    incData << "\n";
+    incData.write("\n");
 
     writeTable(incData, input, "EntityCollision"s);
     writeTable(incData, input, "EntityAirCollision"s);

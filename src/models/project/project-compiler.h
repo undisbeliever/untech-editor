@@ -8,21 +8,24 @@
 
 #include <filesystem>
 #include <memory>
-#include <sstream>
 #include <vector>
+
+namespace UnTech {
+class StringStream;
+}
 
 namespace UnTech::Project {
 
 struct ProjectFile;
 
 struct ProjectOutput {
-    std::stringstream incData;
+    std::string incData;
     std::vector<uint8_t> binaryData;
 };
 
 // may raise an exception
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinaryFilename,
-               std::ostream& errorStream);
+               StringStream& errorStream);
 
 }

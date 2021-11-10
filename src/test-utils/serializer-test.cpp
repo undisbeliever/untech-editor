@@ -18,36 +18,27 @@
 #include "models/rooms/rooms-serializer.h"
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
 
 using namespace UnTech;
 
 static size_t nFilesPassed = 0;
 static size_t nFilesFailed = 0;
 
-template <class T, typename Writer>
-static std::string writeXmlString(const T& input, const std::filesystem::path& filename, Writer writer)
-{
-    std::stringstream stream;
-    Xml::XmlWriter xml(stream, filename, "untech");
-    writer(xml, input);
-
-    return stream.str();
-}
-
 template <class T, typename Reader, typename Writer>
 static void validateReaderAndWriter(const std::filesystem::path& filename, const T& input,
                                     Reader readerFunction, Writer writerFunction)
 {
-    const std::string xmlString1 = writeXmlString(input, filename, writerFunction);
+    // Large buffer size: Some of these XML files contain a large base64 text block
+    Xml::XmlWriter xmlWriter_1(filename, "untech", 128 * 1024);
+    writerFunction(xmlWriter_1, input);
 
     std::unique_ptr<T> output;
     try {
-        Xml::XmlReader xml(std::string(xmlString1), filename);
-        output = readerFunction(xml);
+        Xml::XmlReader xmlReader(std::string(xmlWriter_1.string_view()), filename);
+        output = readerFunction(xmlReader);
     }
     catch (const std::exception& ex) {
-        throw runtime_error("Unable to read xmlString1: ", ex.what());
+        throw runtime_error("Unable to read output of : XmlWriter", ex.what());
     }
 
     assert(output);
@@ -55,10 +46,12 @@ static void validateReaderAndWriter(const std::filesystem::path& filename, const
         throw runtime_error(filename.string(), ": output != input");
     }
 
-    const std::string xmlString2 = writeXmlString(*output, filename, writerFunction);
+    // Small buffer size: test StringBuilder will increase buffer size properly
+    Xml::XmlWriter xmlWriter_2(filename, "untech", 1024);
+    writerFunction(xmlWriter_2, input);
 
-    if (xmlString1 != xmlString2) {
-        throw runtime_error(filename.string(), ": xmlString1 != xmlString2");
+    if (xmlWriter_1.string_view() != xmlWriter_2.string_view()) {
+        throw runtime_error(filename.string(), ": xmlWriter_1 output != xmlWriter_2 output");
     }
 }
 

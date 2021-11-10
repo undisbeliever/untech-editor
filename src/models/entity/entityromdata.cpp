@@ -9,9 +9,10 @@
 #include "errorlisthelpers.h"
 #include "models/common/iterators.h"
 #include "models/common/string.h"
+#include "models/common/stringstream.h"
 #include "models/project/project.h"
 #include <algorithm>
-#include <sstream>
+
 #include <unordered_set>
 
 namespace UnTech::Entity {
@@ -533,33 +534,35 @@ static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunc
     return ftFieldMap;
 }
 
-static void writeIncFile_ListIds(std::ostream& out, const std::vector<idstring>& listIds)
+static void writeIncFile_ListIds(StringStream& out, const std::vector<idstring>& listIds)
 {
-    out << "namespace EntityLists {\n"
-           "\tcreateEnum()\n";
+    out.write("namespace EntityLists {\n"
+              "\tcreateEnum()\n");
+
     for (auto& l : listIds) {
-        out << "\t\tenum(" << l << ")\n";
+        out.write("\t\tenum(", l, ")\n");
     }
-    out << "\tendEnum()\n"
-           "}\n"
-           "\n";
+
+    out.write("\tendEnum()\n"
+              "}\n"
+              "\n");
 }
 
-static void writeIncFile_StructField(std::ostream& out, const StructField& f)
+static void writeIncFile_StructField(StringStream& out, const StructField& f)
 {
-    out << "\t\tfield(" << f.name << ", " << fieldSize(f.type) << ") // " << fieldComment(f.type);
+    out.write("\t\tfield(", f.name, ", ", fieldSize(f.type), ") // ", fieldComment(f.type));
     if (!f.comment.empty()) {
-        out << ' ' << f.comment;
+        out.write(" ", f.comment);
     }
-    out << '\n';
+    out.write("\n");
 }
 
 // Have to include the BaseRomStruct in the inc file to prevent a
 // dependency error when assembling the project.
-static void writeIncFile_BaseRomStruct(std::ostream& out)
+static void writeIncFile_BaseRomStruct(StringStream& out)
 {
-    out << "namespace " ENTITY_ROM_STRUCT_NAMESPACE "." BASE_ROM_STRUCT " {\n"
-        << "\tbasestruct_offset(" << CompiledEntityRomData::ROM_DATA_LABEL << ")\n";
+    out.write("namespace " ENTITY_ROM_STRUCT_NAMESPACE "." BASE_ROM_STRUCT " {\n",
+              "\tbasestruct_offset(", CompiledEntityRomData::ROM_DATA_LABEL, ")\n");
 
     auto writeField = [&](const char* name, DataType type) {
         writeIncFile_StructField(out, StructField{ idstring::fromString(name), type, std::string{}, std::string{} });
@@ -573,27 +576,27 @@ static void writeIncFile_BaseRomStruct(std::ostream& out)
     writeField("initialListId", DataType::UINT8);
     writeField("frameSetId", DataType::UINT16);
 
-    out << "\tendstruct()\n"
-           "}\n";
+    out.write("\tendstruct()\n"
+              "}\n");
 }
 
-static void writeIncFile_RomStruct(std::ostream& out, const EntityRomStruct& s, bool hasChild)
+static void writeIncFile_RomStruct(StringStream& out, const EntityRomStruct& s, bool hasChild)
 {
     const idstring& parent = s.parent.isValid() ? s.parent : baseRomStruct;
     const char* structType = hasChild ? "basestruct" : "childstruct";
 
-    out << "namespace " ENTITY_ROM_STRUCT_NAMESPACE "." << s.name << " {\n\t"
-        << structType << " (" ENTITY_ROM_STRUCT_NAMESPACE "." << parent << ")\n";
+    out.write("namespace " ENTITY_ROM_STRUCT_NAMESPACE ".", s.name, " {\n\t",
+              structType, " (" ENTITY_ROM_STRUCT_NAMESPACE ".", parent, ")\n");
 
     for (auto& f : s.fields) {
         writeIncFile_StructField(out, f);
     }
-    out << "\tendstruct()\n"
-           "}\n";
+    out.write("\tendstruct()\n"
+              "}\n");
 }
 
 // assumes inputStructs are valid
-static void writeIncFile_RomStructs(std::ostream& out, const NamedList<EntityRomStruct>& structs)
+static void writeIncFile_RomStructs(StringStream& out, const NamedList<EntityRomStruct>& structs)
 {
     writeIncFile_BaseRomStruct(out);
 
@@ -630,7 +633,7 @@ static void writeIncFile_RomStructs(std::ostream& out, const NamedList<EntityRom
         toProcess.erase(it, toProcess.end());
     }
 
-    out << "\n";
+    out.write("\n");
 }
 
 static const char* prefixForEntityType(const EntityType entityType)
@@ -649,35 +652,35 @@ static const char* prefixForEntityType(const EntityType entityType)
     abort();
 }
 
-static void writeIncFile_FunctionTableDefines(std::ostream& out, const NamedList<EntityFunctionTable>& functionTables)
+static void writeIncFile_FunctionTableDefines(StringStream& out, const NamedList<EntityFunctionTable>& functionTables)
 {
     for (const auto& ft : functionTables) {
         const idstring& structName = ft.entityStruct.isValid() ? ft.entityStruct : baseRomStruct;
-        out << "define " << prefixForEntityType(ft.entityType) << ft.name << ".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE "." << structName
-            << "\ndefine " << prefixForEntityType(ft.entityType) << ft.name << ".ExportOrder = MSEO." << ft.exportOrder << '\n';
+        out.write("define ", prefixForEntityType(ft.entityType), ft.name, ".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE ".", structName,
+                  "\ndefine ", prefixForEntityType(ft.entityType), ft.name, ".ExportOrder = MSEO.", ft.exportOrder, "\n");
     }
 
-    out << '\n';
+    out.write("\n");
 }
 
-static void writeIncFile_EntryIds(std::ostream& out,
+static void writeIncFile_EntryIds(StringStream& out,
                                   const std::string& label, const NamedList<EntityRomEntry>& entries)
 {
-    out << "namespace " << label << " {\n";
-    out << "\tconstant\tcount = " << entries.size() << "\n\n";
+    out.write("namespace ", label, " {\n",
+              "\tconstant\tcount = ", entries.size(), "\n\n");
 
     for (auto [i, entry] : const_enumerate(entries)) {
-        out << "\tconstant\t" << entry.name << " = " << i << '\n';
+        out.write("\tconstant\t", entry.name, " = ", i, "\n");
     }
 
-    out << "}\n"
-           "\n";
+    out.write("}\n"
+              "\n");
 }
 
-static void writeIncFile_FunctionTableData(std::ostream& out, const EntityType& entityType, const NamedList<EntityRomEntry>& entries)
+static void writeIncFile_FunctionTableData(StringStream& out, const EntityType& entityType, const NamedList<EntityRomEntry>& entries)
 {
     for (auto& entry : entries) {
-        out << "\tdw\t" << prefixForEntityType(entityType) << entry.functionTable << ".FunctionTable\n";
+        out.write("\tdw\t", prefixForEntityType(entityType), entry.functionTable, ".FunctionTable\n");
     }
 }
 
@@ -824,8 +827,8 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
         return nullptr;
     }
 
-    std::stringstream defines;
-    std::stringstream functionTableData;
+    StringStream defines;
+    StringStream functionTableData;
 
     writeIncFile_ListIds(defines, data.listIds);
     writeIncFile_EntryIds(defines, "Project.EntityIds", data.entities);
@@ -834,13 +837,14 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     writeIncFile_RomStructs(defines, data.structs);
     writeIncFile_FunctionTableDefines(defines, data.functionTables);
 
-    functionTableData << "code()\n"
-                         "Project.EntityFunctionTables:\n";
+    functionTableData.write("code()\n"
+                            "Project.EntityFunctionTables:\n");
     writeIncFile_FunctionTableData(functionTableData, EntityType::ENTITY, data.entities);
     writeIncFile_FunctionTableData(functionTableData, EntityType::PROJECTILE, data.projectiles);
     writeIncFile_FunctionTableData(functionTableData, EntityType::PLAYER, data.players);
-    functionTableData << "constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"
-                         "\n\n";
+
+    functionTableData.write("constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"
+                            "\n\n");
 
     const auto indexSize = (data.entities.size() + data.projectiles.size() + data.players.size()) * 2;
     ret->romDataIndexes.reserve(indexSize);
@@ -851,8 +855,8 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
 
     assert(ret->romDataIndexes.size() == indexSize);
 
-    ret->defines = defines.str();
-    ret->functionTableData = functionTableData.str();
+    ret->defines = defines.takeString();
+    ret->functionTableData = functionTableData.takeString();
 
     for (auto [i, entity] : const_enumerate(data.entities)) {
         const auto it = ftMap.find(entity.functionTable);

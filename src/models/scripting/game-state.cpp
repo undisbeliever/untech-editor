@@ -8,6 +8,7 @@
 #include "scripting-error.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/iterators.h"
+#include "models/common/stringstream.h"
 #include "models/entity/entityromdata.h"
 #include "models/lz4/lz4.h"
 #include "models/rooms/rooms.h"
@@ -138,24 +139,24 @@ std::vector<uint8_t> GameStateData::exportSnesData() const
     return lz4HcCompress(initialGameState);
 }
 
-void writeGameStateConstants(const GameState& input, const GameStateData& inputData, std::ostream& out)
+void writeGameStateConstants(const GameState& input, const GameStateData& inputData, StringStream& out)
 {
-    out << "constant Project.GameState.N_FLAGS = " << inputData.nFlags
-        << "\nconstant Project.GameState.MAX_FLAGS = " << input.MAX_FLAGS
-        << "\nconstant Project.GameState.N_WORDS = " << inputData.nWords
-        << "\nconstant Project.GameState.MAX_WORDS = " << input.MAX_WORDS
-        << "\n"
-           "\n"
-           "namespace Project.GameState.Words {";
+    out.write("constant Project.GameState.N_FLAGS = ", inputData.nFlags,
+              "\nconstant Project.GameState.MAX_FLAGS = ", input.MAX_FLAGS,
+              "\nconstant Project.GameState.N_WORDS = ", inputData.nWords,
+              "\nconstant Project.GameState.MAX_WORDS = ", input.MAX_WORDS,
+              "\n"
+              "\n"
+              "namespace Project.GameState.Words {");
 
     for (auto [i, word] : const_enumerate(input.words)) {
         // Only add global words to game state constants
         if (word.name.isValid() && !word.room.isValid()) {
-            out << "\n  constant " << word.name << " = GameState.wordData + " << (i * 2);
+            out.write("\n  constant ", word.name, " = GameState.wordData + ", (i * 2));
         }
     }
 
-    out << "\n}\n\n";
+    out.write("\n}\n\n");
 }
 
 }

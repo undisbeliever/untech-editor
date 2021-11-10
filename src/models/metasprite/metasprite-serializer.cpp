@@ -7,7 +7,7 @@
 #include "metasprite-serializer.h"
 #include "animation/serializer.h"
 
-#include "models/common/atomicofstream.h"
+#include "models/common/file.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include "models/snes/bit-depth.h"
@@ -55,10 +55,11 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
 
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename)
 {
-    AtomicOfStream file(filename);
-    XmlWriter xml(file, filename, "untech");
+    // utms files contain base64 text, use a larger buffer.
+    XmlWriter xml(filename, "untech", 32 * 1024);
     writeFrameSet(xml, frameSet);
-    file.commit();
+
+    File::atomicWrite(filename, xml.string_view());
 }
 
 /*

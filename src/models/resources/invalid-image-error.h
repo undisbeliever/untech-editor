@@ -63,7 +63,7 @@ public:
     bool hasError() const { return !invalidTiles.empty(); }
     size_t errorCount() const { return invalidTiles.size(); }
 
-    virtual void printIndented(std::ostream& out) const final;
+    virtual void printIndented(StringStream& out) const final;
 };
 
 }

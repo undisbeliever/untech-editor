@@ -7,7 +7,7 @@
 #include "spriteimporter-serializer.h"
 #include "animation/serializer.h"
 
-#include "models/common/atomicofstream.h"
+#include "models/common/file.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
@@ -64,10 +64,10 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
 
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename)
 {
-    AtomicOfStream file(filename);
-    XmlWriter xml(file, filename, "untech");
+    XmlWriter xml(filename, "untech");
     writeFrameSet(xml, frameSet);
-    file.commit();
+
+    File::atomicWrite(filename, xml.string_view());
 }
 
 /*

@@ -10,6 +10,7 @@
 #include "scene-bgmode.hpp"
 #include "models/common/exceptions.h"
 #include "models/common/iterators.h"
+#include "models/common/stringstream.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
 #include <numeric>
@@ -85,26 +86,25 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
     return valid;
 }
 
-void writeSceneIncData(const ResourceScenes& resourceScenes, std::ostream& out)
+void writeSceneIncData(const ResourceScenes& resourceScenes, StringStream& out)
 {
-    out << "code()\n"
-        << SceneSettingsData::FUNCTION_TABLE_LABEL << ":\n";
-    for (const SceneSettingsInput& ssi : resourceScenes.settings) {
-        out << "\tdw\t"
-            << "Scenes." << ssi.name << ".SetupPpu_dp2100, "
-            << "Scenes." << ssi.name << ".Process, "
-            << "Scenes." << ssi.name << ".VBlank_dp2100\n";
-    }
-    out << "constant Project.SceneSettingsFunctionTable.size = pc() - Project.SceneSettingsFunctionTable\n"
-           "\n\n"
+    out.write("code()\n",
+              SceneSettingsData::FUNCTION_TABLE_LABEL, ":\n");
 
-           "namespace Project.Scenes {\n";
+    for (const SceneSettingsInput& ssi : resourceScenes.settings) {
+        out.write("\tdw\tScenes.", ssi.name, ".SetupPpu_dp2100, Scenes.", ssi.name, ".Process, Scenes.", ssi.name, ".VBlank_dp2100\n");
+    }
+    out.write("constant Project.SceneSettingsFunctionTable.size = pc() - Project.SceneSettingsFunctionTable\n"
+              "\n\n"
+
+              "namespace Project.Scenes {\n");
+
     unsigned i = 0;
     for (const SceneInput& si : resourceScenes.scenes) {
-        out << "\tconstant " << si.name << " = " << i++ << '\n';
+        out.write("\tconstant ", si.name, " = ", i++, "\n");
     }
     assert(i == resourceScenes.scenes.size());
-    out << "}\n\n";
+    out.write("}\n\n");
 }
 constexpr unsigned FUNCTION_TABLE_ELEMENT_SIZE = 6;
 constexpr unsigned SCENE_SETTINGS_DATA_ELEMENT_SIZE = 3;

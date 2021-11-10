@@ -6,9 +6,9 @@
 
 #include "frameset-exportorder.h"
 
-#include "models/common/atomicofstream.h"
 #include "models/common/exceptions.h"
 #include "models/common/externalfilelist.h"
+#include "models/common/file.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
@@ -154,10 +154,10 @@ std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::filesyst
 
 void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesystem::path& filename)
 {
-    AtomicOfStream file(filename);
-    XmlWriter xml(file, filename, "untech");
+    XmlWriter xml(filename, "untech");
     writeFrameSetExportOrder(xml, eo);
-    file.commit();
+
+    File::atomicWrite(filename, xml.string_view());
 }
 
 }

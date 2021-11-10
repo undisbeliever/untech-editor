@@ -10,10 +10,10 @@
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
 #include "models/common/rgba.h"
-#include <sstream>
 
 namespace UnTech {
 class ErrorList;
+class StringStream;
 }
 
 namespace UnTech::MetaTiles {
@@ -57,6 +57,6 @@ std::shared_ptr<const InteractiveTilesData>
 convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err);
 
 // Assumes InteractiveTiles is valid
-void writeFunctionTables(std::stringstream& incData, const InteractiveTiles& input);
+void writeFunctionTables(StringStream& incData, const InteractiveTiles& input);
 
 }

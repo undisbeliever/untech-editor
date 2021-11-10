@@ -5,8 +5,8 @@
  */
 
 #include "rooms-serializer.h"
-#include "models/common/atomicofstream.h"
 #include "models/common/externalfilelist.h"
+#include "models/common/file.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include "models/metatiles/metatiles-serializer.h"
@@ -201,10 +201,11 @@ std::unique_ptr<RoomInput> loadRoomInput(const std::filesystem::path& filename)
 
 void saveRoomInput(const RoomInput& input, const std::filesystem::path& filename)
 {
-    AtomicOfStream file(filename);
-    XmlWriter xml(file, filename, "untech");
+    // utroom files contain a large base64 text block, use a larger buffer.
+    XmlWriter xml(filename, "untech", 128 * 1024);
     writeRoomInput(xml, input);
-    file.commit();
+
+    File::atomicWrite(filename, xml.string_view());
 }
 
 void readRoomSettings(RoomSettings& settings, const XmlTag& tag)

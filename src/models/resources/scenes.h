@@ -16,6 +16,7 @@
 
 namespace UnTech {
 class ErrorList;
+class StringStream;
 }
 namespace UnTech::Project {
 class ProjectData;
@@ -173,7 +174,7 @@ struct CompiledScenesData {
     std::optional<unsigned> indexForScene(const idstring& name) const;
 };
 
-void writeSceneIncData(const ResourceScenes& resourceScenes, std::ostream& out);
+void writeSceneIncData(const ResourceScenes& resourceScenes, StringStream& out);
 
 std::shared_ptr<const CompiledScenesData>
 compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectData& projectData, ErrorList& err);

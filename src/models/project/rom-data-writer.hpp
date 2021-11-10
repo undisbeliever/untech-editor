@@ -11,9 +11,10 @@
 #include "models/common/exceptions.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
+#include "models/common/stringstream.h"
 #include <cassert>
 #include <filesystem>
-#include <sstream>
+
 #include <vector>
 
 namespace UnTech::Project {
@@ -164,40 +165,41 @@ public:
         _nameDataCounts.emplace_back(Constant{ longAddressTableName + ".count", unsigned(dataStore.size()) });
     }
 
-    void writeIncData(std::stringstream& incData, const std::filesystem::path& relativeBinFilename) const
+    void writeIncData(StringStream& incData, const std::filesystem::path& relativeBinFilename) const
     {
+        const std::string rbfString = relativeBinFilename.string();
+
         for (const Constant& c : _constants) {
-            incData << "constant " << c.name << " = " << c.value << '\n';
+            incData.write("constant ", c.name, " = ", c.value, "\n");
         }
 
-        incData << "\nnamespace " << _blockName << " {\n";
+        incData.write("\nnamespace ", _blockName, " {\n");
         unsigned offset = 0;
         for (auto [bankId, bank] : const_enumerate(_romBanks)) {
             const auto bSize = bank.data().size();
             if (bSize > 0U) {
                 assert(bSize <= _bankSize);
 
-                // std::filesystem::path operator<< will automatically add quotes to relativeBinFilename
-                incData << "rodata(" << _blockRodata << bankId << ")\n"
-                        << "assert(pc() == 0x" << stringBuilder(hex_6(_memoryMap.bankAddress(bankId))) << ")\n"
-                        << "  insert Data" << bankId << ", " << relativeBinFilename << ", " << offset << ", " << bSize << '\n';
+                incData.write("rodata(", _blockRodata, bankId, ")\n",
+                              "assert(pc() == 0x", hex_6(_memoryMap.bankAddress(bankId)), ")\n",
+                              "  insert Data", bankId, ", \"", rbfString, "\", ", offset, ", ", bSize, "\n");
 
                 offset += bSize;
             }
         }
-        incData << "}\n";
+        incData.write("}\n");
 
         for (auto& nc : _nameDataCounts) {
-            incData << "\nconstant " << nc.name << " = " << nc.value;
+            incData.write("\nconstant ", nc.name, " = ", nc.value);
         }
         if (!_nameDataCounts.empty()) {
-            incData << "\n\n";
+            incData.write("\n\n");
         }
 
         for (const auto& nd : _namedData) {
-            incData << "\nconstant " << nd.name << " = 0x" << stringBuilder(hex_6(nd.address));
+            incData.write("\nconstant ", nd.name, " = 0x", hex_6(nd.address));
         }
-        incData << "\n\n";
+        incData.write("\n\n");
     }
 
     std::vector<uint8_t> writeBinaryData() const

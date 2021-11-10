@@ -78,9 +78,9 @@ static void writeSceneData(RomDataWriter& writer,
 }
 
 template <typename T>
-static void writeIncList(std::stringstream& incData, const std::string& typeName, const DataStore<T>& dataStore)
+static void writeIncList(StringStream& incData, const std::string& typeName, const DataStore<T>& dataStore)
 {
-    incData << "\nnamespace " << typeName << " {\n";
+    incData.write("\nnamespace ", typeName, " {\n");
 
     dataStore.readResourceListState([&](auto state, const auto& resources) {
         static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
@@ -89,14 +89,14 @@ static void writeIncList(std::stringstream& incData, const std::string& typeName
 
         for (auto [id, s] : const_enumerate(resources)) {
             assert(s.state == ResourceState::Valid);
-            incData << "  constant " << s.name << " = " << id << '\n';
+            incData.write("  constant ", s.name, " = ", id, "\n");
         }
     });
-    incData << "}\n"
-               "\n";
+    incData.write("}\n"
+                  "\n");
 }
 
-static void printErrors(const ProjectData& projectData, std::ostream& errorStream)
+static void printErrors(const ProjectData& projectData, StringStream& errorStream)
 {
     auto print = [&](const ResourceListStatus& listStatus) {
         listStatus.readResourceListState([&](auto& state, auto& resources) {
@@ -105,7 +105,7 @@ static void printErrors(const ProjectData& projectData, std::ostream& errorStrea
 
             for (const ResourceStatus& status : resources) {
                 if (!status.errorList.empty()) {
-                    errorStream << listStatus.typeNameSingle() << " `" << status.name << "`:\n";
+                    errorStream.write(listStatus.typeNameSingle(), " `", status.name, "`:\n");
                     status.errorList.printIndented(errorStream);
                 }
             }
@@ -123,7 +123,7 @@ static void printErrors(const ProjectData& projectData, std::ostream& errorStrea
 
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
-               std::ostream& errorStream)
+               StringStream& errorStream)
 {
     ProjectData projectData;
 
@@ -170,26 +170,32 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     writer.addDataStore("Project.MetaTileTilesetList", projectData.metaTileTilesets());
     writer.addDataStore("Project.RoomList", projectData.rooms());
 
-    auto ret = std::make_unique<ProjectOutput>();
-    ret->binaryData = writer.writeBinaryData();
+    // The inc file is large: increase StringStream buffer size.
+    StringStream incData(64 * 1024);
 
-    writer.writeIncData(ret->incData, relativeBinFilename);
-    writeIncList(ret->incData, "Project.RoomList", projectData.rooms());
+    writer.writeIncData(incData, relativeBinFilename);
+    writeIncList(incData, "Project.RoomList", projectData.rooms());
 
-    Scripting::writeGameStateConstants(input.gameState, *gameStateData, ret->incData);
-    MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
-    MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
-    ret->incData << projectData.entityRomData()->defines;
+    Scripting::writeGameStateConstants(input.gameState, *gameStateData, incData);
+    MetaSprite::Compiler::writeFrameSetReferences(input, incData);
+    MetaSprite::Compiler::writeExportOrderReferences(input, incData);
+
+    incData.write(projectData.entityRomData()->defines);
 
     // changes ROM BANK to code()
-    Scripting::writeBytecodeFunctionTable(input.bytecode, ret->incData);
-    MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, ret->incData);
-    Resources::writeSceneIncData(input.resourceScenes, ret->incData);
-    ret->incData << projectData.entityRomData()->functionTableData;
+    Scripting::writeBytecodeFunctionTable(input.bytecode, incData);
+    MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, incData);
+    Resources::writeSceneIncData(input.resourceScenes, incData);
 
-    MetaTiles::writeFunctionTables(ret->incData, input.interactiveTiles);
+    incData.write(projectData.entityRomData()->functionTableData);
 
-    ret->incData << std::endl;
+    MetaTiles::writeFunctionTables(incData, input.interactiveTiles);
+
+    incData.write("\n");
+
+    auto ret = std::make_unique<ProjectOutput>();
+    ret->incData = incData.takeString();
+    ret->binaryData = writer.writeBinaryData();
 
     return ret;
 }

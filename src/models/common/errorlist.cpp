@@ -5,8 +5,8 @@
  */
 
 #include "errorlist.h"
+#include "stringstream.h"
 #include <algorithm>
-#include <ostream>
 
 namespace UnTech {
 
@@ -16,25 +16,25 @@ ErrorList::ErrorList()
 {
 }
 
-void ErrorList::printIndented(std::ostream& out) const
+void ErrorList::printIndented(StringStream& out) const
 {
     for (const auto& item : _list) {
         if (!item->isWarning) {
-            out << "    ERROR: ";
+            out.write("    ERROR: ");
         }
         else {
-            out << "    Warning: ";
+            out.write("    Warning: ");
         }
 
         item->printIndented(out);
 
-        out << '\n';
+        out.write("\n");
     }
 }
 
-void AbstractError::printIndented(std::ostream& out) const
+void AbstractError::printIndented(StringStream& out) const
 {
-    out << message;
+    out.write(message);
 }
 
 }

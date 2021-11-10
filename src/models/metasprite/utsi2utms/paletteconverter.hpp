@@ -8,6 +8,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/exceptions.h"
 #include "models/common/iterators.h"
+#include "models/common/stringstream.h"
 #include "models/common/vectorset.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
@@ -15,7 +16,6 @@
 #include <cstring>
 #include <iomanip>
 #include <map>
-#include <sstream>
 
 namespace UnTech::MetaSprite::Utsi2UtmsPrivate {
 
@@ -156,15 +156,15 @@ static void validateColorMap(const ColorMapT& colorMap, const unsigned paletteId
     }
 
     if (colorSet.size() > 0) {
-        std::stringstream out;
-        out << "Palette " << paletteId << " is invalid (missing";
+        StringStream out(1024);
+        out.write("Palette ", paletteId, " is invalid (missing");
 
         for (const rgba& c : colorSet) {
-            out << stringBuilder(" ", hex_6(c.rgbHex()));
+            out.write(" ", hex_6(c.rgbHex()));
         }
-        out << ")";
+        out.write(")");
 
-        throw runtime_error(out.str());
+        throw runtime_error(out.takeString());
     }
 }
 

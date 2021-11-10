@@ -10,9 +10,10 @@
 #include "../enummap.h"
 #include "../ms8aabb.h"
 #include "../string.h"
+#include "../stringstream.h"
 #include <cstdint>
 #include <filesystem>
-#include <ostream>
+
 #include <stack>
 #include <string>
 #include <vector>
@@ -25,7 +26,7 @@ namespace UnTech::Xml {
 class XmlWriter {
 
 private:
-    std::ostream& _file;
+    StringStream _out;
     const std::filesystem::path _filePath;
 
     // Cannot use std::string_view here (stack-use-after-scope AddressSanitizer error)
@@ -41,12 +42,15 @@ public:
     XmlWriter& operator=(const XmlWriter&) = delete;
     XmlWriter& operator=(XmlWriter&&) = delete;
 
-    XmlWriter(std::ostream& output, const std::string_view doctype)
-        : XmlWriter(output, std::filesystem::path(), doctype)
+    XmlWriter(const std::string_view doctype, size_t bufferSize = StringStream::default_initial_size)
+        : XmlWriter(std::filesystem::path(), doctype, bufferSize)
     {
     }
-    XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string_view doctype);
+    XmlWriter(const std::filesystem::path& filePath, const std::string_view doctype, size_t bufferSize = StringStream::default_initial_size);
     ~XmlWriter();
+
+    // returned string_view is only valid until the next write call.
+    [[nodiscard]] std::string_view string_view() const { return _out.string_view(); }
 
     const std::filesystem::path& filePath() const { return _filePath; }
 

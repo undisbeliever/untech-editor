@@ -13,6 +13,8 @@
 
 namespace UnTech {
 
+class StringStream;
+
 class AbstractError {
 public:
     const std::string message;
@@ -31,7 +33,7 @@ public:
     // By default prints message
     // The first line is already indented, you MUST ident all subsequent lines
     // You SHOULD NOT end the steam on a new line
-    virtual void printIndented(std::ostream& out) const;
+    virtual void printIndented(StringStream& out) const;
 };
 
 struct GenericListError : public AbstractError {
@@ -98,7 +100,7 @@ public:
         addWarning(std::make_unique<AbstractError>(stringBuilder(std::forward<Args>(args)...)));
     }
 
-    void printIndented(std::ostream& out) const;
+    void printIndented(StringStream& out) const;
 };
 
 }

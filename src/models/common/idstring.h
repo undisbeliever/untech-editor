@@ -7,7 +7,6 @@
 #pragma once
 
 #include <cassert>
-#include <ostream>
 #include <string>
 #include <string_view>
 
@@ -139,10 +138,6 @@ inline std::string operator+(const idstring& i, const std::string& s)
     return i.str() + s;
 }
 
-inline std::ostream& operator<<(std::ostream& o, const idstring& i)
-{
-    return o << i.str();
-}
 }
 
 namespace std {

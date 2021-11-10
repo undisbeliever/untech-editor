@@ -5,6 +5,7 @@
  */
 
 #include "room-error.h"
+#include "models/common/stringstream.h"
 
 namespace UnTech::Rooms {
 
@@ -16,16 +17,16 @@ InvalidRoomTilesError::InvalidRoomTilesError(std::vector<InvalidRoomTile>&& tile
 
 InvalidRoomTilesError::~InvalidRoomTilesError() = default;
 
-void InvalidRoomTilesError::printIndented(std::ostream& out) const
+void InvalidRoomTilesError::printIndented(StringStream& out) const
 {
     if (!invalidTiles.empty()) {
-        out << message;
+        out.write(message);
 
         if (invalidTiles.size() <= 10) {
-            out << ':';
+            out.write(":");
 
             for (const auto& t : invalidTiles) {
-                out << "\n        tile " << t.x << ", " << t.y;
+                out.write("\n        tile ", t.x, ", ", t.y);
             }
         }
     }

@@ -205,10 +205,11 @@ std::unique_ptr<ProjectFile> loadProjectFile(const std::filesystem::path& filena
 
 void saveProjectFile(const ProjectFile& project, const std::filesystem::path& filename)
 {
-    AtomicOfStream file(filename);
-    XmlWriter xml(file, filename, "untech");
+    // utproject files are large, use a larger buffer.
+    XmlWriter xml(filename, "untech", 64 * 1024);
     writeProjectFile(xml, project);
-    file.commit();
+
+    File::atomicWrite(filename, xml.string_view());
 }
 
 }

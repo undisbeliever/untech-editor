@@ -6,6 +6,7 @@
 
 #include "helpers/commandlineparser.h"
 #include "models/common/file.h"
+#include "models/common/stringstream.h"
 #include "models/project/project-compiler.h"
 #include "models/project/project.h"
 #include <cstdlib>
@@ -37,13 +38,20 @@ int compile(const CommandLine::Parser& args)
     std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilePath);
     project->loadAllFiles();
 
-    std::unique_ptr<ProjectOutput> output = compileProject(*project, relativeBinaryFilePath, std::cerr);
+    StringStream errorBuffer;
+
+    std::unique_ptr<ProjectOutput> output = compileProject(*project, relativeBinaryFilePath, errorBuffer);
+
+    if (errorBuffer.size() != 0) {
+        std::cerr << errorBuffer.string_view();
+    }
+
     if (!output) {
         std::cerr << "Unable to compile project.\n";
         return EXIT_FAILURE;
     }
 
-    File::atomicWrite(incFilePath, output->incData.str());
+    File::atomicWrite(incFilePath, output->incData);
     File::atomicWrite(binaryFilePath, output->binaryData);
 
     return EXIT_SUCCESS;

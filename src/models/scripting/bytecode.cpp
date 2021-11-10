@@ -9,6 +9,7 @@
 #include "scripting-error.h"
 #include "models/common/exceptions.h"
 #include "models/common/iterators.h"
+#include "models/common/stringstream.h"
 #include <climits>
 
 namespace UnTech::Scripting {
@@ -193,10 +194,10 @@ static std::array<std::string, 8> ARGUMENT_SUFFIXES{
 };
 
 // Assumes BytecodeInput is valid
-void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
+void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
 {
-    out << "code()\n"
-           "Project.BytecodeFunctionTable:\n";
+    out.write("code()\n"
+              "Project.BytecodeFunctionTable:\n");
 
     unsigned currentOpcode = 0;
 
@@ -211,13 +212,13 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
 
     auto writeHardCodedOpcode = [&](const std::string& name, const uint8_t opcode) {
         assert(currentOpcode == opcode);
-        out << "  dw Scripting.Bytecode." << name << '\n';
+        out.write("  dw Scripting.Bytecode.", name, "\n");
         currentOpcode++;
     };
 
     auto writeFlagBranchOpcode = [&](const std::string& name) {
         for (auto& arg : FLAG_ARGUMENT_SUFFIXES) {
-            out << "  dw Scripting.Bytecode." << name << arg << "_PC\n";
+            out.write("  dw Scripting.Bytecode.", name, arg, "_PC\n");
             currentOpcode++;
         }
     };
@@ -245,21 +246,21 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
                                                  [](auto a) { return a == ArgumentType::Flag; });
 
         for (auto& flagName : FLAG_ARGUMENT_SUFFIXES) {
-            out << "  dw Scripting.Bytecode." << inst.name;
+            out.write("  dw Scripting.Bytecode.", inst.name);
 
             if (hasArgument) {
-                out << "__";
+                out.write("__");
 
                 for (auto arg : inst.arguments) {
                     if (arg == ArgumentType::Flag) {
-                        out << flagName;
+                        out.write(flagName);
                     }
                     else {
-                        out << ARGUMENT_SUFFIXES.at(unsigned(arg));
+                        out.write(ARGUMENT_SUFFIXES.at(unsigned(arg)));
                     }
                 }
             }
-            out << '\n';
+            out.write("\n");
 
             currentOpcode++;
 
@@ -270,24 +271,24 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
     });
 
     for ([[maybe_unused]] const auto i : range(currentOpcode, MAX_OPCODES)) {
-        out << "  dw Scripting.Bytecode.InvalidOpcode\n";
+        out.write("  dw Scripting.Bytecode.InvalidOpcode\n");
     }
 
-    out << "constant Project.BytecodeFunctionTable.size = pc() - Project.BytecodeFunctionTable"
-           "\n"
-           "\n"
-           "code()\n"
-           "Project.BytecodeResumeFunctionTable:\n";
+    out.write("constant Project.BytecodeFunctionTable.size = pc() - Project.BytecodeFunctionTable"
+              "\n"
+              "\n"
+              "code()\n"
+              "Project.BytecodeResumeFunctionTable:\n");
 
     const char* const blankResumeLine = "  dw Scripting.Bytecode.End_Script___Resume\n";
 
     for (const auto i : range(N_SPECIAL_RESUME_OPCODES)) {
-        out << "  dw Scripting.Bytecode._Special___Resume_" << i * 2 << '\n';
+        out.write("  dw Scripting.Bytecode._Special___Resume_", i * 2, "\n");
     }
 
     assert(N_SPECIAL_RESUME_OPCODES < startOfStatementInstructions);
     for (currentOpcode = N_SPECIAL_RESUME_OPCODES; currentOpcode < startOfStatementInstructions; currentOpcode++) {
-        out << blankResumeLine;
+        out.write(blankResumeLine);
     }
 
     processInstructions([&](const Instruction& inst) {
@@ -295,50 +296,50 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
             const bool hasArgument = std::any_of(inst.arguments.begin(), inst.arguments.end(),
                                                  [](auto a) { return a != ArgumentType::Unused; });
 
-            out << "  dw Scripting.Bytecode." << inst.name;
+            out.write("  dw Scripting.Bytecode.", inst.name);
 
             if (hasArgument) {
-                out << "__";
+                out.write("__");
 
                 for (auto arg : inst.arguments) {
-                    out << ARGUMENT_SUFFIXES.at(unsigned(arg));
+                    out.write(ARGUMENT_SUFFIXES.at(unsigned(arg)));
                 }
             }
 
-            out << "___Resume\n";
+            out.write("___Resume\n");
         }
         else {
             const unsigned nOpcodes = numberOfOpcodes(inst);
             for ([[maybe_unused]] const auto i : range(nOpcodes)) {
-                out << blankResumeLine;
+                out.write(blankResumeLine);
             }
             currentOpcode += nOpcodes;
         }
     });
 
     for ([[maybe_unused]] const auto i : range(currentOpcode, MAX_OPCODES)) {
-        out << blankResumeLine;
+        out.write(blankResumeLine);
     }
 
-    out << "constant Project.BytecodeResumeFunctionTable.size = pc() - Project.BytecodeResumeFunctionTable"
-           "\n"
-           "\n"
-           "// indexes into Project.BytecodeResumeFunctionTable\n"
-           "namespace Project.BytecodeOpcodes.Yielding {\n"
-           "  constant N_SPECIAL_RESUME_OPCODES = "
-        << N_SPECIAL_RESUME_OPCODES << '\n';
+    out.write("constant Project.BytecodeResumeFunctionTable.size = pc() - Project.BytecodeResumeFunctionTable"
+              "\n"
+              "\n"
+              "// indexes into Project.BytecodeResumeFunctionTable\n"
+              "namespace Project.BytecodeOpcodes.Yielding {\n"
+              "  constant N_SPECIAL_RESUME_OPCODES = ",
+              N_SPECIAL_RESUME_OPCODES, "\n");
 
     currentOpcode = startOfStatementInstructions;
 
     processInstructions([&](const Instruction& inst) {
         if (inst.yields) {
-            out << "  constant " << inst.name << " = " << currentOpcode * 2 << '\n';
+            out.write("  constant ", inst.name, " = ", currentOpcode * 2, "\n");
         }
         const unsigned nOpcodes = numberOfOpcodes(inst);
         currentOpcode += nOpcodes;
     });
 
-    out << "}\n\n";
+    out.write("}\n\n");
 }
 
 }

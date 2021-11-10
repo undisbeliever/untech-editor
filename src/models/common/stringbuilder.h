@@ -97,9 +97,9 @@ inline const T& convert(const T& a) { return a; }
 template <typename... Args>
 inline std::string buildString(const Args&... args)
 {
-    const size_t size = (... + UnTech::StringBuilder::stringSize(args)) + 1;
+    const size_t estimatedSize = (... + UnTech::StringBuilder::stringSize(args)) + 1;
 
-    std::string str(size, '\0');
+    std::string str(estimatedSize, '\0');
 
     // Using `char*` here as `std::to_chars()` uses pointers.
     char* ptr = str.data();
@@ -111,7 +111,8 @@ inline std::string buildString(const Args&... args)
     (process(args), ...);
 
     assert(ptr >= str.data() && ptr < end);
-    const auto newSize = std::distance(str.data(), ptr);
+    const size_t newSize = std::distance(str.data(), ptr);
+    assert(newSize < estimatedSize);
 
     str.erase(str.begin() + newSize, str.end());
 

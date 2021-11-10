@@ -5,7 +5,7 @@
  */
 
 #include "invalid-image-error.h"
-#include <ostream>
+#include "models/common/stringstream.h"
 
 namespace UnTech::Resources {
 
@@ -44,21 +44,21 @@ InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& tiles, unsi
 
 InvalidImageError::~InvalidImageError() = default;
 
-void InvalidImageError::printIndented(std::ostream& out) const
+void InvalidImageError::printIndented(StringStream& out) const
 {
     if (!invalidTiles.empty()) {
         if (hasFrameId()) {
-            out << invalidTiles.size() << " invalid tiles in frame " << frameId;
+            out.write(invalidTiles.size(), " invalid tiles in frame ", frameId);
         }
         else {
-            out << invalidTiles.size() << " invalid tiles";
+            out.write(invalidTiles.size(), " invalid tiles");
         }
 
         if (invalidTiles.size() <= 10) {
-            out << ':';
+            out.write(":");
 
             for (const auto& t : invalidTiles) {
-                out << "\n      Tile" << t.size << " @ " << t.x << "px, " << t.y << "px: " << reasonString(t.reason);
+                out.write("\n      Tile", t.size, " @ ", t.x, "px, ", t.y, "px: ", reasonString(t.reason));
             }
         }
     }

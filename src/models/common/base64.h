@@ -11,19 +11,23 @@
 #include <string>
 #include <vector>
 
+namespace UnTech {
+class StringStream;
+}
+
 namespace UnTech::Base64 {
 
 /**
  * Encodes the given data as base64 text in the given file.
  * Uses MIME base64 style, indented by `indent` spaces.
  */
-void encode(const uint8_t* ptr, const size_t size, std::ostream& file, unsigned indent);
-void encode(const std::vector<uint8_t>& data, std::ostream& file, unsigned indent = 0);
+void encode(const uint8_t* ptr, const size_t size, StringStream& out, unsigned indent);
+void encode(const std::vector<uint8_t>& data, StringStream& out, unsigned indent = 0);
 
 template <size_t N>
-void encode(const std::array<uint8_t, N>& data, std::ostream& file, unsigned indent)
+void encode(const std::array<uint8_t, N>& data, StringStream& out, unsigned indent)
 {
-    _encode(data.data(), data.size(), file, indent);
+    _encode(data.data(), data.size(), out, indent);
 }
 
 /**

@@ -11,11 +11,11 @@
 
 namespace UnTech::MetaSprite::Compiler {
 
-void writeFrameSetReferences(const Project::ProjectFile& project, std::ostream& out);
-void writeExportOrderReferences(const Project::ProjectFile& project, std::ostream& out);
+void writeFrameSetReferences(const Project::ProjectFile& project, StringStream& out);
+void writeExportOrderReferences(const Project::ProjectFile& project, StringStream& out);
 
 // NOTE: MUST BE CALLED LAST IN project-compiler
 // NOTE: changes the ROM bank to code()
-void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& actionPointFunctions, std::ostream& out);
+void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& actionPointFunctions, StringStream& out);
 
 }
