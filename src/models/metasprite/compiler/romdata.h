@@ -37,23 +37,18 @@ private:
     const std::string _label;
     const std::string _dataLabel;
     std::vector<uint32_t> _offsets;
-    bool _nullableType;
 
 public:
-    RomAddrTable(const std::string& label,
-                 const std::string& dataLabel, bool nullableType = false)
+    RomAddrTable(const std::string& label, const std::string& dataLabel)
         : _label(label)
         , _dataLabel(dataLabel)
         , _offsets()
-        , _nullableType(nullableType)
     {
     }
 
     RomAddrTable(const RomAddrTable&) = delete;
 
     inline const std::string& label() const { return _label; }
-
-    void writeToIncFile(std::ostream& out) const;
 
     // Searches for a duplicate table before inserting.
     // a value > 0xFFFF in the table is a NULL
