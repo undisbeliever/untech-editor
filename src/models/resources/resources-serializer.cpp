@@ -5,7 +5,6 @@
  */
 
 #include "resources-serializer.h"
-#include "models/common/atomicofstream.h"
 #include "models/common/enummap.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/metatiles/metatiles-serializer.h"

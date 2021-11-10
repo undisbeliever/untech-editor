@@ -5,7 +5,6 @@
  */
 
 #include "metatiles-serializer.h"
-#include "models/common/atomicofstream.h"
 #include "models/common/bytevectorhelper.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/xml/xmlreader.h"

@@ -6,7 +6,6 @@
 
 #include "project-serializer.h"
 #include "project.h"
-#include "models/common/atomicofstream.h"
 #include "models/entity/entityromdata-serializer.h"
 #include "models/metasprite/actionpointfunctions-serializer.h"
 #include "models/metasprite/framesetfile-serializer.h"
