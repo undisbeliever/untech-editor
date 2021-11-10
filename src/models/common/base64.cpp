@@ -10,7 +10,7 @@
 
 namespace UnTech::Base64 {
 
-char lookup[64] = {
+char8_t lookup[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -24,7 +24,7 @@ void encode(const uint8_t* ptr, const size_t size, StringStream& out, unsigned i
     const unsigned CHARS_PER_LINE = 64;
     const unsigned BLOCKS_PER_LINE = CHARS_PER_LINE / 4;
 
-    const std::string padding(indent, ' ');
+    const std::u8string padding(indent, ' ');
 
     out.write(padding);
 
@@ -48,7 +48,7 @@ void encode(const uint8_t* ptr, const size_t size, StringStream& out, unsigned i
             ptr++;
         }
         else {
-            out.writeCharacters(std::array<char, 5>{
+            out.writeCharacters(std::array<char8_t, 5>{
                 lookup[tmp0],
                 lookup[tmp1],
                 '=',
@@ -63,7 +63,7 @@ void encode(const uint8_t* ptr, const size_t size, StringStream& out, unsigned i
 
             ptr++;
 
-            out.writeCharacters(std::array<char, 4>{
+            out.writeCharacters(std::array<char8_t, 4>{
                 lookup[tmp0],
                 lookup[tmp1],
                 lookup[tmp2],
@@ -72,18 +72,18 @@ void encode(const uint8_t* ptr, const size_t size, StringStream& out, unsigned i
             if (ptr < endPtr) {
                 blocksOnLine++;
                 if (blocksOnLine >= BLOCKS_PER_LINE) {
-                    out.write("\n", padding);
+                    out.write(u8"\n", padding);
 
                     blocksOnLine = 0;
                 }
             }
             else {
-                out.write("\n");
+                out.write(u8"\n");
                 break;
             }
         }
         else {
-            out.writeCharacters(std::array<char, 5>{
+            out.writeCharacters(std::array<char8_t, 5>{
                 lookup[tmp0],
                 lookup[tmp1],
                 lookup[tmp2],
@@ -122,12 +122,12 @@ inline uint8_t get_val(const char& c)
 }
 
 // ::TODO replace with std::span when upgrading to c++20::
-size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::string& text)
+size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::u8string& text)
 {
     uint8_t token, tmp;
 
-    const char* ptr = text.c_str();
-    const char* ptrEnd = text.c_str() + text.size();
+    const char8_t* ptr = text.c_str();
+    const char8_t* ptrEnd = text.c_str() + text.size();
 
     size_t bytesDecoded = 0;
     auto writeByte = [&](const uint8_t b) {
@@ -168,7 +168,7 @@ size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::strin
     return bytesDecoded;
 }
 
-std::vector<uint8_t> decode(const std::string& text)
+std::vector<uint8_t> decode(const std::u8string& text)
 {
     std::vector<uint8_t> out(text.size() * 6 / 8 + 16);
 

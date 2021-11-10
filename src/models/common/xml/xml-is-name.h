@@ -10,20 +10,20 @@
 
 namespace UnTech::Xml {
 
-inline bool isName(char c)
+inline bool isName(char8_t c)
 {
-    return ((c >= 'A' && c <= 'Z')
-            || (c >= 'a' && c <= 'z')
-            || (c >= '0' && c <= '9')
-            || c == '.'
-            || c == ':'
-            || c == '-'
-            || c == '_');
+    return ((c >= u8'A' && c <= u8'Z')
+            || (c >= u8'a' && c <= u8'z')
+            || (c >= u8'0' && c <= u8'9')
+            || c == u8'.'
+            || c == u8':'
+            || c == u8'-'
+            || c == u8'_');
 }
 
-inline bool isName(const std::string_view text)
+inline bool isName(const std::u8string_view text)
 {
-    for (const char c : text) {
+    for (const auto c : text) {
         if (isName(c) == false) {
             return false;
         }

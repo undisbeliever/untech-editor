@@ -6,22 +6,25 @@
 
 #include "message-box.h"
 #include "gui/imgui.h"
+#include "models/common/u8strings.h"
 #include <cmath>
 #include <mutex>
+
+using namespace std::string_literals;
 
 // ::ANNOY cannot use MessageBox in mingw ::
 // ::: "src/gui/windows/about-popup.cpp:185:13: error: ‘MessageBoxA’ is not a class, namespace, or enumeration" ::
 namespace UnTech::Gui::MsgBox {
 
-static const std::string dialogSuffix = "###MessageBox";
+static const std::u8string dialogSuffix = u8"###MessageBox"s;
 
 static std::mutex mutex;
 
 struct Message {
-    std::string title;
-    std::string message;
+    std::u8string title;
+    std::u8string message;
 
-    Message(std::string t, std::string m)
+    Message(std::u8string t, std::u8string m)
         : title(std::move(t))
         , message(std::move(m))
     {
@@ -31,7 +34,7 @@ struct Message {
 static std::vector<Message> messages;
 static bool toOpen = false;
 
-void showMessage(const std::string& t, const std::string& m)
+void showMessage(const std::u8string& t, const std::u8string& m)
 {
     std::lock_guard lock(mutex);
 
@@ -39,11 +42,11 @@ void showMessage(const std::string& t, const std::string& m)
     toOpen = true;
 }
 
-void showMessage(const std::string& t, const char* m)
+void showMessage(const std::u8string& t, const char* m)
 {
     std::lock_guard lock(mutex);
 
-    messages.emplace_back(t + dialogSuffix, m);
+    messages.emplace_back(t + dialogSuffix, convert_old_string(m));
     toOpen = true;
 }
 
@@ -62,7 +65,7 @@ void processGui()
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 8));
 
-    if (ImGui::BeginPopupModal(msg.title.c_str(), nullptr, flags)) {
+    if (ImGui::BeginPopupModal(u8Cast(msg.title), nullptr, flags)) {
         const ImVec2 buttonSize(48, 24);
         const ImVec2 windowSize = ImGui::GetWindowSize();
 
@@ -86,7 +89,7 @@ void processGui()
     }
 
     if (toOpen) {
-        ImGui::OpenPopup(dialogSuffix.c_str());
+        ImGui::OpenPopup(u8Cast(dialogSuffix));
         toOpen = false;
     }
 

@@ -486,7 +486,7 @@ void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& p
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
         {
-            ImGui::TextUnformatted("Properties:");
+            ImGui::TextUnformatted(u8"Properties:");
             ImGui::Indent();
 
             ImGui::InputIdstring("Name", &fs.name);
@@ -839,12 +839,12 @@ void MetaSpriteEditorGui::colorPopup()
 
             ImGui::BeginGroup();
 
-            ImGui::TextUnformatted("Current:");
+            ImGui::TextUnformatted(u8"Current:");
             ImGui::ColorButton("##current", colorVec, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoAlpha, colorButtonSize);
 
             ImGui::Spacing();
 
-            ImGui::TextUnformatted("Old:");
+            ImGui::TextUnformatted(u8"Old:");
             if (ImGui::ColorButton("##old", _oldColor, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoAlpha, colorButtonSize)) {
                 colorVec = _oldColor;
                 colorVecChanged = true;
@@ -1212,10 +1212,13 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
 
 void MetaSpriteEditorGui::frameEditorWindow()
 {
+    using namespace std::string_literals;
+    using namespace std::string_view_literals;
+
     assert(_data);
     auto& fs = _data->data;
 
-    static const std::string windowSuffix = "###MetaSprite_Frame";
+    static const std::u8string windowSuffix = u8"###MetaSprite_Frame"s;
 
     static const rect ms8RectBounds(int_ms8_t::MIN, int_ms8_t::MIN, int_ms8_t::MAX - int_ms8_t::MIN, int_ms8_t::MAX - int_ms8_t::MIN);
 
@@ -1223,10 +1226,10 @@ void MetaSpriteEditorGui::frameEditorWindow()
                                  ? &fs.frames.at(_data->framesSel.selectedIndex())
                                  : nullptr;
 
-    const std::string windowTitle = frame ? frame->name + windowSuffix : windowSuffix;
+    const std::u8string windowTitle = frame ? frame->name + windowSuffix : windowSuffix;
 
     ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(windowTitle.c_str())) {
+    if (ImGui::Begin(u8Cast(windowTitle))) {
 
         if (frame == nullptr) {
             ImGui::End();
@@ -1302,7 +1305,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
             }
         }
 
-        auto drawCollisionBox = [&](MS::CollisionBox* box, ToggleSelection* sel, const bool showFlag, const ImU32 outlineColor, std::string_view toolTip) {
+        auto drawCollisionBox = [&](MS::CollisionBox* box, ToggleSelection* sel, const bool showFlag, const ImU32 outlineColor, std::u8string_view toolTip) {
             if (showFlag && box->exists) {
                 _graphics.addRect(drawList, &box->aabb, outlineColor, sel, 1);
                 if (_graphics.isHoveredAndNotEditing()) {
@@ -1312,10 +1315,10 @@ void MetaSpriteEditorGui::frameEditorWindow()
                 }
             }
         };
-        drawCollisionBox(&frame->tileHitbox, &_data->tileHitboxSel, showTileHitbox, Style::tileHitboxOutlineColor, "Tile Hitbox");
-        drawCollisionBox(&frame->shield, &_data->shieldSel, showShield, Style::shieldOutlineColor, "Shield Box");
-        drawCollisionBox(&frame->hitbox, &_data->hitboxSel, showHitbox, Style::hitboxOutlineColor, "Hitbox");
-        drawCollisionBox(&frame->hurtbox, &_data->hurtboxSel, showHurtbox, Style::hurtboxOutlineColor, "Hurtbox");
+        drawCollisionBox(&frame->tileHitbox, &_data->tileHitboxSel, showTileHitbox, Style::tileHitboxOutlineColor, u8"Tile Hitbox"sv);
+        drawCollisionBox(&frame->shield, &_data->shieldSel, showShield, Style::shieldOutlineColor, u8"Shield Box"sv);
+        drawCollisionBox(&frame->hitbox, &_data->hitboxSel, showHitbox, Style::hitboxOutlineColor, u8"Hitbox"sv);
+        drawCollisionBox(&frame->hurtbox, &_data->hurtboxSel, showHurtbox, Style::hurtboxOutlineColor, u8"Hurtbox"sv);
 
         if (showActionPoints) {
             for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
@@ -1324,7 +1327,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
                     if (ap.type.isValid()) {
-                        ImGui::Text("Action Point %u (%s)", unsigned(i), ap.type.c_str());
+                        ImGui::Text("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
                     }
                     else {
                         ImGui::Text("Action Point %u", unsigned(i));

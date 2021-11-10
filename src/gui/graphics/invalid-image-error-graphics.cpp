@@ -52,9 +52,9 @@ void InvalidImageErrorGraphics::draw(ImDrawList* drawList, const ImVec2& zoom, c
     if (ImGui::IsWindowHovered()) {
         for (auto& tile : invalidTiles) {
             if (tile.rect.contains(mousePos)) {
-                const char* reason = Resources::InvalidImageError::reasonString(tile.reason);
+                const char8_t* reason = Resources::InvalidImageError::reasonString(tile.reason);
                 ImGui::BeginTooltip();
-                ImGui::Text("(%d, %d) %s", tile.rect.x1, tile.rect.y1, reason);
+                ImGui::Text("(%d, %d) %s", tile.rect.x1, tile.rect.y1, u8Cast(reason));
                 ImGui::EndTooltip();
             }
         }

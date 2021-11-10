@@ -10,55 +10,57 @@
 namespace UnTech::StringBuilder {
 
 template <typename T>
-static char* concat_int(char* ptr, char* const end, const T value)
+static char8_t* concat_int(char8_t* ptr, char8_t* const end, const T value)
 {
-    auto r = std::to_chars(ptr, end, value);
+    static_assert(sizeof(char8_t) == sizeof(char));
+
+    auto r = std::to_chars(reinterpret_cast<char*>(ptr), reinterpret_cast<char*>(end), value);
     assert(r.ec == std::errc());
 
-    return r.ptr;
+    return reinterpret_cast<char8_t*>(r.ptr);
 }
 
-char* concat(char* ptr, char* const end, int32_t value)
+char8_t* concat(char8_t* ptr, char8_t* const end, int32_t value)
 {
     return concat_int(ptr, end, value);
 }
 
-char* concat(char* ptr, char* const end, int64_t value)
+char8_t* concat(char8_t* ptr, char8_t* const end, int64_t value)
 {
     return concat_int(ptr, end, value);
 }
 
-char* concat(char* ptr, char* const end, uint32_t value)
+char8_t* concat(char8_t* ptr, char8_t* const end, uint32_t value)
 {
     return concat_int(ptr, end, value);
 }
 
-char* concat(char* ptr, char* const end, uint64_t value)
+char8_t* concat(char8_t* ptr, char8_t* const end, uint64_t value)
 {
     return concat_int(ptr, end, value);
 }
 
 //  UnTech::StringBuilder::hex<0> has no padding
-char* concat(char* ptr, char* const end, const hex<0> value)
+char8_t* concat(char8_t* ptr, char8_t* const end, const hex<0> value)
 {
     static_assert(std::is_same_v<decltype(value.value), const uint32_t>);
 
-    auto r = std::to_chars(ptr, end, value.value, 16);
+    const auto r = std::to_chars(reinterpret_cast<char*>(ptr), reinterpret_cast<char*>(end), value.value, 16);
     assert(r.ec == std::errc());
 
-    return r.ptr;
+    return reinterpret_cast<char8_t*>(r.ptr);
 }
 
 // UnTech::StringBuilder::hex<N> has padding
 template <unsigned N>
-char* concat(char* buffer, char* const end, const hex<N> value)
+char8_t* concat(char8_t* buffer, char8_t* const end, const hex<N> value)
 {
     static_assert(std::is_same_v<decltype(value.value), const uint32_t>);
 
     constexpr size_t bSize = N;
     static_assert(bSize == stringSize(hex<N>(uint32_t(0))));
 
-    char* ptr = buffer + bSize;
+    char8_t* ptr = buffer + bSize;
 
     uint32_t v = value.value;
 
@@ -73,8 +75,8 @@ char* concat(char* buffer, char* const end, const hex<N> value)
 
     return buffer + bSize;
 }
-template char* concat(char*, char* const, const hex<4>);
-template char* concat(char*, char* const, const hex<6>);
-template char* concat(char*, char* const, const hex<8>);
+template char8_t* concat(char8_t*, char8_t* const, const hex<4>);
+template char8_t* concat(char8_t*, char8_t* const, const hex<6>);
+template char8_t* concat(char8_t*, char8_t* const, const hex<8>);
 
 }

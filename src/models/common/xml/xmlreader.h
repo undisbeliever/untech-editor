@@ -25,14 +25,14 @@ class XmlReader;
 struct XmlTag;
 
 // NOTE: Will only unescape sequences created by `XmlWriter`
-std::string unescapeXmlString(const std::string_view xmlString);
+std::u8string unescapeXmlString(const std::u8string_view xmlString);
 
 class xml_error : public runtime_error {
 public:
-    explicit xml_error(const XmlTag& tag, const std::string_view message);
-    explicit xml_error(const XmlTag& tag, const std::string_view attr, const std::string_view message);
-    explicit xml_error(const XmlReader& xml, const std::string_view message);
-    explicit xml_error(const XmlReader& tag, const std::string_view message, const std::exception& error);
+    explicit xml_error(const XmlTag& tag, const std::u8string_view message);
+    explicit xml_error(const XmlTag& tag, const std::u8string_view attr, const std::u8string_view message);
+    explicit xml_error(const XmlReader& xml, const std::u8string_view message);
+    explicit xml_error(const XmlReader& tag, const std::u8string_view message, const std::exception& error);
 
     inline const std::filesystem::path& filePath() const { return _filePath; }
 
@@ -57,7 +57,7 @@ private:
  * description of the parsing error and its location.
  *
  * CHANGELOG:
- *   * Now uses std::string_view
+ *   * Now uses std::u8string_view
  *   * XmlReader does not lowercases names.  Names are now case-sensitive.
 
  */
@@ -67,8 +67,8 @@ private:
     const std::filesystem::path _filePath;
     StringParser _input;
 
-    std::stack<std::string_view> _tagStack;
-    std::string_view _currentTag;
+    std::stack<std::u8string_view> _tagStack;
+    std::u8string_view _currentTag;
     bool _inSelfClosingTag;
 
 public:
@@ -78,14 +78,14 @@ public:
     XmlReader& operator=(const XmlReader&) = delete;
     XmlReader& operator=(XmlReader&&) = delete;
 
-    XmlReader(std::string&& xml, const std::filesystem::path& filePath = std::filesystem::path());
+    XmlReader(std::u8string&& xml, const std::filesystem::path& filePath = std::filesystem::path());
 
     static std::unique_ptr<XmlReader> fromFile(const std::filesystem::path& filePath);
 
     /** The filesystem path of the XML file, may be empty */
     inline const std::filesystem::path& filePath() const { return _filePath; }
 
-    std::string filename() const;
+    std::u8string filename() const;
 
     /** restart processing from the beginning */
     void parseDocument();
@@ -100,7 +100,7 @@ public:
     XmlTag parseTag();
 
     /** returns the text at the current cursor */
-    std::string parseText();
+    std::u8string parseText();
 
     /** returns the base64 data at the current cursor */
     std::vector<uint8_t> parseBase64OfUnknownSize();
@@ -115,7 +115,7 @@ public:
         const size_t bytesDecoded = Base64::decodeToBuffer(data.data(), data.size(), parseText());
 
         if (bytesDecoded != data.size()) {
-            throw xml_error(*this, stringBuilder("Invalid data size. Got ", bytesDecoded, " bytes, expected ", data.size(), "."));
+            throw xml_error(*this, stringBuilder(u8"Invalid data size. Got ", bytesDecoded, u8" bytes, expected ", data.size(), u8"."));
         }
     }
 
@@ -125,14 +125,14 @@ public:
     /** the current line number of the cursor */
     inline unsigned lineNo() const { return _input.lineNo(); }
 
-    std::string generateErrorString(const std::string_view message) const;
-    std::string generateErrorString(const std::string_view message, const std::exception& ex) const;
+    std::u8string generateErrorString(const std::u8string_view message) const;
+    std::u8string generateErrorString(const std::u8string_view message, const std::exception& ex) const;
 
 private:
     void skipText();
-    std::string_view parseName();
-    std::string_view parseAttributeValue();
-    std::string_view parseTagStart();
+    std::u8string_view parseName();
+    std::u8string_view parseAttributeValue();
+    std::u8string_view parseTagStart();
 };
 }
 

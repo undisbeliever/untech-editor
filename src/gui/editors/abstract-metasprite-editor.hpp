@@ -226,9 +226,9 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
             const auto& msFrame = aniFrame->frame;
 
             ImGui::Text("Display Frame: %u", _animationState.displayFrameCount);
-            ImGui::Text("Animation Frame: %s.%u", ani->name.c_str(), _animationState.aFrameIndex);
-            ImGui::Text("Next Animation: %s", ani->nextAnimationText().c_str());
-            ImGui::Text("MetaSprite Frame: %s%s", msFrame.name.c_str(), msFrame.flipStringSuffix().data());
+            ImGui::Text("Animation Frame: %s.%u", u8Cast(ani->name), _animationState.aFrameIndex);
+            ImGui::Text("Next Animation: %s", u8Cast(ani->nextAnimationText()));
+            ImGui::Text("MetaSprite Frame: %s%s", u8Cast(msFrame.name), u8Cast(msFrame.flipStringSuffix().data()));
         }
         else {
             _animationTimer.stop();

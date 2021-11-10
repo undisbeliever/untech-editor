@@ -27,7 +27,7 @@ void ExternalFileItem<MetaSprite::FrameSetExportOrder>::loadFile()
 
 namespace UnTech::MetaSprite {
 
-const std::string FrameSetExportOrder::FILE_EXTENSION = "utfseo";
+const std::u8string FrameSetExportOrder::FILE_EXTENSION = u8"utfseo";
 
 struct FrameSetExportOrderReader {
     FrameSetExportOrderReader(FrameSetExportOrder& exportOrder, XmlReader& xml)
@@ -43,17 +43,17 @@ private:
 public:
     inline void readFrameSetExportOrder(const XmlTag& tag)
     {
-        assert(tag.name == "fsexportorder");
+        assert(tag.name == u8"fsexportorder");
         assert(exportOrder.stillFrames.size() == 0);
         assert(exportOrder.animations.size() == 0);
 
-        exportOrder.name = tag.getAttributeId("name");
+        exportOrder.name = tag.getAttributeId(u8"name");
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == "frame") {
+            if (childTag.name == u8"frame") {
                 readExportName(childTag, exportOrder.stillFrames);
             }
-            else if (childTag.name == "animation") {
+            else if (childTag.name == u8"animation") {
                 readExportName(childTag, exportOrder.animations);
             }
             else {
@@ -69,15 +69,15 @@ private:
                                NamedList<FrameSetExportOrder::ExportName>& exportList)
     {
         FrameSetExportOrder::ExportName en;
-        en.name = tag.getAttributeId("id");
+        en.name = tag.getAttributeId(u8"id");
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == "alt") {
+            if (childTag.name == u8"alt") {
                 NameReference alt;
 
-                alt.name = childTag.getAttributeId("name");
-                alt.hFlip = childTag.getAttributeBoolean("hflip");
-                alt.vFlip = childTag.getAttributeBoolean("vflip");
+                alt.name = childTag.getAttributeId(u8"name");
+                alt.hFlip = childTag.getAttributeBoolean(u8"hflip");
+                alt.vFlip = childTag.getAttributeBoolean(u8"vflip");
 
                 en.alternatives.emplace_back(alt);
             }
@@ -92,18 +92,18 @@ private:
     }
 };
 
-static void writeExportName(XmlWriter& xml, const std::string& tagName,
+static void writeExportName(XmlWriter& xml, const std::u8string& tagName,
                             const FrameSetExportOrder::ExportName& exportName)
 {
     xml.writeTag(tagName);
 
-    xml.writeTagAttribute("id", exportName.name);
+    xml.writeTagAttribute(u8"id", exportName.name);
 
     for (const auto& alt : exportName.alternatives) {
-        xml.writeTag("alt");
-        xml.writeTagAttribute("name", alt.name);
-        xml.writeTagAttribute("hflip", alt.hFlip);
-        xml.writeTagAttribute("vflip", alt.vFlip);
+        xml.writeTag(u8"alt");
+        xml.writeTagAttribute(u8"name", alt.name);
+        xml.writeTagAttribute(u8"hflip", alt.hFlip);
+        xml.writeTagAttribute(u8"vflip", alt.vFlip);
         xml.writeCloseTag();
     }
 
@@ -112,15 +112,15 @@ static void writeExportName(XmlWriter& xml, const std::string& tagName,
 
 void writeFrameSetExportOrder(XmlWriter& xml, const FrameSetExportOrder& eo)
 {
-    xml.writeTag("fsexportorder");
+    xml.writeTag(u8"fsexportorder");
 
-    xml.writeTagAttribute("name", eo.name);
+    xml.writeTagAttribute(u8"name", eo.name);
 
     for (const auto& frame : eo.stillFrames) {
-        writeExportName(xml, "frame", frame);
+        writeExportName(xml, u8"frame", frame);
     }
     for (const auto& ani : eo.animations) {
-        writeExportName(xml, "animation", ani);
+        writeExportName(xml, u8"animation", ani);
     }
 
     xml.writeCloseTag();
@@ -131,8 +131,8 @@ std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml
     try {
         const auto tag = xml.parseTag();
 
-        if (tag.name != "fsexportorder") {
-            throw runtime_error(xml.filename() + ": Not frame set export order file");
+        if (tag.name != u8"fsexportorder") {
+            throw runtime_error(xml.filename(), u8": Not frame set export order file");
         }
 
         auto exportOrder = std::make_unique<FrameSetExportOrder>();
@@ -142,7 +142,7 @@ std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml
         return exportOrder;
     }
     catch (const std::exception& ex) {
-        throw xml_error(xml, "Error loading FrameSetExportOrder file", ex);
+        throw xml_error(xml, u8"Error loading FrameSetExportOrder file", ex);
     }
 }
 
@@ -154,7 +154,7 @@ std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::filesyst
 
 void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesystem::path& filename)
 {
-    XmlWriter xml(filename, "untech");
+    XmlWriter xml(filename, u8"untech");
     writeFrameSetExportOrder(xml, eo);
 
     File::atomicWrite(filename, xml.string_view());

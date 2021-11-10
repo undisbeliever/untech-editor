@@ -8,41 +8,41 @@
 #include "xml-is-name.h"
 #include "../base64.h"
 #include "../file.h"
-#include "../string.h"
 #include "../stringparser.hpp"
+#include "../u8strings.h"
 #include <cassert>
 
 namespace UnTech::Xml {
 
-xml_error::xml_error(const XmlTag& tag, const std::string_view message)
+xml_error::xml_error(const XmlTag& tag, const std::u8string_view message)
     : runtime_error(tag.generateErrorString(message))
     , _filePath(tag.xml->filePath())
 {
 }
 
-xml_error::xml_error(const XmlTag& tag, const std::string_view aName, const std::string_view message)
+xml_error::xml_error(const XmlTag& tag, const std::u8string_view aName, const std::u8string_view message)
     : runtime_error(tag.generateErrorString(aName, message))
     , _filePath(tag.xml->filePath())
 {
 }
 
-xml_error::xml_error(const XmlReader& xml, const std::string_view message)
+xml_error::xml_error(const XmlReader& xml, const std::u8string_view message)
     : runtime_error(xml.generateErrorString(message))
     , _filePath(xml.filePath())
 {
 }
 
-xml_error::xml_error(const XmlReader& xml, const std::string_view message, const std::exception& ex)
+xml_error::xml_error(const XmlReader& xml, const std::u8string_view message, const std::exception& ex)
     : runtime_error(xml.generateErrorString(message, ex))
     , _filePath(xml.filePath())
 {
 }
 
-std::string unescapeXmlString(const std::string_view xmlString)
+std::u8string unescapeXmlString(const std::u8string_view xmlString)
 {
     using namespace std::string_view_literals;
 
-    std::string ret;
+    std::u8string ret;
 
     if (xmlString.empty()) {
         return ret;
@@ -51,12 +51,12 @@ std::string unescapeXmlString(const std::string_view xmlString)
     ret.reserve(xmlString.size());
 
     size_t start = 0;
-    size_t p = xmlString.find('&');
+    size_t p = xmlString.find(u8'&');
 
     while (p != xmlString.npos) {
         ret.append(xmlString.substr(start, p - start));
 
-        auto test = [&](const std::string_view es) -> bool {
+        auto test = [&](const std::u8string_view es) -> bool {
             if (xmlString.compare(p, es.size(), es) == 0) {
                 start = p + es.size();
                 return true;
@@ -66,27 +66,27 @@ std::string unescapeXmlString(const std::string_view xmlString)
             }
         };
 
-        if (test("&amp;"sv)) {
-            ret += '&';
+        if (test(u8"&amp;"sv)) {
+            ret += u8'&';
         }
-        else if (test("&lt;"sv)) {
-            ret += '<';
+        else if (test(u8"&lt;"sv)) {
+            ret += u8'<';
         }
-        else if (test("&gt;"sv)) {
-            ret += '>';
+        else if (test(u8"&gt;"sv)) {
+            ret += u8'>';
         }
-        else if (test("&quot;"sv)) {
-            ret += '"';
+        else if (test(u8"&quot;"sv)) {
+            ret += u8'"';
         }
-        else if (test("&apos;"sv)) {
-            ret += '\'';
+        else if (test(u8"&apos;"sv)) {
+            ret += u8'\'';
         }
         else {
             start = p + 1;
-            ret += '&';
+            ret += u8'&';
         }
 
-        p = xmlString.find('&', start);
+        p = xmlString.find(u8'&', start);
     }
 
     ret.append(xmlString.substr(start));
@@ -94,27 +94,27 @@ std::string unescapeXmlString(const std::string_view xmlString)
     return ret;
 }
 
-static inline std::string_view toStringView(const std::string::const_iterator begin, const std::string::const_iterator end)
+static inline std::u8string_view toStringView(const std::u8string::const_iterator begin, const std::u8string::const_iterator end)
 {
-    return std::string_view(&*begin, std::distance(begin, end));
+    return std::u8string_view(&*begin, std::distance(begin, end));
 }
 
-std::string XmlReader::filename() const
+std::u8string XmlReader::filename() const
 {
     if (_filePath.empty()) {
-        return "XML";
+        return u8"XML";
     }
     else {
-        return _filePath.filename().string();
+        return _filePath.filename().u8string();
     }
 }
 
-XmlReader::XmlReader(std::string&& xml, const std::filesystem::path& filePath)
+XmlReader::XmlReader(std::u8string&& xml, const std::filesystem::path& filePath)
     : _filePath(filePath)
     , _input(std::move(xml))
 {
     if (_input.atEnd()) {
-        throw runtime_error("Empty XML file");
+        throw runtime_error(u8"Empty XML file");
     }
 
     parseDocument();
@@ -122,41 +122,41 @@ XmlReader::XmlReader(std::string&& xml, const std::filesystem::path& filePath)
 
 std::unique_ptr<XmlReader> XmlReader::fromFile(const std::filesystem::path& filePath)
 {
-    std::string xml = File::readUtf8TextFile(filePath);
+    std::u8string xml = File::readUtf8TextFile(filePath);
     return std::make_unique<XmlReader>(std::move(xml), filePath);
 }
 
 void XmlReader::parseDocument()
 {
     _input.reset();
-    _currentTag = std::string();
-    _tagStack = std::stack<std::string_view>();
+    _currentTag = std::u8string();
+    _tagStack = std::stack<std::u8string_view>();
     _inSelfClosingTag = false;
 
     _input.skipWhitespace();
 
     // ignore XML header
-    if (_input.testAndConsume("<?xml")) {
-        if (_input.skipUntil('>') == false) {
-            throw xml_error(*this, "Unclosed XML header");
+    if (_input.testAndConsume(u8"<?xml")) {
+        if (_input.skipUntil(u8'>') == false) {
+            throw xml_error(*this, u8"Unclosed XML header");
         }
     }
 
     _input.skipWhitespace();
 
     // ignore DOCTYPE
-    if (_input.testAndConsume("<!DOCTYPE")) {
-        if (_input.skipUntil('>') == false) {
-            throw xml_error(*this, "Unclosed DOCTYPE header");
+    if (_input.testAndConsume(u8"<!DOCTYPE")) {
+        if (_input.skipUntil(u8'>') == false) {
+            throw xml_error(*this, u8"Unclosed DOCTYPE header");
         }
     }
 }
 
 // Splitting up tag parsing allows for NRVO in parseTag().
 // Returns an empty string_view if there is no tag to parse.
-inline std::string_view XmlReader::parseTagStart()
+inline std::u8string_view XmlReader::parseTagStart()
 {
-    std::string_view tagName;
+    std::u8string_view tagName;
 
     if (_inSelfClosingTag) {
         return tagName;
@@ -165,14 +165,14 @@ inline std::string_view XmlReader::parseTagStart()
     // skip whitespace/text
     skipText();
     if (_input.atEnd()) {
-        throw xml_error(*this, "Unexpected end of file");
+        throw xml_error(*this, u8"Unexpected end of file");
     }
-    if (_input.cur() == '<' && _input.peek() == '/') {
+    if (_input.cur() == u8'<' && _input.peek() == u8'/') {
         // no more tags
         return tagName;
     }
-    if (_input.cur() != '<') {
-        throw xml_error(*this, "Not a tag");
+    if (_input.cur() != u8'<') {
+        throw xml_error(*this, u8"Not a tag");
     }
     _input.advance();
 
@@ -180,9 +180,9 @@ inline std::string_view XmlReader::parseTagStart()
 
     // tag must be followed by whitespace or a close tag.
     if (!(_input.isWhitespace()
-          || (_input.cur() == '>')
-          || (_input.cur() == '/' || _input.peek() != '>'))) {
-        throw xml_error(*this, "Invalid tag name");
+          || (_input.cur() == u8'>')
+          || (_input.cur() == u8'/' || _input.peek() != u8'>'))) {
+        throw xml_error(*this, u8"Invalid tag name");
     }
 
     return tagName;
@@ -200,34 +200,34 @@ XmlTag XmlReader::parseTag()
         _input.skipWhitespace();
 
         if (_input.atEnd()) {
-            throw xml_error(*this, "Unclosed tag");
+            throw xml_error(*this, u8"Unclosed tag");
         }
 
-        const char c = _input.cur();
+        const char8_t c = _input.cur();
 
         if (isName(c)) {
             // attribute
 
-            const std::string_view attributeName = parseName();
+            const std::u8string_view attributeName = parseName();
 
             _input.skipWhitespace();
 
-            if (_input.cur() != '=') {
-                throw xml_error(tag, attributeName, "Missing attribute value");
+            if (_input.cur() != u8'=') {
+                throw xml_error(tag, attributeName, u8"Missing attribute value");
             }
             _input.advance();
 
             _input.skipWhitespace();
 
-            const std::string_view value = parseAttributeValue();
+            const std::u8string_view value = parseAttributeValue();
 
             tag.addAttribute(attributeName, value);
         }
 
-        else if (c == '?' || c == '/') {
+        else if (c == u8'?' || c == u8'/') {
             // end of self closing tag
-            if (_input.peek() != '>') {
-                throw xml_error(*this, "Missing `>`");
+            if (_input.peek() != u8'>') {
+                throw xml_error(*this, u8"Missing `>`");
             }
             _input.advance();
             _input.advance();
@@ -236,7 +236,7 @@ XmlTag XmlReader::parseTag()
             return tag;
         }
 
-        else if (c == '>') {
+        else if (c == u8'>') {
             // end of tag
             _input.advance();
 
@@ -245,50 +245,50 @@ XmlTag XmlReader::parseTag()
         }
         else {
             // stringBuilder does not accept char types, have to convert to a c_string manually.
-            const char charStr[] = { '`', c, '`', '\0' };
-            throw xml_error(*this, stringBuilder("Unknown character ", charStr));
+            const char8_t charStr[] = { u8'`', c, u8'`', u8'\0' };
+            throw xml_error(*this, stringBuilder(u8"Unknown character ", charStr));
         }
     }
 
-    throw xml_error(*this, "Incomplete tag");
+    throw xml_error(*this, u8"Incomplete tag");
 }
 
-std::string XmlReader::parseText()
+std::u8string XmlReader::parseText()
 {
     if (_inSelfClosingTag) {
-        return std::string();
+        return std::u8string();
     }
 
-    std::string text;
+    std::u8string text;
 
     auto startText = _input.pos();
     while (!_input.atEnd()) {
         const auto oldTextPos = _input.pos();
 
-        if (_input.testAndConsume("<!--")) {
+        if (_input.testAndConsume(u8"<!--")) {
             text += unescapeXmlString(toStringView(startText, oldTextPos));
 
-            if (_input.skipUntil("-->") == false) {
-                throw xml_error(*this, "Unclosed comment");
+            if (_input.skipUntil(u8"-->") == false) {
+                throw xml_error(*this, u8"Unclosed comment");
             }
 
             startText = _input.pos();
         }
 
-        else if (_input.testAndConsume("<![CDATA[")) {
+        else if (_input.testAndConsume(u8"<![CDATA[")) {
             text += unescapeXmlString(toStringView(startText, oldTextPos));
 
             const auto startCData = _input.pos();
 
-            if (_input.skipUntil("]]>") == false) {
-                throw xml_error(*this, "Unclosed CDATA");
+            if (_input.skipUntil(u8"]]>") == false) {
+                throw xml_error(*this, u8"Unclosed CDATA");
             }
 
             text.append(startCData, _input.pos() - 3);
 
             startText = _input.pos();
         }
-        else if (_input.cur() == '<') {
+        else if (_input.cur() == u8'<') {
             // start/end new tag.
             break;
         }
@@ -312,7 +312,7 @@ std::vector<uint8_t> XmlReader::parseBase64OfKnownSize(const size_t expectedSize
     auto data = parseBase64OfUnknownSize();
 
     if (data.size() != expectedSize) {
-        throw xml_error(*this, stringBuilder("Invalid data size. Got ", data.size(), " bytes, expected ", expectedSize, "."));
+        throw xml_error(*this, stringBuilder(u8"Invalid data size. Got ", data.size(), u8" bytes, expected ", expectedSize, u8"."));
     }
 
     return data;
@@ -331,7 +331,7 @@ void XmlReader::parseCloseTag()
     }
 
     // skip all child nodes of current level
-    while (_input.cur() != '<' || _input.peek() != '/') {
+    while (_input.cur() != u8'<' || _input.peek() != u8'/') {
         // more nodes/text to parse
         parseTag();
 
@@ -350,15 +350,15 @@ void XmlReader::parseCloseTag()
     auto expectedTagName = _tagStack.top();
 
     if (closeTagName != expectedTagName) {
-        std::string msg = stringBuilder("Missing close tag (expected </", expectedTagName, ">)");
+        std::u8string msg = stringBuilder(u8"Missing close tag (expected </", expectedTagName, u8">)");
         throw xml_error(*this, msg);
     }
     _tagStack.pop();
 
     _input.skipWhitespace();
 
-    if (_input.cur() != '>') {
-        throw xml_error(*this, "Expected '>'");
+    if (_input.cur() != u8'>') {
+        throw xml_error(*this, u8"Expected '>'");
     }
     // MUST NOT advance here
 
@@ -366,7 +366,7 @@ void XmlReader::parseCloseTag()
         _currentTag = _tagStack.top();
     }
     else {
-        _currentTag = std::string();
+        _currentTag = std::u8string();
     }
 }
 
@@ -377,17 +377,17 @@ void XmlReader::skipText()
     }
 
     while (!_input.atEnd()) {
-        if (_input.testAndConsume("<!--")) {
-            if (_input.skipUntil("-->") == false) {
-                throw xml_error(*this, "Unclosed comment");
+        if (_input.testAndConsume(u8"<!--")) {
+            if (_input.skipUntil(u8"-->") == false) {
+                throw xml_error(*this, u8"Unclosed comment");
             }
         }
-        else if (_input.testAndConsume("<![CDATA[")) {
-            if (_input.skipUntil("]]>") == false) {
-                throw xml_error(*this, "Unclosed CDATA");
+        else if (_input.testAndConsume(u8"<![CDATA[")) {
+            if (_input.skipUntil(u8"]]>") == false) {
+                throw xml_error(*this, u8"Unclosed CDATA");
             }
         }
-        else if (_input.cur() == '<') {
+        else if (_input.cur() == u8'<') {
             // start/end new tag.
             break;
         }
@@ -397,7 +397,7 @@ void XmlReader::skipText()
     }
 }
 
-inline std::string_view XmlReader::parseName()
+inline std::u8string_view XmlReader::parseName()
 {
     const auto nameStart = _input.pos();
     while (isName(_input.cur())) {
@@ -405,61 +405,61 @@ inline std::string_view XmlReader::parseName()
     }
 
     if (nameStart == _input.pos()) {
-        throw xml_error(*this, "Missing identifier");
+        throw xml_error(*this, u8"Missing identifier");
     }
 
     return toStringView(nameStart, _input.pos());
 }
 
-inline std::string_view XmlReader::parseAttributeValue()
+inline std::u8string_view XmlReader::parseAttributeValue()
 {
     const char terminator = _input.cur();
     _input.advance();
 
-    if (terminator != '\'' && terminator != '\"') {
-        throw xml_error(*this, "Attribute not quoted");
+    if (terminator != u8'\'' && terminator != u8'\"') {
+        throw xml_error(*this, u8"Attribute not quoted");
     }
 
     const auto valueStart = _input.pos();
     if (_input.skipUntil(terminator) == false) {
-        throw xml_error(*this, "Incomplete attribute value");
+        throw xml_error(*this, u8"Incomplete attribute value");
     }
 
     return toStringView(valueStart, _input.pos() - 1);
 }
 
-std::string XmlTag::generateErrorString(const std::string_view msg) const
+std::u8string XmlTag::generateErrorString(const std::u8string_view msg) const
 {
-    return stringBuilder(xml->filename(), ":", lineNo, " <", name, ">: ", msg);
+    return stringBuilder(xml->filename(), u8":", lineNo, u8" <", name, u8">: ", msg);
 }
 
-std::string XmlTag::generateErrorString(const std::string_view aName, const std::string_view msg) const
+std::u8string XmlTag::generateErrorString(const std::u8string_view aName, const std::u8string_view msg) const
 {
-    return stringBuilder(xml->filename(), ":", lineNo, " <", name, " ", aName, ">: ", msg);
+    return stringBuilder(xml->filename(), u8":", lineNo, u8" <", name, u8" ", aName, u8">: ", msg);
 }
 
-std::string XmlReader::generateErrorString(const std::string_view message) const
+std::u8string XmlReader::generateErrorString(const std::u8string_view message) const
 {
     if (_currentTag.empty()) {
-        return stringBuilder(filename(), ":", lineNo(), ": ", message);
+        return stringBuilder(filename(), u8":", lineNo(), u8": ", message);
     }
     else {
-        return stringBuilder(filename(), ":", lineNo(), " <", _currentTag, ">: ", message);
+        return stringBuilder(filename(), u8":", lineNo(), u8" <", _currentTag, u8">: ", message);
     }
 }
 
-std::string XmlReader::generateErrorString(const std::string_view message, const std::exception& ex) const
+std::u8string XmlReader::generateErrorString(const std::u8string_view message, const std::exception& ex) const
 {
     auto cast = dynamic_cast<const xml_error*>(&ex);
     if (cast && cast->filePath() == _filePath) {
-        return stringBuilder(message, "\n  ", cast->what());
+        return stringBuilder(message, u8"\n  ", convert_old_string(cast->what()));
     }
     else {
         if (_currentTag.empty()) {
-            return stringBuilder(message, "\n  ", filename(), ":", lineNo(), ": ", message);
+            return stringBuilder(message, u8"\n  ", filename(), u8":", lineNo(), u8": ", message);
         }
         else {
-            return stringBuilder(message, "\n  ", filename(), ":", lineNo(), " <", _currentTag, ">: ", message);
+            return stringBuilder(message, u8"\n  ", filename(), u8":", lineNo(), u8" <", _currentTag, u8">: ", message);
         }
     }
 }

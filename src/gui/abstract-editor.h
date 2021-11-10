@@ -77,7 +77,7 @@ public:
 private:
     friend class AbstractExternalFileEditorData;
     ItemIndex _itemIndex;
-    std::string _basename;
+    std::u8string _basename;
 
     std::vector<std::unique_ptr<EditorUndoAction>> _pendingEditorActions;
     std::vector<std::unique_ptr<EditorUndoAction>> _pendingProjectFileActions;
@@ -102,7 +102,7 @@ public:
     ItemIndex itemIndex() const { return _itemIndex; }
 
     // The returned string is empty on internal projectFile resources.
-    const std::string& basename() const { return _basename; }
+    const std::u8string& basename() const { return _basename; }
 
     // Return false if itemIndex is invalid.
     // If this editor is an `AbstractExternalFileEditor`, then you MUST call `setFilename` in this function.

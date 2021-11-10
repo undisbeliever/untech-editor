@@ -15,21 +15,21 @@ template <typename... Args>
 inline std::unique_ptr<SceneError> sceneSettingsError(const SceneSettingsInput& s, const unsigned index, const Args... msg)
 {
     return std::make_unique<SceneError>(SceneErrorType::SCENE_SETTINGS, index,
-                                        stringBuilder("Scene Setting ", s.name, ": ", msg...));
+                                        stringBuilder(u8"Scene Setting ", s.name, u8": ", msg...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<SceneError> sceneError(const SceneInput& s, const unsigned index, const Args... msg)
 {
     return std::make_unique<SceneError>(SceneErrorType::SCENE_LAYER_ERROR, index,
-                                        stringBuilder("Scene ", s.name, ": ", msg...));
+                                        stringBuilder(u8"Scene ", s.name, u8": ", msg...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<SceneError> sceneLayerError(const SceneInput& s, const unsigned sceneIndex, const unsigned layerIndex, const Args... msg)
 {
     return std::make_unique<SceneError>(SceneErrorType::SCENE_LAYER_ERROR, sceneIndex, layerIndex,
-                                        stringBuilder("Scene", s.name, ", layer ", layerIndex, ": ", msg...));
+                                        stringBuilder(u8"Scene", s.name, u8", layer ", layerIndex, u8": ", msg...));
 }
 
 }

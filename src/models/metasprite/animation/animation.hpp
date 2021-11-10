@@ -17,17 +17,17 @@ bool validate(const Animation& input, const unsigned aniIndex, const FrameSetT& 
 
     if (input.oneShot == false && input.nextAnimation.isValid()) {
         if (!frameSet.animations.find(input.nextAnimation)) {
-            err.addError(animationError(input, aniIndex, "Cannot find animation ", input.nextAnimation));
+            err.addError(animationError(input, aniIndex, u8"Cannot find animation ", input.nextAnimation));
         }
     }
 
     if (input.frames.size() == 0) {
-        err.addError(animationError(input, aniIndex, "Expected at least one animation frame"));
+        err.addError(animationError(input, aniIndex, u8"Expected at least one animation frame"));
     }
 
     for (auto [i, aFrame] : const_enumerate(input.frames)) {
         if (aFrame.testFrameValid(frameSet) == false) {
-            err.addError(animationFrameError(input, aniIndex, i, "Cannot find frame ", aFrame.frame.name));
+            err.addError(animationFrameError(input, aniIndex, i, u8"Cannot find frame ", aFrame.frame.name));
         }
     }
 

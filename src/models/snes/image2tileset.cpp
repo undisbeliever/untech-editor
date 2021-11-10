@@ -67,7 +67,7 @@ void ImageToTileset::processPalette(const IndexedImage& image)
     const unsigned nColors = colorsForBitDepth(_bitDepth);
 
     if (image.palette().size() > nColors) {
-        throw runtime_error("Too many colors in image, maximum allowed is ", nColors);
+        throw runtime_error(u8"Too many colors in image, maximum allowed is ", nColors);
     }
 
     _palette.resize(nColors);
@@ -86,7 +86,7 @@ void ImageToTileset::processTileset(const IndexedImage& image)
     if (image.size().width % TILE_SIZE != 0
         || image.size().height % TILE_SIZE != 0) {
 
-        throw runtime_error("Image size is not a multiple of ", TILE_SIZE);
+        throw runtime_error(u8"Image size is not a multiple of ", TILE_SIZE);
     }
 
     unsigned tileWidth = image.size().width / TILE_SIZE;

@@ -13,21 +13,21 @@ namespace UnTech::MetaSprite {
 
 void readActionPointFunction(const XmlTag& tag, NamedList<ActionPointFunction>& actionPointList)
 {
-    assert(tag.name == "action-point-function");
+    assert(tag.name == u8"action-point-function");
 
     actionPointList.insert_back();
     auto& ap = actionPointList.back();
 
-    ap.name = tag.getAttributeOptionalId("name");
-    ap.manuallyInvoked = tag.getAttributeBoolean("manually-invoked");
+    ap.name = tag.getAttributeOptionalId(u8"name");
+    ap.manuallyInvoked = tag.getAttributeBoolean(u8"manually-invoked");
 }
 
 void writeActionPointFunctions(XmlWriter& xml, const NamedList<ActionPointFunction>& actionPointFunctions)
 {
     for (const ActionPointFunction& ap : actionPointFunctions) {
-        xml.writeTag("action-point-function");
-        xml.writeTagAttribute("name", ap.name);
-        xml.writeTagAttribute("manually-invoked", ap.manuallyInvoked);
+        xml.writeTag(u8"action-point-function");
+        xml.writeTagAttribute(u8"name", ap.name);
+        xml.writeTagAttribute(u8"manually-invoked", ap.manuallyInvoked);
         xml.writeCloseTag();
     }
 }

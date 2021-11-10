@@ -11,21 +11,21 @@
 
 namespace UnTech::MetaSprite {
 
-std::string_view NameReference::flipStringSuffix() const
+std::u8string_view NameReference::flipStringSuffix() const
 {
     using namespace std::string_view_literals;
 
     if (hFlip && vFlip) {
-        return " (hvFlip)"sv;
+        return u8" (hvFlip)"sv;
     }
     else if (hFlip) {
-        return " (hFlip)"sv;
+        return u8" (hFlip)"sv;
     }
     else if (vFlip) {
-        return " (vFlip)"sv;
+        return u8" (vFlip)"sv;
     }
     else {
-        return ""sv;
+        return u8""sv;
     }
 }
 
@@ -43,12 +43,12 @@ generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, Er
     };
 
     if (apFunctions.empty()) {
-        addError("Expected at least one action point function");
+        addError(u8"Expected at least one action point function");
         return nullptr;
     }
 
     if (apFunctions.size() > MAX_ACTION_POINT_FUNCTIONS) {
-        addError("Too many action point functions (max ", MAX_ACTION_POINT_FUNCTIONS, ")");
+        addError(u8"Too many action point functions (max ", MAX_ACTION_POINT_FUNCTIONS, u8")");
         return nullptr;
     }
 
@@ -61,13 +61,13 @@ generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, Er
         assert(romValue <= 255 - 2);
 
         if (not apf.name.isValid()) {
-            addApfError(i, "Missing action point function name");
+            addApfError(i, u8"Missing action point function name");
         }
 
         auto success = ret->emplace(apf.name, romValue);
 
         if (success.second == false) {
-            addApfError(i, "Action point function name already exists: ", apf.name);
+            addApfError(i, u8"Action point function name already exists: ", apf.name);
         }
     }
 

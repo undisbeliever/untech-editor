@@ -70,7 +70,7 @@ struct alignas(4) rgba {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    std::string rgbHexString() const;
+    std::u8string rgbHexString() const;
 
     bool operator==(const rgba&) const = default;
 

@@ -208,10 +208,10 @@ static std::vector<FrameData> processFrameList(const FrameSetExportList& exportL
 static void checkExportListSize(const FrameSetExportList& input, ErrorList& err)
 {
     if (input.animations.size() > MAX_EXPORT_NAMES) {
-        err.addErrorString("Too many animations (", input.animations.size(), ", max ", MAX_EXPORT_NAMES, ")");
+        err.addErrorString(u8"Too many animations (", input.animations.size(), u8", max ", MAX_EXPORT_NAMES, u8")");
     }
     if (input.frames.size() > MAX_EXPORT_NAMES) {
-        err.addErrorString("Too many frames (", input.frames.size(), ", max ", MAX_EXPORT_NAMES, ")");
+        err.addErrorString(u8"Too many frames (", input.frames.size(), u8", max ", MAX_EXPORT_NAMES, u8")");
     }
 }
 
@@ -224,7 +224,7 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
 
     const auto exportOrder = project.frameSetExportOrders.find(frameSet.exportOrder);
     if (not exportOrder) {
-        errorList.addErrorString("Missing MetaSprite Export Order Document");
+        errorList.addErrorString(u8"Missing MetaSprite Export Order Document");
         return nullptr;
     }
 
@@ -271,7 +271,7 @@ compileFrameSet(const FrameSetFile& fs,
         }
     }
     else {
-        errorList.addErrorString("Missing FrameSet");
+        errorList.addErrorString(u8"Missing FrameSet");
     }
 
     return nullptr;

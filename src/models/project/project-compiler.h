@@ -19,7 +19,7 @@ namespace UnTech::Project {
 struct ProjectFile;
 
 struct ProjectOutput {
-    std::string incData;
+    std::u8string incData;
     std::vector<uint8_t> binaryData;
 };
 
@@ -27,5 +27,4 @@ struct ProjectOutput {
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinaryFilename,
                StringStream& errorStream);
-
 }

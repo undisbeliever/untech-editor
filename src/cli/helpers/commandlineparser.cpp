@@ -8,6 +8,7 @@
 #include "version.h"
 #include "models/common/iterators.h"
 #include "models/common/string.h"
+#include "models/common/u8strings.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -212,7 +213,7 @@ bool Parser::parseSwitch(const Argument& argument, bool isShort, const char* nex
         return true;
 
     case OptionType::UNSIGNED: {
-        const auto n = String::toUint32(nextArg);
+        const auto n = String::toUint32(convert_old_string(nextArg));
         if (n) {
             _options[argument.longName] = n.value();
         }

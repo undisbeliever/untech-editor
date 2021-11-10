@@ -918,7 +918,7 @@ void AbstractMetaTileEditorGui::animationButtons()
     }
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted("Pause/Play Animations");
+        ImGui::TextUnformatted(u8"Pause/Play Animations");
         ImGui::Text("Tileset Frame: %u", unsigned(_tilesetShader.tilesetFrame()));
         ImGui::Text("Palette Frame: %u", unsigned(_tilesetShader.paletteFrame()));
         ImGui::EndTooltip();

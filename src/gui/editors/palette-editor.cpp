@@ -94,10 +94,10 @@ void PaletteEditorGui::paletteWindow()
     assert(_data);
     auto& palette = _data->data;
 
-    const std::string windowName = palette.name + " Palette###Palette"s;
+    const std::u8string windowName = palette.name + u8" Palette###Palette"s;
 
     ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(windowName.c_str())) {
+    if (ImGui::Begin(u8Cast(windowName))) {
 
         {
             ImGui::InputIdstring("Name", &palette.name);

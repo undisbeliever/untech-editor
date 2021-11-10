@@ -19,13 +19,13 @@ class SceneError : public GenericListError {
 public:
     const SceneErrorType type;
 
-    SceneError(const SceneErrorType type, unsigned pIndex, std::string&& message)
+    SceneError(const SceneErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {
     }
 
-    SceneError(const SceneErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+    SceneError(const SceneErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : GenericListError(pIndex, cIndex, std::move(message))
         , type(type)
     {

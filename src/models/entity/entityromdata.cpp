@@ -19,21 +19,21 @@ namespace UnTech::Entity {
 
 const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 6;
 
-#define BASE_ROM_STRUCT "BaseEntityRomStruct"
-#define ENTITY_ROM_STRUCT_NAMESPACE "Project.EntityRomStructs"
-static const idstring baseRomStruct = "BASE_ROM_STRUCT"_id;
+#define BASE_ROM_STRUCT u8"BaseEntityRomStruct"
+#define ENTITY_ROM_STRUCT_NAMESPACE u8"Project.EntityRomStructs"
+static const idstring baseRomStruct = u8"BASE_ROM_STRUCT"_id;
 
 const std::unordered_set<idstring> INVALID_NAMES{
-    "functionTable"_id,
-    "defaultPalette"_id,
-    "initialProjectileId"_id,
-    "initialListId"_id,
-    "frameSetId"_id,
-    "Players"_id,
-    "Projectiles"_id,
-    "size"_id,
-    "count"_id,
-    "__STRUCT__"_id,
+    u8"functionTable"_id,
+    u8"defaultPalette"_id,
+    u8"initialProjectileId"_id,
+    u8"initialListId"_id,
+    u8"frameSetId"_id,
+    u8"Players"_id,
+    u8"Projectiles"_id,
+    u8"size"_id,
+    u8"count"_id,
+    u8"__STRUCT__"_id,
     baseRomStruct,
 };
 
@@ -42,20 +42,20 @@ const std::unordered_set<idstring> INVALID_NAMES{
 using FunctionTableMap = std::unordered_map<idstring,
                                             std::pair<const EntityFunctionTable&, const FieldList&>>;
 
-static const char* entityTypeString(const EntityType entityType)
+static const char8_t* entityTypeString(const EntityType entityType)
 {
     switch (entityType) {
     case EntityType::ENTITY:
-        return "Entity";
+        return u8"Entity";
 
     case EntityType::PROJECTILE:
-        return "Projectile";
+        return u8"Projectile";
 
     case EntityType::PLAYER:
-        return "Player";
+        return u8"Player";
     }
 
-    return "";
+    return u8"";
 }
 
 static unsigned fieldSize(DataType type)
@@ -82,39 +82,39 @@ static unsigned fieldSize(DataType type)
     abort();
 }
 
-static const char* fieldComment(DataType type)
+static const char8_t* fieldComment(DataType type)
 {
     switch (type) {
     case DataType::UINT8:
-        return "uint8";
+        return u8"uint8";
 
     case DataType::UINT16:
-        return "uint16";
+        return u8"uint16";
 
     case DataType::UINT24:
-        return "uint24";
+        return u8"uint24";
 
     case DataType::UINT32:
-        return "uint32";
+        return u8"uint32";
 
     case DataType::SINT8:
-        return "sint8";
+        return u8"sint8";
 
     case DataType::SINT16:
-        return "sint16";
+        return u8"sint16";
 
     case DataType::SINT24:
-        return "sint24";
+        return u8"sint24";
 
     case DataType::SINT32:
-        return "sint32";
+        return u8"sint32";
     }
 
     fputs("Invalid DataType\n", stderr);
     abort();
 }
 
-static bool validateFieldValue(DataType type, const std::string& str)
+static bool validateFieldValue(DataType type, const std::u8string& str)
 {
     auto testUnsigned = [&](uint32_t max) -> bool {
         const auto v = String::decimalOrHexToUint32(str);
@@ -164,18 +164,18 @@ static bool validate(const StructField& input, const EntityRomStruct& romStruct,
     };
 
     if (input.name.isValid() == false) {
-        addError("Missing field name");
+        addError(u8"Missing field name");
     }
     if (INVALID_NAMES.find(input.name) != INVALID_NAMES.end()) {
-        addError("Invalid field name ", input.name);
+        addError(u8"Invalid field name ", input.name);
     }
-    if (input.comment.find('\n') != std::string::npos) {
-        addError("Comment must not contain a new line");
+    if (input.comment.find('\n') != std::u8string::npos) {
+        addError(u8"Comment must not contain a new line");
     }
 
     if (input.defaultValue.empty() == false) {
         if (!validateFieldValue(input.type, input.defaultValue)) {
-            addError("Invalid defaultValue");
+            addError(u8"Invalid defaultValue");
         }
     }
 
@@ -196,22 +196,22 @@ static bool validate(const EntityRomStruct& input, const unsigned structIndex, E
     };
 
     if (input.name.isValid() == false) {
-        addError("Expected name");
+        addError(u8"Expected name");
     }
     if (INVALID_NAMES.find(input.name) != INVALID_NAMES.end()) {
-        addError("Invalid name ", input.name);
+        addError(u8"Invalid name ", input.name);
     }
     if (input.name == baseRomStruct) {
-        addError("Name cannot be " BASE_ROM_STRUCT);
+        addError(u8"Name cannot be " BASE_ROM_STRUCT);
     }
     if (input.parent.isValid() && input.parent == input.name) {
-        addError("Parent cannot refer to self");
+        addError(u8"Parent cannot refer to self");
     }
     if (input.fields.empty()) {
-        addError("Expected at least one field");
+        addError(u8"Expected at least one field");
     }
-    if (input.comment.find('\n') != std::string::npos) {
-        addError("Comment must not contain a new line");
+    if (input.comment.find('\n') != std::u8string::npos) {
+        addError(u8"Comment must not contain a new line");
     }
 
     for (auto it = input.fields.cbegin(); it != input.fields.cend(); it++) {
@@ -222,7 +222,7 @@ static bool validate(const EntityRomStruct& input, const unsigned structIndex, E
         if (fieldValid) {
             auto dupIt = std::find_if(input.fields.begin(), it, [&](auto& f) { return f.name == field.name; });
             if (dupIt != it) {
-                addStructFieldError(index, "Duplicate field name detected: ", field.name);
+                addStructFieldError(index, u8"Duplicate field name detected: ", field.name);
             }
         }
     }
@@ -240,21 +240,21 @@ static bool validate(const EntityFunctionTable& input, const unsigned ftIndex, c
     };
 
     if (input.name.isValid() == false) {
-        addError("Missing EntityFunctionTable name");
+        addError(u8"Missing EntityFunctionTable name");
     }
     if (INVALID_NAMES.find(input.name) != INVALID_NAMES.end()) {
-        addError("Invalid EntityFunctionTable name ", input.name);
+        addError(u8"Invalid EntityFunctionTable name ", input.name);
     }
     if (input.exportOrder.isValid() == false) {
-        addError("Missing export order");
+        addError(u8"Missing export order");
     }
-    if (input.comment.find('\n') != std::string::npos) {
-        addError("Comment must not contain a new line");
+    if (input.comment.find('\n') != std::u8string::npos) {
+        addError(u8"Comment must not contain a new line");
     }
 
     if (input.exportOrder.isValid()) {
         if (not project.frameSetExportOrders.find(input.exportOrder)) {
-            addError("Cannot find FrameSet Export Order ", input.exportOrder);
+            addError(u8"Cannot find FrameSet Export Order ", input.exportOrder);
         }
     }
 
@@ -271,33 +271,33 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
     };
 
     if (input.name.isValid() == false) {
-        addError("Expected name");
+        addError(u8"Expected name");
     }
     if (INVALID_NAMES.find(input.name) != INVALID_NAMES.end()) {
-        addError("Invalid name ", input.name);
+        addError(u8"Invalid name ", input.name);
     }
     if (input.functionTable.isValid() == false) {
-        addError("Missing functionTable");
+        addError(u8"Missing functionTable");
     }
     if (entityType != EntityType::PLAYER) {
         if (input.initialListId.isValid() == false) {
-            addError("Missing initialListId");
+            addError(u8"Missing initialListId");
         }
     }
     if (input.frameSetId.isValid() == false) {
-        addError("Missing frameSetId");
+        addError(u8"Missing frameSetId");
     }
     if (input.displayFrame.isValid() == false) {
-        addError("Missing displayFrame");
+        addError(u8"Missing displayFrame");
     }
-    if (input.comment.find('\n') != std::string::npos) {
-        addError("Comment must not contain a new line");
+    if (input.comment.find('\n') != std::u8string::npos) {
+        addError(u8"Comment must not contain a new line");
     }
 
     if (input.initialProjectileId.isValid()) {
         const auto& projectiles = project.entityRomData.projectiles;
         if (not projectiles.find(input.initialProjectileId)) {
-            addError("Unable to find projectile ", input.initialProjectileId);
+            addError(u8"Unable to find projectile ", input.initialProjectileId);
         }
     }
 
@@ -305,7 +305,7 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
         auto& listIds = project.entityRomData.listIds;
         bool listIdValid = std::find(listIds.begin(), listIds.end(), input.initialListId) != listIds.end();
         if (!listIdValid) {
-            addError("Unable to find listId ", input.initialListId);
+            addError(u8"Unable to find listId ", input.initialListId);
         }
     }
 
@@ -315,7 +315,7 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
         const FieldList& ftFields = fieldsIt->second.second;
 
         if (ft.entityType != entityType) {
-            addError("Function Table is the wrong type (expected ", entityTypeString(entityType), " but ", ft.name, " is a ", entityTypeString(ft.entityType), ")");
+            addError(u8"Function Table is the wrong type (expected ", entityTypeString(entityType), u8" but ", ft.name, u8" is a ", entityTypeString(ft.entityType), u8")");
         }
 
         for (auto& field : ftFields) {
@@ -324,19 +324,19 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
                 const auto& value = fIt->second;
                 if (value.empty()) {
                     if (field.defaultValue.empty()) {
-                        addError("Missing field ", field.name);
+                        addError(u8"Missing field ", field.name);
                     }
                 }
                 else {
                     if (validateFieldValue(field.type, value) == false) {
-                        addError("Invalid field ", field.name, ": ", value);
+                        addError(u8"Invalid field ", field.name, u8": ", value);
                     }
                 }
             }
         }
     }
     else {
-        addError("Unable to retrieve field list for functionTable ", input.functionTable);
+        addError(u8"Unable to retrieve field list for functionTable ", input.functionTable);
     }
 
     if (input.frameSetId.isValid()) {
@@ -351,14 +351,14 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
                 if (fieldsIt != ftMap.end()) {
                     const EntityFunctionTable& fTable = fieldsIt->second.first;
                     if (fTable.exportOrder != frameSet.exportOrder) {
-                        addError("export order for frameSet ", frameSet.name, " is not ", fTable.exportOrder);
+                        addError(u8"export order for frameSet ", frameSet.name, u8" is not ", fTable.exportOrder);
                     }
                 }
                 if (input.displayFrame.isValid() && !frameSet.frames.find(input.displayFrame)) {
-                    addError("Unable to find frame ", input.displayFrame);
+                    addError(u8"Unable to find frame ", input.displayFrame);
                 }
                 if (input.defaultPalette >= nPalettes) {
-                    addError("Invalid defaultPalette (value must be < ", nPalettes, ")");
+                    addError(u8"Invalid defaultPalette (value must be < ", nPalettes, u8")");
                 }
             };
 
@@ -370,11 +370,11 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
                 testFrameSet(*fs.msFrameSet, fs.msFrameSet->palettes.size());
             }
             else {
-                addError("Unable to read frameSet ", input.frameSetId);
+                addError(u8"Unable to read frameSet ", input.frameSetId);
             }
         }
         else {
-            addError("Unable to find frameSet ", input.frameSetId);
+            addError(u8"Unable to find frameSet ", input.frameSetId);
         }
     }
 
@@ -394,22 +394,22 @@ bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
     };
 
     if (listIds.empty()) {
-        addError("Expected at least one Entity List Id");
+        addError(u8"Expected at least one Entity List Id");
     }
 
     for (auto [index, listId] : const_enumerate(listIds)) {
         if (listId.isValid() == false) {
-            addListIdError(index, "Missing listId name");
+            addListIdError(index, u8"Missing listId name");
             continue;
         }
         if (INVALID_NAMES.find(listId) != INVALID_NAMES.end()) {
-            addListIdError(index, "Invalid ListId name ", listId);
+            addListIdError(index, u8"Invalid ListId name ", listId);
             continue;
         }
 
         auto count = std::count(listIds.cbegin(), listIds.cbegin() + index, listId);
         if (count == 1) {
-            addListIdError(index, "Duplicate listId detected: ", listId);
+            addListIdError(index, u8"Duplicate listId detected: ", listId);
         }
     }
 
@@ -442,7 +442,7 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
         }
         auto it = fieldMap.find(s.name);
         if (it != fieldMap.end()) {
-            err.addError(entityRomStructError(s, structIndex, "Duplicate name detected"));
+            err.addError(entityRomStructError(s, structIndex, u8"Duplicate name detected"));
             return true;
         }
 
@@ -466,7 +466,7 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
             for (auto f : const_enumerate(s.fields)) {
                 bool overridesField = std::any_of(parentFields.begin(), parentFields.end(), [&](const auto& o) { return f.second.name == o.name; });
                 if (overridesField) {
-                    err.addError(structFieldError(s, structIndex, f.first, "Cannot override field in parent struct"));
+                    err.addError(structFieldError(s, structIndex, f.first, u8"Cannot override field in parent struct"));
                 }
             }
 
@@ -488,7 +488,7 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
                 const EntityRomStruct& s = structs.at(structIndex);
 
                 if (s.parent != s.name) {
-                    err.addError(entityRomStructError(s, structIndex, "Cannot find parent struct ", s.parent));
+                    err.addError(entityRomStructError(s, structIndex, u8"Cannot find parent struct ", s.parent));
                 }
             }
             return fieldMap;
@@ -521,13 +521,13 @@ static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunc
 
         auto fieldsIt = structFieldMap.find(ft.entityStruct);
         if (fieldsIt == structFieldMap.end()) {
-            addError(ft, i, "Unable to find entity struct for functionTable ", ft.entityStruct);
+            addError(ft, i, u8"Unable to find entity struct for functionTable ", ft.entityStruct);
             continue;
         }
 
         auto s = ftFieldMap.emplace(ft.name, FunctionTableMap::mapped_type(ft, fieldsIt->second));
         if (s.second == false) {
-            addError(ft, i, "Duplicate functionTable detected");
+            addError(ft, i, u8"Duplicate functionTable detected");
         }
     }
 
@@ -536,63 +536,63 @@ static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunc
 
 static void writeIncFile_ListIds(StringStream& out, const std::vector<idstring>& listIds)
 {
-    out.write("namespace EntityLists {\n"
-              "\tcreateEnum()\n");
+    out.write(u8"namespace EntityLists {\n"
+              u8"\tcreateEnum()\n");
 
     for (auto& l : listIds) {
-        out.write("\t\tenum(", l, ")\n");
+        out.write(u8"\t\tenum(", l, u8")\n");
     }
 
-    out.write("\tendEnum()\n"
-              "}\n"
-              "\n");
+    out.write(u8"\tendEnum()\n"
+              u8"}\n"
+              u8"\n");
 }
 
 static void writeIncFile_StructField(StringStream& out, const StructField& f)
 {
-    out.write("\t\tfield(", f.name, ", ", fieldSize(f.type), ") // ", fieldComment(f.type));
+    out.write(u8"\t\tfield(", f.name, u8", ", fieldSize(f.type), u8") // ", fieldComment(f.type));
     if (!f.comment.empty()) {
-        out.write(" ", f.comment);
+        out.write(u8" ", f.comment);
     }
-    out.write("\n");
+    out.write(u8"\n");
 }
 
 // Have to include the BaseRomStruct in the inc file to prevent a
 // dependency error when assembling the project.
 static void writeIncFile_BaseRomStruct(StringStream& out)
 {
-    out.write("namespace " ENTITY_ROM_STRUCT_NAMESPACE "." BASE_ROM_STRUCT " {\n",
-              "\tbasestruct_offset(", CompiledEntityRomData::ROM_DATA_LABEL, ")\n");
+    out.write(u8"namespace " ENTITY_ROM_STRUCT_NAMESPACE u8"." BASE_ROM_STRUCT u8" {\n",
+              u8"\tbasestruct_offset(", CompiledEntityRomData::ROM_DATA_LABEL, u8")\n");
 
-    auto writeField = [&](const char* name, DataType type) {
-        writeIncFile_StructField(out, StructField{ idstring::fromString(name), type, std::string{}, std::string{} });
+    auto writeField = [&](std::u8string_view name, DataType type) {
+        writeIncFile_StructField(out, StructField{ idstring::fromString(name), type, std::u8string{}, std::u8string{} });
     };
 
     // If you make any changes to this code you MUST ALSO UPDATE the
     // `processEntry` function.
 
-    writeField("defaultPalette", DataType::UINT8);
-    writeField("initialProjectileId", DataType::UINT8);
-    writeField("initialListId", DataType::UINT8);
-    writeField("frameSetId", DataType::UINT16);
+    writeField(u8"defaultPalette", DataType::UINT8);
+    writeField(u8"initialProjectileId", DataType::UINT8);
+    writeField(u8"initialListId", DataType::UINT8);
+    writeField(u8"frameSetId", DataType::UINT16);
 
-    out.write("\tendstruct()\n"
-              "}\n");
+    out.write(u8"\tendstruct()\n"
+              u8"}\n");
 }
 
 static void writeIncFile_RomStruct(StringStream& out, const EntityRomStruct& s, bool hasChild)
 {
     const idstring& parent = s.parent.isValid() ? s.parent : baseRomStruct;
-    const char* structType = hasChild ? "basestruct" : "childstruct";
+    const char8_t* structType = hasChild ? u8"basestruct" : u8"childstruct";
 
-    out.write("namespace " ENTITY_ROM_STRUCT_NAMESPACE ".", s.name, " {\n\t",
-              structType, " (" ENTITY_ROM_STRUCT_NAMESPACE ".", parent, ")\n");
+    out.write(u8"namespace " ENTITY_ROM_STRUCT_NAMESPACE u8".", s.name, u8" {\n\t",
+              structType, u8" (" ENTITY_ROM_STRUCT_NAMESPACE u8".", parent, u8")\n");
 
     for (auto& f : s.fields) {
         writeIncFile_StructField(out, f);
     }
-    out.write("\tendstruct()\n"
-              "}\n");
+    out.write(u8"\tendstruct()\n"
+              u8"}\n");
 }
 
 // assumes inputStructs are valid
@@ -633,20 +633,20 @@ static void writeIncFile_RomStructs(StringStream& out, const NamedList<EntityRom
         toProcess.erase(it, toProcess.end());
     }
 
-    out.write("\n");
+    out.write(u8"\n");
 }
 
-static const char* prefixForEntityType(const EntityType entityType)
+static const char8_t* prefixForEntityType(const EntityType entityType)
 {
     switch (entityType) {
     case EntityType::ENTITY:
-        return "Entities.";
+        return u8"Entities.";
 
     case EntityType::PROJECTILE:
-        return "Entities.Projectiles.";
+        return u8"Entities.Projectiles.";
 
     case EntityType::PLAYER:
-        return "Entities.Players.";
+        return u8"Entities.Players.";
     }
 
     abort();
@@ -656,31 +656,31 @@ static void writeIncFile_FunctionTableDefines(StringStream& out, const NamedList
 {
     for (const auto& ft : functionTables) {
         const idstring& structName = ft.entityStruct.isValid() ? ft.entityStruct : baseRomStruct;
-        out.write("define ", prefixForEntityType(ft.entityType), ft.name, ".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE ".", structName,
-                  "\ndefine ", prefixForEntityType(ft.entityType), ft.name, ".ExportOrder = MSEO.", ft.exportOrder, "\n");
+        out.write(u8"define ", prefixForEntityType(ft.entityType), ft.name, u8".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE u8".", structName,
+                  u8"\ndefine ", prefixForEntityType(ft.entityType), ft.name, u8".ExportOrder = MSEO.", ft.exportOrder, u8"\n");
     }
 
-    out.write("\n");
+    out.write(u8"\n");
 }
 
 static void writeIncFile_EntryIds(StringStream& out,
-                                  const std::string& label, const NamedList<EntityRomEntry>& entries)
+                                  const std::u8string& label, const NamedList<EntityRomEntry>& entries)
 {
-    out.write("namespace ", label, " {\n",
-              "\tconstant\tcount = ", entries.size(), "\n\n");
+    out.write(u8"namespace ", label, u8" {\n",
+              u8"\tconstant\tcount = ", entries.size(), u8"\n\n");
 
     for (auto [i, entry] : const_enumerate(entries)) {
-        out.write("\tconstant\t", entry.name, " = ", i, "\n");
+        out.write(u8"\tconstant\t", entry.name, u8" = ", i, u8"\n");
     }
 
-    out.write("}\n"
-              "\n");
+    out.write(u8"}\n"
+              u8"\n");
 }
 
 static void writeIncFile_FunctionTableData(StringStream& out, const EntityType& entityType, const NamedList<EntityRomEntry>& entries)
 {
     for (auto& entry : entries) {
-        out.write("\tdw\t", prefixForEntityType(entityType), entry.functionTable, ".FunctionTable\n");
+        out.write(u8"\tdw\t", prefixForEntityType(entityType), entry.functionTable, u8".FunctionTable\n");
     }
 }
 
@@ -718,7 +718,7 @@ static void processEntry(const EntityType entityType,
 
     for (const StructField& field : ftMap.at(entry.functionTable).second) {
         auto it = entry.fields.find(field.name);
-        const std::string& valueStr = it != entry.fields.end() ? it->second : field.defaultValue;
+        const std::u8string& valueStr = it != entry.fields.end() ? it->second : field.defaultValue;
 
         auto writeUnsigned = [&](const unsigned length) {
             const auto value = String::decimalOrHexToUint32(valueStr);
@@ -790,8 +790,8 @@ static void processRomData(const EntityType entityType,
     }
 }
 
-const std::string CompiledEntityRomData::ROM_DATA_LIST_LABEL("Project.EntityRomDataList");
-const std::string CompiledEntityRomData::ROM_DATA_LABEL("Project.EntityRomData");
+const std::u8string CompiledEntityRomData::ROM_DATA_LIST_LABEL(u8"Project.EntityRomDataList");
+const std::u8string CompiledEntityRomData::ROM_DATA_LABEL(u8"Project.EntityRomData");
 
 std::shared_ptr<const CompiledEntityRomData>
 compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err)
@@ -799,10 +799,10 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     const auto oldErrorCount = err.errorCount();
 
     if (data.entities.size() > MAX_N_ENTITY_ENTRIES) {
-        err.addErrorString("Too many entities (", data.entities.size(), ", max: ", MAX_N_ENTITY_ENTRIES, ")");
+        err.addErrorString(u8"Too many entities (u8", data.entities.size(), u8", max: ", MAX_N_ENTITY_ENTRIES, u8")");
     }
     if (data.projectiles.size() > MAX_N_ENTITY_ENTRIES) {
-        err.addErrorString("Too many projectiles (", data.projectiles.size(), ", max: ", MAX_N_ENTITY_ENTRIES, ")");
+        err.addErrorString(u8"Too many projectiles (u8", data.projectiles.size(), u8", max: ", MAX_N_ENTITY_ENTRIES, u8")");
     }
 
     auto ret = std::make_shared<CompiledEntityRomData>();
@@ -831,20 +831,20 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     StringStream functionTableData;
 
     writeIncFile_ListIds(defines, data.listIds);
-    writeIncFile_EntryIds(defines, "Project.EntityIds", data.entities);
-    writeIncFile_EntryIds(defines, "Project.ProjectileIds", data.projectiles);
-    writeIncFile_EntryIds(defines, "Project.PlayerIds", data.players);
+    writeIncFile_EntryIds(defines, u8"Project.EntityIds", data.entities);
+    writeIncFile_EntryIds(defines, u8"Project.ProjectileIds", data.projectiles);
+    writeIncFile_EntryIds(defines, u8"Project.PlayerIds", data.players);
     writeIncFile_RomStructs(defines, data.structs);
     writeIncFile_FunctionTableDefines(defines, data.functionTables);
 
-    functionTableData.write("code()\n"
-                            "Project.EntityFunctionTables:\n");
+    functionTableData.write(u8"code()\n"
+                            u8"Project.EntityFunctionTables:\n");
     writeIncFile_FunctionTableData(functionTableData, EntityType::ENTITY, data.entities);
     writeIncFile_FunctionTableData(functionTableData, EntityType::PROJECTILE, data.projectiles);
     writeIncFile_FunctionTableData(functionTableData, EntityType::PLAYER, data.players);
 
-    functionTableData.write("constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"
-                            "\n\n");
+    functionTableData.write(u8"constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"
+                            u8"\n\n");
 
     const auto indexSize = (data.entities.size() + data.projectiles.size() + data.players.size()) * 2;
     ret->romDataIndexes.reserve(indexSize);

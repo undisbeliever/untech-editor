@@ -18,7 +18,7 @@ using namespace UnTech::Project;
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech Compiler",
-    ProjectFile::FILE_EXTENSION + " file",
+    "utproject file",
     {
         { 0, "output-inc", OT::FILENAME, true, {}, "output inc file" },
         { 0, "output-bin", OT::FILENAME, true, {}, "output bin file" },
@@ -38,12 +38,14 @@ int compile(const CommandLine::Parser& args)
     std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilePath);
     project->loadAllFiles();
 
-    StringStream errorBuffer;
+    StringStream errorStream;
 
-    std::unique_ptr<ProjectOutput> output = compileProject(*project, relativeBinaryFilePath, errorBuffer);
+    std::unique_ptr<ProjectOutput> output = compileProject(*project, relativeBinaryFilePath, errorStream);
 
-    if (errorBuffer.size() != 0) {
-        std::cerr << errorBuffer.string_view();
+    // Print errors
+    if (errorStream.size() != 0) {
+        const std::u8string_view s = errorStream.string_view();
+        std::cerr.write(reinterpret_cast<const char*>(s.data()), s.size());
     }
 
     if (!output) {

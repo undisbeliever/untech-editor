@@ -15,7 +15,7 @@ namespace UnTech::MetaSprite {
 // Declared in `spriteimporter-serializer.cpp`
 extern const EnumMap<TilesetType> tilesetTypeEnumMap;
 
-inline const std::string& ttString(const TilesetType tt)
+inline const std::u8string& ttString(const TilesetType tt)
 {
     return tilesetTypeEnumMap.nameOf(tt);
 }
@@ -23,7 +23,7 @@ inline const std::string& ttString(const TilesetType tt)
 inline TilesetType smallestFixedTilesetType(unsigned tilesetSize)
 {
     if (tilesetSize > 16) {
-        throw invalid_argument("too many tiles");
+        throw invalid_argument(u8"too many tiles");
     }
     else if (tilesetSize > 8) {
         return TilesetType::TWO_ROWS_FIXED;

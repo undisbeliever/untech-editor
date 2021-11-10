@@ -35,7 +35,7 @@ int process(const CommandLine::Parser& args)
     const std::filesystem::path& filename = args.inputFilename();
 
     if (filename.extension() != sfcExtension) {
-        throw runtime_error("Invalid file extension, expected a .sfc file");
+        throw runtime_error(u8"Invalid file extension, expected a .sfc file");
     }
 
     bool verbose = args.options().at("verbose").boolean();
@@ -48,14 +48,14 @@ int process(const CommandLine::Parser& args)
         memoryMap = MemoryMap::HIROM;
     }
     else {
-        throw runtime_error("expected --lorom or --hirom");
+        throw runtime_error(u8"expected --lorom or --hirom");
     }
 
     std::vector<uint8_t> rom = File::readBinaryFile(filename, 16 * 1024 * 1024);
 
     // prevents user from accidentally corrupting a file that was not made by untech-engine.
     if (isHeaderValid(rom, memoryMap) == false) {
-        throw runtime_error("Could not find header. Header must match `snes_header.inc`");
+        throw runtime_error(u8"Could not find header. Header must match `snes_header.inc`");
     }
 
     uint16_t oldChecksum = readChecksum(rom, memoryMap);
@@ -66,8 +66,9 @@ int process(const CommandLine::Parser& args)
 
     if (oldChecksum != newChecksum || oldComplement != newComplement) {
         if (verbose) {
-            std::cout << stringBuilder("old checksum: 0x", hex_4(oldChecksum), " (complement 0x", hex_4(oldComplement), ")\n",
-                                       "new checksum: 0x", hex_4(newChecksum), " (complement 0x", hex_4(newComplement), ")\n");
+            const auto msg = stringBuilder(u8"old checksum: 0x", hex_4(oldChecksum), u8" (complement 0x", hex_4(oldComplement), u8")\n",
+                                           u8"new checksum: 0x", hex_4(newChecksum), u8" (complement 0x", hex_4(newComplement), u8")\n");
+            std::cout.write(reinterpret_cast<const char*>(msg.data()), msg.size());
         }
 
         writeChecksum(filename, newChecksum, memoryMap);
@@ -78,7 +79,8 @@ int process(const CommandLine::Parser& args)
     }
     else {
         if (verbose) {
-            std::cout << stringBuilder("checksum ok: 0x", hex_4(newChecksum), " (complement 0x", hex_4(newComplement), ")\n");
+            const auto msg = stringBuilder(u8"checksum ok: 0x", hex_4(newChecksum), u8" (complement 0x", hex_4(newComplement), u8")\n");
+            std::cout.write(reinterpret_cast<const char*>(msg.data()), msg.size());
         }
     }
 

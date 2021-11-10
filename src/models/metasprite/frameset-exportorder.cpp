@@ -58,7 +58,7 @@ bool FrameSetExportOrder::ExportName::animationExists(const NamedList<Animation:
 static bool validateAlternativesUnique(const bool isStillFrame,
                                        const unsigned enIndex,
                                        const std::vector<NameReference>& alts,
-                                       const std::string& typeName,
+                                       const std::u8string& typeName,
                                        const idstring& aName,
                                        UnTech::ErrorList& err)
 {
@@ -73,12 +73,12 @@ static bool validateAlternativesUnique(const bool isStillFrame,
         const NameReference& alt = *it;
 
         if (alt.name.isValid() == false) {
-            addAltError(index, "Missing alternative name");
+            addAltError(index, u8"Missing alternative name");
         }
 
         auto jit = std::find(alts.begin(), it, alt);
         if (jit != it) {
-            addAltError(index, "Duplicate ", typeName, " alternative for ", aName, ": ", alt.name, alt.flipStringSuffix());
+            addAltError(index, u8"Duplicate ", typeName, u8" alternative for ", aName, u8": ", alt.name, alt.flipStringSuffix());
         }
     }
 
@@ -94,36 +94,36 @@ bool validateExportOrder(const FrameSetExportOrder& input, ErrorList& err)
     };
 
     if (input.name.isValid() == false) {
-        addError("Missing export order name");
+        addError(u8"Missing export order name");
     }
 
     if (input.stillFrames.empty() && input.animations.empty()) {
-        addError("Expected at least one still frame or animation");
+        addError(u8"Expected at least one still frame or animation");
     }
 
     if (input.stillFrames.size() > MAX_EXPORT_NAMES) {
-        addError("Too many stillFrames");
+        addError(u8"Too many stillFrames");
     }
 
     if (input.animations.size() > MAX_EXPORT_NAMES) {
-        addError("Too many animations");
+        addError(u8"Too many animations");
     }
 
-    valid &= validateNamesUnique(input.stillFrames, "export frame", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.stillFrames, u8"export frame", [&](unsigned i, auto... msg) {
         err.addError(exportNameError(true, i, msg...));
     });
-    valid &= validateNamesUnique(input.animations, "export animation", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.animations, u8"export animation", [&](unsigned i, auto... msg) {
         err.addError(exportNameError(false, i, msg...));
     });
 
     unsigned enIndex = 0;
 
     for (auto& sf : input.stillFrames) {
-        valid &= validateAlternativesUnique(true, enIndex, sf.alternatives, "export frame", sf.name, err);
+        valid &= validateAlternativesUnique(true, enIndex, sf.alternatives, u8"export frame", sf.name, err);
         enIndex++;
     }
     for (auto& ani : input.animations) {
-        valid &= validateAlternativesUnique(false, enIndex, ani.alternatives, "export animation", ani.name, err);
+        valid &= validateAlternativesUnique(false, enIndex, ani.alternatives, u8"export animation", ani.name, err);
         enIndex++;
     }
 
@@ -138,14 +138,14 @@ static bool _testFrameSet(const FrameSetExportOrder& eo, const FrameSetT& frameS
 
     for (auto& en : eo.stillFrames) {
         if (en.frameExists(frameSet.frames) == false) {
-            errorList.addErrorString("Cannot find frame ", en.name);
+            errorList.addErrorString(u8"Cannot find frame ", en.name);
             valid = false;
         }
     }
 
     for (auto& en : eo.animations) {
         if (en.animationExists(frameSet.animations) == false) {
-            errorList.addErrorString("Cannot find animation ", en.name);
+            errorList.addErrorString(u8"Cannot find animation ", en.name);
             valid = false;
         }
     }

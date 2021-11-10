@@ -10,6 +10,7 @@
 #include "gui/windows/about-popup.h"
 #include "gui/windows/fps-window.h"
 #include "gui/windows/message-box.h"
+#include "models/common/string.h"
 #include <iostream>
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
@@ -57,7 +58,7 @@ static std::filesystem::path executablePath()
 
 static void setIniFilename(ImGuiIO& io)
 {
-    static std::string iniFilename;
+    static std::u8string iniFilename;
 
     io.IniFilename = nullptr;
 
@@ -67,9 +68,9 @@ static void setIniFilename(ImGuiIO& io)
     if (p.filename().stem() == "untech-editor-gui") {
         const auto dir = p.parent_path();
 
-        iniFilename = (dir / "untech-editor-gui.ini").string();
+        iniFilename = (dir / "untech-editor-gui.ini").u8string();
 
-        io.IniFilename = iniFilename.c_str();
+        io.IniFilename = u8Cast(iniFilename);
     }
 }
 
@@ -121,11 +122,10 @@ static void centralDockSpace()
 
 static void processProgramArguments(int argc, const char* const argv[])
 {
-    using namespace std::string_literals;
     using namespace UnTech::Gui;
 
-    const std::string argument = argc > 1 ? argv[1] : "";
-    if (argc > 2 || argument == "--help"s) {
+    const std::string_view argument = argc > 1 ? argv[1] : "";
+    if (argc > 2 || argument == "--help") {
         std::cout << "Usage " << argv[0] << " <filename>";
         exit(EXIT_SUCCESS);
     }

@@ -137,8 +137,8 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
 
             ImGui::PushID(i);
 
-            const std::string selLabel = std::to_string(engineId++);
-            ImGui::Selectable(selLabel.c_str(), &_data->sel, i);
+            const std::u8string selLabel = stringBuilder(engineId++);
+            ImGui::Selectable(u8Cast(selLabel), &_data->sel, i);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);

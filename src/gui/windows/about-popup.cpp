@@ -115,7 +115,7 @@ void processGui()
         ImGui::Spacing();
 
         ImGui::Indent();
-        ImGui::TextUnformatted("Copyright (c) 2016 - 2021, Marcus Rowe\n"
+        ImGui::TextUnformatted(u8"Copyright (c) 2016 - 2021, Marcus Rowe\n"
                                "\n"
                                "Licensed under The MIT License\n"
                                "https://github.com/undisbeliever/untech-editor/blob/master/LICENSE  \n\n"s);
@@ -124,47 +124,47 @@ void processGui()
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
-        ImGui::TextUnformatted("\nThird Party Libraries:"s);
+        ImGui::TextUnformatted(u8"\nThird Party Libraries:"s);
         ImGui::Indent();
 
-        ImGui::TextUnformatted("LodePNG"s);
+        ImGui::TextUnformatted(u8"LodePNG"s);
         ImGui::Indent();
-        ImGui::TextUnformatted("http://lodev.org/lodepng/\n"
+        ImGui::TextUnformatted(u8"http://lodev.org/lodepng/\n"
                                "Copyright (c) 2005-2020 Lode Vandevenne\n"
                                "zlib License, https://github.com/lvandeve/lodepng/blob/master/LICENSE  \n\n");
         ImGui::Unindent();
 
-        ImGui::TextUnformatted("LZ4 Library"s);
+        ImGui::TextUnformatted(u8"LZ4 Library"s);
         ImGui::Indent();
-        ImGui::TextUnformatted("https://lz4.github.io/lz4/\n"
+        ImGui::TextUnformatted(u8"https://lz4.github.io/lz4/\n"
                                "Copyright (c) 2011-2020, Yann Collet\n"
                                "BSD 2-Clause License, https://github.com/lz4/lz4/blob/dev/lib/LICENSE  \n\n"s);
         ImGui::Unindent();
 
-        ImGui::TextUnformatted("Dear ImGui"s);
+        ImGui::TextUnformatted(u8"Dear ImGui"s);
         ImGui::Indent();
-        ImGui::TextUnformatted("https://github.com/ocornut/imgui\n"
+        ImGui::TextUnformatted(u8"https://github.com/ocornut/imgui\n"
                                "Copyright (c) 2014-2021 Omar Cornut\n"
                                "MIT License, https://github.com/ocornut/imgui/blob/master/LICENSE.txt  \n\n"s);
         ImGui::Unindent();
 
-        ImGui::TextUnformatted("imgui-filebrowser"s);
+        ImGui::TextUnformatted(u8"imgui-filebrowser"s);
         ImGui::Indent();
-        ImGui::TextUnformatted("https://github.com/AirGuanZ/imgui-filebrowser\n"
+        ImGui::TextUnformatted(u8"https://github.com/AirGuanZ/imgui-filebrowser\n"
                                "Copyright (c) 2019-2020 Zhuang Guan\n"
                                "MIT License, https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE  \n\n"s);
         ImGui::Unindent();
 
 #ifdef IMGUI_IMPL_OPENGL_LOADER_GL3W
-        ImGui::TextUnformatted("gl3w"s);
+        ImGui::TextUnformatted(u8"gl3w"s);
         ImGui::Indent();
-        ImGui::TextUnformatted("https://github.com/skaslev/gl3w\n"
+        ImGui::TextUnformatted(u8"https://github.com/skaslev/gl3w\n"
                                "Public Domain, https://github.com/skaslev/gl3w/blob/master/UNLICENSE  \n\n"s);
         ImGui::Unindent();
 
-        ImGui::TextUnformatted("glcorearb.h"s);
+        ImGui::TextUnformatted(u8"glcorearb.h"s);
         ImGui::Indent();
-        ImGui::TextUnformatted("Copyright 2013-2020 The Khronos Group Inc.\n"
+        ImGui::TextUnformatted(u8"Copyright 2013-2020 The Khronos Group Inc.\n"
                                "MIT License  \n\n"s);
         ImGui::Unindent();
 #endif
@@ -183,13 +183,13 @@ void processGui()
         else {
             ImGui::SetCursorPosX((windowSize.x - buttonSize.x * 2 - buttonSpacing) / 2);
 
-            if (auto fn = ImGui::SaveFileDialogButton("New Project", "New Project"s, ".utproject", buttonSize)) {
+            if (auto fn = ImGui::SaveFileDialogButton("New Project", u8"New Project"s, u8".utproject", buttonSize)) {
                 UnTechEditor::newProject(*fn);
             }
 
             ImGui::SameLine(0, buttonSpacing);
 
-            if (auto fn = ImGui::OpenFileDialogButton("Open Project", "Open Project"s, ".utproject", buttonSize)) {
+            if (auto fn = ImGui::OpenFileDialogButton("Open Project", u8"Open Project"s, u8".utproject", buttonSize)) {
                 UnTechEditor::loadProject(*fn);
             }
 

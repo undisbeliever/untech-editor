@@ -62,16 +62,16 @@ public:
         , tilePaletteId()
     {
         if (maxTiles > MAX_N_TILES) {
-            throw invalid_argument("maxTiles is too large (expected <= ", MAX_N_TILES, ")");
+            throw invalid_argument(u8"maxTiles is too large (expected <= ", MAX_N_TILES, u8")");
         }
         if (tileOffset + maxTiles > MAX_N_TILES) {
-            throw invalid_argument("tileOffset is out of bounds (tileOffset + maxTiles must be <= ", MAX_N_TILES, ")");
+            throw invalid_argument(u8"tileOffset is out of bounds (tileOffset + maxTiles must be <= ", MAX_N_TILES, u8")");
         }
         if (maxPalettes > MAX_N_PALETTES) {
-            throw invalid_argument("maxPalettes is too large (expected <= ", MAX_N_PALETTES, ")");
+            throw invalid_argument(u8"maxPalettes is too large (expected <= ", MAX_N_PALETTES, u8")");
         }
         if (paletteOffset + maxPalettes > MAX_N_PALETTES) {
-            throw invalid_argument("paletteOffset is out of bounds (paletteOffset + maxPalettes must be <= ", MAX_N_PALETTES, ")");
+            throw invalid_argument(u8"paletteOffset is out of bounds (paletteOffset + maxPalettes must be <= ", MAX_N_PALETTES, u8")");
         }
     }
 
@@ -119,7 +119,7 @@ public:
         }
 
         if (tileset.size() > maxTiles) {
-            throw runtime_error("Too many tiles in the image (", tileset.size(), " tiles required, maxTiles is ", maxTiles, ")");
+            throw runtime_error(u8"Too many tiles in the image (", tileset.size(), u8" tiles required, maxTiles is ", maxTiles, u8")");
         }
 
         return tilemap;
@@ -146,7 +146,7 @@ private:
         // tiles are rearranged to match the SNES tilemap order.
 
         if (image.size().width % TILE_SIZE != 0 || image.size().height % TILE_SIZE != 0) {
-            throw runtime_error("Image size is not divisible by ", TILE_SIZE);
+            throw runtime_error(u8"Image size is not divisible by ", TILE_SIZE);
         }
 
         constexpr unsigned MAP_SIZE = Tilemap::MAP_SIZE;
@@ -245,7 +245,7 @@ private:
     }
 
     struct TileColors {
-        static_assert(sizeof(unsigned) >= sizeof(uint16_t), "Bad optimisation");
+        static_assert(sizeof(unsigned) >= sizeof(uint16_t), u8"Bad optimisation");
 
         constexpr static unsigned MAX_PALETTE_COLORS = 15;
 
@@ -326,7 +326,7 @@ private:
             for (const uint8_t pixel : tile) {
                 if (pixel != 0 && tp.containsColor(pixel) == false) {
                     if (tp.nColors >= colorsPerPalette) {
-                        throw runtime_error("Tile contains too many colors");
+                        throw runtime_error(u8"Tile contains too many colors");
                     }
                     else {
                         tp.addColor(pixel);
@@ -402,7 +402,7 @@ private:
         }
 
         if (newPalette.size() > maxPalettes) {
-            throw runtime_error("Could not rearrange the palette (", newPalette.size(), " palettes required, maxPalettes is ", maxPalettes, ")");
+            throw runtime_error(u8"Could not rearrange the palette (", newPalette.size(), u8" palettes required, maxPalettes is ", maxPalettes, u8")");
         }
 
         return newPalette;

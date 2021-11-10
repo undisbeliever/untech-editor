@@ -35,7 +35,7 @@ size_t headerAddress(MemoryMap memoryMap)
         return HEADER_ADDR;
     }
 
-    throw invalid_argument("invalid MemoryMap");
+    throw invalid_argument(u8"invalid MemoryMap");
 }
 
 static inline size_t checksumCompelementAddress(MemoryMap memoryMap)
@@ -91,14 +91,14 @@ uint16_t readChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 
 uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 {
-    static_assert(sizeof(int) > sizeof(uint16_t) + 1, "int too small");
-    static_assert(INT_MAX > MAX_ROM_SIZE * 256, "int too small");
+    static_assert(sizeof(int) > sizeof(uint16_t) + 1, u8"int too small");
+    static_assert(INT_MAX > MAX_ROM_SIZE * 256, u8"int too small");
 
     if (rom.size() < MIN_ROM_SIZE) {
-        throw runtime_error("ROM is to small (minimum " MIN_ROM_STRING ").");
+        throw runtime_error(u8"ROM is to small (minimum " MIN_ROM_STRING u8").");
     }
     if (rom.size() > MAX_ROM_SIZE) {
-        throw runtime_error("ROM is to large (maximum " MAX_ROM_STRING ").");
+        throw runtime_error(u8"ROM is to large (maximum " MAX_ROM_STRING u8").");
     }
 
     unsigned part1Size = 1;
@@ -120,7 +120,7 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 
         part2Count = part1Size / part2Size;
         if (part1Size % part2Size != 0) {
-            throw runtime_error("Invalid ROM size.");
+            throw runtime_error(u8"Invalid ROM size.");
         }
 
         for (const auto i : range(part1Size, rom.size())) {
@@ -129,7 +129,7 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
     }
 
     int oldSum = 0;
-    static_assert(CHECKSUM_ADDR == CHECKSUM_COMPLEMENT_ADDR + 2, "assumption failed");
+    static_assert(CHECKSUM_ADDR == CHECKSUM_COMPLEMENT_ADDR + 2, u8"assumption failed");
     unsigned ccAddr = checksumCompelementAddress(memoryMap);
     for (const auto i : range(4)) {
         oldSum += rom[i + ccAddr];
@@ -152,7 +152,7 @@ void writeChecksum(const std::filesystem::path& filename, uint16_t checksum, Mem
 
     std::ofstream out(filename, std::ios::out | std::ios::in | std::ios::binary);
     if (!out) {
-        throw runtime_error("Error opening file: ", filename.string());
+        throw runtime_error(u8"Error opening file: ", filename.u8string());
     }
 
     out.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);

@@ -8,12 +8,12 @@
 
 #include <string>
 
-namespace UnTech::Gui::MsgBox {
+namespace UnTech {
 
-// MessageBox is thread safe
-void showMessage(const std::u8string& title, const std::u8string& message);
-void showMessage(const std::u8string& title, const char* message);
+// ASSUMES string is utf8
+std::u8string convert_old_string(const char* str);
 
-void processGui();
+void stdout_write(std::u8string_view s);
+void stderr_write(std::u8string_view s);
 
 }

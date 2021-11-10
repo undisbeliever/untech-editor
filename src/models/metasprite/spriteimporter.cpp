@@ -17,10 +17,10 @@
 namespace UnTech::MetaSprite::SpriteImporter {
 
 const EnumMap<UserSuppliedPalette::Position> UserSuppliedPalette::positionEnumMap{ {
-    { "TOP_LEFT", UserSuppliedPalette::Position::TOP_LEFT },
-    { "TOP_RIGHT", UserSuppliedPalette::Position::TOP_RIGHT },
-    { "BOTTOM_LEFT", UserSuppliedPalette::Position::BOTTOM_LEFT },
-    { "BOTTOM_RIGHT", UserSuppliedPalette::Position::BOTTOM_RIGHT },
+    { u8"TOP_LEFT", UserSuppliedPalette::Position::TOP_LEFT },
+    { u8"TOP_RIGHT", UserSuppliedPalette::Position::TOP_RIGHT },
+    { u8"BOTTOM_LEFT", UserSuppliedPalette::Position::BOTTOM_LEFT },
+    { u8"BOTTOM_RIGHT", UserSuppliedPalette::Position::BOTTOM_RIGHT },
 } };
 
 /*
@@ -37,16 +37,16 @@ static bool validate(const FrameSetGrid& input, ErrorList& errorList)
     };
 
     if (input.frameSize.width == 0 || input.frameSize.height == 0) {
-        addError("grid.frameSize has no size");
+        addError(u8"grid.frameSize has no size");
     }
     if (input.frameSize.width > MAX_FRAME_SIZE || input.frameSize.height > MAX_FRAME_SIZE) {
-        addError("grid.frameSize is too large (max: ", MAX_FRAME_SIZE, " x ", MAX_FRAME_SIZE, ")");
+        addError(u8"grid.frameSize is too large (max: ", MAX_FRAME_SIZE, u8" x ", MAX_FRAME_SIZE, u8")");
     }
     if (input.origin.x > MAX_ORIGIN || input.origin.y > MAX_ORIGIN) {
-        addError("grid.origin is too large (max: ", MAX_ORIGIN, ", ", MAX_ORIGIN, ")");
+        addError(u8"grid.origin is too large (max: ", MAX_ORIGIN, u8", u8", MAX_ORIGIN, u8")");
     }
     if (input.frameSize.contains(input.origin) == false) {
-        addError("grid.origin is not inside grid.frameSize");
+        addError(u8"grid.origin is not inside grid.frameSize");
     }
 
     return valid;
@@ -111,16 +111,16 @@ static bool validate(const FrameLocation& input, const Frame& frame, const unsig
     };
 
     if (input.aabb.width == 0 || input.aabb.height == 0) {
-        addError("FrameLocation aabb has no size");
+        addError(u8"FrameLocation aabb has no size");
     }
     if (input.aabb.width > MAX_FRAME_SIZE || input.aabb.height > MAX_FRAME_SIZE) {
-        addError("location.aabb is too large (", MAX_FRAME_SIZE, " x ", MAX_FRAME_SIZE, ")");
+        addError(u8"location.aabb is too large (", MAX_FRAME_SIZE, u8" x ", MAX_FRAME_SIZE, u8")");
     }
     if (input.origin.x > MAX_ORIGIN || input.origin.y > MAX_ORIGIN) {
-        addError("location.origin is too large (max: ", MAX_ORIGIN, ", ", MAX_ORIGIN, ")");
+        addError(u8"location.origin is too large (max: ", MAX_ORIGIN, u8", u8", MAX_ORIGIN, u8")");
     }
     if (input.aabb.size().contains(input.origin) == false) {
-        addError("location.origin is not inside frame");
+        addError(u8"location.origin is not inside frame");
     }
 
     return valid;
@@ -153,19 +153,19 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
     };
 
     if (!input.name.isValid()) {
-        addError("Missing name");
+        addError(u8"Missing name");
     }
     if (input.objects.size() > MAX_FRAME_OBJECTS) {
-        addError("Too many frame objects");
+        addError(u8"Too many frame objects");
     }
     if (input.actionPoints.size() > MAX_ACTION_POINTS) {
-        addError("Too many action points");
+        addError(u8"Too many action points");
     }
 
     valid &= validate(input.location, input, frameIndex, errorList);
 
     if (image.size().contains(input.location.aabb) == false) {
-        addError("Frame not inside image");
+        addError(u8"Frame not inside image");
     }
 
     if (valid == false) {
@@ -176,20 +176,20 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
 
     for (auto [i, obj] : const_enumerate(input.objects)) {
         if (frameSize.contains(obj.location, obj.sizePx()) == false) {
-            errorList.addError(frameObjectError(input, frameIndex, i, "Frame Object not inside frame"));
+            errorList.addError(frameObjectError(input, frameIndex, i, u8"Frame Object not inside frame"));
             valid = false;
         }
     }
 
     for (auto [i, ap] : const_enumerate(input.actionPoints)) {
         if (frameSize.contains(ap.location) == false) {
-            errorList.addError(actionPointError(input, frameIndex, i, "location not inside frame"));
+            errorList.addError(actionPointError(input, frameIndex, i, u8"location not inside frame"));
             valid = false;
         }
 
         if (not actionPointMapping.empty()) {
             if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
-                errorList.addError(actionPointError(input, frameIndex, i, "Unknown action point type ", ap.type));
+                errorList.addError(actionPointError(input, frameIndex, i, u8"Unknown action point type ", ap.type));
                 valid = false;
             }
         }
@@ -197,29 +197,29 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
 
     if (input.tileHitbox.exists) {
         if (!input.tileHitbox.aabb.contains(input.location.origin)) {
-            addError("Frame origin must be inside the tile hitbox");
+            addError(u8"Frame origin must be inside the tile hitbox");
         }
     }
 
-    auto validateCollisionBox = [&](const CollisionBox& box, const std::string_view boxName, const MsErrorType type) {
+    auto validateCollisionBox = [&](const CollisionBox& box, const std::u8string_view boxName, const MsErrorType type) {
         if (frameSize.contains(box.aabb) == false) {
-            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " not inside frame"));
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, u8" not inside frame"));
             valid = false;
         }
 
         if (box.aabb.width == 0 || box.aabb.height == 0) {
-            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " has no size"));
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, u8" has no size"));
             valid = false;
         }
         else if (box.aabb.width >= MAX_COLLISION_BOX_SIZE || box.aabb.height >= MAX_COLLISION_BOX_SIZE) {
-            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, " is too large"));
+            errorList.addError(collisionBoxError(input, frameIndex, type, boxName, u8" is too large"));
             valid = false;
         }
     };
-    validateCollisionBox(input.tileHitbox, "Tile Hitbox", MsErrorType::TILE_HITBOX);
-    validateCollisionBox(input.shield, "Shield", MsErrorType::SHIELD);
-    validateCollisionBox(input.hitbox, "Hitbox", MsErrorType::HIT_BOX);
-    validateCollisionBox(input.hurtbox, "Hurtbox", MsErrorType::HURT_BOX);
+    validateCollisionBox(input.tileHitbox, u8"Tile Hitbox", MsErrorType::TILE_HITBOX);
+    validateCollisionBox(input.shield, u8"Shield", MsErrorType::SHIELD);
+    validateCollisionBox(input.hitbox, u8"Hitbox", MsErrorType::HIT_BOX);
+    validateCollisionBox(input.hurtbox, u8"Hurtbox", MsErrorType::HURT_BOX);
 
     return valid;
 }
@@ -277,7 +277,7 @@ static bool isTransparentColorValid(const FrameSet& input, const Image& image)
 static bool validate(const FrameSet& input, const ActionPointMapping& actionPointMapping, ErrorList& errorList)
 {
     bool valid = true;
-    auto addError = [&](std::string&& msg) {
+    auto addError = [&](std::u8string&& msg) {
         errorList.addErrorString(std::move(msg));
         valid = false;
     };
@@ -285,16 +285,16 @@ static bool validate(const FrameSet& input, const ActionPointMapping& actionPoin
     // Validate FrameSet
 
     if (input.name.isValid() == false) {
-        addError("Missing name");
+        addError(u8"Missing name");
     }
     if (input.exportOrder.isValid() == false) {
-        addError("Missing exportOrder");
+        addError(u8"Missing exportOrder");
     }
     if (input.frames.size() == 0) {
-        addError("No Frames");
+        addError(u8"No Frames");
     }
     if (input.imageFilename.empty()) {
-        addError("No Image");
+        addError(u8"No Image");
     }
     valid &= validate(input.grid, errorList);
 
@@ -310,7 +310,7 @@ static bool validate(const FrameSet& input, const ActionPointMapping& actionPoin
     }
 
     if (isTransparentColorValid(input, *image) == false) {
-        addError("Transparent color is invalid");
+        addError(u8"Transparent color is invalid");
     }
 
     if (input.palette.usesUserSuppliedPalette()) {
@@ -318,24 +318,24 @@ static bool validate(const FrameSet& input, const ActionPointMapping& actionPoin
         auto palSize = input.palette.paletteSize();
 
         if (input.palette.nPalettes > MAX_PALETTES) {
-            addError("Too many palettes");
+            addError(u8"Too many palettes");
         }
 
         if (palSize.width > imgSize.width
             || palSize.height > imgSize.height) {
 
-            addError("Palette outside image");
+            addError(u8"Palette outside image");
         }
     }
 
     if (input.animations.size() > MAX_ANIMATION_FRAMES) {
-        addError("Too many animations in frameSet");
+        addError(u8"Too many animations in frameSet");
     }
 
-    valid &= validateNamesUnique(input.frames, "frame", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.frames, u8"frame", [&](unsigned i, auto... msg) {
         errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::FRAME, i, stringBuilder(msg...)));
     });
-    valid &= validateNamesUnique(input.animations, "animation", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(input.animations, u8"animation", [&](unsigned i, auto... msg) {
         errorList.addError(std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, i, stringBuilder(msg...)));
     });
 

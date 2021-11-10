@@ -36,7 +36,7 @@ public:
     inline std::span<const uint8_t> sliver(const unsigned y) const
     {
         if (y >= TILE_SIZE) {
-            throw invalid_argument("Tile::sliver: y too large");
+            throw invalid_argument(u8"Tile::sliver: y too large");
         }
         return std::span(_data.data() + y * TILE_SIZE, TILE_SIZE);
     }

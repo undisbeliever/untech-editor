@@ -18,13 +18,13 @@ class TilesetError : public GenericListError {
 public:
     const TilesetErrorType type;
 
-    TilesetError(const TilesetErrorType type, unsigned pIndex, std::string&& message)
+    TilesetError(const TilesetErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {
     }
 
-    TilesetError(const TilesetErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+    TilesetError(const TilesetErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : GenericListError(pIndex, cIndex, std::move(message))
         , type(type)
     {
@@ -39,13 +39,13 @@ class InteractiveTilesError : public GenericListError {
 public:
     const InteractiveTilesErrorType type;
 
-    InteractiveTilesError(const InteractiveTilesErrorType type, unsigned pIndex, std::string&& message)
+    InteractiveTilesError(const InteractiveTilesErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {
     }
 
-    InteractiveTilesError(const InteractiveTilesErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+    InteractiveTilesError(const InteractiveTilesErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : GenericListError(pIndex, cIndex, std::move(message))
         , type(type)
     {

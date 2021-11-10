@@ -29,7 +29,7 @@ public:
         , _project(std::move(project))
     {
         if (_project == nullptr) {
-            throw invalid_argument("project cannot be null");
+            throw invalid_argument(u8"project cannot be null");
         }
     }
 

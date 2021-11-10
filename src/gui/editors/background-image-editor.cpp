@@ -84,7 +84,6 @@ void BackgroundImageEditorGui::editorClosed()
 
 void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile& projectFile)
 {
-    using namespace std::string_literals;
     using BackgroundImageInput = UnTech::Resources::BackgroundImageInput;
 
     assert(_data);

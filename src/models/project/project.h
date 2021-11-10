@@ -37,7 +37,7 @@ struct ProjectSettings {
 bool validateProjectSettings(const ProjectSettings& input, ErrorList& err);
 
 struct ProjectFile {
-    const static std::string FILE_EXTENSION;
+    const static std::u8string FILE_EXTENSION;
 
     ProjectSettings projectSettings;
 

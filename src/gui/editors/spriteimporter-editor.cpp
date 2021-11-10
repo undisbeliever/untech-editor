@@ -351,15 +351,15 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
 
                 ImColor c(fs.transparentColor.rgb());
 
-                const std::string tcString = fs.transparentColor.rgbHexString();
+                const std::u8string tcString = fs.transparentColor.rgbHexString();
 
-                if (ImGui::BeginCombo("Transparent Color", tcString)) {
+                if (ImGui::BeginCombo("Transparent Color", u8Cast(tcString))) {
                     updateTransparentColorCombo();
 
                     for (const auto& [col, str] : _transparentColorCombo) {
                         ImGui::PushStyleColor(ImGuiCol_Text, col);
                         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, col);
-                        if (ImGui::Selectable(str.c_str())) {
+                        if (ImGui::Selectable(u8Cast(str))) {
                             fs.transparentColor = rgba::fromRgba(col);
                         }
                         ImGui::PopStyleColor(2);
@@ -776,7 +776,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
         }
     }
 
-    auto drawCollisionBox = [&](SI::CollisionBox* box, ToggleSelection* sel, const bool showFlag, const ImU32 outlineColor, std::string_view toolTip) {
+    auto drawCollisionBox = [&](SI::CollisionBox* box, ToggleSelection* sel, const bool showFlag, const ImU32 outlineColor, std::u8string_view toolTip) {
         if (showFlag && box->exists) {
             _graphics.addRect(drawList, &box->aabb, outlineColor, sel, 1);
             if (_graphics.isHoveredAndNotEditing()) {
@@ -786,10 +786,10 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
             }
         }
     };
-    drawCollisionBox(&frame->tileHitbox, &_data->tileHitboxSel, showTileHitbox, Style::tileHitboxOutlineColor, "Tile Hitbox");
-    drawCollisionBox(&frame->shield, &_data->shieldSel, showShield, Style::shieldOutlineColor, "Shield Box");
-    drawCollisionBox(&frame->hitbox, &_data->hitboxSel, showHitbox, Style::hitboxOutlineColor, "Hitbox");
-    drawCollisionBox(&frame->hurtbox, &_data->hurtboxSel, showHurtbox, Style::hurtboxOutlineColor, "Hurtbox");
+    drawCollisionBox(&frame->tileHitbox, &_data->tileHitboxSel, showTileHitbox, Style::tileHitboxOutlineColor, u8"Tile Hitbox");
+    drawCollisionBox(&frame->shield, &_data->shieldSel, showShield, Style::shieldOutlineColor, u8"Shield Box");
+    drawCollisionBox(&frame->hitbox, &_data->hitboxSel, showHitbox, Style::hitboxOutlineColor, u8"Hitbox");
+    drawCollisionBox(&frame->hurtbox, &_data->hurtboxSel, showHurtbox, Style::hurtboxOutlineColor, u8"Hurtbox");
 
     if (showActionPoints) {
         for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
@@ -798,7 +798,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 if (ap.type.isValid()) {
-                    ImGui::Text("Action Point %u (%s)", unsigned(i), ap.type.c_str());
+                    ImGui::Text("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
                 }
                 else {
                     ImGui::Text("Action Point %u", unsigned(i));

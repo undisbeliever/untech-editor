@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-// uses std::string instead of idstring as
+// uses std::u8string instead of idstring as
 // the assembly data labels can contain dots (.)
 
 namespace UnTech::MetaSprite::Compiler {
@@ -34,12 +34,12 @@ public:
     static const unsigned ADDR_PER_LINE = 8;
 
 private:
-    const std::string _label;
-    const std::string _dataLabel;
+    const std::u8string _label;
+    const std::u8string _dataLabel;
     std::vector<uint32_t> _offsets;
 
 public:
-    RomAddrTable(const std::string& label, const std::string& dataLabel)
+    RomAddrTable(const std::u8string& label, const std::u8string& dataLabel)
         : _label(label)
         , _dataLabel(dataLabel)
         , _offsets()
@@ -48,14 +48,14 @@ public:
 
     RomAddrTable(const RomAddrTable&) = delete;
 
-    inline const std::string& label() const { return _label; }
+    inline const std::u8string& label() const { return _label; }
 
     // Searches for a duplicate table before inserting.
     // a value > 0xFFFF in the table is a NULL
     unsigned getOrInsertTable(const std::vector<uint32_t>& table)
     {
         if (table.size() == 0) {
-            throw invalid_argument("Cannot add an empty table");
+            throw invalid_argument(u8"Cannot add an empty table");
         }
 
         auto it = std::search(_offsets.begin(), _offsets.end(),
@@ -121,12 +121,12 @@ public:
 class RomBinData {
 
 private:
-    const std::string _label;
+    const std::u8string _label;
     std::vector<uint8_t> _data;
     bool _nullableType;
 
 public:
-    RomBinData(const std::string& label, bool nullableType = false)
+    RomBinData(const std::u8string& label, bool nullableType = false)
         : _label(label)
         , _data()
         , _nullableType(nullableType)
@@ -134,7 +134,7 @@ public:
     }
     RomBinData(const RomBinData&) = delete;
 
-    const std::string& label() const { return _label; }
+    const std::u8string& label() const { return _label; }
     bool nullableType() const { return _nullableType; }
     const std::vector<uint8_t>& data() const { return _data; }
 
@@ -147,7 +147,7 @@ public:
     uint32_t addData_Index(const std::vector<uint8_t>& sData)
     {
         if (sData.size() == 0) {
-            throw invalid_argument("Cannot add empty data");
+            throw invalid_argument(u8"Cannot add empty data");
         }
 
         auto it = std::search(_data.begin(), _data.end(),

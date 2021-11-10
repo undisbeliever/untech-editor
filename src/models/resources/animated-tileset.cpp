@@ -189,17 +189,17 @@ static bool validate(const AnimationFramesInput& input, ErrorList& err)
     bool valid = true;
 
     if (!input.isBitDepthValid()) {
-        err.addErrorString("Invalid bit-depth, expected 2, 4 or 8");
+        err.addErrorString(u8"Invalid bit-depth, expected 2, 4 or 8");
         valid = false;
     }
 
     if (input.frameImageFilenames.empty()) {
-        err.addErrorString("Missing frame image");
+        err.addErrorString(u8"Missing frame image");
         valid = false;
     }
 
     if (!input.conversionPalette.isValid()) {
-        err.addErrorString("Missing conversion palette name");
+        err.addErrorString(u8"Missing conversion palette name");
         valid = false;
     }
 
@@ -210,13 +210,13 @@ static bool validate(const AnimationFramesInput& input, ErrorList& err)
         imageSizes.at(i) = image->size();
 
         if (image->empty()) {
-            err.addErrorString("Missing frame image: ", image->errorString());
+            err.addErrorString(u8"Missing frame image: ", image->errorString());
             valid = false;
             continue;
         }
 
         if (image->size().width % 8 != 0 || image->size().height % 8 != 0) {
-            err.addErrorString("image size invalid (height and width must be a multiple of 8): ", imageFilename.string());
+            err.addErrorString(u8"image size invalid (height and width must be a multiple of 8): ", imageFilename.u8string());
             valid = false;
         }
     }
@@ -224,7 +224,7 @@ static bool validate(const AnimationFramesInput& input, ErrorList& err)
     if (valid) {
         for (const usize& imgSize : imageSizes) {
             if (imgSize != imageSizes.front()) {
-                err.addErrorString("All frame images must be the same size");
+                err.addErrorString(u8"All frame images must be the same size");
                 valid = false;
                 break;
             }
@@ -241,25 +241,25 @@ static bool validate(const AnimatedTilesetData& input, ErrorList& err)
     for (const auto& at : input.animatedTiles) {
         if (at.size() != input.nAnimatedTiles()) {
 
-            err.addErrorString("animatedTiles is invalid");
+            err.addErrorString(u8"animatedTiles is invalid");
             valid = false;
         }
     }
 
     if (input.staticTiles.size() == 0) {
-        err.addErrorString("Expected at least one static tile");
+        err.addErrorString(u8"Expected at least one static tile");
         valid = false;
     }
 
-    auto validateMax = [&](unsigned v, unsigned max, const char* msg) {
+    auto validateMax = [&](unsigned v, unsigned max, const char8_t* msg) {
         if (v > max) {
-            err.addErrorString(msg, " (", v, ", max: ", max, ")");
+            err.addErrorString(msg, u8" (", v, u8", max: ", max, u8")");
             valid = false;
         }
     };
-    validateMax(input.animatedTilesBlockSize(), input.MAX_ANIMATED_TILES_BLOCK_SIZE, "Too many animated tiles");
-    validateMax(input.animatedTilesFrameSize(), input.MAX_ANIMATED_TILES_FRAME_SIZE, "Animated frame size too large");
-    validateMax(input.staticTiles.size() + input.nAnimatedTiles(), input.MAX_SNES_TILES, "Too many tiles");
+    validateMax(input.animatedTilesBlockSize(), input.MAX_ANIMATED_TILES_BLOCK_SIZE, u8"Too many animated tiles");
+    validateMax(input.animatedTilesFrameSize(), input.MAX_ANIMATED_TILES_FRAME_SIZE, u8"Animated frame size too large");
+    validateMax(input.staticTiles.size() + input.nAnimatedTiles(), input.MAX_SNES_TILES, u8"Too many tiles");
 
     return valid;
 }
@@ -357,7 +357,7 @@ convertAnimationFrames(const AnimationFramesInput& input,
     auto paletteIndex = projectDataStore.indexOf(input.conversionPalette);
     auto paletteData = projectDataStore.at(paletteIndex);
     if (!paletteData) {
-        err.addErrorString("Cannot find palette: ", input.conversionPalette);
+        err.addErrorString(u8"Cannot find palette: ", input.conversionPalette);
         return std::nullopt;
     }
 

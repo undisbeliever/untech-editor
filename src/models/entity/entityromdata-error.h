@@ -25,13 +25,13 @@ struct EntityError : public GenericListError {
 public:
     const EntityErrorType type;
 
-    EntityError(const EntityErrorType type, unsigned pIndex, std::string&& message)
+    EntityError(const EntityErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {
     }
 
-    EntityError(const EntityErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+    EntityError(const EntityErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : GenericListError(pIndex, cIndex, std::move(message))
         , type(type)
     {

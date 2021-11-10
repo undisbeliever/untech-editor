@@ -15,6 +15,7 @@
 #include "gui/windows/message-box.h"
 #include "gui/windows/projectlist.h"
 #include "models/common/imagecache.h"
+#include "models/common/u8strings.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -37,7 +38,7 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     , _unsavedFilesList()
 {
     if (_filename.empty()) {
-        throw invalid_argument("filename cannot be empty");
+        throw invalid_argument(u8"filename cannot be empty");
     }
 }
 
@@ -68,7 +69,7 @@ void UnTechEditor::newProject(const std::filesystem::path& fn)
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
     catch (const std::exception& ex) {
-        MsgBox::showMessage("Cannot Create Project", ex.what());
+        MsgBox::showMessage(u8"Cannot Create Project", ex.what());
     }
 }
 
@@ -95,7 +96,7 @@ void UnTechEditor::loadProject(const std::filesystem::path& fn)
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
     catch (const std::exception& ex) {
-        MsgBox::showMessage("Unable to Load Project", ex.what());
+        MsgBox::showMessage(u8"Unable to Load Project", ex.what());
     }
 }
 
@@ -208,7 +209,7 @@ bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
         return true;
     }
     catch (const std::exception& ex) {
-        MsgBox::showMessage("Cannot Save Resource", ex.what());
+        MsgBox::showMessage(u8"Cannot Save Resource", ex.what());
         return false;
     }
 }
@@ -233,7 +234,7 @@ bool UnTechEditor::saveProjectFile()
         return true;
     }
     catch (const std::exception& ex) {
-        MsgBox::showMessage("Cannot Save Project", ex.what());
+        MsgBox::showMessage(u8"Cannot Save Project", ex.what());
         return false;
     }
 }
@@ -299,8 +300,8 @@ void UnTechEditor::processMenu()
     if (ImGui::BeginMenu("File")) {
         if (_currentEditor) {
             if (!_currentEditor->basename().empty()) {
-                auto s = "Save "s + _currentEditor->basename();
-                if (ImGui::MenuItem(s.c_str())) {
+                auto s = u8"Save "s + _currentEditor->basename();
+                if (ImGui::MenuItem(u8Cast(s))) {
                     saveCurrentEditor();
                 }
             }
@@ -466,17 +467,17 @@ void UnTechEditor::unsavedChangesOnExitPopup()
         const auto& style = ImGui::GetStyle();
 
         if (_unsavedFilesList.size() == 1) {
-            ImGui::TextUnformatted("There is one unsaved file.");
+            ImGui::TextUnformatted(u8"There is one unsaved file.");
             ImGui::NewLine();
-            ImGui::TextUnformatted("Do you wish to save?"s);
+            ImGui::TextUnformatted(u8"Do you wish to save?"s);
         }
         else {
             ImGui::Text("There are %d unsaved files.", int(_unsavedFilesList.size()));
             ImGui::NewLine();
-            ImGui::TextUnformatted("Do you wish to save them all?");
+            ImGui::TextUnformatted(u8"Do you wish to save them all?");
         }
 
-        ImGui::TextUnformatted("\n(Unsaved changes will be lost if you discard them)"s);
+        ImGui::TextUnformatted(u8"\n(Unsaved changes will be lost if you discard them)"s);
 
         ImGui::Spacing();
         {
@@ -664,9 +665,10 @@ void BackgroundThread::run()
         }
     }
     catch (const std::exception& ex) {
-        MsgBox::showMessage("An exception occurred when compiling a resource",
-                            stringBuilder(ex.what(), "\n\n\nThis should not happen."
-                                                     "\n\nThe resource compiler is now disabled."));
+        MsgBox::showMessage(u8"An exception occurred when compiling a resource",
+                            stringBuilder(convert_old_string(ex.what()),
+                                          u8"\n\n\nThis should not happen."
+                                          u8"\n\nThe resource compiler is now disabled."));
 
         projectData.markAllResourcesInvalid();
     }

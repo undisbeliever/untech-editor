@@ -76,8 +76,8 @@ struct ResourceScenes {
 };
 
 struct SceneSettingsData {
-    const static std::string DATA_LABEL;
-    const static std::string FUNCTION_TABLE_LABEL;
+    const static std::u8string DATA_LABEL;
+    const static std::u8string FUNCTION_TABLE_LABEL;
 
     std::vector<uint8_t> sceneSettings;
     unsigned nSceneSettings;
@@ -118,7 +118,7 @@ struct SceneLayoutsData {
     constexpr static unsigned TILE_ALIGN = 8192 / BLOCK_SIZE;
     constexpr static unsigned MAP_ALIGN = 2048 / BLOCK_SIZE;
 
-    const static std::string DATA_LABEL;
+    const static std::u8string DATA_LABEL;
 
     struct LayerInput {
         uint8_t nTileBlocks;
@@ -159,7 +159,7 @@ private:
 
 struct CompiledScenesData {
     static const int SCENE_FORMAT_VERSION;
-    const static std::string DATA_LABEL;
+    const static std::u8string DATA_LABEL;
 
     SceneSettingsData sceneSettings;
     SceneLayoutsData sceneLayouts;

@@ -17,22 +17,22 @@
 
 namespace UnTech::Scripting {
 
-using GameStateDataValueMap = std::unordered_map<std::string, const GameStateData::Value>;
+using GameStateDataValueMap = std::unordered_map<std::u8string, const GameStateData::Value>;
 
-static inline std::unordered_map<std::string, unsigned>
+static inline std::unordered_map<std::u8string, unsigned>
 setupTempVariables(const std::vector<idstring> tempVars, const bool isFlag,
                    const GameStateDataValueMap& gameStateVars, const unsigned nGameStateVars, const unsigned maxVars,
                    ErrorList& err)
 {
-    const char* typeName = isFlag ? "flag" : "word";
+    const char8_t* typeName = isFlag ? u8"flag" : u8"word";
     const ScriptErrorType errorType = isFlag ? ScriptErrorType::TEMP_FLAG : ScriptErrorType::TEMP_WORD;
 
     auto addError = [&](unsigned index, const auto... msg) {
         err.addError(std::make_unique<ScriptError>(errorType, index,
-                                                   stringBuilder("Temporary script ", typeName, ": ", msg...)));
+                                                   stringBuilder(u8"Temporary script ", typeName, u8": ", msg...)));
     };
 
-    std::unordered_map<std::string, unsigned> map;
+    std::unordered_map<std::u8string, unsigned> map;
     map.reserve(tempVars.size());
 
     long varId = maxVars;
@@ -41,21 +41,21 @@ setupTempVariables(const std::vector<idstring> tempVars, const bool isFlag,
         varId--;
 
         if (!varName.isValid()) {
-            addError(index, "Missing name");
+            addError(index, u8"Missing name");
         }
         else if (gameStateVars.find(varName.str()) != gameStateVars.end()) {
-            addError(index, "Name exists in GameState: ", varName);
+            addError(index, u8"Name exists in GameState: ", varName);
         }
         else {
             const auto [it, inserted] = map.emplace(varName.str(), varId);
             if (!inserted) {
-                addError(index, "Duplicate name detected");
+                addError(index, u8"Duplicate name detected");
             }
         }
     }
 
     if (tempVars.size() + nGameStateVars > maxVars) {
-        addError(INT_MAX, "Too many temporary script ", typeName, " variables");
+        addError(INT_MAX, u8"Too many temporary script ", typeName, u8" variables");
         map.clear();
     }
     else {
@@ -74,8 +74,8 @@ private:
     const ExternalFileList<Rooms::RoomInput>& roomsList;
 
     // temporary room script variables
-    const std::unordered_map<std::string, unsigned> tempFlags;
-    const std::unordered_map<std::string, unsigned> tempWords;
+    const std::unordered_map<std::u8string, unsigned> tempFlags;
+    const std::unordered_map<std::u8string, unsigned> tempWords;
 
     std::vector<uint8_t>& data;
 
@@ -122,7 +122,7 @@ public:
 
         if (script.name == STARTUP_SCRIPT_NAME) {
             if (&script != &room.roomScripts.startupScript) {
-                addScriptError("Invalid script name");
+                addScriptError(u8"Invalid script name");
             }
         }
 
@@ -140,7 +140,7 @@ private:
     void addScriptError(T... msg)
     {
         err.addError(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT, scriptIndex,
-                                                   stringBuilder("Script ", scriptName, ": ", msg...)));
+                                                   stringBuilder(u8"Script ", scriptName, u8": ", msg...)));
         valid = false;
     }
 
@@ -148,7 +148,7 @@ private:
     void addLineError(T... msg)
     {
         err.addError(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT_LINE, scriptIndex, lineNo,
-                                                   stringBuilder("Script ", scriptName, " (line ", lineNo, "): ", msg...)));
+                                                   stringBuilder(u8"Script ", scriptName, u8" (line ", lineNo, u8"): ", msg...)));
         valid = false;
     }
 
@@ -156,7 +156,7 @@ private:
     void addLineWarning_lineNo(unsigned wLineNo, T... msg)
     {
         err.addWarning(std::make_unique<ScriptError>(ScriptErrorType::SCRIPT_LINE, scriptIndex, wLineNo,
-                                                     stringBuilder("Script ", scriptName, " (line ", wLineNo, "): ", msg...)));
+                                                     stringBuilder(u8"Script ", scriptName, u8" (line ", wLineNo, u8"): ", msg...)));
 
         valid = false;
     }
@@ -165,7 +165,7 @@ private:
     {
         depth++;
         if (depth > Script::MAX_DEPTH) {
-            addScriptError("Script too deep");
+            addScriptError(u8"Script too deep");
             return;
         }
 
@@ -177,7 +177,7 @@ private:
         depth--;
     }
 
-    unsigned getFlagId(const std::string& name)
+    unsigned getFlagId(const std::u8string& name)
     {
         auto localIt = tempFlags.find(name);
         if (localIt != tempFlags.end()) {
@@ -187,17 +187,17 @@ private:
         auto it = gameState.flags.find(name);
         if (it != gameState.flags.end()) {
             if (!it->second.allowedInRoom(room.name)) {
-                addLineError("Invalid flag `", name, "` (it is private and belongs to room `", room.name, "`)");
+                addLineError(u8"Invalid flag `", name, u8"` (it is private and belongs to room `", room.name, u8"`)");
             }
             return it->second.index;
         }
 
-        addLineError("Unknown flag: ", name);
+        addLineError(u8"Unknown flag: ", name);
         return 0;
     }
     unsigned getFlagId(const idstring& name) { return getFlagId(name.str()); }
 
-    unsigned getWordId(const std::string& name)
+    unsigned getWordId(const std::u8string& name)
     {
         auto localIt = tempWords.find(name);
         if (localIt != tempWords.end()) {
@@ -207,17 +207,17 @@ private:
         auto it = gameState.words.find(name);
         if (it != gameState.words.end()) {
             if (!it->second.allowedInRoom(room.name)) {
-                addLineError("Invalid word `", name, "` (it is private and belongs to room `", room.name, "`)");
+                addLineError(u8"Invalid word `", name, u8"` (it is private and belongs to room `", room.name, u8"`)");
             }
             return it->second.index;
         }
 
-        addLineError("Unknown word: ", name);
+        addLineError(u8"Unknown word: ", name);
         return 0;
     }
     unsigned getWordId(const idstring& name) { return getWordId(name.str()); }
 
-    unsigned getImmediateU16(const std::string& value)
+    unsigned getImmediateU16(const std::u8string& value)
     {
         auto u16 = String::decimalOrHexToUint16(value);
 
@@ -225,84 +225,84 @@ private:
             return *u16;
         }
         else {
-            addLineError("Invalid argument: ", value);
+            addLineError(u8"Invalid argument: ", value);
             return 0;
         }
     }
 
-    unsigned getRoomScriptId(const std::string& value)
+    unsigned getRoomScriptId(const std::u8string& value)
     {
         const auto name = idstring::fromString(value);
         if (!name.isValid()) {
-            addLineError("Invalid script name: ", value);
+            addLineError(u8"Invalid script name: ", value);
             return 0;
         }
 
         const auto s = room.roomScripts.scripts.indexOf(name);
 
         if (s > room.roomScripts.scripts.size()) {
-            addLineError("Unknown script: ", name);
+            addLineError(u8"Unknown script: ", name);
             return 0;
         }
 
         return s;
     }
 
-    unsigned getEntityGroupId(const std::string& value)
+    unsigned getEntityGroupId(const std::u8string& value)
     {
         const auto name = idstring::fromString(value);
         if (!name.isValid()) {
-            addLineError("Invalid entity group name: ", value);
+            addLineError(u8"Invalid entity group name: ", value);
             return 0;
         }
 
         const auto s = room.entityGroups.indexOf(name);
 
         if (s > room.entityGroups.size()) {
-            addLineError("Unknown entity group: ", name);
+            addLineError(u8"Unknown entity group: ", name);
             return 0;
         }
 
         return s;
     }
 
-    unsigned getRoomId(const std::string& value)
+    unsigned getRoomId(const std::u8string& value)
     {
         const auto name = idstring::fromString(value);
         if (!name.isValid()) {
-            addLineError("Invalid room name: ", value);
+            addLineError(u8"Invalid room name: ", value);
             return 0;
         }
 
         const auto s = roomsList.indexOf(name);
 
         if (s > roomsList.size()) {
-            addLineError("Unknown room: ", name);
+            addLineError(u8"Unknown room: ", name);
             return 0;
         }
 
         return s;
     }
 
-    unsigned getRoomEntranceId(const std::string& value, const Rooms::RoomInput& r)
+    unsigned getRoomEntranceId(const std::u8string& value, const Rooms::RoomInput& r)
     {
         const auto name = idstring::fromString(value);
         if (!name.isValid()) {
-            addLineError("Invalid room entrance name: ", value);
+            addLineError(u8"Invalid room entrance name: ", value);
             return 0;
         }
 
         const auto s = r.entrances.indexOf(name);
 
         if (s > r.entrances.size()) {
-            addLineError("Unknown room entrance: ", name);
+            addLineError(u8"Unknown room entrance: ", name);
             return 0;
         }
 
         return s;
     }
 
-    void statementArgument(const ArgumentType& type, const std::string& value, const size_t bytecodePos)
+    void statementArgument(const ArgumentType& type, const std::u8string& value, const size_t bytecodePos)
     {
         switch (type) {
         case ArgumentType::Unused: {
@@ -349,7 +349,7 @@ private:
         }
     }
 
-    void roomAndRoomEntraceArguments(const std::array<std::string, 2>& arguments)
+    void roomAndRoomEntraceArguments(const std::array<std::u8string, 2>& arguments)
     {
         const unsigned roomId = getRoomId(arguments.at(0));
         unsigned entranceId = 0;
@@ -364,7 +364,7 @@ private:
         data.push_back(entranceId);
     }
 
-    void scriptArguments(const InstructionData& bc, const std::array<std::string, 2>& arguments, const size_t bytecodePos)
+    void scriptArguments(const InstructionData& bc, const std::array<std::u8string, 2>& arguments, const size_t bytecodePos)
     {
         constexpr std::array<ArgumentType, 2> loadRoomArgs = { ArgumentType::Room, ArgumentType::RoomEntrance };
 
@@ -407,7 +407,7 @@ private:
 
             case ComparisonType::Set:
             case ComparisonType::Clear: {
-                addLineError("Invalid comparison type for word variable");
+                addLineError(u8"Invalid comparison type for word variable");
                 break;
             }
             }
@@ -438,7 +438,7 @@ private:
             case ComparisonType::NotEqual:
             case ComparisonType::LessThan:
             case ComparisonType::GreaterThanEqual:
-                addLineError("Invalid comparison type for flag variable");
+                addLineError(u8"Invalid comparison type for flag variable");
                 break;
             }
 
@@ -450,7 +450,7 @@ private:
         }
         }
 
-        throw invalid_argument("Invalid ConditionalType");
+        throw invalid_argument(u8"Invalid ConditionalType");
     }
 
     void writeWordAt(unsigned i, uint16_t word)
@@ -464,7 +464,7 @@ public:
     {
         const auto bcIt = bytecode.instructions.find(statement.opcode);
         if (bcIt == bytecode.instructions.end()) {
-            addLineError("Unknown instruction: ", statement.opcode);
+            addLineError(u8"Unknown instruction: ", statement.opcode);
             return;
         }
         const auto& bc = bcIt->second;
@@ -481,7 +481,7 @@ public:
         const unsigned branchPos = conditional(ifStatement.condition);
 
         if (ifStatement.thenStatements.empty()) {
-            addLineError("Empty body in an if statement");
+            addLineError(u8"Empty body in an if statement");
         }
 
         compileStatements(ifStatement.thenStatements);
@@ -510,7 +510,7 @@ public:
         const unsigned branchPos = conditional(whileStatement.condition);
 
         if (whileStatement.statements.empty()) {
-            addLineError("Empty body in an while statement");
+            addLineError(u8"Empty body in an while statement");
         }
 
         const unsigned whileLineNo = lineNo;
@@ -530,7 +530,7 @@ public:
             });
 
         if (!hasYieldInstruction) {
-            addLineWarning_lineNo(whileLineNo, "while loop does not contain a yielding instruction, it may infiniately loop.");
+            addLineWarning_lineNo(whileLineNo, u8"while loop does not contain a yielding instruction, it may infiniately loop.");
         }
 
         // Loop back to start of while statement

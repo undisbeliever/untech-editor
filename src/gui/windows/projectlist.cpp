@@ -27,7 +27,7 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 static idstring nameFromPath(const std::filesystem::path& fn)
 {
-    return idstring::fixup(fn.stem().string());
+    return idstring::fixup(fn.stem().u8string());
 }
 
 static unsigned addPalette(NamedList<UnTech::Resources::PaletteInput>& list, const std::filesystem::path& fn)
@@ -112,9 +112,9 @@ static unsigned addFrameSet(std::vector<UnTech::MetaSprite::FrameSetFile>& list,
 }
 
 struct AddResourceSettings {
-    const char* const menuTitle;
-    const char* const dialogTitle;
-    const char* const extension;
+    const char8_t* const menuTitle;
+    const char8_t* const dialogTitle;
+    const char8_t* const extension;
     bool createFile;
     ResourceType editorType;
 
@@ -125,37 +125,37 @@ struct AddResourceSettings {
 
 static const std::array<AddResourceSettings, 7> addResourceSettings{
     {
-        { "Add FrameSet Export Order", "New FrameSet Export Order", ".utfseo", true,
+        { u8"Add FrameSet Export Order", u8"New FrameSet Export Order", u8".utfseo", true,
           ResourceType::FrameSetExportOrders,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addExternalFile(pf.frameSetExportOrders, fn, &UnTech::MetaSprite::saveFrameSetExportOrder);
           } },
-        { "Add MetaSprite FrameSet", "New MetaSprite FrameSet", ".utms", true,
+        { u8"Add MetaSprite FrameSet", u8"New MetaSprite FrameSet", u8".utms", true,
           ResourceType::FrameSets,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addFrameSet<MS::FrameSet, &MS::saveFrameSet>(pf.frameSets, fn);
           } },
-        { "Add Sprite Importer FrameSet", "New Sprite Importer FrameSet", ".utsi", true,
+        { u8"Add Sprite Importer FrameSet", u8"New Sprite Importer FrameSet", u8".utsi", true,
           ResourceType::FrameSets,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addFrameSet<SI::FrameSet, &SI::saveFrameSet>(pf.frameSets, fn);
           } },
-        { "Add Palette", "Select Palette Image", ".png", false,
+        { u8"Add Palette", u8"Select Palette Image", u8".png", false,
           ResourceType::Palettes,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addPalette(pf.palettes, fn);
           } },
-        { "Add Background Image", "Select Background Image", ".png", false,
+        { u8"Add Background Image", u8"Select Background Image", u8".png", false,
           ResourceType::BackgroundImages,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addBackgroundImage(pf.backgroundImages, fn);
           } },
-        { "Add MetaTile Tileset", "New MetaTile Tileset", ".utmt", true,
+        { u8"Add MetaTile Tileset", u8"New MetaTile Tileset", u8".utmt", true,
           ResourceType::MataTileTilesets,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addExternalFile(pf.metaTileTilesets, fn, &UnTech::MetaTiles::saveMetaTileTilesetInput);
           } },
-        { "Add Room", "New Room", ".utroom", true,
+        { u8"Add Room", u8"New Room", u8".utroom", true,
           ResourceType::Rooms,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addExternalFile(pf.rooms, fn, &UnTech::Rooms::saveRoomInput);
@@ -268,7 +268,7 @@ void ProjectListWindow::processMenu()
     if (ImGui::BeginMenu("Add Resource")) {
         for (auto [i, s] : enumerate(addResourceSettings)) {
             ImGui::PushID(i);
-            if (ImGui::MenuItem(s.menuTitle)) {
+            if (ImGui::MenuItem(u8Cast(s.menuTitle))) {
                 _state = State::ADD_RESOURCE_DIALOG;
                 _addMenuIndex = i;
             }
@@ -324,10 +324,10 @@ void ProjectListWindow::confirmRemovePopup()
         }
 
         // ::TODO include name of item (probably from AbstractEditor)::
-        ImGui::TextUnformatted("Are you sure you want to remove this resource?");
+        ImGui::TextUnformatted(u8"Are you sure you want to remove this resource?");
 
         // ::TODO only show this line if a backup cannot be made (and change colour to red)::
-        ImGui::TextUnformatted("This action cannot be undone.");
+        ImGui::TextUnformatted(u8"This action cannot be undone.");
 
         if (ImGui::Button("Yes")) {
             _state = State::REMOVE_RESOURCE_CONFIRMED;
@@ -373,6 +373,8 @@ void ProjectListWindow::processPendingActions(Project::ProjectFile& projectFile,
 
 void ProjectListWindow::addResource(Project::ProjectFile& projectFile)
 {
+    using namespace std::string_literals;
+
     assert(_state == State::ADD_RESOURCE_CONFIRMED);
 
     _state = State::SELECT_RESOURCE;
@@ -385,7 +387,7 @@ void ProjectListWindow::addResource(Project::ProjectFile& projectFile)
             _selectedIndex = ItemIndex{ settings.editorType, i };
         }
         catch (const std::exception& ex) {
-            MsgBox::showMessage("Cannot Create Resource", ex.what());
+            MsgBox::showMessage(u8"Cannot Create Resource"s, ex.what());
         }
     }
 }

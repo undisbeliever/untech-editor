@@ -62,7 +62,7 @@ void AbstractMetaSpriteEditorGui::showLayerButtons() const
 static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::ExportOrderTree>& tree,
                             AbstractMetaSpriteEditorGui* gui,
                             std::function<void(AbstractMetaSpriteEditorGui*, const idstring&)> addFunction,
-                            const std::string& addSuffix)
+                            const std::u8string& addSuffix)
 {
     static unsigned contextMenuIndex = INT_MAX;
 
@@ -87,8 +87,8 @@ static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::Expor
             auto& eo = tree.at(contextMenuIndex);
 
             auto menuItem = [&](const idstring& name) {
-                const std::string text = stringBuilder("Add ", name, addSuffix);
-                if (ImGui::MenuItem(text.c_str())) {
+                const std::u8string text = stringBuilder(u8"Add ", name, addSuffix);
+                if (ImGui::MenuItem(u8Cast(text))) {
                     addFunction(gui, name);
                 }
             };
@@ -113,12 +113,12 @@ void AbstractMetaSpriteEditorGui::exportOrderWindow(const char* windowLabel)
 
         if (!_eoStillFrames.empty() || !_eoAnimations.empty()) {
             if (ImGui::TreeNodeEx("Still Frames", ImGuiTreeNodeFlags_DefaultOpen)) {
-                exportOrderTree(_eoStillFrames, this, &AbstractMetaSpriteEditorGui::addFrame, " Frame"s);
+                exportOrderTree(_eoStillFrames, this, &AbstractMetaSpriteEditorGui::addFrame, u8" Frame"s);
                 ImGui::TreePop();
             }
 
             if (ImGui::TreeNodeEx("Animations", ImGuiTreeNodeFlags_DefaultOpen)) {
-                exportOrderTree(_eoAnimations, this, &AbstractMetaSpriteEditorGui::addAnimation, " Animation"s);
+                exportOrderTree(_eoAnimations, this, &AbstractMetaSpriteEditorGui::addAnimation, u8" Animation"s);
                 ImGui::TreePop();
             }
         }

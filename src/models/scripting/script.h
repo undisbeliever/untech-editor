@@ -44,20 +44,20 @@ struct Conditional {
     ConditionalType type;
     idstring variable;
     ComparisonType comparison;
-    std::string value;
+    std::u8string value;
 
     bool operator==(const Conditional&) const = default;
 };
 
 struct Statement {
     idstring opcode;
-    std::array<std::string, 2> arguments;
+    std::array<std::u8string, 2> arguments;
 
     bool operator==(const Statement&) const = default;
 };
 
 struct Comment {
-    std::string text;
+    std::u8string text;
 
     bool operator==(const Comment&) const = default;
 };

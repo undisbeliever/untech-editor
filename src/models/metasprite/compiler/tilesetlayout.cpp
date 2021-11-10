@@ -180,19 +180,19 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
     if (tiles.size() < tilesetType_nTiles || tilesetType_isFixed) {
         // Fixed tileset
         if (not tilesetType_isFixed) {
-            errorList.addWarningString("Tileset can be fixed, making it so.");
+            errorList.addWarningString(u8"Tileset can be fixed, making it so.");
         }
 
         if (tiles.size() <= tilesetType_nTiles) {
             const TilesetType smallestType = smallestFixedTilesetType(tiles.size());
             if (numberOfTilesetTiles(smallestType) != tilesetType_nTiles) {
-                errorList.addWarningString("TilesetType shrunk to ", ttString(smallestType));
+                errorList.addWarningString(u8"TilesetType shrunk to ", ttString(smallestType));
             }
             ret.tilesetType = smallestType;
             ret.staticTiles = std::move(tiles);
         }
         else {
-            errorList.addErrorString("Unable to fit ", tiles.size(), " Tile16 tiles inside a ", ttString(tilesetType));
+            errorList.addErrorString(u8"Unable to fit ", tiles.size(), u8" Tile16 tiles inside a ", ttString(tilesetType));
         }
     }
     else {
@@ -217,7 +217,7 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
                         const unsigned frameIndex = exportFrames.at(frameId).fsIndex;
                         errorList.addError(frameError(
                             frameSet.frames.at(frameIndex), frameIndex,
-                            "Too many tiles in frame (", nTiles, ")", dynamicTiles.size(), " ", ret.staticTiles.size()));
+                            u8"Too many tiles in frame (", nTiles, u8")", dynamicTiles.size(), u8" ", ret.staticTiles.size()));
                     }
                 }
             }

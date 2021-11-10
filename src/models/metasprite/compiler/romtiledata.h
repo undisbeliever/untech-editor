@@ -56,7 +56,7 @@ private:
     void createTileBank()
     {
         if (_tileBanks.size() >= _memoryMap.nBanks) {
-            throw runtime_error("Cannot create Tile Data Bank: not enough ROM Banks");
+            throw runtime_error(u8"Cannot create Tile Data Bank: not enough ROM Banks");
         }
         const unsigned bankId = _memoryMap.nBanks - _tileBanks.size() - 1;
 

@@ -8,7 +8,9 @@
 #include "project.h"
 #include "models/common/errorlist.h"
 #include "models/common/iterators.h"
+#include "models/common/string.h"
 #include "models/common/type-traits.h"
+#include "models/common/u8strings.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include <cassert>
 
@@ -16,51 +18,51 @@ namespace UnTech::Project {
 
 static const idstring BLANK_ID{};
 
-static std::array<std::string, 7> projectSettingNames{
-    "Project Settings",
-    "Game State",
-    "Bytecode",
-    "Interactive Tiles",
-    "Action Points",
-    "Entities",
-    "Scenes",
+static std::array<std::u8string, 7> projectSettingNames{
+    u8"Project Settings",
+    u8"Game State",
+    u8"Bytecode",
+    u8"Interactive Tiles",
+    u8"Action Points",
+    u8"Entities",
+    u8"Scenes",
 };
 
 // Template Magic
 // ==============
 
 template <class T>
-static const std::string& itemNameString(const T& item)
+static const std::u8string& itemNameString(const T& item)
 {
     return item.name.str();
 }
-static const std::string& itemNameString(const MetaSprite::FrameSetFile& item)
+static const std::u8string& itemNameString(const MetaSprite::FrameSetFile& item)
 {
     return item.name().str();
 }
 
 template <class ListT>
-static const std::string& itemNameString(const ListT& list, unsigned index)
+static const std::u8string& itemNameString(const ListT& list, unsigned index)
 {
     return list.at(index).name.str();
 }
 template <class T>
-static std::string itemNameString(const ExternalFileList<T>& list, unsigned index)
+static std::u8string itemNameString(const ExternalFileList<T>& list, unsigned index)
 {
     const ExternalFileItem<T>& item = list.item(index);
     if (item.value) {
         return item.value->name.str();
     }
     else {
-        return item.filename.filename().string();
+        return item.filename.filename().u8string();
     }
 }
 template <size_t N>
-static const std::string& itemNameString(const std::array<std::string, N>& list, unsigned index)
+static const std::u8string& itemNameString(const std::array<std::u8string, N>& list, unsigned index)
 {
     return list.at(index);
 }
-static const std::string& itemNameString(const std::vector<MetaSprite::FrameSetFile>& list, unsigned index)
+static const std::u8string& itemNameString(const std::vector<MetaSprite::FrameSetFile>& list, unsigned index)
 {
     return list.at(index).name().str();
 }
@@ -108,7 +110,7 @@ static inline const T& expandPresquite(const T& p)
 // ==================
 // All "write" methods MUST be implemented in the .cpp file and protected with a `std::unqiue_lock` or `std::lock_guard`
 
-ResourceListStatus::ResourceListStatus(std::string tnSingle, std::string tnPlural)
+ResourceListStatus::ResourceListStatus(std::u8string tnSingle, std::u8string tnPlural)
     : _typeNameSingle(tnSingle)
     , _typeNamePlural(tnPlural)
     , _currentCompileId(1)
@@ -127,14 +129,14 @@ void ResourceListStatus::clearAllAndResize(size_t size)
     _state = ResourceState::Unchecked;
 }
 
-inline std::pair<std::string, std::string> ResourceListStatus::setStatus(unsigned index, ResourceStatus&& status)
+inline std::pair<std::u8string, std::u8string> ResourceListStatus::setStatus(unsigned index, ResourceStatus&& status)
 {
     std::lock_guard lock(_mutex);
 
     status.compileId = _currentCompileId++;
 
-    std::string oldName = _resources.at(index).name;
-    std::string newName = status.name;
+    std::u8string oldName = _resources.at(index).name;
+    std::u8string newName = status.name;
 
     _resources.at(index) = std::move(status);
 
@@ -196,7 +198,7 @@ void ResourceListStatus::clearAllAndPopulateNames(const ListT& list)
     _state = ResourceState::Unchecked;
 }
 
-inline std::string ResourceListStatus::name(unsigned index) const
+inline std::u8string ResourceListStatus::name(unsigned index) const
 {
     std::shared_lock lock(_mutex);
 
@@ -240,7 +242,7 @@ ResourceState ResourceListStatus::listState() const
 }
 
 template <typename T>
-DataStore<T>::DataStore(std::string typeNameSingle, std::string typeNamePlural)
+DataStore<T>::DataStore(std::u8string typeNameSingle, std::u8string typeNamePlural)
     : ResourceListStatus(std::move(typeNameSingle), std::move(typeNamePlural))
     , _mapping()
     , _data()
@@ -264,7 +266,7 @@ void DataStore<T>::clearAllAndResize(size_t size)
 }
 
 template <typename T>
-inline std::pair<std::string, std::string> DataStore<T>::store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data)
+inline std::pair<std::u8string, std::u8string> DataStore<T>::store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data)
 {
     std::lock_guard lock(_mutex);
 
@@ -272,8 +274,8 @@ inline std::pair<std::string, std::string> DataStore<T>::store(const size_t inde
 
     _data.at(index) = std::move(data);
 
-    const std::string oldName = _resources.at(index).name;
-    const std::string& newName = status.name;
+    const std::u8string oldName = _resources.at(index).name;
+    const std::u8string& newName = status.name;
 
     if (idstring::isValid(newName)) {
         auto it = _mapping.find(newName);
@@ -283,7 +285,7 @@ inline std::pair<std::string, std::string> DataStore<T>::store(const size_t inde
         else {
             if (it->second != index) {
                 status.state = ResourceState::Invalid;
-                status.errorList.addErrorString("Duplicated name detected");
+                status.errorList.addErrorString(u8"Duplicated name detected");
             }
         }
 
@@ -489,7 +491,7 @@ void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& pro
 }
 
 void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, const ResourceType type,
-                                                  const std::string& oldName, const std::string& name)
+                                                  const std::u8string& oldName, const std::u8string& name)
 {
     std::shared_lock lock(_mutex);
 
@@ -497,7 +499,7 @@ void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, cons
         projectData._projectSettingsStatus.markUnchecked(unsigned(psi));
     };
 
-    auto markNameUnchecked = [](const Mappings& mappings, ResourceListStatus& rls, const std::string& n) {
+    auto markNameUnchecked = [](const Mappings& mappings, ResourceListStatus& rls, const std::u8string& n) {
         const auto range = mappings.dependants.equal_range(n);
         for (auto it = range.first; it != range.second; ++it) {
             rls.markUnchecked(it->second);
@@ -556,7 +558,7 @@ template <typename DataT, typename ConvertFunction, class InputT, typename... Pr
 static std::pair<ResourceStatus, std::shared_ptr<const DataT>>
 compileData(ConvertFunction convertFunction, const InputT& input, const PreresquitesT&... preresquites)
 {
-    const std::string name = itemNameString(input);
+    const std::u8string name = itemNameString(input);
 
     ResourceStatus status;
     status.name = name;
@@ -567,7 +569,7 @@ compileData(ConvertFunction convertFunction, const InputT& input, const Preresqu
         data = convertFunction(input, expandPresquite(preresquites)..., status.errorList);
     }
     catch (const std::exception& ex) {
-        status.errorList.addErrorString(stringBuilder("EXCEPTION: ", ex.what()));
+        status.errorList.addErrorString(u8"EXCEPTION: ", convert_old_string(ex.what()));
         data = nullptr;
     }
 
@@ -614,8 +616,8 @@ compileListItem(ConvertFunction convertFunction,
     else {
         ResourceStatus status;
         status.state = ResourceState::Missing;
-        status.name = inputList.item(index).filename.filename().string();
-        status.errorList.addErrorString("External file is missing");
+        status.name = inputList.item(index).filename.filename().u8string();
+        status.errorList.addErrorString(u8"External file is missing");
 
         return { std::move(status), nullptr };
     }
@@ -630,7 +632,7 @@ compileFunction(ConvertFunction convertFunction,
 
     if (!(checkPrerequisite(prerequisites) && ...)) {
         status.state = ResourceState::Invalid;
-        status.errorList.addErrorString("Dependency error");
+        status.errorList.addErrorString(u8"Dependency error");
         return { std::move(status), nullptr };
     }
 
@@ -643,7 +645,7 @@ compileFunction(ConvertFunction convertFunction,
     catch (const std::exception& ex) {
         data = nullptr;
         status.state = ResourceState::Invalid;
-        status.errorList.addErrorString(stringBuilder("EXCEPTION: ", ex.what()));
+        status.errorList.addErrorString(stringBuilder(u8"EXCEPTION: ", convert_old_string(ex.what())));
     }
 
     return { std::move(status), std::move(data) };
@@ -688,7 +690,7 @@ bool ProjectData::validatePs(const ProjectSettingsIndex indexEnum, const Validat
     }
     catch (const std::exception& ex) {
         status.state = ResourceState::Invalid;
-        status.errorList.addErrorString(stringBuilder("EXCEPTION: ", ex.what()));
+        status.errorList.addErrorString(stringBuilder(u8"EXCEPTION: ", convert_old_string(ex.what())));
     }
 
     const bool valid = status.state == ResourceState::Valid;
@@ -727,8 +729,8 @@ inline bool ProjectData::validateList(const ValidateFunction validateFunction, R
             }
             else {
                 status.state = ResourceState::Missing;
-                status.name = inputList.item(index).filename.filename().string();
-                status.errorList.addErrorString("External file is missing");
+                status.name = inputList.item(index).filename.filename().u8string();
+                status.errorList.addErrorString(u8"External file is missing");
 
                 valid = false;
             }
@@ -778,7 +780,7 @@ inline bool ProjectData::compileList(ConvertFunction convertFunction, DataStore<
                 ResourceStatus status;
                 status.state = ResourceState::Invalid;
                 status.name = itemNameString(inputList, index);
-                status.errorList.addErrorString("Dependency error");
+                status.errorList.addErrorString(u8"Dependency error");
 
                 auto [oldName, name] = dataStore.store(index, std::move(status), nullptr);
                 _dependencies.markDependantsUnchecked(*this, type, oldName, name);
@@ -794,13 +796,13 @@ inline bool ProjectData::compileList(ConvertFunction convertFunction, DataStore<
 
 ProjectData::ProjectData()
     : _dependencies()
-    , _projectSettingsStatus("Project Settings", "Project Settings")
-    , _frameSetExportOrderStatus("FrameSet Export Order", "FrameSet Export Orders")
-    , _frameSets("FrameSet", "FrameSets")
-    , _palettes("Palette", "Palettes")
-    , _backgroundImages("Background Image", "Background Images")
-    , _metaTileTilesets("MetaTile Tileset", "MetaTile Tileset")
-    , _rooms("Room", "Rooms")
+    , _projectSettingsStatus(u8"Project Settings", u8"Project Settings")
+    , _frameSetExportOrderStatus(u8"FrameSet Export Order", u8"FrameSet Export Orders")
+    , _frameSets(u8"FrameSet", u8"FrameSets")
+    , _palettes(u8"Palette", u8"Palettes")
+    , _backgroundImages(u8"Background Image", u8"Background Images")
+    , _metaTileTilesets(u8"MetaTile Tileset", u8"MetaTile Tileset")
+    , _rooms(u8"Room", u8"Rooms")
     , _resourceListStatuses{
         _projectSettingsStatus,
         _frameSetExportOrderStatus,

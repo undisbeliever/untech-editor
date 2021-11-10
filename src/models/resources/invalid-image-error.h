@@ -49,7 +49,7 @@ struct InvalidImageTile {
 
 class InvalidImageError : public AbstractError {
 public:
-    static const char* reasonString(const InvalidTileReason reason);
+    static const char8_t* reasonString(const InvalidTileReason reason);
 
 public:
     const std::vector<InvalidImageTile> invalidTiles;

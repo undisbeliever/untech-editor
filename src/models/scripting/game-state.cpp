@@ -19,14 +19,14 @@ template <typename... Args>
 std::unique_ptr<GameStateError> variableError(const GameStateFlag& flag, const unsigned index, const Args... msg)
 {
     return std::make_unique<GameStateError>(GameStateErrorType::FLAG, index,
-                                            stringBuilder("Flag ", flag.name, ": ", msg...));
+                                            stringBuilder(u8"Flag ", flag.name, u8": ", msg...));
 }
 
 template <typename... Args>
 std::unique_ptr<GameStateError> variableError(const GameStateWord& word, const unsigned index, const Args... msg)
 {
     return std::make_unique<GameStateError>(GameStateErrorType::WORD, index,
-                                            stringBuilder("Word ", word.name, ": ", msg...));
+                                            stringBuilder(u8"Word ", word.name, u8": ", msg...));
 }
 
 std::shared_ptr<const GameStateData>
@@ -45,10 +45,10 @@ compileGameState(const GameState& input,
     };
 
     if (input.flags.size() > GameState::MAX_FLAGS) {
-        addError("Too many flags (", input.flags.size(), ", max: ", GameState::MAX_FLAGS, ")");
+        addError(u8"Too many flags (", input.flags.size(), u8", max: ", GameState::MAX_FLAGS, u8")");
     }
     if (input.words.size() > GameState::MAX_WORDS) {
-        addError("Too many words (", input.words.size(), ", max: ", GameState::MAX_WORDS, ")");
+        addError(u8"Too many words (", input.words.size(), u8", max: ", GameState::MAX_WORDS, u8")");
     }
 
     const auto roomId = rooms.indexOf(input.startingRoom);
@@ -60,21 +60,21 @@ compileGameState(const GameState& input,
     }
 
     if (!input.startingRoom.isValid()) {
-        addError("Missing startingRoom");
+        addError(u8"Missing startingRoom");
     }
     else if (!input.startingEntrance.isValid()) {
-        addError("Missing startingEntrance");
+        addError(u8"Missing startingEntrance");
     }
     else if (roomId > UINT8_MAX) {
-        addError("Cannot find room: ", input.startingRoom);
+        addError(u8"Cannot find room: ", input.startingRoom);
     }
     else if (entranceId > UINT8_MAX) {
-        addError("Cannot find room entrance: ", input.startingEntrance);
+        addError(u8"Cannot find room entrance: ", input.startingEntrance);
     }
 
     const unsigned playerId = entityRomData.players.indexOf(input.startingPlayer);
     if (playerId > UINT8_MAX) {
-        addError("Cannot find player: ", input.startingPlayer);
+        addError(u8"Cannot find player: ", input.startingPlayer);
     }
 
     if (!valid) {
@@ -94,15 +94,15 @@ compileGameState(const GameState& input,
 
                 const auto [it, inserted] = map.emplace(item.name.str(), GameStateData::Value{ unsigned(i), item.room });
                 if (!inserted) {
-                    addVariableError(item, i, "Duplicate ", typeName, " detected");
+                    addVariableError(item, i, u8"Duplicate ", typeName, u8" detected");
                 }
             }
         }
 
         return lastIndex + 1;
     };
-    ret->nFlags = processList(ret->flags, input.flags, "flag");
-    ret->nWords = processList(ret->words, input.words, "word");
+    ret->nFlags = processList(ret->flags, input.flags, u8"flag");
+    ret->nWords = processList(ret->words, input.words, u8"word");
 
     {
         static_assert(2 * GameState::MAX_WORDS == 0x100);
@@ -141,22 +141,22 @@ std::vector<uint8_t> GameStateData::exportSnesData() const
 
 void writeGameStateConstants(const GameState& input, const GameStateData& inputData, StringStream& out)
 {
-    out.write("constant Project.GameState.N_FLAGS = ", inputData.nFlags,
-              "\nconstant Project.GameState.MAX_FLAGS = ", input.MAX_FLAGS,
-              "\nconstant Project.GameState.N_WORDS = ", inputData.nWords,
-              "\nconstant Project.GameState.MAX_WORDS = ", input.MAX_WORDS,
-              "\n"
-              "\n"
-              "namespace Project.GameState.Words {");
+    out.write(u8"constant Project.GameState.N_FLAGS = ", inputData.nFlags,
+              u8"\nconstant Project.GameState.MAX_FLAGS = ", input.MAX_FLAGS,
+              u8"\nconstant Project.GameState.N_WORDS = ", inputData.nWords,
+              u8"\nconstant Project.GameState.MAX_WORDS = ", input.MAX_WORDS,
+              u8"\n"
+              u8"\n"
+              u8"namespace Project.GameState.Words {");
 
     for (auto [i, word] : const_enumerate(input.words)) {
         // Only add global words to game state constants
         if (word.name.isValid() && !word.room.isValid()) {
-            out.write("\n  constant ", word.name, " = GameState.wordData + ", (i * 2));
+            out.write(u8"\n  constant ", word.name, u8" = GameState.wordData + ", (i * 2));
         }
     }
 
-    out.write("\n}\n\n");
+    out.write(u8"\n}\n\n");
 }
 
 }

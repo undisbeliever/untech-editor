@@ -29,7 +29,7 @@ public:
 
 private:
     const usize _size;
-    const std::string _errorString;
+    const std::u8string _errorString;
     uint8_t* const _imageData;
     const size_t _dataSize;
     std::vector<rgba> _palette;
@@ -53,7 +53,7 @@ public:
      */
     static std::shared_ptr<IndexedImage> loadPngImage_shared(const std::filesystem::path& filename);
 
-    static std::shared_ptr<IndexedImage> invalidImageWithErrorMessage(std::string&& error);
+    static std::shared_ptr<IndexedImage> invalidImageWithErrorMessage(std::u8string&& error);
 
 public:
     // IndexedImage cannot be moved or copied.
@@ -71,7 +71,7 @@ public:
     // "Private" constructors for use with `std::make_shared`.
     // Takes ownership of `data`
     IndexedImage(const usize size, uint8_t*&& data, PrivateToken);
-    IndexedImage(std::string&& errorString, PrivateToken);
+    IndexedImage(std::u8string&& errorString, PrivateToken);
 
     ~IndexedImage();
 
@@ -81,7 +81,7 @@ public:
     bool empty() const { return _imageData == nullptr; }
 
     inline usize size() const { return _size; }
-    inline const std::string& errorString() const { return _errorString; }
+    inline const std::u8string& errorString() const { return _errorString; }
 
     inline auto& palette() { return _palette; }
     inline const auto& palette() const { return _palette; }
@@ -97,7 +97,7 @@ public:
     std::span<uint8_t> scanline(unsigned y)
     {
         if (y >= _size.height) {
-            throw out_of_range("Image::scanline out of range");
+            throw out_of_range(u8"Image::scanline out of range");
         }
         assert(_imageData);
         return std::span(_imageData + (y * _size.width), _size.width);
@@ -106,7 +106,7 @@ public:
     std::span<const uint8_t> scanline(unsigned y) const
     {
         if (y >= _size.height) {
-            throw out_of_range("Image::scanline out of range");
+            throw out_of_range(u8"Image::scanline out of range");
         }
         assert(_imageData);
         return std::span(_imageData + (y * _size.width), _size.width);
@@ -115,7 +115,7 @@ public:
     inline uint8_t getPixel(unsigned x, unsigned y) const
     {
         if (x >= _size.width || y >= _size.height) {
-            throw out_of_range("Image::getPixel out of range");
+            throw out_of_range(u8"Image::getPixel out of range");
         }
         assert(_imageData);
         return _imageData[x + y * pixelsPerScanline()];
@@ -124,7 +124,7 @@ public:
     inline void setPixel(unsigned x, unsigned y, const uint8_t p)
     {
         if (x >= _size.width || y >= _size.height) {
-            throw out_of_range("Image::setPixel out of range");
+            throw out_of_range(u8"Image::setPixel out of range");
         }
         assert(_imageData);
         _imageData[x + y * pixelsPerScanline()] = p;

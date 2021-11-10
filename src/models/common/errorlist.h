@@ -17,11 +17,11 @@ class StringStream;
 
 class AbstractError {
 public:
-    const std::string message;
+    const std::u8string message;
     bool isWarning;
 
 public:
-    AbstractError(std::string&& msg)
+    AbstractError(std::u8string&& msg)
         : message(std::move(msg))
         , isWarning(false)
     {
@@ -41,14 +41,14 @@ public:
     const unsigned firstIndex;
     const unsigned childIndex;
 
-    GenericListError(unsigned pIndex, std::string&& message)
+    GenericListError(unsigned pIndex, std::u8string&& message)
         : AbstractError(std::move(message))
         , firstIndex(pIndex)
         , childIndex(0)
     {
     }
 
-    GenericListError(unsigned pIndex, unsigned cIndex, std::string&& message)
+    GenericListError(unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : AbstractError(std::move(message))
         , firstIndex(pIndex)
         , childIndex(cIndex)

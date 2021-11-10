@@ -46,7 +46,7 @@ static vectorset<rgba> getColorsFromImage(const SI::FrameSet& siFrameSet, const 
                     const bool newColor = colors.insert(p[lx + x]);
                     if (newColor) {
                         if (colors.size() > PALETTE_COLORS) {
-                            throw runtime_error("Too many colors, expected a maximum of 16 colors");
+                            throw runtime_error(u8"Too many colors, expected a maximum of 16 colors");
                         }
                     }
                 }
@@ -60,10 +60,10 @@ static vectorset<rgba> getColorsFromImage(const SI::FrameSet& siFrameSet, const 
         colors.erase(tIt);
     }
     else {
-        errorList.addWarningString("Transparent color is not in frame objects");
+        errorList.addWarningString(u8"Transparent color is not in frame objects");
 
         if (colors.size() > (PALETTE_COLORS - 1)) {
-            throw runtime_error("Too many colors, expected a maximum of 15 colors after removing transparency");
+            throw runtime_error(u8"Too many colors, expected a maximum of 15 colors after removing transparency");
         }
     }
 
@@ -92,7 +92,7 @@ static upoint palettePosition(const SI::UserSuppliedPalette& usp, const Image& i
         return upoint(imageSize.width - paletteSize.width, imageSize.height - paletteSize.height);
     }
 
-    throw runtime_error("Invalid UserSuppliedPalette::Position");
+    throw runtime_error(u8"Invalid UserSuppliedPalette::Position");
 }
 
 static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Image& image, const unsigned pal)
@@ -113,7 +113,7 @@ static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Im
         const auto imgBitstoTest = image.scanline(yPos + l).subspan(xPos, colorSize * PALETTE_COLORS);
 
         if (not std::equal(startOfPalette.begin(), startOfPalette.end(), imgBitstoTest.begin())) {
-            throw runtime_error("Custom Palette is invalid");
+            throw runtime_error(u8"Custom Palette is invalid");
         }
     }
 
@@ -123,14 +123,14 @@ static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Im
 
         for (const auto i : range(1, colorSize)) {
             if (imgBits[0] != imgBits[i]) {
-                throw runtime_error("Custom Palette is invalid");
+                throw runtime_error(u8"Custom Palette is invalid");
             }
         }
     }
 
     // ensure first color is transparent
     if (startOfPalette[0] != siFrameSet.transparentColor) {
-        throw runtime_error("First color of custom palette ", pal, " is not the transparent color");
+        throw runtime_error(u8"First color of custom palette ", pal, u8" is not the transparent color");
     }
 }
 
@@ -140,7 +140,7 @@ static void validateUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const I
     const usize paletteSize = siFrameSet.palette.paletteSize();
 
     if (imageSize.width < paletteSize.width || imageSize.height < paletteSize.height) {
-        throw runtime_error("Cannot load custom palette, image is too small");
+        throw runtime_error(u8"Cannot load custom palette, image is too small");
     }
 
     for (const auto pal : range(siFrameSet.palette.nPalettes)) {
@@ -157,12 +157,12 @@ static void validateColorMap(const ColorMapT& colorMap, const unsigned paletteId
 
     if (colorSet.size() > 0) {
         StringStream out(1024);
-        out.write("Palette ", paletteId, " is invalid (missing");
+        out.write(u8"Palette ", paletteId, u8" is invalid (missing");
 
         for (const rgba& c : colorSet) {
-            out.write(" ", hex_6(c.rgbHex()));
+            out.write(u8" ", hex_6(c.rgbHex()));
         }
-        out.write(")");
+        out.write(u8")");
 
         throw runtime_error(out.takeString());
     }

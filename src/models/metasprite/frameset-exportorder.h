@@ -21,7 +21,7 @@ class ErrorList;
 namespace UnTech::MetaSprite {
 
 struct FrameSetExportOrder {
-    static const std::string FILE_EXTENSION;
+    static const std::u8string FILE_EXTENSION;
 
     struct ExportName {
         idstring name;

@@ -5,6 +5,7 @@
  */
 
 #include "models/common/file.h"
+#include "models/common/u8strings.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include "models/entity/entityromdata-serializer.h"
@@ -29,29 +30,29 @@ static void validateReaderAndWriter(const std::filesystem::path& filename, const
                                     Reader readerFunction, Writer writerFunction)
 {
     // Large buffer size: Some of these XML files contain a large base64 text block
-    Xml::XmlWriter xmlWriter_1(filename, "untech", 128 * 1024);
+    Xml::XmlWriter xmlWriter_1(filename, u8"untech", 128 * 1024);
     writerFunction(xmlWriter_1, input);
 
     std::unique_ptr<T> output;
     try {
-        Xml::XmlReader xmlReader(std::string(xmlWriter_1.string_view()), filename);
+        Xml::XmlReader xmlReader(std::u8string(xmlWriter_1.string_view()), filename);
         output = readerFunction(xmlReader);
     }
     catch (const std::exception& ex) {
-        throw runtime_error("Unable to read output of : XmlWriter", ex.what());
+        throw runtime_error(u8"Unable to read output of : XmlWriter", convert_old_string(ex.what()));
     }
 
     assert(output);
     if ((*output == input) == false) {
-        throw runtime_error(filename.string(), ": output != input");
+        throw runtime_error(filename.u8string(), u8": output != input");
     }
 
     // Small buffer size: test StringBuilder will increase buffer size properly
-    Xml::XmlWriter xmlWriter_2(filename, "untech", 1024);
+    Xml::XmlWriter xmlWriter_2(filename, u8"untech", 1024);
     writerFunction(xmlWriter_2, input);
 
     if (xmlWriter_1.string_view() != xmlWriter_2.string_view()) {
-        throw runtime_error(filename.string(), ": xmlWriter_1 output != xmlWriter_2 output");
+        throw runtime_error(filename.u8string(), u8": xmlWriter_1 output != xmlWriter_2 output");
     }
 }
 
@@ -67,7 +68,8 @@ static bool testSerializer(const std::filesystem::path& filename, Reader reader,
         validateReaderAndWriter(filename, *data, reader, writer);
 
         nFilesPassed++;
-        std::cout << data->FILE_EXTENSION << " serializer passed: " << filename << std::endl;
+        stdout_write(data->FILE_EXTENSION);
+        std::cout << " serializer passed: " << filename << std::endl;
         return true;
     }
     catch (const std::exception& ex) {
@@ -162,7 +164,8 @@ bool testSerializer<Project::ProjectFile>(const std::filesystem::path& filename)
         validateReaderAndWriter(filename, *project, Project::readProjectFile, Project::writeProjectFile);
 
         nFilesPassed++;
-        std::cout << project->FILE_EXTENSION << " serializer passed: " << filename << std::endl;
+        stdout_write(project->FILE_EXTENSION);
+        std::cout << " serializer passed: " << filename << std::endl;
     }
     catch (const std::exception& ex) {
         nFilesFailed++;
@@ -185,8 +188,8 @@ static bool testFilenameOfUnknownType(const std::filesystem::path& filePath)
 {
     const auto extension = filePath.extension();
 
-    std::string extWithoutDot = filePath.extension().string();
-    if (not extWithoutDot.empty() and extWithoutDot[0] == '.') {
+    std::u8string extWithoutDot = filePath.extension().u8string();
+    if (not extWithoutDot.empty() and extWithoutDot[0] == u8'.') {
         extWithoutDot.erase(0, 1);
     }
 

@@ -28,7 +28,7 @@ extern const EnumMap<TilesetType> tilesetTypeEnumMap;
 
 namespace UnTech::MetaSprite::MetaSprite {
 
-const std::string FrameSet::FILE_EXTENSION = "utms";
+const std::u8string FrameSet::FILE_EXTENSION = u8"utms";
 
 std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag& tag);
 
@@ -43,20 +43,20 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
     try {
         const auto tag = xml.parseTag();
 
-        if (tag.name != "metasprite") {
-            throw xml_error(xml, "Expected <metasprite> tag");
+        if (tag.name != u8"metasprite") {
+            throw xml_error(xml, u8"Expected <metasprite> tag");
         }
         return readFrameSet(xml, tag);
     }
     catch (const std::exception& ex) {
-        throw xml_error(xml, "Unable to load MetaSprite FrameSet", ex);
+        throw xml_error(xml, u8"Unable to load MetaSprite FrameSet", ex);
     }
 }
 
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename)
 {
     // utms files contain base64 text, use a larger buffer.
-    XmlWriter xml(filename, "untech", 32 * 1024);
+    XmlWriter xml(filename, u8"untech", 32 * 1024);
     writeFrameSet(xml, frameSet);
 
     File::atomicWrite(filename, xml.string_view());
@@ -81,30 +81,30 @@ private:
 public:
     inline void readFrameSet(const XmlTag& tag)
     {
-        assert(tag.name == "metasprite");
+        assert(tag.name == u8"metasprite");
         assert(frameSet.frames.size() == 0);
 
-        frameSet.name = tag.getAttributeId("id");
-        frameSet.tilesetType = tag.getAttributeEnum("tilesettype", tilesetTypeEnumMap);
+        frameSet.name = tag.getAttributeId(u8"id");
+        frameSet.tilesetType = tag.getAttributeEnum(u8"tilesettype", tilesetTypeEnumMap);
 
-        if (tag.hasAttribute("exportorder")) {
-            frameSet.exportOrder = tag.getAttributeId("exportorder");
+        if (tag.hasAttribute(u8"exportorder")) {
+            frameSet.exportOrder = tag.getAttributeId(u8"exportorder");
         }
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == "frame") {
+            if (childTag.name == u8"frame") {
                 readFrame(childTag);
             }
-            else if (childTag.name == "smalltileset") {
+            else if (childTag.name == u8"smalltileset") {
                 readSmallTileset(childTag);
             }
-            else if (childTag.name == "largetileset") {
+            else if (childTag.name == u8"largetileset") {
                 readLargeTileset(childTag);
             }
-            else if (childTag.name == "palette") {
+            else if (childTag.name == u8"palette") {
                 readPalette(childTag);
             }
-            else if (childTag.name == "animation") {
+            else if (childTag.name == u8"animation") {
                 Animation::readAnimation(xml, childTag, frameSet.animations);
             }
             else {
@@ -119,7 +119,7 @@ private:
     static void readCollisionBox(const XmlTag& tag, CollisionBox& box)
     {
         if (box.exists) {
-            throw xml_error(tag, stringBuilder("Can only have one ", tag.name, " per frame"));
+            throw xml_error(tag, stringBuilder(u8"Can only have one ", tag.name, u8" per frame"));
         }
 
         box.exists = true;
@@ -128,44 +128,44 @@ private:
 
     inline void readFrame(const XmlTag& tag)
     {
-        assert(tag.name == "frame");
+        assert(tag.name == u8"frame");
 
         frameSet.frames.insert_back();
         Frame& frame = frameSet.frames.back();
 
-        frame.name = tag.getAttributeId("id");
-        frame.spriteOrder = tag.getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
+        frame.name = tag.getAttributeId(u8"id");
+        frame.spriteOrder = tag.getAttributeUnsigned(u8"order", 0, frame.spriteOrder.MASK);
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == "object") {
+            if (childTag.name == u8"object") {
                 FrameObject obj;
 
-                obj.size = childTag.getAttributeEnum("size", objectSizeEnumMap);
+                obj.size = childTag.getAttributeEnum(u8"size", objectSizeEnumMap);
                 obj.location = childTag.getAttributeMs8point();
-                obj.tileId = childTag.getAttributeUnsigned("tile");
-                obj.hFlip = childTag.getAttributeBoolean("hflip");
-                obj.vFlip = childTag.getAttributeBoolean("vflip");
+                obj.tileId = childTag.getAttributeUnsigned(u8"tile");
+                obj.hFlip = childTag.getAttributeBoolean(u8"hflip");
+                obj.vFlip = childTag.getAttributeBoolean(u8"vflip");
 
                 frame.objects.push_back(obj);
             }
-            else if (childTag.name == "actionpoint") {
+            else if (childTag.name == u8"actionpoint") {
                 ActionPoint ap;
 
                 ap.location = childTag.getAttributeMs8point();
-                ap.type = childTag.getAttributeOptionalId("type");
+                ap.type = childTag.getAttributeOptionalId(u8"type");
 
                 frame.actionPoints.push_back(ap);
             }
-            else if (childTag.name == "tilehitbox") {
+            else if (childTag.name == u8"tilehitbox") {
                 readCollisionBox(childTag, frame.tileHitbox);
             }
-            else if (childTag.name == "shield") {
+            else if (childTag.name == u8"shield") {
                 readCollisionBox(childTag, frame.shield);
             }
-            else if (childTag.name == "hitbox") {
+            else if (childTag.name == u8"hitbox") {
                 readCollisionBox(childTag, frame.hitbox);
             }
-            else if (childTag.name == "hurtbox") {
+            else if (childTag.name == u8"hurtbox") {
                 readCollisionBox(childTag, frame.hurtbox);
             }
             else {
@@ -178,14 +178,14 @@ private:
 
     inline void readSmallTileset(const XmlTag& tag)
     {
-        assert(tag.name == "smalltileset");
+        assert(tag.name == u8"smalltileset");
 
         const auto data = xml.parseBase64OfUnknownSize();
 
         constexpr unsigned smallTileSize = Snes::snesTileSizeForBitdepth(4);
         assert(smallTileSize == 32);
         if ((data.size() % smallTileSize) != 0) {
-            throw xml_error(tag, "Small Tileset data must be a multiple of 32 bytes");
+            throw xml_error(tag, u8"Small Tileset data must be a multiple of 32 bytes");
         }
 
         frameSet.smallTileset = Snes::readSnesTileData4bpp(data);
@@ -193,15 +193,15 @@ private:
 
     inline void readLargeTileset(const XmlTag& tag)
     {
-        assert(tag.name == "largetileset");
+        assert(tag.name == u8"largetileset");
 
         const auto data = xml.parseBase64OfUnknownSize();
 
         constexpr unsigned largeTileSize = Snes::snesTileSizeForBitdepth(4) * 4;
 
-        static_assert(largeTileSize == 128, "Bad assumption");
+        static_assert(largeTileSize == 128, u8"Bad assumption");
         if ((data.size() % largeTileSize) != 0) {
-            throw xml_error(tag, "Large Tileset data must be a multiple of 128 bytes");
+            throw xml_error(tag, u8"Large Tileset data must be a multiple of 128 bytes");
         }
 
         frameSet.largeTileset = Snes::readSnesTileData4bppTile16(data);
@@ -209,7 +209,7 @@ private:
 
     inline void readPalette(const XmlTag& tag)
     {
-        assert(tag.name == "palette");
+        assert(tag.name == u8"palette");
 
         std::array<uint8_t, 32> data;
 
@@ -234,7 +234,7 @@ std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag& t
  * ================
  */
 
-static void writeCollisionBox(XmlWriter& xml, const CollisionBox& box, const std::string_view tagName)
+static void writeCollisionBox(XmlWriter& xml, const CollisionBox& box, const std::u8string_view tagName)
 {
     if (box.exists) {
         xml.writeTag(tagName);
@@ -245,32 +245,32 @@ static void writeCollisionBox(XmlWriter& xml, const CollisionBox& box, const std
 
 inline void writeFrame(XmlWriter& xml, const Frame& frame)
 {
-    xml.writeTag("frame");
+    xml.writeTag(u8"frame");
 
-    xml.writeTagAttribute("id", frame.name);
-    xml.writeTagAttribute("order", frame.spriteOrder);
+    xml.writeTagAttribute(u8"id", frame.name);
+    xml.writeTagAttribute(u8"order", frame.spriteOrder);
 
-    writeCollisionBox(xml, frame.tileHitbox, "tilehitbox");
-    writeCollisionBox(xml, frame.shield, "shield");
-    writeCollisionBox(xml, frame.hitbox, "hitbox");
-    writeCollisionBox(xml, frame.hurtbox, "hurtbox");
+    writeCollisionBox(xml, frame.tileHitbox, u8"tilehitbox");
+    writeCollisionBox(xml, frame.shield, u8"shield");
+    writeCollisionBox(xml, frame.hitbox, u8"hitbox");
+    writeCollisionBox(xml, frame.hurtbox, u8"hurtbox");
 
     for (const FrameObject& obj : frame.objects) {
-        xml.writeTag("object");
+        xml.writeTag(u8"object");
 
-        xml.writeTagAttributeEnum("size", obj.size, objectSizeEnumMap);
+        xml.writeTagAttributeEnum(u8"size", obj.size, objectSizeEnumMap);
         xml.writeTagAttributeMs8point(obj.location);
-        xml.writeTagAttribute("tile", obj.tileId);
-        xml.writeTagAttribute("hflip", obj.hFlip);
-        xml.writeTagAttribute("vflip", obj.vFlip);
+        xml.writeTagAttribute(u8"tile", obj.tileId);
+        xml.writeTagAttribute(u8"hflip", obj.hFlip);
+        xml.writeTagAttribute(u8"vflip", obj.vFlip);
 
         xml.writeCloseTag();
     }
 
     for (const ActionPoint& ap : frame.actionPoints) {
-        xml.writeTag("actionpoint");
+        xml.writeTag(u8"actionpoint");
 
-        xml.writeTagAttribute("type", ap.type);
+        xml.writeTagAttribute(u8"type", ap.type);
         xml.writeTagAttributeMs8point(ap.location);
 
         xml.writeCloseTag();
@@ -281,29 +281,29 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
 
 void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 {
-    xml.writeTag("metasprite");
+    xml.writeTag(u8"metasprite");
 
-    xml.writeTagAttribute("id", frameSet.name);
-    xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType, tilesetTypeEnumMap);
+    xml.writeTagAttribute(u8"id", frameSet.name);
+    xml.writeTagAttributeEnum(u8"tilesettype", frameSet.tilesetType, tilesetTypeEnumMap);
 
     if (frameSet.exportOrder.isValid()) {
-        xml.writeTagAttribute("exportorder", frameSet.exportOrder);
+        xml.writeTagAttribute(u8"exportorder", frameSet.exportOrder);
     }
 
     if (frameSet.smallTileset.size() > 0) {
-        xml.writeTag("smalltileset");
+        xml.writeTag(u8"smalltileset");
         xml.writeBase64(Snes::snesTileData4bpp(frameSet.smallTileset));
         xml.writeCloseTag();
     }
 
     if (frameSet.largeTileset.size() > 0) {
-        xml.writeTag("largetileset");
+        xml.writeTag(u8"largetileset");
         xml.writeBase64(Snes::snesTileData4bppTile16(frameSet.largeTileset));
         xml.writeCloseTag();
     }
 
     for (const Snes::Palette4bpp& p : frameSet.palettes) {
-        xml.writeTag("palette");
+        xml.writeTag(u8"palette");
         xml.writeBase64(snesPaletteData(p));
         xml.writeCloseTag();
     }

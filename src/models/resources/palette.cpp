@@ -61,31 +61,31 @@ static bool validate(const PaletteInput& input, ErrorList& err)
     unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
 
     if (!input.name.isValid()) {
-        err.addErrorString("Expected palette name");
+        err.addErrorString(u8"Expected palette name");
         valid = false;
     }
     if (paletteImage->empty()) {
-        err.addErrorString("Error loading palette image: ", paletteImage->errorString());
+        err.addErrorString(u8"Error loading palette image: ", paletteImage->errorString());
         valid = false;
     }
     if (input.rowsPerFrame == 0) {
-        err.addErrorString("Expected rowsPerFrame");
+        err.addErrorString(u8"Expected rowsPerFrame");
         valid = false;
     }
     if (imgSize.width != 4 && imgSize.width != 16) {
-        err.addErrorString("Palette image must be 4 or 16 pixels wide");
+        err.addErrorString(u8"Palette image must be 4 or 16 pixels wide");
         valid = false;
     }
     if (imgSize.height < minImageHeight) {
-        err.addErrorString("Palette image must be a minimum of ", minImageHeight, "pixels tall");
+        err.addErrorString(u8"Palette image must be a minimum of ", minImageHeight, u8"pixels tall");
         valid = false;
     }
     if (input.rowsPerFrame > 0 && imgSize.height % input.rowsPerFrame != 0) {
-        err.addErrorString("Palette image height must be a multiple of rowsPerFrame");
+        err.addErrorString(u8"Palette image height must be a multiple of rowsPerFrame");
         valid = false;
     }
     if (colorsPerFrame > 256) {
-        err.addErrorString("Too many colors per palette frame");
+        err.addErrorString(u8"Too many colors per palette frame");
         valid = false;
     }
 
@@ -164,34 +164,34 @@ static bool validate(const PaletteData& input, ErrorList& err)
     bool valid = true;
 
     if (input.paletteFrames.empty()) {
-        err.addErrorString("Expected at least one palette frame");
+        err.addErrorString(u8"Expected at least one palette frame");
         valid = false;
     }
     if (input.paletteFrames.size() > 255) {
-        err.addErrorString("Too many palette animations");
+        err.addErrorString(u8"Too many palette animations");
         valid = false;
     }
 
     unsigned blockSize = input.paletteFrames.size() * input.colorsPerFrame() * 2;
     if (blockSize > input.MAX_PALETTE_BLOCK_SIZE) {
-        err.addErrorString("Animation palette too large");
+        err.addErrorString(u8"Animation palette too large");
         valid = false;
     }
 
     if (input.paletteFrames.size() > 0) {
         if (input.animationDelay == 0) {
-            err.addErrorString("Expected animation delay");
+            err.addErrorString(u8"Expected animation delay");
             valid = false;
         }
         if (input.animationDelay > 0xffff) {
-            err.addErrorString("Animation delay too long");
+            err.addErrorString(u8"Animation delay too long");
             valid = false;
         }
     }
 
     for (const auto& pal : input.paletteFrames) {
         if (pal.size() != input.colorsPerFrame()) {
-            err.addErrorString("paletteFrames must contain the same number of colors in each frame");
+            err.addErrorString(u8"paletteFrames must contain the same number of colors in each frame");
             valid = false;
         }
     }

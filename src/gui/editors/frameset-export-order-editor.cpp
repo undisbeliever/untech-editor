@@ -287,10 +287,10 @@ void FrameSetExportOrderEditorGui::exportOrderWindow()
     assert(_data);
     auto& exportOrder = _data->data;
 
-    const std::string windowName = exportOrder.name + " Export Order###ExportOrder";
+    const std::u8string windowName = stringBuilder(exportOrder.name, u8" Export Order###ExportOrder");
 
     ImGui::SetNextWindowSize(ImVec2(550, 700), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(windowName.c_str())) {
+    if (ImGui::Begin(u8Cast(windowName))) {
 
         ImGui::InputIdstring("Name", &exportOrder.name);
         if (ImGui::IsItemDeactivatedAfterEdit()) {

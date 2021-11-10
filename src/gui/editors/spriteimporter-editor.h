@@ -55,7 +55,7 @@ private:
     AabbGraphics _graphics;
     Texture _imageTexture;
 
-    std::vector<std::pair<ImU32, std::string>> _transparentColorCombo;
+    std::vector<std::pair<ImU32, std::u8string>> _transparentColorCombo;
 
 public:
     bool _imageValid;

@@ -11,7 +11,7 @@
 
 namespace UnTech::MetaTiles {
 
-static const idstring BLANK_TILE_FUNCTION = "NoTileInteraction"_id;
+static const idstring BLANK_TILE_FUNCTION = u8"NoTileInteraction"_id;
 
 const std::array<InteractiveTileFunctionTable, InteractiveTiles::N_FIXED_FUNCTION_TABLES> InteractiveTiles::FIXED_FUNCTION_TABLES{ {
     InteractiveTileFunctionTable{ BLANK_TILE_FUNCTION, rgba(0, 0, 0, 0) },
@@ -21,7 +21,7 @@ template <typename... Args>
 std::unique_ptr<InteractiveTilesError> functionTableError(const InteractiveTileFunctionTable& ft, const unsigned ftIndex, const Args... msg)
 {
     return std::make_unique<InteractiveTilesError>(InteractiveTilesErrorType::FUNCTION_TABLE, ftIndex,
-                                                   stringBuilder("Interactive Tile Function Table ", ft.name, " : ", msg...));
+                                                   stringBuilder(u8"Interactive Tile Function Table ", ft.name, u8" : ", msg...));
 }
 
 std::shared_ptr<const InteractiveTilesData>
@@ -44,7 +44,7 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
         const size_t numberOfFunctions = InteractiveTiles::FIXED_FUNCTION_TABLES.size() + input.functionTables.size();
 
         if (numberOfFunctions > MAX_INTERACTIVE_TILE_FUNCTION_TABLES) {
-            addError("Too many Interactive Tile Function Tables (got: ", numberOfFunctions, ", max: ", MAX_INTERACTIVE_TILE_FUNCTION_TABLES, ")");
+            addError(u8"Too many Interactive Tile Function Tables (got: ", numberOfFunctions, u8", max: ", MAX_INTERACTIVE_TILE_FUNCTION_TABLES, u8")");
         }
 
         // Map unused interactive tile to index 0
@@ -58,14 +58,14 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
         }
         for (const auto [ftIndex, ft] : enumerate(input.functionTables)) {
             if (ft.name.isValid() == false) {
-                addFunctionError(ft, ftIndex, "Missing name");
+                addFunctionError(ft, ftIndex, u8"Missing name");
             }
 
             const auto [it, added] = ret->tileFunctionMap.emplace(ft.name, index);
             index++;
 
             if (added == false) {
-                addFunctionError(ft, ftIndex, "Duplicate name");
+                addFunctionError(ft, ftIndex, u8"Duplicate name");
             }
         }
         assert(index == numberOfFunctions);
@@ -78,14 +78,14 @@ convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
     return ret;
 }
 
-static void writeTable(StringStream& incData, const InteractiveTiles& input, const std::string& tableName, bool last = false)
+static void writeTable(StringStream& incData, const InteractiveTiles& input, const std::u8string& tableName, bool last = false)
 {
-    incData.write("code()\n",
-                  "Project.InteractiveTiles.", tableName, "_FunctionTable:\n");
+    incData.write(u8"code()\n",
+                  u8"Project.InteractiveTiles.", tableName, u8"_FunctionTable:\n");
 
     unsigned nFunctions = 0;
     auto writeTable = [&](const idstring& name) {
-        incData.write("\tdw  InteractiveTiles.", name, ".", tableName, "\n");
+        incData.write(u8"\tdw  InteractiveTiles.", name, u8".", tableName, u8"\n");
         nFunctions++;
     };
 
@@ -101,7 +101,7 @@ static void writeTable(StringStream& incData, const InteractiveTiles& input, con
     assert(nFunctions == MAX_INTERACTIVE_TILE_FUNCTION_TABLES);
 
     if (last) {
-        incData.write("Project.InteractiveTiles.EndFunctionTables:\n");
+        incData.write(u8"Project.InteractiveTiles.EndFunctionTables:\n");
     }
 }
 
@@ -109,13 +109,13 @@ void writeFunctionTables(StringStream& incData, const InteractiveTiles& input)
 {
     using namespace std::string_literals;
 
-    incData.write("\n");
+    incData.write(u8"\n");
 
-    writeTable(incData, input, "EntityCollision"s);
-    writeTable(incData, input, "EntityAirCollision"s);
-    writeTable(incData, input, "PlayerOriginCollision"s);
-    writeTable(incData, input, "PlayerLeftRightCollision"s);
-    writeTable(incData, input, "PlayerAirCollision"s, true);
+    writeTable(incData, input, u8"EntityCollision"s);
+    writeTable(incData, input, u8"EntityAirCollision"s);
+    writeTable(incData, input, u8"PlayerOriginCollision"s);
+    writeTable(incData, input, u8"PlayerLeftRightCollision"s);
+    writeTable(incData, input, u8"PlayerAirCollision"s, true);
 }
 
 const int INTERACTIVE_TILES_FORMAT_VERSION = 1;

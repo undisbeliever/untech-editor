@@ -616,19 +616,19 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 {
     using namespace std::string_literals;
 
-    constexpr static std::array<const char*, RM::MAX_ENTITY_GROUPS + 4> entityGroupNames{
-        "Entity Group 0",
-        "Entity Group 1",
-        "Entity Group 2",
-        "Entity Group 3",
-        "Entity Group 4",
-        "Entity Group 5",
-        "Entity Group 6",
-        "Entity Group 7",
-        "Entity Group OUT OF BOUNDS",
-        "Entity Group OUT OF BOUNDS",
-        "Entity Group OUT OF BOUNDS",
-        "Entity Group OUT OF BOUNDS",
+    constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGroupNames{
+        u8"Entity Group 0",
+        u8"Entity Group 1",
+        u8"Entity Group 2",
+        u8"Entity Group 3",
+        u8"Entity Group 4",
+        u8"Entity Group 5",
+        u8"Entity Group 6",
+        u8"Entity Group 7",
+        u8"Entity Group OUT OF BOUNDS",
+        u8"Entity Group OUT OF BOUNDS",
+        u8"Entity Group OUT OF BOUNDS",
+        u8"Entity Group OUT OF BOUNDS",
     };
 
     assert(_data);
@@ -656,7 +656,7 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
         for (const auto groupIndex : range(nGroups)) {
             auto& group = room.entityGroups.at(groupIndex);
 
-            if (ImGui::TreeNodeToggleSelection(entityGroupNames.at(groupIndex), &_data->entityGroupsSel, groupIndex)) {
+            if (ImGui::TreeNodeToggleSelection(u8Cast(entityGroupNames.at(groupIndex)), &_data->entityGroupsSel, groupIndex)) {
                 {
                     bool edited = false;
 
@@ -674,10 +674,10 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 
                     ImGui::PushID(i);
 
-                    const std::string selLabel = "Entity "s + std::to_string(entityId);
+                    const std::u8string selLabel = stringBuilder(u8"Entity ", entityId);
                     entityId++;
 
-                    ImGui::Selectable(selLabel.c_str(), &_data->entityEntriesSel, groupIndex, i);
+                    ImGui::Selectable(u8Cast(selLabel), &_data->entityEntriesSel, groupIndex, i);
 
                     ImGui::Indent();
 
@@ -810,7 +810,7 @@ void RoomEditorGui::entitiesWindow()
 
         unsigned counter = 0;
         for (auto [i, eg] : const_enumerate(_entityGraphics->entities)) {
-            if (filter.PassFilter(eg.name.c_str())) {
+            if (filter.PassFilter(u8Cast(eg.name))) {
                 ImGui::PushID(i);
 
                 ImGui::ImageButton(textureId, size, eg.uvMin, eg.uvMax);
@@ -955,7 +955,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
-                ImGui::Text("Extrance %u %s", unsigned(i), entrance.name.c_str());
+                ImGui::Text("Extrance %u %s", unsigned(i), u8Cast(entrance.name));
                 ImGui::EndTooltip();
             }
         }
@@ -977,14 +977,14 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
                                         &childSel, i);
                     if (_graphics.isHoveredAndNotEditing()) {
                         ImGui::BeginTooltip();
-                        ImGui::Text("Entity %u (%s)", unsigned(i), entity.entityId.c_str());
+                        ImGui::Text("Entity %u (%s)", unsigned(i), u8Cast(entity.entityId));
                         ImGui::Indent();
                         if (entity.name.isValid()) {
-                            ImGui::Text("Name: %s", entity.name.c_str());
+                            ImGui::Text("Name: %s", u8Cast(entity.name));
                         }
-                        ImGui::Text("Group: %u (%s)", unsigned(groupIndex), group.name.c_str());
+                        ImGui::Text("Group: %u (%s)", unsigned(groupIndex), u8Cast(group.name));
                         if (!entity.parameter.empty()) {
-                            ImGui::Text("Parameter: %s", entity.parameter.c_str());
+                            ImGui::Text("Parameter: %s", u8Cast(entity.parameter));
                         }
                         ImGui::Unindent();
                         ImGui::EndTooltip();
@@ -1014,10 +1014,10 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 if (!st.once) {
-                    ImGui::Text("Script Trigger %u: %s", unsigned(i), st.script.c_str());
+                    ImGui::Text("Script Trigger %u: %s", unsigned(i), u8Cast(st.script));
                 }
                 else {
-                    ImGui::Text("Script Trigger %u: %s (once)", unsigned(i), st.script.c_str());
+                    ImGui::Text("Script Trigger %u: %s (once)", unsigned(i), u8Cast(st.script));
                 }
                 ImGui::EndTooltip();
             }
@@ -1049,7 +1049,7 @@ void RoomEditorGui::editorWindow()
         ImGui::SingleSelectionNamedListCombo("##EntityGroupCombo", &_data->entityGroupsSel, room.entityGroups, true);
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
-            ImGui::TextUnformatted("Selected Entity Group");
+            ImGui::TextUnformatted(u8"Selected Entity Group");
             ImGui::EndTooltip();
         }
         ImGui::SameLine(0.0f, 12.0f);
@@ -1058,7 +1058,7 @@ void RoomEditorGui::editorWindow()
         ImGui::SingleSelectionNamedListCombo("##PlayerId", &playerId, _entityGraphics->players, false);
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
-            ImGui::TextUnformatted("Player Entity");
+            ImGui::TextUnformatted(u8"Player Entity");
             ImGui::EndTooltip();
         }
 
@@ -1370,15 +1370,15 @@ public:
         assert(depth == 0);
     }
 
-    bool roomArgument(const char* label, std::string* value)
+    bool roomArgument(const char* label, std::u8string* value)
     {
         bool edited = false;
 
-        if (ImGui::BeginCombo(label, *value)) {
+        if (ImGui::BeginCombo(label, u8Cast(*value))) {
             for (auto& item : projectFile.rooms) {
                 if (item.value && item.value->name.isValid()) {
                     const auto& roomName = item.value->name;
-                    if (ImGui::Selectable(roomName.c_str(), roomName.str() == *value)) {
+                    if (ImGui::Selectable(u8Cast(roomName), roomName.str() == *value)) {
                         *value = roomName.str();
                         edited = true;
                     }
@@ -1398,15 +1398,15 @@ public:
     }
 
     template <typename F>
-    bool roomEntranceArgument(const char* label, std::string* value, F roomGetter)
+    bool roomEntranceArgument(const char* label, std::u8string* value, F roomGetter)
     {
         bool edited = false;
 
-        if (ImGui::BeginCombo(label, *value)) {
+        if (ImGui::BeginCombo(label, u8Cast(*value))) {
             if (const auto r = roomGetter()) {
                 for (const auto& en : r->entrances) {
                     if (en.name.isValid()) {
-                        if (ImGui::Selectable(en.name.c_str(), en.name.str() == *value)) {
+                        if (ImGui::Selectable(u8Cast(en.name), en.name.str() == *value)) {
                             *value = en.name.str();
                             edited = true;
                         }
@@ -1426,7 +1426,7 @@ public:
         return edited;
     }
 
-    bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::string* value)
+    bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::u8string* value)
     {
         using Type = Scripting::ArgumentType;
 
@@ -1453,31 +1453,31 @@ public:
                     break;
 
                 case Type::Flag:
-                    ImGui::TextUnformatted("Flag");
+                    ImGui::TextUnformatted(u8"Flag");
                     break;
 
                 case Type::Word:
-                    ImGui::TextUnformatted("Word");
+                    ImGui::TextUnformatted(u8"Word");
                     break;
 
                 case Type::ImmediateU16:
-                    ImGui::TextUnformatted("Immediate U16");
+                    ImGui::TextUnformatted(u8"Immediate U16");
                     break;
 
                 case Type::RoomScript:
-                    ImGui::TextUnformatted("Room Script");
+                    ImGui::TextUnformatted(u8"Room Script");
                     break;
 
                 case Type::EntityGroup:
-                    ImGui::TextUnformatted("Entity Group");
+                    ImGui::TextUnformatted(u8"Entity Group");
                     break;
 
                 case Type::Room:
-                    ImGui::TextUnformatted("Room");
+                    ImGui::TextUnformatted(u8"Room");
                     break;
 
                 case Type::RoomEntrance:
-                    ImGui::TextUnformatted("Room Entrance");
+                    ImGui::TextUnformatted(u8"Room Entrance");
                     break;
                 }
 
@@ -1498,7 +1498,7 @@ public:
         return edited;
     }
 
-    bool roomAndRoomEntraceArguments(std::array<std::string, 2>& arguments)
+    bool roomAndRoomEntraceArguments(std::array<std::u8string, 2>& arguments)
     {
         bool edited = false;
 
@@ -1512,7 +1512,7 @@ public:
         return edited;
     }
 
-    bool scriptArguments(const Scripting::InstructionData& bc, std::array<std::string, 2>& arguments)
+    bool scriptArguments(const Scripting::InstructionData& bc, std::array<std::u8string, 2>& arguments)
     {
         constexpr std::array<Scripting::ArgumentType, 2> loadRoomArgs = { Scripting::ArgumentType::Room, Scripting::ArgumentType::RoomEntrance };
 
@@ -1551,7 +1551,7 @@ public:
 
     void operator()(Scripting::IfStatement& s)
     {
-        ImGui::TextUnformatted("if ");
+        ImGui::TextUnformatted(u8"if ");
         ImGui::SameLine();
 
         const bool edited = condition(&s.condition);
@@ -1564,7 +1564,7 @@ public:
 
     void operator()(Scripting::WhileStatement& s)
     {
-        ImGui::TextUnformatted("while ");
+        ImGui::TextUnformatted(u8"while ");
         ImGui::SameLine();
 
         const bool edited = condition(&s.condition);
@@ -1581,7 +1581,7 @@ public:
 
         bool edited = false;
 
-        ImGui::TextUnformatted("//");
+        ImGui::TextUnformatted(u8"//");
         ImGui::SameLine();
 
         ImGui::SetNextItemWidth(-1);
@@ -1658,7 +1658,7 @@ private:
                 Scripting::Statement newStatement;
 
                 for (auto& i : bcMapping.instructionNames) {
-                    if (ImGui::MenuItem(i.c_str())) {
+                    if (ImGui::MenuItem(u8Cast(i))) {
                         newStatement.opcode = i;
                         menuPressed = true;
                     }
@@ -1760,8 +1760,8 @@ private:
             ImGui::PushID(index);
 
             ImGui::PushStyleColor(ImGuiCol_Text, disabledColor);
-            const std::string label = std::to_string(index);
-            if (ImGui::Selectable(label.c_str(), isParentSelected && index == sel.selectedIndex(), ImGuiSelectableFlags_AllowItemOverlap)) {
+            const std::u8string label = stringBuilder(index);
+            if (ImGui::Selectable(u8Cast(label), isParentSelected && index == sel.selectedIndex(), ImGuiSelectableFlags_AllowItemOverlap)) {
                 sel.setSelected(parentIndex, index);
             }
             ImGui::PopStyleColor();
@@ -1793,7 +1793,7 @@ private:
     void processChildStatements(std::vector<Scripting::ScriptNode>& statements)
     {
         if (depth + 1 >= parentIndex.size()) {
-            ImGui::TextUnformatted("ERROR: MAXIMUM DEPTH REACHED");
+            ImGui::TextUnformatted(u8"ERROR: MAXIMUM DEPTH REACHED");
             return;
         }
         depth++;
@@ -1816,7 +1816,7 @@ private:
     void processChildStatements(std::vector<Scripting::ScriptNode>& thenStatements, std::vector<Scripting::ScriptNode>& elseStatements)
     {
         if (depth + 1 >= parentIndex.size()) {
-            ImGui::TextUnformatted("ERROR: MAXIMUM DEPTH REACHED");
+            ImGui::TextUnformatted(u8"ERROR: MAXIMUM DEPTH REACHED");
             return;
         }
         depth++;
@@ -1834,7 +1834,7 @@ private:
         parentIndex.at(depth) |= 0x8000;
 
         if (!elseStatements.empty()) {
-            ImGui::TextUnformatted("else");
+            ImGui::TextUnformatted(u8"else");
 
             processStatements__afterParentIndexUpdated(elseStatements);
 
@@ -1905,7 +1905,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
         {
             ImGui::PushID("Flags");
 
-            ImGui::TextUnformatted("Temporary Flags:\n"
+            ImGui::TextUnformatted(u8"Temporary Flags:\n"
                                    "(cleared on room load)");
             tempVariableList<AP::TempScriptFlags>(_data);
 
@@ -1916,7 +1916,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
 
             ImGui::PushID("Words");
 
-            ImGui::TextUnformatted("Temporary Words:\n"
+            ImGui::TextUnformatted(u8"Temporary Words:\n"
                                    "(reset to 0 on room load)");
             tempVariableList<AP::TempScriptWords>(_data);
 
@@ -1937,7 +1937,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
                 sel.clearSelection();
             }
             ImGui::SameLine();
-            ImGui::TextUnformatted("Startup Script");
+            ImGui::TextUnformatted(u8"Startup Script");
 
             for (auto [i, script] : enumerate(roomScripts.scripts)) {
                 ImGui::PushID(i);
@@ -1972,7 +1972,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
                 }
             }
             else {
-                ImGui::TextUnformatted("Startup Script.\n"
+                ImGui::TextUnformatted(u8"Startup Script.\n"
                                        "This script will be started automatically on room load.\n"
                                        "The gameloop will not start until this script has finished execution.\n"
                                        "Start_Script will not activate a script until after the startup script ends.");
@@ -1993,7 +1993,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
             ImGui::EndChild();
         }
         else {
-            ImGui::TextUnformatted("\n\n"
+            ImGui::TextUnformatted(u8"\n\n"
                                    "ERROR: Cannot view script: Missing bytecode data.");
         }
 

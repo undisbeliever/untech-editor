@@ -7,6 +7,7 @@
 #include "image.h"
 #include "file.h"
 #include "stringbuilder.h"
+#include "models/common/u8strings.h"
 #include "vendor/lodepng/lodepng.h"
 
 #ifndef LODEPNG_COMPILE_ALLOCATORS
@@ -15,7 +16,7 @@
 
 namespace UnTech {
 
-static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
+static_assert(sizeof(rgba) == 4, u8"rgba is the wrong size");
 
 Image::Image(const usize size)
     : _size(size)
@@ -49,7 +50,7 @@ Image::Image(const usize size, rgba*&& data, Image::PrivateToken)
     assert(uintptr_t(_imageData) % sizeof(rgba) == 0);
 }
 
-Image::Image(std::string&& errorString, Image::PrivateToken)
+Image::Image(std::u8string&& errorString, Image::PrivateToken)
     : _size(0, 0)
     , _errorString(std::move(errorString))
     , _imageData(nullptr)
@@ -112,15 +113,16 @@ std::shared_ptr<Image> Image::loadPngImage_shared(const std::filesystem::path& f
                 free(pixels);
             }
 
-            return invalidImageWithErrorMessage(stringBuilder(filename.string(), ": ", lodepng_error_text(error)));
+            return invalidImageWithErrorMessage(stringBuilder(filename.u8string(), u8": ",
+                                                              convert_old_string(lodepng_error_text(error))));
         }
     }
     catch (const std::exception& ex) {
-        return invalidImageWithErrorMessage(ex.what());
+        return invalidImageWithErrorMessage(convert_old_string(ex.what()));
     }
 }
 
-std::shared_ptr<Image> Image::invalidImageWithErrorMessage(std::string&& error)
+std::shared_ptr<Image> Image::invalidImageWithErrorMessage(std::u8string&& error)
 {
     return std::make_shared<Image>(std::move(error), PrivateToken{});
 }

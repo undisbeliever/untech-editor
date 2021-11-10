@@ -93,13 +93,13 @@ void Zoom::update()
     _zoom.x = _zoomInt / 100.0f * scale;
     _zoom.y = _zoomInt / 100.0f;
 
-    _zoomString = stringBuilder(_zoomInt, "%");
+    _zoomString = stringBuilder(_zoomInt, u8"%");
 }
 
 void Zoom::zoomCombo(const char* label)
 {
     ImGui::SetNextItemWidth(100);
-    if (ImGui::BeginCombo(label, _zoomString.c_str())) {
+    if (ImGui::BeginCombo(label, u8Cast(_zoomString))) {
         for (auto& [z, str] : zoomComboItems) {
             if (ImGui::Selectable(str, _zoomInt == z)) {
                 setZoom(z);
@@ -109,7 +109,7 @@ void Zoom::zoomCombo(const char* label)
     }
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::TextUnformatted("Zoom");
+        ImGui::TextUnformatted(u8"Zoom");
         ImGui::EndTooltip();
     }
 }

@@ -6,18 +6,21 @@
 
 #include "string.h"
 #include <cassert>
+#include <charconv>
 #include <fstream>
 #include <string>
 
 namespace UnTech::String {
 
-// Cannot use std::string_view, code expects a null terminated string
-bool checkUtf8WellFormed(const std::string& str)
+// Cannot use std::u8string_view, code expects a null terminated string
+bool checkUtf8WellFormed(const std::u8string& str)
 {
-    // ::TODO change code to accept std::string_view
-    // ::TODO test this code works with a std::string_view substring
+    // ::TODO change code to accept std::u8string_view
+    // ::TODO test this code works with a std::u8string_view substring
 
-    const unsigned char* c = (const unsigned char*)str.c_str();
+    static_assert(sizeof(char8_t) == 1);
+
+    const char8_t* c = (const char8_t*)str.c_str();
     size_t length = 0;
 
     if (str.empty()) {
@@ -90,7 +93,7 @@ bool checkUtf8WellFormed(const std::string& str)
     return length == str.size();
 }
 
-static inline std::optional<uint32_t> toUint32_limited(const std::string_view s, const uint32_t max)
+static inline std::optional<uint32_t> toUint32_limited(const std::u8string_view s, const uint32_t max)
 {
     if (s.empty()) {
         return std::nullopt;
@@ -98,7 +101,7 @@ static inline std::optional<uint32_t> toUint32_limited(const std::string_view s,
 
     uint64_t i = 0;
 
-    for (const char c : s) {
+    for (const char8_t c : s) {
         if (c < '0' || c > '9') {
             return std::nullopt;
         }
@@ -114,12 +117,12 @@ static inline std::optional<uint32_t> toUint32_limited(const std::string_view s,
     return i;
 }
 
-std::optional<uint32_t> toUint32(const std::string_view s)
+std::optional<uint32_t> toUint32(const std::u8string_view s)
 {
     return toUint32_limited(s, UINT32_MAX);
 }
 
-std::optional<uint16_t> toUint16(const std::string_view s)
+std::optional<uint16_t> toUint16(const std::u8string_view s)
 {
     if (auto v = toUint32_limited(s, UINT16_MAX)) {
         return *v;
@@ -127,7 +130,7 @@ std::optional<uint16_t> toUint16(const std::string_view s)
     return std::nullopt;
 }
 
-std::optional<uint8_t> toUint8(const std::string_view s)
+std::optional<uint8_t> toUint8(const std::u8string_view s)
 {
     if (auto v = toUint32_limited(s, UINT8_MAX)) {
         return *v;
@@ -135,7 +138,7 @@ std::optional<uint8_t> toUint8(const std::string_view s)
     return std::nullopt;
 }
 
-std::optional<uint32_t> hexToUint32(const std::string_view s)
+std::optional<uint32_t> hexToUint32(const std::u8string_view s)
 {
     if (s.empty() || s.size() > 8) {
         return std::nullopt;
@@ -143,7 +146,7 @@ std::optional<uint32_t> hexToUint32(const std::string_view s)
 
     uint32_t i = 0;
 
-    for (const char c : s) {
+    for (const char8_t c : s) {
         i <<= 4;
         if (c >= u8'0' && c <= u8'9') {
             i |= c - u8'0';
@@ -162,9 +165,9 @@ std::optional<uint32_t> hexToUint32(const std::string_view s)
     return i;
 }
 
-std::optional<uint32_t> decimalOrHexToUint32(const std::string_view s)
+std::optional<uint32_t> decimalOrHexToUint32(const std::u8string_view s)
 {
-    if (s.starts_with("0x") || s.starts_with("0X")) {
+    if (s.starts_with(u8"0x") || s.starts_with(u8"0X")) {
         return hexToUint32(s.substr(2));
     }
     else {
@@ -172,9 +175,9 @@ std::optional<uint32_t> decimalOrHexToUint32(const std::string_view s)
     }
 }
 
-std::optional<uint16_t> decimalOrHexToUint16(const std::string_view s)
+std::optional<uint16_t> decimalOrHexToUint16(const std::u8string_view s)
 {
-    if (s.starts_with("0x") || s.starts_with("0X")) {
+    if (s.starts_with(u8"0x") || s.starts_with(u8"0X")) {
         if (auto value = hexToUint32(s.substr(2))) {
             if (*value <= UINT16_MAX) {
                 return *value;
@@ -188,7 +191,7 @@ std::optional<uint16_t> decimalOrHexToUint16(const std::string_view s)
     return std::nullopt;
 }
 
-std::optional<int32_t> toInt32(const std::string_view s)
+std::optional<int32_t> toInt32(const std::u8string_view s)
 {
     static_assert(INT32_MIN < 0);
     constexpr uint64_t negative_min = -int64_t(INT32_MIN);
@@ -212,7 +215,7 @@ std::optional<int32_t> toInt32(const std::string_view s)
     return std::nullopt;
 }
 
-std::optional<int32_t> decimalOrHexToInt32(const std::string_view s)
+std::optional<int32_t> decimalOrHexToInt32(const std::u8string_view s)
 {
     static_assert(INT32_MIN < 0);
     constexpr uint64_t negative_min = -int64_t(INT32_MIN);

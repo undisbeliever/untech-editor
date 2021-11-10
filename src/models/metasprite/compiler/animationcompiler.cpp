@@ -20,7 +20,7 @@ static inline auto indexOf_throw(const std::vector<T>& vector, const T& item)
     auto it = std::find(vector.begin(), vector.end(), item);
 
     if (it == vector.end()) {
-        throw out_of_range("item not found in vector");
+        throw out_of_range(u8"item not found in vector");
     }
 
     return std::distance(vector.begin(), it);

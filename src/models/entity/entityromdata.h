@@ -10,7 +10,6 @@
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
 #include <memory>
-
 #include <unordered_map>
 #include <vector>
 
@@ -49,8 +48,8 @@ struct EntityRomStruct;
 struct StructField {
     idstring name;
     DataType type = DataType::UINT8;
-    std::string defaultValue; // may be empty
-    std::string comment;
+    std::u8string defaultValue; // may be empty
+    std::u8string comment;
 
     bool operator==(const StructField&) const = default;
 };
@@ -58,7 +57,7 @@ struct StructField {
 struct EntityRomStruct {
     idstring name;
     idstring parent; // may be empty
-    std::string comment;
+    std::u8string comment;
 
     std::vector<StructField> fields;
 
@@ -76,7 +75,7 @@ struct EntityFunctionTable {
     idstring entityStruct;
     idstring exportOrder;
     ParameterType parameterType;
-    std::string comment;
+    std::u8string comment;
 
     EntityFunctionTable() = default;
 
@@ -86,7 +85,7 @@ struct EntityFunctionTable {
 struct EntityRomEntry {
     idstring name;
     idstring functionTable;
-    std::string comment;
+    std::u8string comment;
 
     idstring initialProjectileId;
     idstring initialListId;
@@ -96,7 +95,7 @@ struct EntityRomEntry {
 
     unsigned defaultPalette = 0;
 
-    std::unordered_map<idstring, std::string> fields;
+    std::unordered_map<idstring, std::u8string> fields;
 
     bool operator==(const EntityRomEntry&) const = default;
 };
@@ -120,11 +119,11 @@ struct EntityRomData {
 struct CompiledEntityRomData {
     const static int ENTITY_FORMAT_VERSION;
 
-    const static std::string ROM_DATA_LABEL;
-    const static std::string ROM_DATA_LIST_LABEL;
+    const static std::u8string ROM_DATA_LABEL;
+    const static std::u8string ROM_DATA_LIST_LABEL;
 
-    std::string defines;
-    std::string functionTableData;
+    std::u8string defines;
+    std::u8string functionTableData;
 
     std::vector<uint8_t> romDataIndexes;
     std::vector<uint8_t> romData;

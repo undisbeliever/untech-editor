@@ -41,39 +41,39 @@ static bool validate(const BackgroundImageInput& input, ErrorList& err)
     };
 
     if (input.name.isValid() == false) {
-        addError("Expected name");
+        addError(u8"Expected name");
     }
 
     if (!input.isBitDepthValid()) {
-        addError("Invalid bit-depth, expected 2, 4 or 8");
+        addError(u8"Invalid bit-depth, expected 2, 4 or 8");
     }
 
     const auto& image = ImageCache::loadPngImage(input.imageFilename);
     if (image->empty()) {
-        addError("Missing frame image: ", image->errorString());
+        addError(u8"Missing frame image: ", image->errorString());
     }
 
     if (!image->empty()) {
         if (image->size().width % 8 != 0 || image->size().height % 8 != 0) {
-            addError("image size invalid (height and width must be a multiple of 8): ", input.imageFilename.string());
+            addError(u8"image size invalid (height and width must be a multiple of 8): ", input.imageFilename.u8string());
         }
 
         if (image->size().width > 512 || image->size().height > 512) {
-            addError("image is too large (maximum size is 512x512px)");
+            addError(u8"image is too large (maximum size is 512x512px)");
         }
     }
 
     if (input.bitDepth > 4) {
         if (input.firstPalette != 0) {
-            addError("When bitDepth is > 4, firstPalette must be 0");
+            addError(u8"When bitDepth is > 4, firstPalette must be 0");
         }
         if (input.nPalettes != 1) {
-            addError("When bitDepth is > 4, nPalettes must be 1");
+            addError(u8"When bitDepth is > 4, nPalettes must be 1");
         }
     }
 
     if (input.nPalettes < 1 || input.nPalettes > 8) {
-        addError("nPalettes out of range (1-8)");
+        addError(u8"nPalettes out of range (1-8)");
     }
 
     return valid;
@@ -94,14 +94,14 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
     const auto paletteIndex = projectDataStore.indexOf(input.conversionPlette);
     const auto paletteData = projectDataStore.at(paletteIndex);
     if (!paletteData) {
-        err.addErrorString("Cannot find palette: ", input.conversionPlette);
+        err.addErrorString(u8"Cannot find palette: ", input.conversionPlette);
         return nullptr;
     }
     const auto& palette = paletteData->conversionPalette;
 
     const unsigned lastColor = (input.firstPalette + input.nPalettes) * (1 << input.bitDepth);
     if (lastColor > palette.size()) {
-        err.addErrorString("Palette ", input.conversionPlette, " does not contain enough colors (expected ", lastColor, ")");
+        err.addErrorString(u8"Palette ", input.conversionPlette, u8" does not contain enough colors (expected ", lastColor, u8")");
         return nullptr;
     }
 
@@ -156,25 +156,25 @@ static bool validate(const BackgroundImageData& input, ErrorList& err)
     };
 
     if (input.tiles.empty()) {
-        addError("Expected at least one tile");
+        addError(u8"Expected at least one tile");
     }
     if (input.tiles.size() > input.MAX_SNES_TILES) {
-        addError("Too many tiles in tileset (", input.tiles.size(), ", max: ", input.MAX_SNES_TILES, ")");
+        addError(u8"Too many tiles in tileset (", input.tiles.size(), u8", max: ", input.MAX_SNES_TILES, u8")");
     }
 
     if (input.tileMap.empty() || input.nTilemaps() == 0) {
-        addError("tileMap empty");
+        addError(u8"tileMap empty");
     }
     if (input.tileMap.width() > 64 || input.tileMap.height() > 64) {
-        addError("tileMap too large");
+        addError(u8"tileMap too large");
     }
 
     if (input.nTilemaps() >= input.MAX_N_TILEMAPS) {
-        addError("Too many tileMaps (", input.nTilemaps(), ", max: ", input.MAX_N_TILEMAPS, ")");
+        addError(u8"Too many tileMaps (", input.nTilemaps(), u8", max: ", input.MAX_N_TILEMAPS, u8")");
     }
 
     if (input.uncompressedDataSize() > input.MAX_UNCOMPRESSED_DATA_SIZE) {
-        addError("data too large (", input.uncompressedDataSize(), " bytes, max: ", input.MAX_UNCOMPRESSED_DATA_SIZE, ")");
+        addError(u8"data too large (", input.uncompressedDataSize(), u8" bytes, max: ", input.MAX_UNCOMPRESSED_DATA_SIZE, u8")");
     }
 
     return valid;

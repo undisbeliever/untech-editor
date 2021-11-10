@@ -80,7 +80,7 @@ struct EntityEntry {
     idstring entityId;
     point position;
 
-    std::string parameter;
+    std::u8string parameter;
 
     bool operator==(const EntityEntry&) const = default;
 };
@@ -109,7 +109,7 @@ struct RoomInput {
     constexpr static unsigned MAX_MAP_WIDTH = 255;
     constexpr static unsigned MAX_MAP_HEIGHT = 128;
 
-    static const std::string FILE_EXTENSION;
+    static const std::u8string FILE_EXTENSION;
 
     idstring name;
 

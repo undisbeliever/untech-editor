@@ -270,7 +270,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
         ImGui::Spacing();
         {
-            ImGui::TextUnformatted("Palettes:");
+            ImGui::TextUnformatted(u8"Palettes:");
 
             ImGui::PushID("Palettes");
             ListButtons<AP::Palettes>(_data);
@@ -304,7 +304,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
         ImGui::Spacing();
         {
-            ImGui::TextUnformatted("Frame Images:");
+            ImGui::TextUnformatted(u8"Frame Images:");
 
             ImGui::PushID("FrameImages");
             ListButtons<AP::FrameImages>(_data);
@@ -395,7 +395,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
         ImGui::Spacing();
         {
-            ImGui::TextUnformatted("Compiled Data:");
+            ImGui::TextUnformatted(u8"Compiled Data:");
 
             ImGui::Indent();
 
@@ -553,7 +553,7 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
         bool edited = false;
 
         {
-            ImGui::TextUnformatted("Tile Collision:");
+            ImGui::TextUnformatted(u8"Tile Collision:");
             ImGui::Indent();
             ImGui::PushID("TC");
 
@@ -627,7 +627,7 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
         }
 
         {
-            ImGui::TextUnformatted("Tile Priority:");
+            ImGui::TextUnformatted(u8"Tile Priority:");
             ImGui::Indent();
 
             constexpr std::array<const char*, 4> labels = { "##TP_TL", "##TP_TR", "##TP_BL", "##TP_BR" };
@@ -667,14 +667,14 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
         }
 
         {
-            ImGui::TextUnformatted("Interactive Tile Functions:");
+            ImGui::TextUnformatted(u8"Interactive Tile Functions:");
             ImGui::Indent();
 
             // Use a different label if the selected tiles have different functions
-            const char* comboText = _tileProperties->functionTableSame ? _tileProperties->functionTable.c_str() : "------------";
+            const char8_t* comboText = _tileProperties->functionTableSame ? _tileProperties->functionTable.c_str() : u8"------------";
 
             ImGui::SetNextItemWidth(tileCollisionButtonsWidth);
-            if (ImGui::BeginCombo("##ITFT", comboText)) {
+            if (ImGui::BeginCombo("##ITFT", u8Cast(comboText))) {
                 if (ImGui::IdStringComboSelection(&_tileProperties->functionTable, projectFile.interactiveTiles.functionTables, true)) {
                     tileFunctionTableSelected(_tileProperties->functionTable);
                     edited = true;

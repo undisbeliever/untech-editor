@@ -11,7 +11,6 @@
 #include "models/common/iterators.h"
 #include "models/common/ms8aabb.h"
 #include "vendor/imgui/imgui.h"
-#include "vendor/imgui/misc/cpp/imgui_stdlib.h"
 #include <string>
 #include <vector>
 
@@ -47,17 +46,16 @@ inline const char* u8Cast(const std::u8string& str)
 {
     return reinterpret_cast<const char*>(str.c_str());
 }
+inline const char* u8Cast(const UnTech::idstring& str)
+{
+    return reinterpret_cast<const char*>(str.c_str());
+}
 
 namespace ImGui {
 
 inline void TextUnformatted(const std::u8string_view text)
 {
     TextUnformatted(u8Cast(text.data()), u8Cast(text.data() + text.size()));
-}
-
-inline void TextUnformatted(const std::string_view text)
-{
-    TextUnformatted(text.data(), text.data() + text.size());
 }
 
 inline void TextUnformatted(const UnTech::idstring& text)
@@ -127,7 +125,7 @@ void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, cons
 {
     if (ImGui::BeginListBox(label)) {
         for (const auto [i, item] : enumerate(list)) {
-            const char* name = item.name.c_str();
+            const char* name = u8Cast(item.name);
 
             ImGui::PushID(i);
             ImGui::Selectable(name, sel, i);

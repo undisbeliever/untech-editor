@@ -21,13 +21,13 @@ class RoomError : public GenericListError {
 public:
     const RoomErrorType type;
 
-    RoomError(const RoomErrorType type, unsigned pIndex, std::string&& message)
+    RoomError(const RoomErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {
     }
 
-    RoomError(const RoomErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+    RoomError(const RoomErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : GenericListError(pIndex, cIndex, std::move(message))
         , type(type)
     {

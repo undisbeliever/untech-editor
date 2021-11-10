@@ -18,14 +18,14 @@ template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> frameError(const SpriteImporter::Frame& frame, const unsigned frameIndex, const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, frameIndex,
-                                             stringBuilder("SI Frame ", frame.name, ": ", message...));
+                                             stringBuilder(u8"SI Frame ", frame.name, u8": ", message...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> collisionBoxError(const SpriteImporter::Frame& frame, const unsigned frameIndex, const MsErrorType type, const Args... message)
 {
     return std::make_unique<MetaSpriteError>(type, frameIndex,
-                                             stringBuilder("SI Frame ", frame.name, ": ", message...));
+                                             stringBuilder(u8"SI Frame ", frame.name, u8": ", message...));
 }
 
 template <typename... Args>
@@ -33,7 +33,7 @@ inline std::unique_ptr<MetaSpriteError> frameObjectError(const SpriteImporter::F
                                                          const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, frameIndex, objectId,
-                                             stringBuilder("SI Frame ", frame.name, " (object ", objectId, "): ", message...));
+                                             stringBuilder(u8"SI Frame ", frame.name, u8" (object ", objectId, u8"): ", message...));
 }
 
 template <typename... Args>
@@ -41,21 +41,21 @@ inline std::unique_ptr<MetaSpriteError> actionPointError(const SpriteImporter::F
                                                          const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, frameIndex, apId,
-                                             stringBuilder("SI Frame ", frame.name, " (action point ", apId, "): ", message...));
+                                             stringBuilder(u8"SI Frame ", frame.name, u8" (action point ", apId, u8"): ", message...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> frameError(const MetaSprite::Frame& frame, const unsigned frameIndex, const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, frameIndex,
-                                             stringBuilder("MS Frame ", frame.name, ": ", message...));
+                                             stringBuilder(u8"MS Frame ", frame.name, u8": ", message...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> collisionBoxError(const MetaSprite::Frame& frame, const unsigned frameIndex, const MsErrorType type, const Args... message)
 {
     return std::make_unique<MetaSpriteError>(type, frameIndex,
-                                             stringBuilder("MS Frame ", frame.name, ": ", message...));
+                                             stringBuilder(u8"MS Frame ", frame.name, u8": ", message...));
 }
 
 template <typename... Args>
@@ -63,7 +63,7 @@ inline std::unique_ptr<MetaSpriteError> frameObjectError(const MetaSprite::Frame
                                                          const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, frameIndex, objectId,
-                                             stringBuilder("MS Frame ", frame.name, " (object ", objectId, "): ", message...));
+                                             stringBuilder(u8"MS Frame ", frame.name, u8" (object ", objectId, u8"): ", message...));
 }
 
 template <typename... Args>
@@ -71,21 +71,21 @@ inline std::unique_ptr<MetaSpriteError> actionPointError(const MetaSprite::Frame
                                                          const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, frameIndex, apId,
-                                             stringBuilder("MS Frame ", frame.name, " (action point ", apId, "): ", message...));
+                                             stringBuilder(u8"MS Frame ", frame.name, u8" (action point ", apId, u8"): ", message...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> animationError(const Animation::Animation& ani, const unsigned aniIndex, const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, aniIndex,
-                                             stringBuilder("Animation ", ani.name, message...));
+                                             stringBuilder(u8"Animation ", ani.name, message...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<MetaSpriteError> animationFrameError(const Animation::Animation& ani, const unsigned aniIndex, const unsigned frameIndex, const Args... message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION_FRAME, aniIndex, frameIndex,
-                                             stringBuilder("Animation ", ani.name, message...));
+                                             stringBuilder(u8"Animation ", ani.name, message...));
 }
 
 }

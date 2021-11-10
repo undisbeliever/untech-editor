@@ -28,7 +28,7 @@ template <typename... Args>
 std::unique_ptr<TilesetError> tileError(unsigned index, const Args... msg)
 {
     return std::make_unique<TilesetError>(TilesetErrorType::TILE, index,
-                                          stringBuilder("Tile ", index, ": ", msg...));
+                                          stringBuilder(u8"Tile ", index, u8": ", msg...));
 }
 
 MetaTileTilesetInput::MetaTileTilesetInput()
@@ -41,7 +41,7 @@ static bool validate(const MetaTileTilesetInput& input, ErrorList& err)
     bool valid = true;
 
     if (!input.name.isValid()) {
-        err.addErrorString("Expected metaTile tileset name");
+        err.addErrorString(u8"Expected metaTile tileset name");
         valid = false;
     }
 
@@ -50,17 +50,17 @@ static bool validate(const MetaTileTilesetInput& input, ErrorList& err)
         const auto& frameSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
         if (frameSize.width != TILESET_WIDTH * METATILE_SIZE_PX) {
-            err.addErrorString("Image width must be ", TILESET_WIDTH * METATILE_SIZE_PX, "px.");
+            err.addErrorString(u8"Image width must be ", TILESET_WIDTH * METATILE_SIZE_PX, u8"px.");
             valid = false;
         }
         if (frameSize.height != TILESET_HEIGHT * METATILE_SIZE_PX) {
-            err.addErrorString("Image height must be ", TILESET_HEIGHT * METATILE_SIZE_PX, "px.");
+            err.addErrorString(u8"Image height must be ", TILESET_HEIGHT * METATILE_SIZE_PX, u8"px.");
             valid = false;
         }
     }
 
     if (input.scratchpad.width() > MAX_GRID_WIDTH || input.scratchpad.height() > MAX_GRID_HEIGHT) {
-        err.addErrorString("Scratchpad too large (maximum allowed size is ", MAX_GRID_WIDTH, "x", MAX_GRID_HEIGHT, ".");
+        err.addErrorString(u8"Scratchpad too large (maximum allowed size is ", MAX_GRID_WIDTH, u8"x", MAX_GRID_HEIGHT, u8".");
         valid = false;
     }
 
@@ -119,7 +119,7 @@ convertTileset(const MetaTileTilesetInput& input,
             ret->tileFunctionTables.at(i) = it->second;
         }
         else {
-            addTileError(i, "Unknown Interactive Tile Function Table ", ft);
+            addTileError(i, u8"Unknown Interactive Tile Function Table ", ft);
         }
     }
 
@@ -151,20 +151,20 @@ static bool validate(const MetaTileTilesetData& input, ErrorList& err)
     bool valid = true;
 
     if (input.animatedTileset.tileMap.empty()) {
-        err.addErrorString("Expected at least one MetaTile");
+        err.addErrorString(u8"Expected at least one MetaTile");
         valid = false;
     }
 
     const unsigned tileMapMetaTiles = input.animatedTileset.tileMap.cellCount() / 4;
     if (tileMapMetaTiles != N_METATILES) {
-        err.addErrorString("Expected ", N_METATILES, " MetaTiles (got ", tileMapMetaTiles, ").");
+        err.addErrorString(u8"Expected ", N_METATILES, u8" MetaTiles (got ", tileMapMetaTiles, u8").");
         valid = false;
     }
 
     if (input.animatedTileset.tileMap.width() != TILESET_WIDTH * 2
         || input.animatedTileset.tileMap.height() != TILESET_HEIGHT * 2) {
 
-        err.addErrorString("Invalid tileset image size");
+        err.addErrorString(u8"Invalid tileset image size");
         valid = false;
     }
 

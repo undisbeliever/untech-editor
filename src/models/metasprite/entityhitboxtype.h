@@ -18,8 +18,8 @@ struct EntityHitboxType {
     bool attack = 0;
     bool body = 0;
 
-    static const std::array<std::string, 16> SHORT_STRING_VALUES;
-    static const std::array<std::string, 16> LONG_STRING_VALUES;
+    static const std::array<std::u8string, 16> SHORT_STRING_VALUES;
+    static const std::array<std::u8string, 16> LONG_STRING_VALUES;
 
     uint8_t romValue() const
     {
@@ -38,17 +38,17 @@ struct EntityHitboxType {
         return eht;
     }
 
-    const std::string& to_string() const
+    const std::u8string& to_string() const
     {
         return SHORT_STRING_VALUES.at(romValue() & 0xf);
     }
 
-    const std::string& to_long_string() const
+    const std::u8string& to_long_string() const
     {
         return LONG_STRING_VALUES.at(romValue() & 0xf);
     }
 
-    static EntityHitboxType from_string(const std::string& string);
+    static EntityHitboxType from_string(const std::u8string& string);
 
     bool operator==(const EntityHitboxType&) const = default;
 };

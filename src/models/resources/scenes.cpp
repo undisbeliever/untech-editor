@@ -56,13 +56,13 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
     };
 
     if (input.name.isValid() == false) {
-        addError("Missing name");
+        addError(u8"Missing name");
     }
 
     for (const auto l : range(numberOfLayers(input.bgMode), N_LAYERS)) {
         if (input.layerTypes.at(l) != LayerType::None) {
             const unsigned bgModeInt = bgModeByte(input.bgMode) & 7;
-            addError("Layer ", l, " must be empty in BG Mode ", bgModeInt);
+            addError(u8"Layer ", l, u8" must be empty in BG Mode ", bgModeInt);
         }
     }
 
@@ -75,12 +75,12 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
     }
 
     if (layerTypeCount.at(unsigned(LayerType::TextConsole)) > 1) {
-        addError("Invalid setting ", input.name, ": Cannot have more than one text layer");
+        addError(u8"Invalid setting ", input.name, u8": Cannot have more than one text layer");
     }
 
     unsigned nAnimatedLayers = layerTypeCount.at(unsigned(LayerType::BackgroundImage));
     if (nAnimatedLayers > 1) {
-        addError("Invalid setting ", input.name, ": Cannot have more than one animated layer (MetaTiles are animated)");
+        addError(u8"Invalid setting ", input.name, u8": Cannot have more than one animated layer (MetaTiles are animated)");
     }
 
     return valid;
@@ -88,23 +88,23 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
 
 void writeSceneIncData(const ResourceScenes& resourceScenes, StringStream& out)
 {
-    out.write("code()\n",
-              SceneSettingsData::FUNCTION_TABLE_LABEL, ":\n");
+    out.write(u8"code()\n",
+              SceneSettingsData::FUNCTION_TABLE_LABEL, u8":\n");
 
     for (const SceneSettingsInput& ssi : resourceScenes.settings) {
-        out.write("\tdw\tScenes.", ssi.name, ".SetupPpu_dp2100, Scenes.", ssi.name, ".Process, Scenes.", ssi.name, ".VBlank_dp2100\n");
+        out.write(u8"\tdw\tScenes.", ssi.name, u8".SetupPpu_dp2100, Scenes.", ssi.name, u8".Process, Scenes.", ssi.name, u8".VBlank_dp2100\n");
     }
-    out.write("constant Project.SceneSettingsFunctionTable.size = pc() - Project.SceneSettingsFunctionTable\n"
-              "\n\n"
+    out.write(u8"constant Project.SceneSettingsFunctionTable.size = pc() - Project.SceneSettingsFunctionTable\n"
+              u8"\n\n"
 
-              "namespace Project.Scenes {\n");
+              u8"namespace Project.Scenes {\n");
 
     unsigned i = 0;
     for (const SceneInput& si : resourceScenes.scenes) {
-        out.write("\tconstant ", si.name, " = ", i++, "\n");
+        out.write(u8"\tconstant ", si.name, u8" = ", i++, u8"\n");
     }
     assert(i == resourceScenes.scenes.size());
-    out.write("}\n\n");
+    out.write(u8"}\n\n");
 }
 constexpr unsigned FUNCTION_TABLE_ELEMENT_SIZE = 6;
 constexpr unsigned SCENE_SETTINGS_DATA_ELEMENT_SIZE = 3;
@@ -126,7 +126,7 @@ static std::optional<NameIndexMap> sceneSettingsIndexMap(const NamedList<SceneSe
         if (ssi.name.isValid()) {
             const auto r = nameIndexMap.try_emplace(ssi.name, id);
             if (r.second == false) {
-                addError(ssi, id, "Duplicate Scene Settings name:", ssi.name);
+                addError(ssi, id, u8"Duplicate Scene Settings name:", ssi.name);
             }
         }
     }
@@ -146,7 +146,7 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
     };
 
     if (settings.size() > MAX_N_SCENE_SETTINGS) {
-        err.addErrorString("Too many settings (", settings.size(), "max = ", MAX_N_SCENE_SETTINGS);
+        err.addErrorString(u8"Too many settings (", settings.size(), u8"max = ", MAX_N_SCENE_SETTINGS);
     }
 
     SceneSettingsData out;
@@ -157,7 +157,7 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
     for (auto [ssIndex, ssi] : const_enumerate(settings)) {
         const uint8_t bgMode = bgModeByte(ssi.bgMode);
         if (bgMode >= 0xff) {
-            addError(ssi, ssIndex, "Invalid bgMode");
+            addError(ssi, ssIndex, u8"Invalid bgMode");
         }
 
         unsigned layerTypes = 0;
@@ -166,7 +166,7 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
             layerTypes |= (unsigned(lt) & 0x7) << (i * 4 + 1);
         }
         if (layerTypes >= 0xffff) {
-            addError(ssi, ssIndex, "Invalid layerTypes");
+            addError(ssi, ssIndex, u8"Invalid layerTypes");
         }
 
         // Must update CompiledScenesData::SCENE_FORMAT_VERSION if data format changes
@@ -191,7 +191,7 @@ static void confirmLayoutIsValid(const std::array<SceneLayoutsData::LayerLayout,
     auto testBlock = [&](const unsigned start, const unsigned size) {
         for (const auto i : range(start, start + size)) {
             if (usedBlocks.at(i)) {
-                throw logic_error("Layout invalid");
+                throw logic_error(u8"Layout invalid");
             }
             usedBlocks.at(i) = true;
         }
@@ -237,7 +237,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         }
 
         if (nBlocks > freeBlocks.size()) {
-            throw runtime_error("nBlocks is too large");
+            throw runtime_error(u8"nBlocks is too large");
         }
 
         for (unsigned b = 0; b < freeBlocks.size(); b += align) {
@@ -259,7 +259,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         }
 
         if (nBlocks > freeBlocks.size()) {
-            throw runtime_error("nBlocks is too large");
+            throw runtime_error(u8"nBlocks is too large");
         }
 
         unsigned b = freeBlocks.size() - align;
@@ -378,7 +378,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
     confirmLayoutIsValid(layout);
 
     if (_sceneLayouts.size() >= UINT8_MAX) {
-        throw runtime_error("Too many scene layouts");
+        throw runtime_error(u8"Too many scene layouts");
     }
     const uint8_t layoutId = _sceneLayouts.size();
 
@@ -449,7 +449,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     switch (sceneSettings.layerTypes.at(layerIndex)) {
     case LayerType::None: {
         if (layer.isValid()) {
-            addError("Layer must be blank");
+            addError(u8"Layer must be blank");
         }
         break;
     }
@@ -459,14 +459,14 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
         const auto bi = projectData.backgroundImages().at(index);
 
         if (!bi) {
-            addError("Cannot find background image", layer);
+            addError(u8"Cannot find background image", layer);
             break;
         }
 
         // ::SHOULDDO add warning if palette conversion colours do not match::
 
         if (bi->bitDepth != bitDepth) {
-            addError("Invalid bit depth, expected ", bitDepth, " got ", bi->bitDepth);
+            addError(u8"Invalid bit depth, expected ", bitDepth, u8" got ", bi->bitDepth);
             break;
         }
 
@@ -483,12 +483,12 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
         const auto mt = projectData.metaTileTilesets().at(layer);
 
         if (!mt) {
-            addError("Cannot find MetaTile Tileset", layer);
+            addError(u8"Cannot find MetaTile Tileset", layer);
             break;
         }
 
         if (mt->animatedTileset.bitDepth != bitDepth) {
-            addError("Invalid bit depth, expected ", bitDepth, " got ", mt->animatedTileset.bitDepth);
+            addError(u8"Invalid bit depth, expected ", bitDepth, u8" got ", mt->animatedTileset.bitDepth);
             break;
         }
 
@@ -504,7 +504,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
 
     case LayerType::TextConsole: {
         if (layer.isValid()) {
-            addError("Text Console layer must be blank");
+            addError(u8"Text Console layer must be blank");
         }
 
         out.tileSize = 256 * (bitDepth * 8 * 8 / 8);
@@ -535,12 +535,12 @@ static SceneData readSceneData(const SceneInput& scene, const unsigned sceneInde
     };
 
     if (scene.name.isValid() == false) {
-        addError("Missing name");
+        addError(u8"Missing name");
     }
 
     const auto nimIt = sceneSettingsMap.find(scene.sceneSettings);
     if (nimIt == sceneSettingsMap.end()) {
-        addError("Cannot find scene setting ", scene.sceneSettings);
+        addError(u8"Cannot find scene setting ", scene.sceneSettings);
         return out;
     }
     const SceneSettingsInput& sceneSettings = resourceScenes.settings.at(nimIt->second);
@@ -548,7 +548,7 @@ static SceneData readSceneData(const SceneInput& scene, const unsigned sceneInde
 
     out.palette = projectData.palettes().indexOf(scene.palette);
     if (!out.palette) {
-        addError("Cannot find palette ", scene.palette);
+        addError(u8"Cannot find palette ", scene.palette);
     }
 
     out.mtTileset = {};
@@ -607,7 +607,7 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
 
         const auto r = out->nameIndexMap.try_emplace(scene.name, sceneIndex);
         if (r.second == false) {
-            err.addError(sceneError(scene, sceneIndex, "Duplicate scene name detected"));
+            err.addError(sceneError(scene, sceneIndex, u8"Duplicate scene name detected"));
             valid = false;
         }
     }
@@ -638,7 +638,7 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
         scene.vramLayout = out->sceneLayouts.findOrAdd({ sc.at(0), sc.at(1), sc.at(2), sc.at(3) });
         if (!scene.vramLayout) {
             const SceneInput& sceneInput = resourceScenes.scenes.at(sceneIndex);
-            err.addError(sceneError(sceneInput, sceneIndex, "Cannot generate VRAM layout"));
+            err.addError(sceneError(sceneInput, sceneIndex, u8"Cannot generate VRAM layout"));
             scene.valid = false;
         }
 
@@ -678,9 +678,9 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
     return out;
 }
 const int CompiledScenesData::SCENE_FORMAT_VERSION = 1;
-const std::string SceneSettingsData::DATA_LABEL("Project.SceneSettingsData");
-const std::string SceneSettingsData::FUNCTION_TABLE_LABEL("Project.SceneSettingsFunctionTable");
-const std::string SceneLayoutsData::DATA_LABEL("Project.SceneLayoutData");
-const std::string CompiledScenesData::DATA_LABEL("Project.SceneData");
+const std::u8string SceneSettingsData::DATA_LABEL(u8"Project.SceneSettingsData");
+const std::u8string SceneSettingsData::FUNCTION_TABLE_LABEL(u8"Project.SceneSettingsFunctionTable");
+const std::u8string SceneLayoutsData::DATA_LABEL(u8"Project.SceneLayoutData");
+const std::u8string CompiledScenesData::DATA_LABEL(u8"Project.SceneData");
 
 }

@@ -9,29 +9,29 @@
 
 namespace UnTech::Resources {
 
-const char* InvalidImageError::reasonString(const InvalidTileReason reason)
+const char8_t* InvalidImageError::reasonString(const InvalidTileReason reason)
 {
     switch (reason) {
     case InvalidTileReason::NO_PALETTE_FOUND:
-        return "No palette found";
+        return u8"No palette found";
 
     case InvalidTileReason::NOT_SAME_PALETTE:
-        return "Must use the same palette in each frame";
+        return u8"Must use the same palette in each frame";
 
     case InvalidTileReason::TOO_MANY_COLORS:
-        return "Too many colors";
+        return u8"Too many colors";
     }
 
-    return "";
+    return u8"";
 }
 
-static std::string invalidImageErrorMessage(unsigned frameId, const std::vector<InvalidImageTile>& invalidTiles)
+static std::u8string invalidImageErrorMessage(unsigned frameId, const std::vector<InvalidImageTile>& invalidTiles)
 {
     if (frameId <= INT_MAX) {
-        return stringBuilder(invalidTiles.size(), " invalid tiles in frame ", frameId);
+        return stringBuilder(invalidTiles.size(), u8" invalid tiles in frame ", frameId);
     }
     else {
-        return stringBuilder(invalidTiles.size(), " invalid tiles");
+        return stringBuilder(invalidTiles.size(), u8" invalid tiles");
     }
 }
 
@@ -48,17 +48,17 @@ void InvalidImageError::printIndented(StringStream& out) const
 {
     if (!invalidTiles.empty()) {
         if (hasFrameId()) {
-            out.write(invalidTiles.size(), " invalid tiles in frame ", frameId);
+            out.write(invalidTiles.size(), u8" invalid tiles in frame ", frameId);
         }
         else {
-            out.write(invalidTiles.size(), " invalid tiles");
+            out.write(invalidTiles.size(), u8" invalid tiles");
         }
 
         if (invalidTiles.size() <= 10) {
-            out.write(":");
+            out.write(u8":");
 
             for (const auto& t : invalidTiles) {
-                out.write("\n      Tile", t.size, " @ ", t.x, "px, ", t.y, "px: ", reasonString(t.reason));
+                out.write(u8"\n      Tile", t.size, u8" @ ", t.x, u8"px, ", t.y, u8"px: ", reasonString(t.reason));
             }
         }
     }

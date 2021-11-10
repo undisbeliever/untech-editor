@@ -27,13 +27,13 @@ class MetaSpriteError : public GenericListError {
 public:
     const MsErrorType type;
 
-    MetaSpriteError(const MsErrorType type, unsigned pIndex, std::string&& message)
+    MetaSpriteError(const MsErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {
     }
 
-    MetaSpriteError(const MsErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+    MetaSpriteError(const MsErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : GenericListError(pIndex, cIndex, std::move(message))
         , type(type)
     {
@@ -51,13 +51,13 @@ class ExportOrderError : public GenericListError {
 public:
     const EoErrorType type;
 
-    ExportOrderError(const EoErrorType type, unsigned pIndex, std::string&& message)
+    ExportOrderError(const EoErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {
     }
 
-    ExportOrderError(const EoErrorType type, unsigned pIndex, unsigned cIndex, std::string&& message)
+    ExportOrderError(const EoErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
         : GenericListError(pIndex, cIndex, std::move(message))
         , type(type)
     {
@@ -72,7 +72,7 @@ class ActionPointFunctionError : public GenericListError {
 public:
     const ApfErrorType type;
 
-    ActionPointFunctionError(const ApfErrorType type, unsigned pIndex, std::string&& message)
+    ActionPointFunctionError(const ApfErrorType type, unsigned pIndex, std::u8string&& message)
         : GenericListError(pIndex, std::move(message))
         , type(type)
     {

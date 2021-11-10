@@ -18,26 +18,26 @@ using namespace UnTech::Xml;
 namespace UnTech::MetaSprite {
 
 extern const EnumMap<ObjectSize> objectSizeEnumMap = {
-    { "small", ObjectSize::SMALL },
-    { "large", ObjectSize::LARGE },
+    { u8"small", ObjectSize::SMALL },
+    { u8"large", ObjectSize::LARGE },
 };
 
 extern const EnumMap<TilesetType> tilesetTypeEnumMap = {
-    { "ONE_TILE", TilesetType::ONE_TILE },
-    { "TWO_TILES", TilesetType::TWO_TILES },
-    { "ONE_ROW", TilesetType::ONE_ROW },
-    { "TWO_ROWS", TilesetType::TWO_ROWS },
-    { "ONE_TILE_FIXED", TilesetType::ONE_TILE_FIXED },
-    { "TWO_TILES_FIXED", TilesetType::TWO_TILES_FIXED },
-    { "ONE_ROW_FIXED", TilesetType::ONE_ROW_FIXED },
-    { "TWO_ROWS_FIXED", TilesetType::TWO_ROWS_FIXED },
+    { u8"ONE_TILE", TilesetType::ONE_TILE },
+    { u8"TWO_TILES", TilesetType::TWO_TILES },
+    { u8"ONE_ROW", TilesetType::ONE_ROW },
+    { u8"TWO_ROWS", TilesetType::TWO_ROWS },
+    { u8"ONE_TILE_FIXED", TilesetType::ONE_TILE_FIXED },
+    { u8"TWO_TILES_FIXED", TilesetType::TWO_TILES_FIXED },
+    { u8"ONE_ROW_FIXED", TilesetType::ONE_ROW_FIXED },
+    { u8"TWO_ROWS_FIXED", TilesetType::TWO_ROWS_FIXED },
 };
 
 }
 
 namespace UnTech::MetaSprite::SpriteImporter {
 
-const std::string FrameSet::FILE_EXTENSION = "utsi";
+const std::u8string FrameSet::FILE_EXTENSION = u8"utsi";
 
 std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag& tag);
 
@@ -52,19 +52,19 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
     try {
         const auto tag = xml.parseTag();
 
-        if (tag.name != "spriteimporter") {
-            throw xml_error(xml, "Expected <spriteimporter> tag");
+        if (tag.name != u8"spriteimporter") {
+            throw xml_error(xml, u8"Expected <spriteimporter> tag");
         }
         return readFrameSet(xml, tag);
     }
     catch (const std::exception& ex) {
-        throw xml_error(xml, "Unable to load SpriteImporter FrameSet file", ex);
+        throw xml_error(xml, u8"Unable to load SpriteImporter FrameSet file", ex);
     }
 }
 
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename)
 {
-    XmlWriter xml(filename, "untech");
+    XmlWriter xml(filename, u8"untech");
     writeFrameSet(xml, frameSet);
 
     File::atomicWrite(filename, xml.string_view());
@@ -92,26 +92,26 @@ private:
 public:
     inline void readFrameSet(const XmlTag& tag)
     {
-        assert(tag.name == "spriteimporter");
+        assert(tag.name == u8"spriteimporter");
         assert(frameSet.frames.size() == 0);
 
-        frameSet.name = tag.getAttributeId("id");
-        frameSet.tilesetType = tag.getAttributeEnum("tilesettype", tilesetTypeEnumMap);
+        frameSet.name = tag.getAttributeId(u8"id");
+        frameSet.tilesetType = tag.getAttributeEnum(u8"tilesettype", tilesetTypeEnumMap);
 
-        if (tag.hasAttribute("exportorder")) {
-            frameSet.exportOrder = tag.getAttributeId("exportorder");
+        if (tag.hasAttribute(u8"exportorder")) {
+            frameSet.exportOrder = tag.getAttributeId(u8"exportorder");
         }
 
         frameSetGridSet = false;
 
-        if (tag.hasAttribute("image")) {
-            frameSet.imageFilename = tag.getAttributeFilename("image");
+        if (tag.hasAttribute(u8"image")) {
+            frameSet.imageFilename = tag.getAttributeFilename(u8"image");
         }
 
-        if (tag.hasAttribute("transparent")) {
-            static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
+        if (tag.hasAttribute(u8"transparent")) {
+            static_assert(sizeof(unsigned) >= 3, u8"Unsigned value too small");
 
-            unsigned hex = tag.getAttributeUnsignedHex("transparent");
+            unsigned hex = tag.getAttributeUnsignedHex(u8"transparent");
 
             frameSet.transparentColor = UnTech::rgba::fromRgba(hex);
             frameSet.transparentColor.alpha = 0xFF;
@@ -121,16 +121,16 @@ public:
         }
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == "grid") {
+            if (childTag.name == u8"grid") {
                 readFrameSetGrid(childTag);
             }
-            else if (childTag.name == "palette") {
+            else if (childTag.name == u8"palette") {
                 readPalette(childTag);
             }
-            else if (childTag.name == "frame") {
+            else if (childTag.name == u8"frame") {
                 readFrame(childTag);
             }
-            else if (childTag.name == "animation") {
+            else if (childTag.name == u8"animation") {
                 Animation::readAnimation(xml, childTag, frameSet.animations);
             }
             else {
@@ -144,12 +144,12 @@ public:
 private:
     inline void readFrameSetGrid(const XmlTag& tag)
     {
-        assert(tag.name == "grid");
+        assert(tag.name == u8"grid");
 
-        frameSet.grid.frameSize = tag.getAttributeUsize("width", "height");
-        frameSet.grid.offset = tag.getAttributeUpoint("xoffset", "yoffset");
-        frameSet.grid.padding = tag.getAttributeUpoint("xpadding", "ypadding");
-        frameSet.grid.origin = tag.getAttributeUpoint("xorigin", "yorigin");
+        frameSet.grid.frameSize = tag.getAttributeUsize(u8"width", u8"height");
+        frameSet.grid.offset = tag.getAttributeUpoint(u8"xoffset", u8"yoffset");
+        frameSet.grid.padding = tag.getAttributeUpoint(u8"xpadding", u8"ypadding");
+        frameSet.grid.origin = tag.getAttributeUpoint(u8"xorigin", u8"yorigin");
 
         frameSetGridSet = true;
     }
@@ -157,7 +157,7 @@ private:
     static void readCollisionBox(const XmlTag& tag, CollisionBox& box)
     {
         if (box.exists) {
-            throw xml_error(tag, stringBuilder("Can only have one ", tag.name, " per frame"));
+            throw xml_error(tag, stringBuilder(u8"Can only have one ", tag.name, u8" per frame"));
         }
 
         box.exists = true;
@@ -166,79 +166,79 @@ private:
 
     inline void readFrame(const XmlTag& tag)
     {
-        assert(tag.name == "frame");
+        assert(tag.name == u8"frame");
 
         frameSet.frames.insert_back();
         Frame& frame = frameSet.frames.back();
 
-        frame.name = tag.getAttributeId("id");
+        frame.name = tag.getAttributeId(u8"id");
 
-        if (tag.hasAttribute("order")) {
-            frame.spriteOrder = tag.getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
+        if (tag.hasAttribute(u8"order")) {
+            frame.spriteOrder = tag.getAttributeUnsigned(u8"order", 0, frame.spriteOrder.MASK);
         }
 
         if (const auto childTag = xml.parseTag()) {
-            if (childTag.name == "location") {
+            if (childTag.name == u8"location") {
                 frame.location.aabb = childTag.getAttributeUrect();
                 frame.location.useGridLocation = false;
             }
-            else if (childTag.name == "gridlocation") {
+            else if (childTag.name == u8"gridlocation") {
                 if (frameSetGridSet == false) {
-                    throw xml_error(childTag, "Frameset grid is not set.");
+                    throw xml_error(childTag, u8"Frameset grid is not set.");
                 }
 
                 frame.location.gridLocation = childTag.getAttributeUpoint();
                 frame.location.useGridLocation = true;
             }
             else {
-                throw xml_error(childTag, "location or gridlocation tag must be the first child of frame");
+                throw xml_error(childTag, u8"location or gridlocation tag must be the first child of frame");
             }
             xml.parseCloseTag();
         }
         else {
-            throw xml_error(tag, "location or gridlocation tag must be the first child of frame");
+            throw xml_error(tag, u8"location or gridlocation tag must be the first child of frame");
         }
 
         frame.location.useGridOrigin = true;
         frame.location.update(frameSet.grid, frame);
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == "object") {
+            if (childTag.name == u8"object") {
                 FrameObject obj;
 
-                obj.size = childTag.getAttributeEnum("size", objectSizeEnumMap);
+                obj.size = childTag.getAttributeEnum(u8"size", objectSizeEnumMap);
                 obj.location = childTag.getAttributeUpoint();
 
                 frame.objects.push_back(obj);
             }
 
-            else if (childTag.name == "actionpoint") {
+            else if (childTag.name == u8"actionpoint") {
                 ActionPoint ap;
 
                 ap.location = childTag.getAttributeUpoint();
-                ap.type = childTag.getAttributeOptionalId("type");
+                ap.type = childTag.getAttributeOptionalId(u8"type");
 
                 frame.actionPoints.push_back(ap);
             }
 
-            else if (childTag.name == "origin") {
+            else if (childTag.name == u8"origin") {
                 if (frame.location.useGridOrigin == false) {
-                    throw xml_error(childTag, "Can only have one origin per frame");
+                    throw xml_error(childTag, u8"Can only have one origin per frame");
                 }
                 frame.location.useGridOrigin = false;
                 frame.location.origin = childTag.getAttributeUpoint();
             }
 
-            else if (childTag.name == "tilehitbox") {
+            else if (childTag.name == u8"tilehitbox") {
                 readCollisionBox(childTag, frame.tileHitbox);
             }
-            else if (childTag.name == "shield") {
+            else if (childTag.name == u8"shield") {
                 readCollisionBox(childTag, frame.shield);
             }
-            else if (childTag.name == "hitbox") {
+            else if (childTag.name == u8"hitbox") {
                 readCollisionBox(childTag, frame.hitbox);
             }
-            else if (childTag.name == "hurtbox") {
+            else if (childTag.name == u8"hurtbox") {
                 readCollisionBox(childTag, frame.hurtbox);
             }
             else {
@@ -251,23 +251,23 @@ private:
 
     inline void readPalette(const XmlTag& tag)
     {
-        assert(tag.name == "palette");
+        assert(tag.name == u8"palette");
 
         auto& palette = frameSet.palette;
 
         if (palette.usesUserSuppliedPalette()) {
-            throw xml_error(tag, "Only one palette tag allowed per frameset");
+            throw xml_error(tag, u8"Only one palette tag allowed per frameset");
         }
 
-        if (tag.hasAttribute("position")) {
-            palette.position = tag.getAttributeEnum("position", UserSuppliedPalette::positionEnumMap);
+        if (tag.hasAttribute(u8"position")) {
+            palette.position = tag.getAttributeEnum(u8"position", UserSuppliedPalette::positionEnumMap);
         }
         else {
             // old behaviour
             palette.position = UserSuppliedPalette::Position::BOTTOM_LEFT;
         }
-        palette.nPalettes = tag.getAttributeUnsigned("npalettes", 1);
-        palette.colorSize = tag.getAttributeUnsigned("colorsize", 1);
+        palette.nPalettes = tag.getAttributeUnsigned(u8"npalettes", 1);
+        palette.colorSize = tag.getAttributeUnsigned(u8"colorsize", 1);
     }
 };
 
@@ -286,7 +286,7 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag& tag)
  * ================
  */
 
-static void writeCollisionBox(XmlWriter& xml, const CollisionBox& box, const std::string_view tagName)
+static void writeCollisionBox(XmlWriter& xml, const CollisionBox& box, const std::u8string_view tagName)
 {
     if (box.exists) {
         xml.writeTag(tagName);
@@ -297,46 +297,46 @@ static void writeCollisionBox(XmlWriter& xml, const CollisionBox& box, const std
 
 inline void writeFrame(XmlWriter& xml, const Frame& frame)
 {
-    xml.writeTag("frame");
+    xml.writeTag(u8"frame");
 
-    xml.writeTagAttribute("id", frame.name);
-    xml.writeTagAttribute("order", frame.spriteOrder);
+    xml.writeTagAttribute(u8"id", frame.name);
+    xml.writeTagAttribute(u8"order", frame.spriteOrder);
 
     if (frame.location.useGridLocation) {
-        xml.writeTag("gridlocation");
+        xml.writeTag(u8"gridlocation");
         xml.writeTagAttributeUpoint(frame.location.gridLocation);
         xml.writeCloseTag();
     }
     else {
-        xml.writeTag("location");
+        xml.writeTag(u8"location");
         xml.writeTagAttributeUrect(frame.location.aabb);
         xml.writeCloseTag();
     }
 
     if (frame.location.useGridOrigin == false) {
-        xml.writeTag("origin");
+        xml.writeTag(u8"origin");
         xml.writeTagAttributeUpoint(frame.location.origin);
         xml.writeCloseTag();
     }
 
-    writeCollisionBox(xml, frame.tileHitbox, "tilehitbox");
-    writeCollisionBox(xml, frame.shield, "shield");
-    writeCollisionBox(xml, frame.hitbox, "hitbox");
-    writeCollisionBox(xml, frame.hurtbox, "hurtbox");
+    writeCollisionBox(xml, frame.tileHitbox, u8"tilehitbox");
+    writeCollisionBox(xml, frame.shield, u8"shield");
+    writeCollisionBox(xml, frame.hitbox, u8"hitbox");
+    writeCollisionBox(xml, frame.hurtbox, u8"hurtbox");
 
     for (const FrameObject& obj : frame.objects) {
-        xml.writeTag("object");
+        xml.writeTag(u8"object");
 
-        xml.writeTagAttributeEnum("size", obj.size, objectSizeEnumMap);
+        xml.writeTagAttributeEnum(u8"size", obj.size, objectSizeEnumMap);
         xml.writeTagAttributeUpoint(obj.location);
 
         xml.writeCloseTag();
     }
 
     for (const ActionPoint& ap : frame.actionPoints) {
-        xml.writeTag("actionpoint");
+        xml.writeTag(u8"actionpoint");
 
-        xml.writeTagAttribute("type", ap.type);
+        xml.writeTagAttribute(u8"type", ap.type);
         xml.writeTagAttributeUpoint(ap.location);
 
         xml.writeCloseTag();
@@ -347,43 +347,43 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
 
 inline void writeFrameSetGrid(XmlWriter& xml, const FrameSetGrid& grid)
 {
-    xml.writeTag("grid");
+    xml.writeTag(u8"grid");
 
-    xml.writeTagAttributeUsize(grid.frameSize, "width", "height");
-    xml.writeTagAttributeUpoint(grid.offset, "xoffset", "yoffset");
-    xml.writeTagAttributeUpoint(grid.padding, "xpadding", "ypadding");
-    xml.writeTagAttributeUpoint(grid.origin, "xorigin", "yorigin");
+    xml.writeTagAttributeUsize(grid.frameSize, u8"width", u8"height");
+    xml.writeTagAttributeUpoint(grid.offset, u8"xoffset", u8"yoffset");
+    xml.writeTagAttributeUpoint(grid.padding, u8"xpadding", u8"ypadding");
+    xml.writeTagAttributeUpoint(grid.origin, u8"xorigin", u8"yorigin");
 
     xml.writeCloseTag();
 }
 
 void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 {
-    xml.writeTag("spriteimporter");
+    xml.writeTag(u8"spriteimporter");
 
-    xml.writeTagAttribute("id", frameSet.name);
-    xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType, tilesetTypeEnumMap);
+    xml.writeTagAttribute(u8"id", frameSet.name);
+    xml.writeTagAttributeEnum(u8"tilesettype", frameSet.tilesetType, tilesetTypeEnumMap);
 
     if (frameSet.exportOrder.isValid()) {
-        xml.writeTagAttribute("exportorder", frameSet.exportOrder);
+        xml.writeTagAttribute(u8"exportorder", frameSet.exportOrder);
     }
     if (!frameSet.imageFilename.empty()) {
-        xml.writeTagAttributeFilename("image", frameSet.imageFilename);
+        xml.writeTagAttributeFilename(u8"image", frameSet.imageFilename);
     }
 
     if (frameSet.transparentColor.alpha == 0xff) {
-        static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
+        static_assert(sizeof(unsigned) >= 3, u8"Unsigned value too small");
 
-        xml.writeTagAttributeHex6("transparent", frameSet.transparentColor.rgb());
+        xml.writeTagAttributeHex6(u8"transparent", frameSet.transparentColor.rgb());
     }
 
     writeFrameSetGrid(xml, frameSet.grid);
 
     if (frameSet.palette.usesUserSuppliedPalette()) {
-        xml.writeTag("palette");
-        xml.writeTagAttributeEnum("position", frameSet.palette.position, UserSuppliedPalette::positionEnumMap);
-        xml.writeTagAttribute("npalettes", frameSet.palette.nPalettes);
-        xml.writeTagAttribute("colorsize", frameSet.palette.colorSize);
+        xml.writeTag(u8"palette");
+        xml.writeTagAttributeEnum(u8"position", frameSet.palette.position, UserSuppliedPalette::positionEnumMap);
+        xml.writeTagAttribute(u8"npalettes", frameSet.palette.nPalettes);
+        xml.writeTagAttribute(u8"colorsize", frameSet.palette.colorSize);
         xml.writeCloseTag();
     }
 

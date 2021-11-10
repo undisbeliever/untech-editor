@@ -35,10 +35,10 @@ struct ms8point {
         int py = int(p.y) - int(offset.y);
 
         if (!int_ms8_t::isValid(px)) {
-            throw out_of_range("upoint.x");
+            throw out_of_range(u8"upoint.x");
         }
         if (!int_ms8_t::isValid(py)) {
-            throw out_of_range("upoint.y");
+            throw out_of_range(u8"upoint.y");
         }
 
         return ms8point(px, py);
@@ -126,16 +126,16 @@ struct ms8rect {
         int ry = int(r.y) - int(offset.y);
 
         if (!int_ms8_t::isValid(rx)) {
-            throw out_of_range("urect.x");
+            throw out_of_range(u8"urect.x");
         }
         if (!int_ms8_t::isValid(ry)) {
-            throw out_of_range("urect.y");
+            throw out_of_range(u8"urect.y");
         }
         if (r.width > UINT8_MAX) {
-            throw out_of_range("urect.width");
+            throw out_of_range(u8"urect.width");
         }
         if (r.height > UINT8_MAX) {
-            throw out_of_range("urect.height");
+            throw out_of_range(u8"urect.height");
         }
 
         return ms8rect(rx, ry, r.width, r.height);

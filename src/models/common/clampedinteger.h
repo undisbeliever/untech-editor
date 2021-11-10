@@ -14,7 +14,7 @@ namespace UnTech {
 
 template <typename T, T MIN_VALUE, T MAX_VALUE>
 struct ClampedType {
-    static_assert(std::is_integral<T>::value, "Integer required");
+    static_assert(std::is_integral<T>::value, u8"Integer required");
 
     static const T MIN = MIN_VALUE;
     static const T MAX = MAX_VALUE;
@@ -23,7 +23,7 @@ struct ClampedType {
 
     // COMP_TYPE exists to prevent Narrowing conversion and ensure
     // that ClampedType<uint8, 1, 20>(1258) works correctly
-    static_assert(sizeof(COMP_TYPE) > sizeof(TYPE), "T too large");
+    static_assert(sizeof(COMP_TYPE) > sizeof(TYPE), u8"T too large");
 
 private:
     T data;

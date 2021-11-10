@@ -89,7 +89,7 @@ public:
     }
 };
 
-const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = Image::invalidImageWithErrorMessage("Invalid filename"s);
+const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = Image::invalidImageWithErrorMessage(u8"Invalid filename"s);
 
 const std::shared_ptr<const Image> ImageCache::loadPngImage(const std::filesystem::path& filename)
 {

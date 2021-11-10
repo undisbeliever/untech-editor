@@ -10,7 +10,7 @@
 namespace UnTech::Rooms {
 
 InvalidRoomTilesError::InvalidRoomTilesError(std::vector<InvalidRoomTile>&& tiles)
-    : AbstractError(stringBuilder(tiles.size(), " invalid room tiles"))
+    : AbstractError(stringBuilder(tiles.size(), u8" invalid room tiles"))
     , invalidTiles(std::move(tiles))
 {
 }
@@ -23,10 +23,10 @@ void InvalidRoomTilesError::printIndented(StringStream& out) const
         out.write(message);
 
         if (invalidTiles.size() <= 10) {
-            out.write(":");
+            out.write(u8":");
 
             for (const auto& t : invalidTiles) {
-                out.write("\n        tile ", t.x, ", ", t.y);
+                out.write(u8"\n        tile ", t.x, u8", ", t.y);
             }
         }
     }

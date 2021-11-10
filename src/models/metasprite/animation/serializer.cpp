@@ -14,33 +14,33 @@ namespace UnTech::MetaSprite::Animation {
 namespace Ani = UnTech::MetaSprite::Animation;
 
 static const EnumMap<DurationFormat> durationFormatEnumMap = {
-    { "FRAME", DurationFormat::FRAME },
-    { "TIME", DurationFormat::TIME },
-    { "DISTANCE_VERTICAL", DurationFormat::DISTANCE_VERTICAL },
-    { "DISTANCE_HORIZONTAL", DurationFormat::DISTANCE_HORIZONTAL }
+    { u8"FRAME", DurationFormat::FRAME },
+    { u8"TIME", DurationFormat::TIME },
+    { u8"DISTANCE_VERTICAL", DurationFormat::DISTANCE_VERTICAL },
+    { u8"DISTANCE_HORIZONTAL", DurationFormat::DISTANCE_HORIZONTAL }
 };
 
 void readAnimationFrame(const Xml::XmlTag& tag, AnimationFrame& aFrame);
 
 void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& animations)
 {
-    assert(tag.name == "animation");
+    assert(tag.name == u8"animation");
 
     animations.insert_back();
     Animation& animation = animations.back();
 
-    animation.name = tag.getAttributeId("id");
+    animation.name = tag.getAttributeId(u8"id");
 
-    animation.durationFormat = tag.getAttributeEnum("durationformat", durationFormatEnumMap);
+    animation.durationFormat = tag.getAttributeEnum(u8"durationformat", durationFormatEnumMap);
 
-    animation.oneShot = tag.getAttributeBoolean("oneshot");
+    animation.oneShot = tag.getAttributeBoolean(u8"oneshot");
 
-    if (tag.hasAttribute("next")) {
-        animation.nextAnimation = tag.getAttributeId("next");
+    if (tag.hasAttribute(u8"next")) {
+        animation.nextAnimation = tag.getAttributeId(u8"next");
     }
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == "aframe") {
+        if (childTag.name == u8"aframe") {
             animation.frames.emplace_back();
 
             AnimationFrame& aFrame = animation.frames.back();
@@ -56,12 +56,12 @@ void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& anim
 
 inline void readAnimationFrame(const XmlTag& tag, AnimationFrame& aFrame)
 {
-    assert(tag.name == "aframe");
+    assert(tag.name == u8"aframe");
 
-    aFrame.frame.name = tag.getAttributeId("frame");
-    aFrame.frame.hFlip = tag.getAttributeBoolean("hflip");
-    aFrame.frame.vFlip = tag.getAttributeBoolean("vflip");
-    aFrame.duration = tag.getAttributeUint8("duration");
+    aFrame.frame.name = tag.getAttributeId(u8"frame");
+    aFrame.frame.hFlip = tag.getAttributeBoolean(u8"hflip");
+    aFrame.frame.vFlip = tag.getAttributeBoolean(u8"vflip");
+    aFrame.duration = tag.getAttributeUint8(u8"duration");
 }
 
 /*
@@ -71,12 +71,12 @@ inline void readAnimationFrame(const XmlTag& tag, AnimationFrame& aFrame)
 
 inline void writeAnimationFrame(XmlWriter& xml, const AnimationFrame& aFrame)
 {
-    xml.writeTag("aframe");
+    xml.writeTag(u8"aframe");
 
-    xml.writeTagAttribute("frame", aFrame.frame.name);
-    xml.writeTagAttribute("hflip", aFrame.frame.hFlip);
-    xml.writeTagAttribute("vflip", aFrame.frame.vFlip);
-    xml.writeTagAttribute("duration", aFrame.duration);
+    xml.writeTagAttribute(u8"frame", aFrame.frame.name);
+    xml.writeTagAttribute(u8"hflip", aFrame.frame.hFlip);
+    xml.writeTagAttribute(u8"vflip", aFrame.frame.vFlip);
+    xml.writeTagAttribute(u8"duration", aFrame.duration);
 
     xml.writeCloseTag();
 }
@@ -84,17 +84,17 @@ inline void writeAnimationFrame(XmlWriter& xml, const AnimationFrame& aFrame)
 void writeAnimations(XmlWriter& xml, const NamedList<Animation>& animations)
 {
     for (const Animation& animation : animations) {
-        xml.writeTag("animation");
+        xml.writeTag(u8"animation");
 
-        xml.writeTagAttribute("id", animation.name);
-        xml.writeTagAttributeEnum("durationformat", animation.durationFormat, durationFormatEnumMap);
+        xml.writeTagAttribute(u8"id", animation.name);
+        xml.writeTagAttributeEnum(u8"durationformat", animation.durationFormat, durationFormatEnumMap);
 
         if (animation.oneShot) {
-            xml.writeTagAttribute("oneshot", animation.oneShot);
+            xml.writeTagAttribute(u8"oneshot", animation.oneShot);
         }
         else {
             if (animation.nextAnimation.isValid()) {
-                xml.writeTagAttribute("next", animation.nextAnimation);
+                xml.writeTagAttribute(u8"next", animation.nextAnimation);
             }
         }
 

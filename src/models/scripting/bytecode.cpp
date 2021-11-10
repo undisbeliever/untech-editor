@@ -22,22 +22,22 @@ template <typename... Args>
 std::unique_ptr<BytecodeError> instructionError(const Instruction& inst, const unsigned index, const Args... msg)
 {
     return std::make_unique<BytecodeError>(BytecodeErrorType::INSTRUCTION, index,
-                                           stringBuilder("Instruction ", inst.name, ": ", msg...));
+                                           stringBuilder(u8"Instruction ", inst.name, u8": ", msg...));
 }
 
 const std::vector<Instruction> BytecodeInput::BASE_INSTRUCTIONS{
-    { "End_Script"_id, {}, false },
-    { "Set_Flag"_id, { ArgumentType::Flag }, false },
-    { "Clear_Flag"_id, { ArgumentType::Flag }, false },
-    { "Set_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { "Add_To_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { "Subtract_From_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
-    { "Increment_Word"_id, { ArgumentType::Word }, false },
-    { "Decrement_Word"_id, { ArgumentType::Word }, false },
-    { "Sleep_AnimationTicks"_id, { ArgumentType::ImmediateU16 }, true },
-    { "Start_Script"_id, { ArgumentType::RoomScript }, false },
-    { "Spawn_Entity_Group"_id, { ArgumentType::EntityGroup }, false },
-    { "Load_Room"_id, { ArgumentType::Room, ArgumentType::RoomEntrance }, false },
+    { u8"End_Script"_id, {}, false },
+    { u8"Set_Flag"_id, { ArgumentType::Flag }, false },
+    { u8"Clear_Flag"_id, { ArgumentType::Flag }, false },
+    { u8"Set_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { u8"Add_To_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { u8"Subtract_From_Word"_id, { ArgumentType::Word, ArgumentType::ImmediateU16 }, false },
+    { u8"Increment_Word"_id, { ArgumentType::Word }, false },
+    { u8"Decrement_Word"_id, { ArgumentType::Word }, false },
+    { u8"Sleep_AnimationTicks"_id, { ArgumentType::ImmediateU16 }, true },
+    { u8"Start_Script"_id, { ArgumentType::RoomScript }, false },
+    { u8"Spawn_Entity_Group"_id, { ArgumentType::EntityGroup }, false },
+    { u8"Load_Room"_id, { ArgumentType::Room, ArgumentType::RoomEntrance }, false },
 };
 
 static unsigned argumentSize(const ArgumentType type)
@@ -68,7 +68,7 @@ static unsigned argumentSize(const ArgumentType type)
         return 1;
     }
 
-    throw invalid_argument("Unknown ArgumentType");
+    throw invalid_argument(u8"Unknown ArgumentType");
 }
 
 static unsigned numberOfOpcodes(const Instruction& inst)
@@ -112,27 +112,27 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
         const auto [it, created] = out->instructions.emplace(inst.name, iData);
 
         if (!inst.name.isValid()) {
-            addInstructionError(inst, index, "Missing instruction name");
+            addInstructionError(inst, index, u8"Missing instruction name");
         }
         else if (!created) {
-            addInstructionError(inst, index, "Duplicate instruction name detected");
+            addInstructionError(inst, index, u8"Duplicate instruction name detected");
         }
 
         const unsigned nFlags = std::count(inst.arguments.begin(), inst.arguments.end(), ArgumentType::Flag);
         if (nFlags > 1) {
-            addInstructionError(inst, index, "Too many flag arguments (only allowed 1)");
+            addInstructionError(inst, index, u8"Too many flag arguments (only allowed 1)");
         }
 
         if (nFlags > 0 && inst.yields) {
             // This simplifies the `project.inc` generation
-            addInstructionError(inst, index, "A yielding instruction cannot have a flag argument");
+            addInstructionError(inst, index, u8"A yielding instruction cannot have a flag argument");
         }
 
         currentOpcode += nFlags == 0 ? 1 : N_FLAG_INSTRUCTIONS;
     };
 
     // The first bytecode instruction is hard coded to use opcode 0
-    assert(input.BASE_INSTRUCTIONS.at(0).name.str() == "End_Script");
+    assert(input.BASE_INSTRUCTIONS.at(0).name.str() == u8"End_Script");
     assert(out->endScriptOpcode == currentOpcode);
     addInstruction(input.BASE_INSTRUCTIONS.at(0), INT_MAX);
 
@@ -150,7 +150,7 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     }
 
     if (currentOpcode > MAX_OPCODES) {
-        addError("Too many opcodes (", currentOpcode, ", max: ", MAX_OPCODES, ")");
+        addError(u8"Too many opcodes (", currentOpcode, u8", max: ", MAX_OPCODES, u8")");
     }
 
     if (!valid) {
@@ -177,27 +177,27 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     return out;
 }
 
-static std::array<std::string, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
-    "_Flag0",
-    "_Flag1",
+static std::array<std::u8string, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
+    u8"_Flag0",
+    u8"_Flag1",
 };
 
-static std::array<std::string, 8> ARGUMENT_SUFFIXES{
-    "",
-    "_ ERROR _", // Flag
-    "_Word",
-    "_ImmU16",
-    "_RoomScript",
-    "_EntityGroup",
-    "_Room",
-    "_RoomEntrance",
+static std::array<std::u8string, 8> ARGUMENT_SUFFIXES{
+    u8"",
+    u8"_ ERROR _", // Flag
+    u8"_Word",
+    u8"_ImmU16",
+    u8"_RoomScript",
+    u8"_EntityGroup",
+    u8"_Room",
+    u8"_RoomEntrance",
 };
 
 // Assumes BytecodeInput is valid
 void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
 {
-    out.write("code()\n"
-              "Project.BytecodeFunctionTable:\n");
+    out.write(u8"code()\n"
+              u8"Project.BytecodeFunctionTable:\n");
 
     unsigned currentOpcode = 0;
 
@@ -210,30 +210,30 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
         }
     };
 
-    auto writeHardCodedOpcode = [&](const std::string& name, const uint8_t opcode) {
+    auto writeHardCodedOpcode = [&](const std::u8string& name, const uint8_t opcode) {
         assert(currentOpcode == opcode);
-        out.write("  dw Scripting.Bytecode.", name, "\n");
+        out.write(u8"  dw Scripting.Bytecode.", name, u8"\n");
         currentOpcode++;
     };
 
-    auto writeFlagBranchOpcode = [&](const std::string& name) {
+    auto writeFlagBranchOpcode = [&](const std::u8string& name) {
         for (auto& arg : FLAG_ARGUMENT_SUFFIXES) {
-            out.write("  dw Scripting.Bytecode.", name, arg, "_PC\n");
+            out.write(u8"  dw Scripting.Bytecode.", name, arg, u8"_PC\n");
             currentOpcode++;
         }
     };
 
     // Write branch/conditional opcodes
-    writeHardCodedOpcode("End_Script", BytecodeMapping::endScriptOpcode);
-    writeHardCodedOpcode("Goto___PC", BytecodeMapping::gotoOpcode);
-    writeHardCodedOpcode("BranchIfWordEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordEqualOpcode);
-    writeHardCodedOpcode("BranchIfWordNotEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordNotEqualOpcode);
-    writeHardCodedOpcode("BranchIfWordLessThan___Word_ImmU16_PC", BytecodeMapping::branchIfWordLessThanOpcode);
-    writeHardCodedOpcode("BranchIfWordGreaterThanEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordGreaterThanEqualOpcode);
+    writeHardCodedOpcode(u8"End_Script", BytecodeMapping::endScriptOpcode);
+    writeHardCodedOpcode(u8"Goto___PC", BytecodeMapping::gotoOpcode);
+    writeHardCodedOpcode(u8"BranchIfWordEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordEqualOpcode);
+    writeHardCodedOpcode(u8"BranchIfWordNotEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordNotEqualOpcode);
+    writeHardCodedOpcode(u8"BranchIfWordLessThan___Word_ImmU16_PC", BytecodeMapping::branchIfWordLessThanOpcode);
+    writeHardCodedOpcode(u8"BranchIfWordGreaterThanEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordGreaterThanEqualOpcode);
 
     assert(currentOpcode == BytecodeMapping::branchIfFlagSetOpcode);
-    writeFlagBranchOpcode("BranchIfFlagSet__");
-    writeFlagBranchOpcode("BranchIfFlagClear__");
+    writeFlagBranchOpcode(u8"BranchIfFlagSet__");
+    writeFlagBranchOpcode(u8"BranchIfFlagClear__");
     assert(currentOpcode == BytecodeMapping::branchIfFlagSetOpcode + 2 * N_FLAG_INSTRUCTIONS);
 
     const unsigned startOfStatementInstructions = currentOpcode;
@@ -246,10 +246,10 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
                                                  [](auto a) { return a == ArgumentType::Flag; });
 
         for (auto& flagName : FLAG_ARGUMENT_SUFFIXES) {
-            out.write("  dw Scripting.Bytecode.", inst.name);
+            out.write(u8"  dw Scripting.Bytecode.", inst.name);
 
             if (hasArgument) {
-                out.write("__");
+                out.write(u8"__");
 
                 for (auto arg : inst.arguments) {
                     if (arg == ArgumentType::Flag) {
@@ -260,7 +260,7 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
                     }
                 }
             }
-            out.write("\n");
+            out.write(u8"\n");
 
             currentOpcode++;
 
@@ -271,19 +271,19 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
     });
 
     for ([[maybe_unused]] const auto i : range(currentOpcode, MAX_OPCODES)) {
-        out.write("  dw Scripting.Bytecode.InvalidOpcode\n");
+        out.write(u8"  dw Scripting.Bytecode.InvalidOpcode\n");
     }
 
-    out.write("constant Project.BytecodeFunctionTable.size = pc() - Project.BytecodeFunctionTable"
-              "\n"
-              "\n"
-              "code()\n"
-              "Project.BytecodeResumeFunctionTable:\n");
+    out.write(u8"constant Project.BytecodeFunctionTable.size = pc() - Project.BytecodeFunctionTable"
+              u8"\n"
+              u8"\n"
+              u8"code()\n"
+              u8"Project.BytecodeResumeFunctionTable:\n");
 
-    const char* const blankResumeLine = "  dw Scripting.Bytecode.End_Script___Resume\n";
+    const char8_t* const blankResumeLine = u8"  dw Scripting.Bytecode.End_Script___Resume\n";
 
     for (const auto i : range(N_SPECIAL_RESUME_OPCODES)) {
-        out.write("  dw Scripting.Bytecode._Special___Resume_", i * 2, "\n");
+        out.write(u8"  dw Scripting.Bytecode._Special___Resume_", i * 2, u8"\n");
     }
 
     assert(N_SPECIAL_RESUME_OPCODES < startOfStatementInstructions);
@@ -296,17 +296,17 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
             const bool hasArgument = std::any_of(inst.arguments.begin(), inst.arguments.end(),
                                                  [](auto a) { return a != ArgumentType::Unused; });
 
-            out.write("  dw Scripting.Bytecode.", inst.name);
+            out.write(u8"  dw Scripting.Bytecode.", inst.name);
 
             if (hasArgument) {
-                out.write("__");
+                out.write(u8"__");
 
                 for (auto arg : inst.arguments) {
                     out.write(ARGUMENT_SUFFIXES.at(unsigned(arg)));
                 }
             }
 
-            out.write("___Resume\n");
+            out.write(u8"___Resume\n");
         }
         else {
             const unsigned nOpcodes = numberOfOpcodes(inst);
@@ -321,25 +321,25 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, StringStream& out)
         out.write(blankResumeLine);
     }
 
-    out.write("constant Project.BytecodeResumeFunctionTable.size = pc() - Project.BytecodeResumeFunctionTable"
-              "\n"
-              "\n"
-              "// indexes into Project.BytecodeResumeFunctionTable\n"
-              "namespace Project.BytecodeOpcodes.Yielding {\n"
-              "  constant N_SPECIAL_RESUME_OPCODES = ",
-              N_SPECIAL_RESUME_OPCODES, "\n");
+    out.write(u8"constant Project.BytecodeResumeFunctionTable.size = pc() - Project.BytecodeResumeFunctionTable"
+              u8"\n"
+              u8"\n"
+              u8"// indexes into Project.BytecodeResumeFunctionTable\n"
+              u8"namespace Project.BytecodeOpcodes.Yielding {\n"
+              u8"  constant N_SPECIAL_RESUME_OPCODES = ",
+              N_SPECIAL_RESUME_OPCODES, u8"\n");
 
     currentOpcode = startOfStatementInstructions;
 
     processInstructions([&](const Instruction& inst) {
         if (inst.yields) {
-            out.write("  constant ", inst.name, " = ", currentOpcode * 2, "\n");
+            out.write(u8"  constant ", inst.name, u8" = ", currentOpcode * 2, u8"\n");
         }
         const unsigned nOpcodes = numberOfOpcodes(inst);
         currentOpcode += nOpcodes;
     });
 
-    out.write("}\n\n");
+    out.write(u8"}\n\n");
 }
 
 }

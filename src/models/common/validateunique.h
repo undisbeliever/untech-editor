@@ -14,10 +14,10 @@ namespace UnTech {
 
 template <class T>
 inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
-                                        const std::string& typeName,
+                                        const std::u8string& typeName,
                                         ErrorList& err)
 {
-    static const idstring countString = "count"_id;
+    static const idstring countString = u8"count"_id;
 
     bool valid = true;
 
@@ -26,7 +26,7 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
         bool dupFn = std::any_of(it + 1, list.end(),
                                  [&](const auto& i) { return i.filename == filename; });
         if (dupFn) {
-            err.addErrorString("Duplicate ", typeName, " file detected: ", filename.string());
+            err.addErrorString(u8"Duplicate ", typeName, u8" file detected: ", filename.string());
             valid = false;
             continue;
         }
@@ -38,13 +38,13 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
         const idstring& name = it->value->name;
         if (name.isValid() == false) {
             auto d = std::distance(list.begin(), it);
-            err.addErrorString("Missing name in ", typeName, " ", d);
+            err.addErrorString(u8"Missing name in ", typeName, u8" ", d);
             valid = false;
             continue;
         }
 
         if (name == countString) {
-            err.addErrorString("Invalid ", typeName, " name: count");
+            err.addErrorString(u8"Invalid ", typeName, u8" name: count");
             valid = false;
             continue;
         }
@@ -52,7 +52,7 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
         bool dup = std::any_of(it + 1, list.end(),
                                [&](const auto& i) { return i.value && i.value->name == name; });
         if (dup) {
-            err.addErrorString("Duplicate ", typeName, " name detected: ", name);
+            err.addErrorString(u8"Duplicate ", typeName, u8" name detected: ", name);
             valid = false;
         }
     }
@@ -62,10 +62,10 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
 
 template <class T, typename ErrorFunction>
 inline bool validateNamesUnique(const NamedList<T>& list,
-                                const std::string& typeName,
+                                const std::u8string& typeName,
                                 ErrorFunction err)
 {
-    static const idstring countString = "count"_id;
+    static const idstring countString = u8"count"_id;
 
     bool valid = true;
     auto addError = [&](const unsigned index, const auto... message) {
@@ -76,19 +76,19 @@ inline bool validateNamesUnique(const NamedList<T>& list,
     for (auto [index, item] : const_enumerate(list)) {
         const idstring& name = item.name;
         if (name.isValid() == false) {
-            addError(index, "Missing name in ", typeName, " ", index);
+            addError(index, u8"Missing name in ", typeName, u8" ", index);
             continue;
         }
 
         if (name == countString) {
-            addError(index, "Invalid ", typeName, " name: count");
+            addError(index, u8"Invalid ", typeName, u8" name: count");
             continue;
         }
 
         bool dup = std::any_of(list.begin(), list.begin() + index,
                                [&](const auto& i) { return i.name == name; });
         if (dup) {
-            addError(index, "Duplicate ", typeName, " name detected: ", name);
+            addError(index, u8"Duplicate ", typeName, u8" name detected: ", name);
         }
     }
 

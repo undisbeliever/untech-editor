@@ -78,9 +78,9 @@ static void writeSceneData(RomDataWriter& writer,
 }
 
 template <typename T>
-static void writeIncList(StringStream& incData, const std::string& typeName, const DataStore<T>& dataStore)
+static void writeIncList(StringStream& incData, const std::u8string& typeName, const DataStore<T>& dataStore)
 {
-    incData.write("\nnamespace ", typeName, " {\n");
+    incData.write(u8"\nnamespace ", typeName, u8" {\n");
 
     dataStore.readResourceListState([&](auto state, const auto& resources) {
         static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
@@ -89,11 +89,11 @@ static void writeIncList(StringStream& incData, const std::string& typeName, con
 
         for (auto [id, s] : const_enumerate(resources)) {
             assert(s.state == ResourceState::Valid);
-            incData.write("  constant ", s.name, " = ", id, "\n");
+            incData.write(u8"  constant ", s.name, u8" = ", id, u8"\n");
         }
     });
-    incData.write("}\n"
-                  "\n");
+    incData.write(u8"}\n"
+                  u8"\n");
 }
 
 static void printErrors(const ProjectData& projectData, StringStream& errorStream)
@@ -105,7 +105,7 @@ static void printErrors(const ProjectData& projectData, StringStream& errorStrea
 
             for (const ResourceStatus& status : resources) {
                 if (!status.errorList.empty()) {
-                    errorStream.write(listStatus.typeNameSingle(), " `", status.name, "`:\n");
+                    errorStream.write(listStatus.typeNameSingle(), u8" `", status.name, u8"`:\n");
                     status.errorList.printIndented(errorStream);
                 }
             }
@@ -136,23 +136,23 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     }
 
     const std::vector<RomDataWriter::Constant> constants = {
-        { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
-        { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
-        { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
-        { "Resources.BACKGROUND_IMAGE_FORMAT_VERSION", Resources::BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION },
-        { "Resources.SCENE_FORMAT_VERSION", Resources::CompiledScenesData::SCENE_FORMAT_VERSION },
-        { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
-        { "MetaTiles.INTERACTIVE_TILES_FORMAT_VERSION", MetaTiles::INTERACTIVE_TILES_FORMAT_VERSION },
-        { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
-        { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
-        { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
-        { "Scripting.GAME_STATE_FORMAT_VERSION", Scripting::GameStateData::GAME_STATE_FORMAT_VERSION },
-        { "Project.ROOM_DATA_SIZE", input.projectSettings.roomSettings.roomDataSize },
-        { "Project.MS_FrameSetListCount", unsigned(input.frameSets.size()) },
+        { u8"__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
+        { u8"Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
+        { u8"Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
+        { u8"Resources.BACKGROUND_IMAGE_FORMAT_VERSION", Resources::BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION },
+        { u8"Resources.SCENE_FORMAT_VERSION", Resources::CompiledScenesData::SCENE_FORMAT_VERSION },
+        { u8"MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
+        { u8"MetaTiles.INTERACTIVE_TILES_FORMAT_VERSION", MetaTiles::INTERACTIVE_TILES_FORMAT_VERSION },
+        { u8"MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
+        { u8"Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
+        { u8"Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
+        { u8"Scripting.GAME_STATE_FORMAT_VERSION", Scripting::GameStateData::GAME_STATE_FORMAT_VERSION },
+        { u8"Project.ROOM_DATA_SIZE", input.projectSettings.roomSettings.roomDataSize },
+        { u8"Project.MS_FrameSetListCount", unsigned(input.frameSets.size()) },
     };
 
     RomDataWriter writer(input.projectSettings.memoryMap,
-                         "__resc__", "RES_Block",
+                         u8"__resc__", u8"RES_Block",
                          constants);
 
     const auto gameStateData = projectData.gameState();
@@ -163,18 +163,18 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     writeEntityRomData(writer, *projectData.entityRomData());
     writeSceneData(writer, *projectData.scenes());
 
-    writer.addNamedData("Project.InitialGameState", gameStateData->exportSnesData());
+    writer.addNamedData(u8"Project.InitialGameState", gameStateData->exportSnesData());
 
-    writer.addDataStore("Project.PaletteList", projectData.palettes());
-    writer.addDataStore("Project.BackgroundImageList", projectData.backgroundImages());
-    writer.addDataStore("Project.MetaTileTilesetList", projectData.metaTileTilesets());
-    writer.addDataStore("Project.RoomList", projectData.rooms());
+    writer.addDataStore(u8"Project.PaletteList", projectData.palettes());
+    writer.addDataStore(u8"Project.BackgroundImageList", projectData.backgroundImages());
+    writer.addDataStore(u8"Project.MetaTileTilesetList", projectData.metaTileTilesets());
+    writer.addDataStore(u8"Project.RoomList", projectData.rooms());
 
     // The inc file is large: increase StringStream buffer size.
     StringStream incData(64 * 1024);
 
     writer.writeIncData(incData, relativeBinFilename);
-    writeIncList(incData, "Project.RoomList", projectData.rooms());
+    writeIncList(incData, u8"Project.RoomList", projectData.rooms());
 
     Scripting::writeGameStateConstants(input.gameState, *gameStateData, incData);
     MetaSprite::Compiler::writeFrameSetReferences(input, incData);
@@ -191,7 +191,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     MetaTiles::writeFunctionTables(incData, input.interactiveTiles);
 
-    incData.write("\n");
+    incData.write(u8"\n");
 
     auto ret = std::make_unique<ProjectOutput>();
     ret->incData = incData.takeString();

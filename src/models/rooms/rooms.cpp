@@ -50,14 +50,14 @@ bool validate(const RoomSettings& input, ErrorList& err)
 {
     bool valid = true;
 
-    auto validateMinMax = [&](unsigned value, unsigned min, unsigned max, const char* msg) {
+    auto validateMinMax = [&](unsigned value, unsigned min, unsigned max, const char8_t* msg) {
         if (value < min || value > max) {
-            err.addErrorString(msg, " (", value, ", min: ", min, ", max: ", max, ")");
+            err.addErrorString(msg, u8" (", value, u8", min: ", min, u8", max: ", max, u8")");
             valid = false;
         }
     };
 
-    validateMinMax(input.roomDataSize, input.MIN_ROOM_DATA_SIZE, input.MAX_ROOM_DATA_SIZE, "Max Room Size invalid");
+    validateMinMax(input.roomDataSize, input.MIN_ROOM_DATA_SIZE, input.MAX_ROOM_DATA_SIZE, u8"Max Room Size invalid");
 
     return valid;
 }
@@ -71,25 +71,25 @@ static bool validateEntrances(const NamedList<RoomEntrance>& entrances, const Ro
         valid = false;
     };
     const auto addEntranceError = [&](const RoomEntrance& e, const unsigned index, const auto... msg) {
-        err.addError(roomEntranceError(e, index, "Entity Entrance ", e.name, ": ", msg...));
+        err.addError(roomEntranceError(e, index, u8"Entity Entrance ", e.name, u8": ", msg...));
         valid = false;
     };
 
     if (entrances.empty()) {
-        addError("Expected at least one Room Entrance");
+        addError(u8"Expected at least one Room Entrance");
     }
 
     if (entrances.size() > MAX_ROOM_ENTRANCES) {
-        addError("Too many Room Entrances (", entrances.size(), ", max: ", MAX_ROOM_ENTRANCES, ")");
+        addError(u8"Too many Room Entrances (", entrances.size(), u8", max: ", MAX_ROOM_ENTRANCES, u8")");
     }
 
-    valid &= validateNamesUnique(entrances, "Room Entrance", [&](unsigned i, auto... msg) {
+    valid &= validateNamesUnique(entrances, u8"Room Entrance", [&](unsigned i, auto... msg) {
         err.addError(std::make_unique<RoomError>(RoomErrorType::ROOM_ENTRANCE, i, stringBuilder(msg...)));
     });
 
     for (auto [i, en] : enumerate(entrances)) {
         if (en.position.x >= ri.mapRight() || en.position.y >= ri.mapBottom()) {
-            addEntranceError(en, i, "Entrance must be inside map");
+            addEntranceError(en, i, u8"Entrance must be inside map");
         }
     }
 
@@ -116,7 +116,7 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
     };
 
     if (entityGroups.size() > MAX_ENTITY_GROUPS) {
-        addError("Too many Entity Groups (", entityGroups.size(), ", max: ", MAX_ENTITY_GROUPS, ")");
+        addError(u8"Too many Entity Groups (", entityGroups.size(), u8", max: ", MAX_ENTITY_GROUPS, u8")");
     }
 
     const rect mapBounds = ri.validEntityArea();
@@ -124,23 +124,23 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
     unsigned count = 0;
     for (auto [egIndex, eg] : enumerate(entityGroups)) {
         if (eg.name.isValid() == false) {
-            addEntityGroupError(eg, egIndex, "Expected name");
+            addEntityGroupError(eg, egIndex, u8"Expected name");
         }
 
         if (eg.entities.empty()) {
-            addEntityGroupError(eg, egIndex, "Expected at least one entity");
+            addEntityGroupError(eg, egIndex, u8"Expected at least one entity");
         }
 
         for (const auto [eeIndex, ee] : enumerate(eg.entities)) {
             if (mapBounds.contains(ee.position) == false) {
-                addEntityError(eg, egIndex, eeIndex, "Entity outside of map bounds");
+                addEntityError(eg, egIndex, eeIndex, u8"Entity outside of map bounds");
             }
             count++;
         }
     }
 
     if (count > MAX_ENTITY_ENTRIES) {
-        addError("Too many Entities (", count, ", max: ", MAX_ENTITY_ENTRIES, ")");
+        addError(u8"Too many Entities (", count, u8", max: ", MAX_ENTITY_ENTRIES, u8")");
     }
 
     return valid;
@@ -162,24 +162,24 @@ static bool validateScriptTriggers(const std::vector<ScriptTrigger>& scriptTrigg
     };
 
     if (scriptTriggers.size() > MAX_SCRIPT_TRIGGERS) {
-        addError("Too many Entity Groups (", scriptTriggers.size(), ", max: ", MAX_SCRIPT_TRIGGERS, ")");
+        addError(u8"Too many Entity Groups (", scriptTriggers.size(), u8", max: ", MAX_SCRIPT_TRIGGERS, u8")");
     }
 
     for (auto [i, st] : const_enumerate(scriptTriggers)) {
         if (st.script.isValid()) {
             if (!room.roomScripts.scripts.find(st.script)) {
-                addStError(i, "Cannot find script: ", st.script);
+                addStError(i, u8"Cannot find script: ", st.script);
             }
         }
         else {
-            addStError(i, "Expected script");
+            addStError(i, u8"Expected script");
         }
 
         if (st.aabb.width <= 0 || st.aabb.height <= 0) {
-            addStError(i, "Invalid AABB");
+            addStError(i, u8"Invalid AABB");
         }
         if (!room.map.size().contains(st.aabb)) {
-            addStError(i, "AABB must be inside the room");
+            addStError(i, u8"AABB must be inside the room");
         }
     }
 
@@ -519,7 +519,7 @@ static void checkRoomTileCollisions(const grid<uint8_t>& map,
     if (map.width() < 3 || map.width() > RoomInput::MAX_MAP_WIDTH
         || map.height() < 3 || map.height() > RoomInput::MAX_MAP_HEIGHT) {
 
-        err.addWarningString("Cannot check tile collisions: Invalid map size");
+        err.addWarningString(u8"Cannot check tile collisions: Invalid map size");
         return;
     }
 
@@ -566,7 +566,7 @@ static bool validate(const RoomInput& input,
     };
 
     if (!input.name.isValid()) {
-        addError("Missing name");
+        addError(u8"Missing name");
     }
 
     std::shared_ptr<const MetaTiles::MetaTileTilesetData> tileset;
@@ -576,18 +576,18 @@ static bool validate(const RoomInput& input,
             tileset = metaTilesData.at(sceneData->mtTileset);
         }
         else {
-            addError("Scene ", input.scene, " does not have a MetaTile layer");
+            addError(u8"Scene ", input.scene, u8" does not have a MetaTile layer");
         }
     }
     else {
-        addError("Cannot find scene: ", input.scene);
+        addError(u8"Cannot find scene: ", input.scene);
     }
 
     if (input.map.width() < input.MIN_MAP_WIDTH || input.map.height() < input.MIN_MAP_HEIGHT) {
-        addError("Map is too small (minimum size is ", input.MIN_MAP_WIDTH, " x ", input.MIN_MAP_HEIGHT, ")");
+        addError(u8"Map is too small (minimum size is ", input.MIN_MAP_WIDTH, u8" x ", input.MIN_MAP_HEIGHT, u8")");
     }
     if (input.map.width() > input.MAX_MAP_WIDTH || input.map.height() > input.MAX_MAP_HEIGHT) {
-        addError("Map is too large (maximum size is ", input.MAX_MAP_WIDTH, " x ", input.MAX_MAP_HEIGHT, ")");
+        addError(u8"Map is too large (maximum size is ", input.MAX_MAP_WIDTH, u8" x ", input.MAX_MAP_HEIGHT, u8")");
     }
 
     valid &= validateEntrances(input.entrances, input, err);
@@ -629,13 +629,13 @@ static unsigned threeBytePosition(const unsigned x, const unsigned y)
 }
 
 template <typename AddErrorFunction>
-static uint8_t processEntityParameter(const std::string& parameter, const Entity::ParameterType parameterType,
+static uint8_t processEntityParameter(const std::u8string& parameter, const Entity::ParameterType parameterType,
                                       AddErrorFunction addEntityError)
 {
     switch (parameterType) {
     case Entity::ParameterType::UNUSED: {
         if (!parameter.empty()) {
-            addEntityError("Expected an empty parameter.");
+            addEntityError(u8"Expected an empty parameter.");
         }
         return 0;
     }
@@ -643,7 +643,7 @@ static uint8_t processEntityParameter(const std::string& parameter, const Entity
     case Entity::ParameterType::UNSIGNED_BYTE: {
         const auto v = String::toUint8(parameter);
         if (!v.has_value()) {
-            addEntityError("Invalid parameter: ", parameter);
+            addEntityError(u8"Invalid parameter: ", parameter);
         }
         return v.value_or(0);
     }
@@ -686,7 +686,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
         for (auto [egIndex, eg] : const_enumerate(input.entityGroups)) {
             bool s = entityGroupIndexMap.emplace(eg.name, egIndex).second;
             if (!s) {
-                addEntityGroupError(eg, egIndex, "Duplicate Entity Group id: ", eg.name);
+                addEntityGroupError(eg, egIndex, u8"Duplicate Entity Group id: ", eg.name);
             }
         }
 
@@ -696,7 +696,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
                 if (ee.name.isValid()) {
                     bool s = entityNameIndexMap.emplace(ee.name, entityIndex).second;
                     if (!s) {
-                        addEntityError(eg, egIndex, eeIndex, "Duplicate Entity id: ", ee.name);
+                        addEntityError(eg, egIndex, eeIndex, u8"Duplicate Entity id: ", ee.name);
                     }
                 }
                 entityIndex++;
@@ -875,7 +875,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
                                                        [&](const auto&... msg) { addEntityError(eg, egIndex, eeIndex, msg...); });
                 }
                 else {
-                    addEntityError(eg, egIndex, eeIndex, "Cannot find entity ", ee.entityId);
+                    addEntityError(eg, egIndex, eeIndex, u8"Cannot find entity ", ee.entityId);
                 }
                 assert(entityId <= UINT8_MAX);
 
@@ -910,7 +910,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
         Scripting::ScriptCompiler compiler(data, input, roomsList, bytecodeData, gameStateData, err);
 
         if (input.roomScripts.scripts.size() > MAX_N_SCRIPTS) {
-            addError("Too many scripts");
+            addError(u8"Too many scripts");
         }
 
         unsigned headerPos = HEADER_SCRIPT_ARRAY;
@@ -957,7 +957,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
     }
 
     if (data.size() > roomSettings.roomDataSize) {
-        addError("Room data size too large (", data.size(), " bytes, max: ", roomSettings.roomDataSize, ")");
+        addError(u8"Room data size too large (", data.size(), u8" bytes, max: ", roomSettings.roomDataSize, u8")");
     }
 
     if (!valid) {

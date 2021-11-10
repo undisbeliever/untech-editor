@@ -45,32 +45,32 @@ static bool validate(const MemoryMapSettings& input, ErrorList& err)
 {
     bool valid = true;
 
-    auto validateMinMax = [&](unsigned value, unsigned min, unsigned max, const char* msg) {
+    auto validateMinMax = [&](unsigned value, unsigned min, unsigned max, const char8_t* msg) {
         if (value < min || value > max) {
-            err.addErrorString(msg, " (", value, ", min: ", min, ", max: ", max, ")");
+            err.addErrorString(msg, u8" (", value, u8", min: ", min, u8", max: ", max, u8")");
             valid = false;
         }
     };
 
-    validateMinMax(input.firstBank, 0, 255, "Invalid firstBank");
+    validateMinMax(input.firstBank, 0, 255, u8"Invalid firstBank");
 
     if (input.mode == MappingMode::HIROM) {
         const unsigned maximumNBanks = std::min<unsigned>(64, 256 - input.firstBank);
-        validateMinMax(input.nBanks, 1, maximumNBanks, "Invalid nBanks");
+        validateMinMax(input.nBanks, 1, maximumNBanks, u8"Invalid nBanks");
     }
     else if (input.mode == MappingMode::LOROM) {
         const unsigned maximumNBanks = std::min<unsigned>(128, 256 - input.firstBank);
-        validateMinMax(input.nBanks, 1, maximumNBanks, "Invalid nBanks");
+        validateMinMax(input.nBanks, 1, maximumNBanks, u8"Invalid nBanks");
     }
     else {
-        err.addErrorString("Invalid mapping mode");
+        err.addErrorString(u8"Invalid mapping mode");
     }
 
     const unsigned lastBank = input.firstBank + input.nBanks;
     auto inBounds = [&](unsigned a) { return a >= input.firstBank && a <= lastBank; };
 
     if (inBounds(0x7e) || inBounds(0x7f)) {
-        err.addErrorString("Invalid memory map: Work RAM inside mapping");
+        err.addErrorString(u8"Invalid memory map: Work RAM inside mapping");
     }
 
     return valid;

@@ -15,12 +15,12 @@
 
 namespace UnTech {
 
-inline bool StringParser::isWhitespaceChar(const std::string::value_type c)
+inline bool StringParser::isWhitespaceChar(const std::u8string::value_type c)
 {
-    return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+    return c == u8' ' || c == u8'\t' || c == u8'\r' || c == u8'\n';
 }
 
-inline StringParser::StringParser(const std::string&& str)
+inline StringParser::StringParser(const std::u8string&& str)
     : _inputString(std::move(str))
     , _pos(_inputString.cbegin())
     , _lineNo(0)
@@ -44,7 +44,7 @@ inline bool StringParser::isWhitespace() const
     return _pos != _inputString.cend() && isWhitespaceChar(*_pos);
 }
 
-inline std::string::value_type StringParser::cur() const
+inline std::u8string::value_type StringParser::cur() const
 {
     if (_pos != _inputString.cend()) {
         return *_pos;
@@ -54,7 +54,7 @@ inline std::string::value_type StringParser::cur() const
     }
 }
 
-inline std::string::value_type StringParser::peek() const
+inline std::u8string::value_type StringParser::peek() const
 {
     if (_pos == _inputString.cend()) {
         return 0;
@@ -74,7 +74,7 @@ inline void StringParser::advance()
         _pos++;
 
         if (_pos != _inputString.cend()) {
-            if (*_pos == '\n') {
+            if (*_pos == u8'\n') {
                 _lineNo++;
             }
         }
@@ -84,16 +84,16 @@ inline void StringParser::advance()
 inline void StringParser::skipWhitespace()
 {
     while (_pos != _inputString.cend() && isWhitespaceChar(*_pos)) {
-        if (*_pos == '\n') {
+        if (*_pos == u8'\n') {
             _lineNo++;
         }
         _pos++;
     }
 }
 
-inline bool StringParser::testAndConsume(const std::string_view str)
+inline bool StringParser::testAndConsume(const std::u8string_view str)
 {
-    std::string::const_iterator it = _pos;
+    std::u8string::const_iterator it = _pos;
     for (auto c : str) {
         if (it == _inputString.cend()) {
             return false;
@@ -104,13 +104,13 @@ inline bool StringParser::testAndConsume(const std::string_view str)
         it++;
     }
 
-    _lineNo += std::count(str.cbegin(), str.cend(), '\n');
+    _lineNo += std::count(str.cbegin(), str.cend(), u8'\n');
     _pos = it;
 
     return true;
 }
 
-inline bool StringParser::skipUntil(const std::string_view str)
+inline bool StringParser::skipUntil(const std::u8string_view str)
 {
     auto oldPos = _pos;
 
@@ -119,7 +119,7 @@ inline bool StringParser::skipUntil(const std::string_view str)
 
     if (it != _inputString.cend()) {
         _pos = it + str.size();
-        _lineNo += std::count(oldPos, _pos, '\n');
+        _lineNo += std::count(oldPos, _pos, u8'\n');
         return true;
     }
     else {
@@ -128,14 +128,14 @@ inline bool StringParser::skipUntil(const std::string_view str)
     }
 }
 
-inline bool StringParser::skipUntil(const std::string::value_type c)
+inline bool StringParser::skipUntil(const std::u8string::value_type c)
 {
     auto oldPos = _pos;
 
     auto it = std::find(_pos, _inputString.cend(), c);
     if (it != _inputString.cend()) {
         _pos = it + 1;
-        _lineNo += std::count(oldPos, _pos, '\n');
+        _lineNo += std::count(oldPos, _pos, u8'\n');
         return true;
     }
     else {

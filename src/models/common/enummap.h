@@ -19,7 +19,7 @@ namespace UnTech {
 template <typename T>
 class EnumMap {
 public:
-    using value_type = typename std::pair<std::string, T>;
+    using value_type = typename std::pair<std::u8string, T>;
     using container = typename std::vector<value_type>;
     using iterator = typename container::const_iterator;
     using const_iterator = typename container::const_iterator;
@@ -40,13 +40,13 @@ public:
     EnumMap& operator=(const EnumMap&) = delete;
     EnumMap& operator=(EnumMap&&) = delete;
 
-    iterator find(const std::string& string) const
+    iterator find(const std::u8string& string) const
     {
         return std::find_if(_map.cbegin(), _map.cend(),
                             [&](auto& p) { return p.first == string; });
     }
 
-    iterator find(const std::string_view string) const
+    iterator find(const std::u8string_view string) const
     {
         return std::find_if(_map.cbegin(), _map.cend(),
                             [&](auto& p) { return p.first == string; });
@@ -58,20 +58,20 @@ public:
                             [&](auto& p) { return p.second == value; });
     }
 
-    // throws `out_of_range` if string is not found
-    T valueOf(const std::string& string) const
+    // throws out_of_range if string is not found
+    T valueOf(const std::u8string& string) const
     {
         auto it = find(string);
         if (it == end()) {
-            throw out_of_range("Cannot convert `", string, "` to Enum");
+            throw out_of_range(u8"Cannot convert `", string, u8"` to Enum");
         }
         return it->second;
     }
 
     // returns an empty string if value is not found
-    const std::string& nameOf(T value) const
+    const std::u8string& nameOf(T value) const
     {
-        static const std::string emptyString;
+        static const std::u8string emptyString;
 
         auto it = find(value);
         if (it == end()) {

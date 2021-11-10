@@ -22,7 +22,7 @@ inline std::unique_ptr<EntityError> structFieldError(const EntityRomStruct& rs, 
                                                      const Args... message)
 {
     return std::make_unique<EntityError>(EntityErrorType::STRUCT_FIELD, fieldIndex, structIndex,
-                                         stringBuilder("EntityRomStruct ", rs.name, ", Field #", fieldIndex, ": ", message...));
+                                         stringBuilder(u8"EntityRomStruct ", rs.name, u8", Field #", fieldIndex, u8": ", message...));
 }
 
 template <typename... Args>
@@ -31,7 +31,7 @@ inline std::unique_ptr<EntityError> structFieldError(const EntityRomStruct& rs, 
 {
     if (field.name.isValid()) {
         return std::make_unique<EntityError>(EntityErrorType::STRUCT_FIELD, fieldIndex, structIndex,
-                                             stringBuilder("EntityRomStruct ", rs.name, ", Field ", field.name, ": ", message...));
+                                             stringBuilder(u8"EntityRomStruct ", rs.name, u8", Field ", field.name, u8": ", message...));
     }
     else {
         return structFieldError(rs, structIndex, fieldIndex, message...);
@@ -43,7 +43,7 @@ inline std::unique_ptr<EntityError> entityRomStructError(const EntityRomStruct& 
                                                          const Args... message)
 {
     return std::make_unique<EntityError>(EntityErrorType::STRUCT, structIndex,
-                                         stringBuilder("EntityRomStruct ", rs.name, ": ", message...));
+                                         stringBuilder(u8"EntityRomStruct ", rs.name, u8": ", message...));
 }
 
 template <typename... Args>
@@ -51,7 +51,7 @@ inline std::unique_ptr<EntityError> entityFunctionTableError(const EntityFunctio
                                                              const Args... message)
 {
     return std::make_unique<EntityError>(EntityErrorType::ENTITY_FUNCTION_TABLE, ftIndex,
-                                         stringBuilder("EntityFunctionTable ", ft.name, ": ", message...));
+                                         stringBuilder(u8"EntityFunctionTable ", ft.name, u8": ", message...));
 }
 
 inline EntityErrorType entityRomEntryErrorType(const EntityType entityType)
@@ -75,7 +75,7 @@ inline std::unique_ptr<EntityError> entityRomEntryError(const EntityRomEntry& re
                                                         const Args... message)
 {
     return std::make_unique<EntityError>(entityRomEntryErrorType(entityType), index,
-                                         stringBuilder("EntityRomEntry ", re.name, ": ", message...));
+                                         stringBuilder(u8"EntityRomEntry ", re.name, u8": ", message...));
 }
 
 }

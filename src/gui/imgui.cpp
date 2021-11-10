@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "list-helpers.h"
 #include "selection.h"
+#include "models/common/stringbuilder.h"
 
 #include "vendor/imgui/imgui_internal.h"
 
@@ -387,8 +388,8 @@ bool Selectable(const char* label, UnTech::Gui::SingleSelection* sel, const unsi
 
 bool Selectable(UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
-    const std::string label = std::to_string(i);
-    return Selectable_(label.c_str(), sel, i, flags);
+    const std::u8string label = UnTech::stringBuilder(i);
+    return Selectable_(u8Cast(label), sel, i, flags);
 }
 
 bool Selectable(const char* label, UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
@@ -398,8 +399,8 @@ bool Selectable(const char* label, UnTech::Gui::MultipleSelection* sel, const un
 
 bool Selectable(UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
-    const std::string label = std::to_string(i);
-    return Selectable_(label.c_str(), sel, i, flags);
+    const std::u8string label = UnTech::stringBuilder(i);
+    return Selectable_(u8Cast(label), sel, i, flags);
 }
 
 bool Selectable(const char* label, UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
@@ -409,14 +410,14 @@ bool Selectable(const char* label, UnTech::Gui::MultipleChildSelection* sel, con
 
 bool Selectable(UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
-    const std::string label = std::to_string(i);
-    return Selectable_(label.c_str(), sel, i, flags);
+    const std::u8string label = UnTech::stringBuilder(i);
+    return Selectable_(u8Cast(label), sel, i, flags);
 }
 
 bool Selectable(UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleChildSelection* sel, const unsigned parent, const unsigned i, ImGuiSelectableFlags flags)
 {
-    const std::string label = std::to_string(i);
-    return Selectable(label.c_str(), parentSel, sel, parent, i, flags);
+    const std::u8string label = UnTech::stringBuilder(i);
+    return Selectable(u8Cast(label), parentSel, sel, parent, i, flags);
 }
 
 bool ButtonWithTooltip(const char* label, const char* tooltip, const ImVec2& size)

@@ -20,15 +20,15 @@ void ErrorList::printIndented(StringStream& out) const
 {
     for (const auto& item : _list) {
         if (!item->isWarning) {
-            out.write("    ERROR: ");
+            out.write(u8"    ERROR: ");
         }
         else {
-            out.write("    Warning: ");
+            out.write(u8"    Warning: ");
         }
 
         item->printIndented(out);
 
-        out.write("\n");
+        out.write(u8"\n");
     }
 }
 

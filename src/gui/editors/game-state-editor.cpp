@@ -133,7 +133,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
                 &Scripting::GameState::startingRoom>(_data);
         }
 
-        if (ImGui::BeginCombo("Starting Entrance", gameState.startingEntrance.str())) {
+        if (ImGui::BeginCombo("Starting Entrance", u8Cast(gameState.startingEntrance))) {
             if (const auto room = projectFile.rooms.find(gameState.startingRoom)) {
                 const bool changed = ImGui::IdStringComboSelection(&gameState.startingEntrance, room->entrances, true);
                 if (changed) {
@@ -155,7 +155,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
 
         ImGui::BeginChild("FlagsChild", childSize, true);
         {
-            ImGui::TextUnformatted("Game State Flags:\n\n");
+            ImGui::TextUnformatted(u8"Game State Flags:\n\n");
             ListButtons<AP::Flags>(_data);
 
             ImGui::BeginChild("Scroll");
@@ -206,7 +206,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
 
         ImGui::BeginChild("WordsChild", childSize, true);
         {
-            ImGui::TextUnformatted("Game State Words:\n\n");
+            ImGui::TextUnformatted(u8"Game State Words:\n\n");
             ListButtons<AP::Words>(_data);
 
             ImGui::BeginChild("Scroll");

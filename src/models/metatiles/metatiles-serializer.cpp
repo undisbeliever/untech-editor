@@ -7,6 +7,7 @@
 #include "metatiles-serializer.h"
 #include "models/common/bytevectorhelper.h"
 #include "models/common/externalfilelist.h"
+#include "models/common/u8strings.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/resources/resources-serializer.h"
 #include <cassert>
@@ -26,68 +27,68 @@ void ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
 namespace UnTech::MetaTiles {
 
 static const EnumMap<TileCollisionType> tileCollisonTypeEnumMap = {
-    { "", TileCollisionType::EMPTY },
-    { "solid", TileCollisionType::SOLID },
-    { "drs", TileCollisionType::DOWN_RIGHT_SLOPE },
-    { "dls", TileCollisionType::DOWN_LEFT_SLOPE },
-    { "drss", TileCollisionType::DOWN_RIGHT_SHORT_SLOPE },
-    { "drts", TileCollisionType::DOWN_RIGHT_TALL_SLOPE },
-    { "dlts", TileCollisionType::DOWN_LEFT_TALL_SLOPE },
-    { "dlss", TileCollisionType::DOWN_LEFT_SHORT_SLOPE },
-    { "dp", TileCollisionType::DOWN_PLATFORM },
-    { "up", TileCollisionType::UP_PLATFORM },
-    { "urs", TileCollisionType::UP_RIGHT_SLOPE },
-    { "uls", TileCollisionType::UP_LEFT_SLOPE },
-    { "urss", TileCollisionType::UP_RIGHT_SHORT_SLOPE },
-    { "urts", TileCollisionType::UP_RIGHT_TALL_SLOPE },
-    { "ults", TileCollisionType::UP_LEFT_TALL_SLOPE },
-    { "ulss", TileCollisionType::UP_LEFT_SHORT_SLOPE },
-    { "es", TileCollisionType::END_SLOPE },
+    { u8"", TileCollisionType::EMPTY },
+    { u8"solid", TileCollisionType::SOLID },
+    { u8"drs", TileCollisionType::DOWN_RIGHT_SLOPE },
+    { u8"dls", TileCollisionType::DOWN_LEFT_SLOPE },
+    { u8"drss", TileCollisionType::DOWN_RIGHT_SHORT_SLOPE },
+    { u8"drts", TileCollisionType::DOWN_RIGHT_TALL_SLOPE },
+    { u8"dlts", TileCollisionType::DOWN_LEFT_TALL_SLOPE },
+    { u8"dlss", TileCollisionType::DOWN_LEFT_SHORT_SLOPE },
+    { u8"dp", TileCollisionType::DOWN_PLATFORM },
+    { u8"up", TileCollisionType::UP_PLATFORM },
+    { u8"urs", TileCollisionType::UP_RIGHT_SLOPE },
+    { u8"uls", TileCollisionType::UP_LEFT_SLOPE },
+    { u8"urss", TileCollisionType::UP_RIGHT_SHORT_SLOPE },
+    { u8"urts", TileCollisionType::UP_RIGHT_TALL_SLOPE },
+    { u8"ults", TileCollisionType::UP_LEFT_TALL_SLOPE },
+    { u8"ulss", TileCollisionType::UP_LEFT_SHORT_SLOPE },
+    { u8"es", TileCollisionType::END_SLOPE },
 
-    { "empty", TileCollisionType::EMPTY },
+    { u8"empty", TileCollisionType::EMPTY },
 
-    { "EMPTY", TileCollisionType::EMPTY },
-    { "SOLID", TileCollisionType::SOLID },
-    { "DOWN_RIGHT_SLOPE", TileCollisionType::DOWN_RIGHT_SLOPE },
-    { "DOWN_LEFT_SLOPE", TileCollisionType::DOWN_LEFT_SLOPE },
-    { "DOWN_RIGHT_SHORT_SLOPE", TileCollisionType::DOWN_RIGHT_SHORT_SLOPE },
-    { "DOWN_RIGHT_TALL_SLOPE", TileCollisionType::DOWN_RIGHT_TALL_SLOPE },
-    { "DOWN_LEFT_TALL_SLOPE", TileCollisionType::DOWN_LEFT_TALL_SLOPE },
-    { "DOWN_LEFT_SHORT_SLOPE", TileCollisionType::DOWN_LEFT_SHORT_SLOPE },
-    { "DOWN_PLATFORM", TileCollisionType::DOWN_PLATFORM },
-    { "UP_PLATFORM", TileCollisionType::UP_PLATFORM },
-    { "UP_RIGHT_SLOPE", TileCollisionType::UP_RIGHT_SLOPE },
-    { "UP_LEFT_SLOPE", TileCollisionType::UP_LEFT_SLOPE },
-    { "UP_RIGHT_SHORT_SLOPE", TileCollisionType::UP_RIGHT_SHORT_SLOPE },
-    { "UP_RIGHT_TALL_SLOPE", TileCollisionType::UP_RIGHT_TALL_SLOPE },
-    { "UP_LEFT_TALL_SLOPE", TileCollisionType::UP_LEFT_TALL_SLOPE },
-    { "UP_LEFT_SHORT_SLOPE", TileCollisionType::UP_LEFT_SHORT_SLOPE },
-    { "END_SLOPE", TileCollisionType::END_SLOPE },
+    { u8"EMPTY", TileCollisionType::EMPTY },
+    { u8"SOLID", TileCollisionType::SOLID },
+    { u8"DOWN_RIGHT_SLOPE", TileCollisionType::DOWN_RIGHT_SLOPE },
+    { u8"DOWN_LEFT_SLOPE", TileCollisionType::DOWN_LEFT_SLOPE },
+    { u8"DOWN_RIGHT_SHORT_SLOPE", TileCollisionType::DOWN_RIGHT_SHORT_SLOPE },
+    { u8"DOWN_RIGHT_TALL_SLOPE", TileCollisionType::DOWN_RIGHT_TALL_SLOPE },
+    { u8"DOWN_LEFT_TALL_SLOPE", TileCollisionType::DOWN_LEFT_TALL_SLOPE },
+    { u8"DOWN_LEFT_SHORT_SLOPE", TileCollisionType::DOWN_LEFT_SHORT_SLOPE },
+    { u8"DOWN_PLATFORM", TileCollisionType::DOWN_PLATFORM },
+    { u8"UP_PLATFORM", TileCollisionType::UP_PLATFORM },
+    { u8"UP_RIGHT_SLOPE", TileCollisionType::UP_RIGHT_SLOPE },
+    { u8"UP_LEFT_SLOPE", TileCollisionType::UP_LEFT_SLOPE },
+    { u8"UP_RIGHT_SHORT_SLOPE", TileCollisionType::UP_RIGHT_SHORT_SLOPE },
+    { u8"UP_RIGHT_TALL_SLOPE", TileCollisionType::UP_RIGHT_TALL_SLOPE },
+    { u8"UP_LEFT_TALL_SLOPE", TileCollisionType::UP_LEFT_TALL_SLOPE },
+    { u8"UP_LEFT_SHORT_SLOPE", TileCollisionType::UP_LEFT_SHORT_SLOPE },
+    { u8"END_SLOPE", TileCollisionType::END_SLOPE },
 };
 
-const std::string MetaTileTilesetInput::FILE_EXTENSION = "utmt";
+const std::u8string MetaTileTilesetInput::FILE_EXTENSION = u8"utmt";
 
 static void readInteractiveTileFunction(const XmlTag& tag, NamedList<InteractiveTileFunctionTable>& tileFunctions)
 {
     tileFunctions.insert_back();
     InteractiveTileFunctionTable& ft = tileFunctions.back();
 
-    ft.name = tag.getAttributeOptionalId("name");
+    ft.name = tag.getAttributeOptionalId(u8"name");
 
-    if (tag.hasAttribute("tint")) {
-        ft.tint = UnTech::rgba::fromRgbHex(tag.getAttributeUnsignedHex("tint"));
+    if (tag.hasAttribute(u8"tint")) {
+        ft.tint = UnTech::rgba::fromRgbHex(tag.getAttributeUnsignedHex(u8"tint"));
     }
-    if (tag.hasAttribute("color")) {
-        ft.tint = UnTech::rgba::fromRgbHex(tag.getAttributeUnsignedHex("color"));
+    if (tag.hasAttribute(u8"color")) {
+        ft.tint = UnTech::rgba::fromRgbHex(tag.getAttributeUnsignedHex(u8"color"));
     }
 }
 
 void readInteractiveTiles(XmlReader& xml, const XmlTag& tag, InteractiveTiles& interactiveTiles)
 {
-    assert(tag.name == "interactive-tiles");
+    assert(tag.name == u8"interactive-tiles");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == "tile-function-table") {
+        if (childTag.name == u8"tile-function-table") {
             readInteractiveTileFunction(childTag, interactiveTiles.functionTables);
         }
         else {
@@ -100,11 +101,12 @@ void readInteractiveTiles(XmlReader& xml, const XmlTag& tag, InteractiveTiles& i
 
 void writeInteractiveTiles(XmlWriter& xml, const InteractiveTiles& interactiveTiles)
 {
-    xml.writeTag("interactive-tiles");
+    xml.writeTag(u8"interactive-tiles");
     for (auto& ft : interactiveTiles.functionTables) {
-        xml.writeTag("tile-function-table");
-        xml.writeTagAttribute("name", ft.name);
-        xml.writeTagAttributeHex6("tint", ft.tint.rgbHex());
+        xml.writeTag(u8"tile-function-table");
+        xml.writeTagAttribute(u8"name", ft.name);
+        xml.writeTagAttributeHex6(u8"tint", ft.tint.rgbHex());
+
         xml.writeCloseTag();
     }
     xml.writeCloseTag();
@@ -112,23 +114,23 @@ void writeInteractiveTiles(XmlWriter& xml, const InteractiveTiles& interactiveTi
 
 grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag& tag)
 {
-    const unsigned width = tag.getAttributeUnsigned("width", 1, MAX_GRID_WIDTH);
-    const unsigned height = tag.getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT);
+    const unsigned width = tag.getAttributeUnsigned(u8"width", 1, MAX_GRID_WIDTH);
+    const unsigned height = tag.getAttributeUnsigned(u8"height", 1, MAX_GRID_HEIGHT);
     const unsigned expectedDataSize = width * height;
 
     return grid<uint8_t>(width, height,
                          xml.parseBase64OfKnownSize(expectedDataSize));
 }
 
-void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<uint8_t>& mtGrid)
+void writeMetaTileGrid(XmlWriter& xml, const std::u8string& tagName, const grid<uint8_t>& mtGrid)
 {
     if (mtGrid.empty()) {
         return;
     }
 
     xml.writeTag(tagName);
-    xml.writeTagAttribute("width", mtGrid.width());
-    xml.writeTagAttribute("height", mtGrid.height());
+    xml.writeTagAttribute(u8"width", mtGrid.width());
+    xml.writeTagAttribute(u8"height", mtGrid.height());
     xml.writeBase64(mtGrid.gridData());
     xml.writeCloseTag();
 }
@@ -137,9 +139,9 @@ static void readTileProperties(const XmlTag& tag, MetaTileTilesetInput& tilesetI
 {
     // <tile> tag
 
-    unsigned i = tag.getAttributeUnsigned("t", 0, N_METATILES - 1);
-    tilesetInput.tileCollisions.at(i) = tag.getAttributeOptionalEnum("collision", tileCollisonTypeEnumMap, TileCollisionType::EMPTY);
-    tilesetInput.tileFunctionTables.at(i) = tag.getAttributeOptionalId("ft");
+    unsigned i = tag.getAttributeUnsigned(u8"t", 0, N_METATILES - 1);
+    tilesetInput.tileCollisions.at(i) = tag.getAttributeOptionalEnum(u8"collision", tileCollisonTypeEnumMap, TileCollisionType::EMPTY);
+    tilesetInput.tileFunctionTables.at(i) = tag.getAttributeOptionalId(u8"ft");
 }
 
 static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tilesetInput)
@@ -149,12 +151,12 @@ static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tile
         const auto& ft = tilesetInput.tileFunctionTables.at(i);
 
         if (tc != TileCollisionType::EMPTY || ft.isValid()) {
-            xml.writeTag("tile");
-            xml.writeTagAttribute("t", unsigned(i));
+            xml.writeTag(u8"tile");
+            xml.writeTagAttribute(u8"t", unsigned(i));
             if (tc != TileCollisionType::EMPTY) {
-                xml.writeTagAttributeEnum("collision", tc, tileCollisonTypeEnumMap);
+                xml.writeTagAttributeEnum(u8"collision", tc, tileCollisonTypeEnumMap);
             }
-            xml.writeTagAttributeOptional("ft", ft);
+            xml.writeTagAttributeOptional(u8"ft", ft);
             xml.writeCloseTag();
         }
     }
@@ -168,31 +170,31 @@ static void readTilePriorities(XmlReader& xml, const XmlTag&, MetaTileTilesetInp
 
 static void writeTilePriorities(XmlWriter& xml, const TilePriorities& tilePriorities)
 {
-    xml.writeTag("tile-priorities");
+    xml.writeTag(u8"tile-priorities");
     xml.writeBase64(tilePriorities.data);
     xml.writeCloseTag();
 }
 
 static void readCrumblingTilesChain(const XmlTag& tag, MetaTileTilesetInput& tilesetInput)
 {
-    assert(tag.name == "crumbling-tile");
+    assert(tag.name == u8"crumbling-tile");
 
-    const std::string chainName = tag.getAttribute("chain");
+    const std::u8string chainName = tag.getAttribute(u8"chain");
     if (chainName.size() != 1 || chainName.front() < 'a' || chainName.front() >= 'a' + int(N_CRUMBLING_TILE_CHAINS)) {
-        throw xml_error(tag, "Unknown crumbling tiles chain id");
+        throw xml_error(tag, u8"Unknown crumbling tiles chain id");
     }
     const unsigned chainId = chainName.front() - 'a';
 
     CrumblingTileChain& chain = tilesetInput.crumblingTiles.at(chainId);
 
-    chain.firstTileId = tag.getAttributeUint8("first-tile");
-    chain.firstDelay = tag.getAttributeUint16("first-delay");
+    chain.firstTileId = tag.getAttributeUint8(u8"first-tile");
+    chain.firstDelay = tag.getAttributeUint16(u8"first-delay");
 
-    chain.secondTileId = tag.getAttributeUint8("second-tile");
+    chain.secondTileId = tag.getAttributeUint8(u8"second-tile");
 
-    if (tag.getAttributeBoolean("no-third-tile") == false) {
-        chain.secondDelay = tag.getAttributeUint16("second-delay");
-        chain.thirdTileId = tag.getAttributeUint8("third-tile");
+    if (tag.getAttributeBoolean(u8"no-third-tile") == false) {
+        chain.secondDelay = tag.getAttributeUint16(u8"second-delay");
+        chain.thirdTileId = tag.getAttributeUint8(u8"third-tile");
     }
     else {
         chain.secondDelay = 0xffff;
@@ -203,24 +205,24 @@ static void readCrumblingTilesChain(const XmlTag& tag, MetaTileTilesetInput& til
 static void writeCrumblingTilesChains(XmlWriter& xml, const std::array<CrumblingTileChain, N_CRUMBLING_TILE_CHAINS>& chains)
 {
     static_assert(N_CRUMBLING_TILE_CHAINS < 26);
-    std::string chainName{ "a" };
+    std::u8string chainName{ u8"a" };
 
     for (auto& chain : chains) {
-        xml.writeTag("crumbling-tile");
+        xml.writeTag(u8"crumbling-tile");
 
-        xml.writeTagAttribute("chain", chainName);
+        xml.writeTagAttribute(u8"chain", chainName);
 
-        xml.writeTagAttribute("first-tile", chain.firstTileId);
-        xml.writeTagAttribute("first-delay", chain.firstDelay);
+        xml.writeTagAttribute(u8"first-tile", chain.firstTileId);
+        xml.writeTagAttribute(u8"first-delay", chain.firstDelay);
 
-        xml.writeTagAttribute("second-tile", chain.secondTileId);
+        xml.writeTagAttribute(u8"second-tile", chain.secondTileId);
 
         if (chain.hasThirdTransition()) {
-            xml.writeTagAttribute("second-delay", chain.secondDelay);
-            xml.writeTagAttribute("third-tile", chain.thirdTileId);
+            xml.writeTagAttribute(u8"second-delay", chain.secondDelay);
+            xml.writeTagAttribute(u8"third-tile", chain.thirdTileId);
         }
         else {
-            xml.writeTagAttribute("no-third-tile", true);
+            xml.writeTagAttribute(u8"no-third-tile", true);
         }
 
         xml.writeCloseTag();
@@ -231,8 +233,8 @@ static void writeCrumblingTilesChains(XmlWriter& xml, const std::array<Crumbling
 
 static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml, const XmlTag& tag)
 {
-    if (tag.name != "metatile-tileset") {
-        throw xml_error(xml, "Not a Resources file (expected <metatile-tileset> tag)");
+    if (tag.name != u8"metatile-tileset") {
+        throw xml_error(xml, u8"Not a Resources file (expected <metatile-tileset> tag)");
     }
 
     bool readAnimationFramesTag = false;
@@ -241,40 +243,40 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
 
     auto tilesetInput = std::make_unique<MetaTileTilesetInput>();
 
-    tilesetInput->name = tag.getAttributeId("name");
+    tilesetInput->name = tag.getAttributeId(u8"name");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == "palette") {
-            tilesetInput->palettes.emplace_back(childTag.getAttributeId("name"));
+        if (childTag.name == u8"palette") {
+            tilesetInput->palettes.emplace_back(childTag.getAttributeId(u8"name"));
         }
-        else if (childTag.name == "animation-frames") {
+        else if (childTag.name == u8"animation-frames") {
             if (readAnimationFramesTag) {
-                throw xml_error(childTag, "Only one <animation-frames> tag allowed");
+                throw xml_error(childTag, u8"Only one <animation-frames> tag allowed");
             }
             readAnimationFramesTag = true;
 
             Resources::readAnimationFramesInput(tilesetInput->animationFrames, xml, childTag);
         }
-        else if (childTag.name == "tile") {
+        else if (childTag.name == u8"tile") {
             readTileProperties(childTag, *tilesetInput);
         }
-        else if (childTag.name == "scratchpad") {
+        else if (childTag.name == u8"scratchpad") {
             if (readScratchpadTag) {
-                throw xml_error(childTag, "Only one <scratchpad> tag allowed");
+                throw xml_error(childTag, u8"Only one <scratchpad> tag allowed");
             }
             readScratchpadTag = true;
 
             tilesetInput->scratchpad = readMetaTileGrid(xml, childTag);
         }
-        else if (childTag.name == "tile-priorities") {
+        else if (childTag.name == u8"tile-priorities") {
             if (readTilePrioritiesTag) {
-                throw xml_error(childTag, "Only one <tile-priorities> tag allowed");
+                throw xml_error(childTag, u8"Only one <tile-priorities> tag allowed");
             }
             readTilePrioritiesTag = true;
 
             readTilePriorities(xml, childTag, *tilesetInput);
         }
-        else if (childTag.name == "crumbling-tile") {
+        else if (childTag.name == u8"crumbling-tile") {
             readCrumblingTilesChain(childTag, *tilesetInput);
         }
         else {
@@ -289,13 +291,13 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
 
 void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input)
 {
-    xml.writeTag("metatile-tileset");
+    xml.writeTag(u8"metatile-tileset");
 
-    xml.writeTagAttribute("name", input.name);
+    xml.writeTagAttribute(u8"name", input.name);
 
     for (const idstring& pName : input.palettes) {
-        xml.writeTag("palette");
-        xml.writeTagAttribute("name", pName);
+        xml.writeTag(u8"palette");
+        xml.writeTagAttribute(u8"name", pName);
         xml.writeCloseTag();
     }
 
@@ -305,7 +307,7 @@ void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input
 
     Resources::writeAnimationFramesInput(xml, input.animationFrames);
 
-    writeMetaTileGrid(xml, "scratchpad", input.scratchpad);
+    writeMetaTileGrid(xml, u8"scratchpad", input.scratchpad);
 
     xml.writeCloseTag();
 }
@@ -317,7 +319,7 @@ std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml)
         return readMetaTileTilesetInput(xml, tag);
     }
     catch (const std::exception& ex) {
-        throw xml_error(xml, "Error loading metatile tileset", ex);
+        throw xml_error(xml, u8"Error loading metatile tileset", ex);
     }
 }
 
@@ -335,7 +337,7 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesy
         return readMetaTileTilesetInput(*xml);
     }
     catch (const std::exception& ex) {
-        err.addErrorString(ex.what());
+        err.addErrorString(convert_old_string(ex.what()));
         return nullptr;
     }
 }
@@ -343,7 +345,7 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesy
 void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::filesystem::path& filename)
 {
     // utmt files contain a large base64 text block, use a larger buffer.
-    XmlWriter xml(filename, "untech", 128 * 1024);
+    XmlWriter xml(filename, u8"untech", 128 * 1024);
     writeMetaTileTilesetInput(xml, input);
 
     File::atomicWrite(filename, xml.string_view());

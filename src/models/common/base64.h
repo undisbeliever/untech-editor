@@ -35,10 +35,10 @@ void encode(const std::array<uint8_t, N>& data, StringStream& out, unsigned inde
  *
  * All invalid characters are skipped.
  */
-std::vector<uint8_t> decode(const std::string& text);
+std::vector<uint8_t> decode(const std::u8string& text);
 
 // Returns the number of bytes decoded.
 // DOES NOT the number of bytes written to buffer, may be larger than buffer.
-size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::string& text);
+size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::u8string& text);
 
 }

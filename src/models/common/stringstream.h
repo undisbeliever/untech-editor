@@ -24,7 +24,7 @@ public:
     constexpr static size_t max_buffer_size = 1024 * 1024;
 
 private:
-    std::string buffer;
+    std::u8string buffer;
     size_t bufferPos;
 
 private:
@@ -49,8 +49,8 @@ private:
         }
 
         // Using `char*` here as `std::to_chars()` uses pointers.
-        char* ptr = buffer.data() + bufferPos;
-        char* const end = buffer.data() + buffer.size();
+        char8_t* ptr = buffer.data() + bufferPos;
+        char8_t* const end = buffer.data() + buffer.size();
 
         auto process = [&](const auto& a) {
             ptr = UnTech::StringBuilder::concat(ptr, end, a);
@@ -74,7 +74,7 @@ private:
             throw std::invalid_argument("StringStream startingSize is not a power of two");
         }
 
-        // -1 to account for the null terminating character when allocating memory in std::string
+        // -1 to account for the null terminating character when allocating memory in std::u8string
         return startingSize - 1;
     }
 
@@ -96,11 +96,11 @@ public:
     }
 
     template <size_t N>
-    void writeCharacters(const std::array<char, N>& array)
+    void writeCharacters(const std::array<char8_t, N>& array)
     {
         addToBufferTest(array.size());
 
-        char* ptr = buffer.data() + bufferPos;
+        char8_t* ptr = buffer.data() + bufferPos;
 
         std::copy(array.begin(), array.end(), ptr);
 
@@ -113,29 +113,29 @@ public:
         writeImpl(UnTech::StringBuilder::convert(args)...);
     }
 
-    void write(const std::string_view s);
+    void write(const std::u8string_view s);
 
-    void write(const std::string& s);
+    void write(const std::u8string& s);
 
-    inline void write(const char* s) { write(std::string_view(s)); }
+    inline void write(const char8_t* s) { write(std::u8string_view(s)); }
 
     inline size_t size() const { return bufferPos; }
 
     // returned string_view is only valid until the next write call.
-    [[nodiscard]] std::string_view string_view() const
+    [[nodiscard]] std::u8string_view string_view() const
     {
-        return std::string_view(buffer.data(), bufferPos);
+        return std::u8string_view(buffer.data(), bufferPos);
     }
 
     // Takes the string out of the StringBuilder
-    [[nodiscard]] std::string takeString()
+    [[nodiscard]] std::u8string takeString()
     {
         assert(bufferPos < buffer.size());
 
         buffer.erase(buffer.begin() + bufferPos, buffer.end());
 
         // Replace `buffer` with an empty string
-        std::string s;
+        std::u8string s;
         std::swap(s, buffer);
 
         bufferPos = 0;

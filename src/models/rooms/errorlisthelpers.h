@@ -15,28 +15,28 @@ template <typename... Args>
 inline std::unique_ptr<RoomError> roomEntranceError(const RoomEntrance& e, const unsigned index, const Args... msg)
 {
     return std::make_unique<RoomError>(RoomErrorType::ROOM_ENTRANCE, index,
-                                       stringBuilder("Entity Entrance ", e.name, ": ", msg...));
+                                       stringBuilder(u8"Entity Entrance ", e.name, u8": ", msg...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<RoomError> entityGroupError(const EntityGroup& eg, const unsigned index, const Args... msg)
 {
     return std::make_unique<RoomError>(RoomErrorType::ENTITY_GROUP, index,
-                                       stringBuilder("Entity Group ", eg.name, ": ", msg...));
+                                       stringBuilder(u8"Entity Group ", eg.name, u8": ", msg...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<RoomError> entityEntryError(const EntityGroup& eg, const unsigned egIndex, const unsigned eeIndex, const Args... msg)
 {
     return std::make_unique<RoomError>(RoomErrorType::ENTITY_ENTRY, egIndex, eeIndex,
-                                       stringBuilder("Entity Group ", eg.name, " Entry #", eeIndex, ": ", msg...));
+                                       stringBuilder(u8"Entity Group ", eg.name, u8" Entry #", eeIndex, u8": ", msg...));
 }
 
 template <typename... Args>
 inline std::unique_ptr<RoomError> scriptTriggerError(const unsigned index, const Args... msg)
 {
     return std::make_unique<RoomError>(RoomErrorType::SCRIPT_TRIGGER, index,
-                                       stringBuilder("Script Trigger ", index, ": ", msg...));
+                                       stringBuilder(u8"Script Trigger ", index, u8": ", msg...));
 }
 
 }

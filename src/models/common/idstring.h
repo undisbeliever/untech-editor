@@ -26,7 +26,7 @@ class idstring {
     friend bool ImGui::InputIdstring(const char*, idstring*);
 
 private:
-    std::string data;
+    std::u8string data;
 
 public:
     static bool isCharValid(const char c)
@@ -37,13 +37,13 @@ public:
                  || (c >= 'a' && c <= 'z')));
     }
 
-    static bool isValid(std::string_view name)
+    static bool isValid(std::u8string_view name)
     {
         if (name.empty()) {
             return false;
         }
 
-        for (const char& c : name) {
+        for (const char8_t c : name) {
             if (!isCharValid(c)) {
                 return false;
             }
@@ -52,7 +52,7 @@ public:
         return true;
     }
 
-    static idstring fixup(const std::string& s)
+    static idstring fixup(const std::u8string& s)
     {
         idstring ret;
 
@@ -75,7 +75,7 @@ public:
 
     idstring() = default;
 
-    static idstring fromString(std::string&& s)
+    static idstring fromString(std::u8string&& s)
     {
         idstring out;
         if (isValid(s)) {
@@ -85,7 +85,7 @@ public:
         return out;
     }
 
-    static idstring fromString(const std::string_view s)
+    static idstring fromString(const std::u8string_view s)
     {
         idstring out;
         if (isValid(s)) {
@@ -95,16 +95,16 @@ public:
         return out;
     }
 
-    static idstring fromString(const char* s)
+    static idstring fromString(const char8_t* s)
     {
-        return fromString(std::string_view(s));
+        return fromString(std::u8string_view(s));
     }
 
     inline bool isValid() const { return !data.empty(); }
 
     // clang-format off
-    inline const std::string& str() const { return data; }
-    inline const char* c_str() const { return data.c_str(); }
+    inline const std::u8string& str() const { return data; }
+    inline const char8_t* c_str() const { return data.c_str(); }
     // clang-format on
 
     void clear() { data.clear(); }
@@ -113,27 +113,27 @@ public:
     auto operator<=>(const idstring& o) const = default;
 };
 
-inline idstring operator"" _id(const char* str, const size_t size)
+inline idstring operator"" _id(const char8_t* str, const size_t size)
 {
-    const auto id = idstring::fromString(std::string_view(str, size));
+    const auto id = idstring::fromString(std::u8string_view(str, size));
     assert(id.isValid());
     return id;
 }
 
 // useful in generating user messages
-inline std::string operator+(const char* c, const idstring& i)
+inline std::u8string operator+(const char8_t* c, const idstring& i)
 {
     return c + i.str();
 }
-inline std::string operator+(const idstring& i, const char* c)
+inline std::u8string operator+(const idstring& i, const char8_t* c)
 {
     return i.str() + c;
 }
-inline std::string operator+(const std::string& s, const idstring& i)
+inline std::u8string operator+(const std::u8string& s, const idstring& i)
 {
     return s + i.str();
 }
-inline std::string operator+(const idstring& i, const std::string& s)
+inline std::u8string operator+(const idstring& i, const std::u8string& s)
 {
     return i.str() + s;
 }
@@ -147,6 +147,6 @@ struct hash<UnTech::idstring> {
     inline size_t operator()(const UnTech::idstring& id) const { return strHash(id.str()); };
 
 private:
-    hash<std::string> strHash;
+    hash<std::u8string> strHash;
 };
 }

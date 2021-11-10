@@ -15,8 +15,8 @@ namespace UnTech::MetaSprite {
 
 void FrameSetFile::setTypeFromExtension()
 {
-    static const std::filesystem::path utmsExtension(".utms");
-    static const std::filesystem::path utsiExtension(".utsi");
+    static const std::filesystem::path utmsExtension(u8".utms");
+    static const std::filesystem::path utsiExtension(u8".utsi");
 
     if (filename.empty()) {
         type = FrameSetType::UNKNOWN;
@@ -72,7 +72,7 @@ void FrameSetFile::loadFile()
         break;
 
     case FrameSetType::UNKNOWN:
-        throw runtime_error("Cannot load ", filename.string(), ": Unknown frameset type");
+        throw runtime_error(u8"Cannot load ", filename.u8string(), u8": Unknown frameset type");
         break;
     }
 }

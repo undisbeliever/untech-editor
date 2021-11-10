@@ -13,7 +13,7 @@ namespace UnTech {
 
 class base_error : public std::exception {
 private:
-    const std::string message;
+    const std::u8string message;
 
 public:
     template <typename... Args>
@@ -23,9 +23,11 @@ public:
     {
     }
 
+    const std::u8string& msg() const noexcept { return message; }
+
     virtual const char* what() const noexcept final
     {
-        return message.c_str();
+        return reinterpret_cast<const char*>(message.c_str());
     }
 };
 

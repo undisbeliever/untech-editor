@@ -100,7 +100,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
         }
         else {
             if (tile16.smallTileIds == INVALID_SMALL_TILES_ARRAY) {
-                throw logic_error("Invalid smallTileIds");
+                throw logic_error(u8"Invalid smallTileIds");
             }
 
             std::array<Snes::Tile8px, 4> smallTiles = {};

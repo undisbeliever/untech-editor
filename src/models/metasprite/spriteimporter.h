@@ -184,7 +184,7 @@ struct UserSuppliedPalette {
 };
 
 struct FrameSet {
-    static const std::string FILE_EXTENSION;
+    static const std::u8string FILE_EXTENSION;
 
     idstring name;
     TilesetType tilesetType = TilesetType::ONE_ROW;

@@ -535,7 +535,7 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
                 edited |= ImGui::IdStringCombo("frameSetId", &entry.frameSetId, projectFile.frameSets, false,
                                                [](auto& fsf) { return &fsf.name(); });
 
-                if (ImGui::BeginCombo("displayFrame", entry.displayFrame.str())) {
+                if (ImGui::BeginCombo("displayFrame", u8Cast(entry.displayFrame))) {
                     auto frameSetIt = std::find_if(projectFile.frameSets.begin(), projectFile.frameSets.end(),
                                                    [&](auto& fs) { return fs.name() == entry.frameSetId; });
 
@@ -566,13 +566,13 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
                         auto& st = entityRomData.structs.at(sIndex);
 
                         for (auto [i, field] : enumerate(st.fields)) {
-                            std::string& value = entry.fields[field.name];
+                            std::u8string& value = entry.fields[field.name];
 
                             ImGui::PushID(id++);
 
-                            std::string label = stringBuilder(field.name, "###Field_", i);
+                            std::u8string label = stringBuilder(field.name, u8"###Field_", i);
 
-                            ImGui::InputText(label.c_str(), &value);
+                            ImGui::InputText(u8Cast(label), &value);
                             edited |= ImGui::IsItemDeactivatedAfterEdit();
                             if (ImGui::IsItemHovered() && !field.comment.empty()) {
                                 ImGui::BeginTooltip();

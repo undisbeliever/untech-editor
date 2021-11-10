@@ -17,11 +17,11 @@ using ProjectFile = UnTech::Project::ProjectFile;
 
 void writeFrameSetReferences(const ProjectFile& project, StringStream& out)
 {
-    out.write("namespace MSFS {\n");
+    out.write(u8"namespace MSFS {\n");
 
     auto writeRef = [&](const auto& fs, unsigned i) {
-        out.write("\tconstant ", fs->name, " = ", i, "\n");
-        out.write("\tdefine ", fs->name, ".type = ", fs->exportOrder, "\n");
+        out.write(u8"\tconstant ", fs->name, u8" = ", i, u8"\n");
+        out.write(u8"\tdefine ", fs->name, u8".type = ", fs->exportOrder, u8"\n");
     };
 
     for (auto [i, fs] : const_enumerate(project.frameSets)) {
@@ -33,43 +33,43 @@ void writeFrameSetReferences(const ProjectFile& project, StringStream& out)
         }
     }
 
-    out.write("}\n");
+    out.write(u8"}\n");
 }
 
 void writeExportOrderReferences(const ProjectFile& project, StringStream& out)
 {
-    out.write("namespace MSEO {\n");
+    out.write(u8"namespace MSEO {\n");
 
     for (const auto& it : project.frameSetExportOrders) {
         const auto& eo = it.value;
         if (eo == nullptr) {
-            throw runtime_error("Unable to read Export Order: ", it.filename.string());
+            throw runtime_error(u8"Unable to read Export Order: ", it.filename.u8string());
         }
 
-        out.write("\tnamespace ", eo->name, " {\n");
+        out.write(u8"\tnamespace ", eo->name, u8" {\n");
 
         if (eo->stillFrames.size() > 0) {
             unsigned id = 0;
-            out.write("\t\tnamespace Frames {\n");
+            out.write(u8"\t\tnamespace Frames {\n");
             for (const auto& f : eo->stillFrames) {
-                out.write("\t\t\tconstant ", f.name, " = ", id, "\n");
+                out.write(u8"\t\t\tconstant ", f.name, u8" = ", id, u8"\n");
                 id++;
             }
-            out.write("\t\t}\n");
+            out.write(u8"\t\t}\n");
         }
         if (eo->animations.size() > 0) {
             unsigned id = 0;
-            out.write("\t\tnamespace Animations {\n");
+            out.write(u8"\t\tnamespace Animations {\n");
             for (const auto& a : eo->animations) {
-                out.write("\t\t\tconstant ", a.name, " = ", id, "\n");
+                out.write(u8"\t\t\tconstant ", a.name, u8" = ", id, u8"\n");
                 id++;
             }
-            out.write("\t\t}\n");
+            out.write(u8"\t\t}\n");
         }
-        out.write("\t}\n");
+        out.write(u8"\t}\n");
     }
 
-    out.write("}\n");
+    out.write(u8"}\n");
 }
 
 void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& actionPointFunctions, StringStream& out)
@@ -78,15 +78,15 @@ void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& action
 
     assert(actionPointFunctions.size() <= MAX_ACTION_POINT_FUNCTIONS);
 
-    out.write("\n"
-              "code()\n"
-              "Project.ActionPoints:\n"
-              "namespace Project.ActionPoints {\n"
-              "\tdw ActionPoints.InvalidActionPoint\n");
+    out.write(u8"\n"
+              u8"code()\n"
+              u8"Project.ActionPoints:\n"
+              u8"namespace Project.ActionPoints {\n"
+              u8"\tdw ActionPoints.InvalidActionPoint\n");
 
     bool hasManuallyInvokedFunction = false;
     for (const ActionPointFunction& ap : actionPointFunctions) {
-        out.write("\tdw ActionPoints.", ap.name, "\n");
+        out.write(u8"\tdw ActionPoints.", ap.name, u8"\n");
 
         hasManuallyInvokedFunction |= ap.manuallyInvoked;
     }
@@ -100,29 +100,29 @@ void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& action
     assert(nextPowerOf2 < 256 / WORD_SIZE);
 
     for ([[maybe_unused]] const auto i : range(nFunctions, nextPowerOf2)) {
-        out.write("\tdw ActionPoints.Null\n");
+        out.write(u8"\tdw ActionPoints.Null\n");
     }
 
     // constants/defines
-    out.write("\n"
-              "\tconstant MASK = ",
-              (nextPowerOf2 * WORD_SIZE - 1 - 1), "\n");
+    out.write(u8"\n"
+              u8"\tconstant MASK = ",
+              (nextPowerOf2 * WORD_SIZE - 1 - 1), u8"\n");
 
     if (hasManuallyInvokedFunction) {
-        out.write("\n");
+        out.write(u8"\n");
 
         for (auto [i, ap] : const_enumerate(actionPointFunctions)) {
             if (ap.manuallyInvoked) {
                 unsigned romValue = (i + 1) * 2;
                 assert(romValue <= 255 - 2);
 
-                out.write("\tdefine ", ap.name, " = ", romValue,
-                          "\n\tconstant ", ap.name, " = ", romValue, "\n");
+                out.write(u8"\tdefine ", ap.name, u8" = ", romValue,
+                          u8"\n\tconstant ", ap.name, u8" = ", romValue, u8"\n");
             }
         }
     }
 
-    out.write("}\n");
+    out.write(u8"}\n");
 }
 
 }

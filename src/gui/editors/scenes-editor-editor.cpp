@@ -207,7 +207,7 @@ bool ScenesEditorGui::sceneLayerCombo(const char* label, idstring* value,
     }
 
     case LayerType::TextConsole: {
-        ImGui::TextUnformatted("Text"s);
+        ImGui::TextUnformatted(u8"Text"s);
         return false;
     }
 

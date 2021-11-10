@@ -13,8 +13,8 @@ namespace UnTech {
 
 template <unsigned BITS, typename T = uint_fast16_t>
 struct UnsignedBits {
-    static_assert(BITS <= sizeof(T) * 8, "Too many bits");
-    static_assert(std::is_unsigned<T>::value, "T must be unsigned");
+    static_assert(BITS <= sizeof(T) * 8, u8"Too many bits");
+    static_assert(std::is_unsigned<T>::value, u8"T must be unsigned");
 
 private:
     T data;

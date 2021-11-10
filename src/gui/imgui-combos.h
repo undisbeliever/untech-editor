@@ -13,7 +13,7 @@
 
 namespace ImGui {
 
-bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags = 0);
+bool BeginCombo(const char* label, const std::u8string& current, ImGuiComboFlags flags);
 
 bool IdStringCombo(const char* label, UnTech::idstring* value, const std::vector<UnTech::idstring>& list,
                    bool includeBlank = false);
@@ -40,7 +40,7 @@ bool IdStringComboSelection(UnTech::idstring* value, const ListT& list, bool inc
             ImGui::PushID(i);
 
             const bool selected = (*name == *value);
-            if (ImGui::Selectable(name->c_str(), selected)) {
+            if (ImGui::Selectable(u8Cast(*name), selected)) {
                 if (!selected) {
                     *value = *name;
                     changed = true;
@@ -67,7 +67,7 @@ inline bool IdStringCombo(const char* label, UnTech::idstring* value, const List
 {
     bool changed = false;
 
-    if (ImGui::BeginCombo(label, value->c_str())) {
+    if (ImGui::BeginCombo(label, u8Cast(*value))) {
         changed = IdStringComboSelection(value, list, includeBlank, getter);
         ImGui::EndCombo();
     }
@@ -101,7 +101,7 @@ bool SingleSelectionNamedListCombo(const char* label, unsigned* selectedIndexPtr
 
     const char* previewValue = blankLabel;
     if (selectedIndex < list.size()) {
-        previewValue = list.at(selectedIndex).name.c_str();
+        previewValue = u8Cast(list.at(selectedIndex).name);
     }
 
     if (ImGui::BeginCombo(label, previewValue)) {
@@ -114,12 +114,12 @@ bool SingleSelectionNamedListCombo(const char* label, unsigned* selectedIndexPtr
         }
 
         for (auto [i, item] : enumerate(list)) {
-            const char* name = item.name.c_str();
+            const UnTech::idstring& name = item.name;
 
             ImGui::PushID(i);
 
             const bool selected = selectedIndex;
-            if (ImGui::Selectable(name, selected)) {
+            if (ImGui::Selectable(u8Cast(name), selected)) {
                 selectedIndex = i;
                 entryClicked = true;
             }
@@ -140,7 +140,7 @@ void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelecti
 
     const char* previewValue = blankLabel;
     if (sel->selectedIndex() < list.size()) {
-        previewValue = list.at(sel->selectedIndex()).name.c_str();
+        previewValue = u8Cast(list.at(sel->selectedIndex()).name);
     }
 
     if (ImGui::BeginCombo(label, previewValue)) {
@@ -152,12 +152,12 @@ void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelecti
         }
 
         for (auto [i, item] : enumerate(list)) {
-            const char* name = item.name.c_str();
+            const UnTech::idstring& name = item.name;
 
             ImGui::PushID(i);
 
             const bool selected = sel->isSelected(i);
-            if (ImGui::Selectable(name, selected)) {
+            if (ImGui::Selectable(u8Cast(name), selected)) {
                 sel->setSelected(i);
             }
 

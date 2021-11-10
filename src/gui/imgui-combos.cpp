@@ -76,9 +76,9 @@ bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxTy
     const unsigned currentIndex = value->romValue();
 
     bool changed = false;
-    if (ImGui::BeginCombo(label, value->to_string())) {
+    if (ImGui::BeginCombo(label, u8Cast(value->to_string()))) {
         for (auto [i, ssv] : enumerate(EHT::SHORT_STRING_VALUES)) {
-            if (ImGui::Selectable(ssv.c_str(), i == currentIndex)) {
+            if (ImGui::Selectable(u8Cast(ssv), i == currentIndex)) {
                 if (i != currentIndex) {
                     *value = EHT::from_romValue(i);
                     changed = true;
@@ -266,9 +266,9 @@ bool EnumCombo(const char* label, UnTech::Resources::LayerType* v)
     return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }
 
-bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags)
+bool BeginCombo(const char* label, const std::u8string& current, ImGuiComboFlags flags)
 {
-    return BeginCombo(label, current.c_str(), flags);
+    return BeginCombo(label, u8Cast(current), flags);
 }
 
 bool IdStringCombo(const char* label, UnTech::idstring* value, const std::vector<UnTech::idstring>& list, bool includeBlank)

@@ -85,7 +85,7 @@ buildOverlappingObjectsSieve(const SI::Frame& siFrame, const unsigned frameIndex
 
         for (unsigned underObjId : oo.underObjectIds) {
             if (sieve.at(underObjId)) {
-                errorList.addError(frameError(siFrame, frameIndex, "Cannot have three or more overlapping tiles"));
+                errorList.addError(frameError(siFrame, frameIndex, u8"Cannot have three or more overlapping tiles"));
             }
             sieve.at(underObjId) = true;
         }
@@ -202,7 +202,7 @@ static void _processOverlappingTiles(MS::Frame& msFrame, TileExtractor& tileExtr
         applyTilesetOutput(tilesetOutput.first, msUnderObj);
 
         if (tilesetOutput.second == false) {
-            errorList.addWarning(frameObjectError(siFrame, frameIndex, underObjId, "Matching undertile not found"));
+            errorList.addWarning(frameObjectError(siFrame, frameIndex, underObjId, u8"Matching undertile not found"));
         }
 
         // remove duplicate pixels in the overtile that match the processed undertile.
@@ -224,7 +224,7 @@ static void _processOverlappingTiles(MS::Frame& msFrame, TileExtractor& tileExtr
         applyTilesetOutput(to, msOverObj);
     }
     else {
-        errorList.addWarning(frameObjectError(siFrame, frameIndex, oo.overObjectId, "Overtile is empty - skipping"));
+        errorList.addWarning(frameObjectError(siFrame, frameIndex, oo.overObjectId, u8"Overtile is empty - skipping"));
     }
 }
 

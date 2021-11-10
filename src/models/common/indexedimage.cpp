@@ -7,6 +7,7 @@
 #include "indexedimage.h"
 #include "file.h"
 #include "stringbuilder.h"
+#include "models/common/u8strings.h"
 #include "vendor/lodepng/lodepng.h"
 
 #ifndef LODEPNG_COMPILE_ALLOCATORS
@@ -41,7 +42,7 @@ IndexedImage::IndexedImage(const usize size, uint8_t*&& data, IndexedImage::Priv
     }
 }
 
-IndexedImage::IndexedImage(std::string&& errorString, IndexedImage::PrivateToken)
+IndexedImage::IndexedImage(std::u8string&& errorString, IndexedImage::PrivateToken)
     : _size(0, 0)
     , _errorString(std::move(errorString))
     , _imageData(nullptr)
@@ -103,7 +104,7 @@ std::shared_ptr<IndexedImage> IndexedImage::loadPngImage_shared(const std::files
                 return image;
             }
             else {
-                return invalidImageWithErrorMessage(stringBuilder(filename.string(), ": Not a indexed png file"));
+                return invalidImageWithErrorMessage(stringBuilder(filename.u8string(), u8": Not a indexed png file"));
             }
         }
         else {
@@ -111,15 +112,16 @@ std::shared_ptr<IndexedImage> IndexedImage::loadPngImage_shared(const std::files
                 free(pixels);
             }
 
-            return invalidImageWithErrorMessage(stringBuilder(filename.string(), ": ", lodepng_error_text(error)));
+            return invalidImageWithErrorMessage(stringBuilder(filename.u8string(), u8": ",
+                                                              convert_old_string(lodepng_error_text(error))));
         }
     }
     catch (const std::exception& ex) {
-        return invalidImageWithErrorMessage(ex.what());
+        return invalidImageWithErrorMessage(convert_old_string(ex.what()));
     }
 }
 
-std::shared_ptr<IndexedImage> IndexedImage::invalidImageWithErrorMessage(std::string&& error)
+std::shared_ptr<IndexedImage> IndexedImage::invalidImageWithErrorMessage(std::u8string&& error)
 {
     return std::make_shared<IndexedImage>(std::move(error), PrivateToken{});
 }

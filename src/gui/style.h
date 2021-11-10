@@ -20,14 +20,14 @@ class Zoom {
 private:
     unsigned _zoomInt;
     ImVec2 _zoom;
-    std::string _zoomString;
+    std::u8string _zoomString;
 
 public:
     Zoom(unsigned z);
 
     unsigned zoomInt() const { return _zoomInt; }
     const ImVec2& zoom() const { return _zoom; }
-    const std::string& zoomString() const { return _zoomString; }
+    const std::u8string& zoomString() const { return _zoomString; }
 
     void update();
 

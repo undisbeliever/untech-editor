@@ -27,26 +27,26 @@ void StringStream::expandBuffer(const size_t capacity)
         throw std::length_error("StringStream: newBufferSize > max_buffer_size");
     }
 
-    // -1 to account for the null terminating character when allocating memory in std::string
+    // -1 to account for the null terminating character when allocating memory in std::u8string
     buffer.resize(newBufferSize - 1);
 }
 
-void StringStream::write(const std::string_view s)
+void StringStream::write(const std::u8string_view s)
 {
     addToBufferTest(s.size());
 
-    char* ptr = buffer.data() + bufferPos;
+    char8_t* ptr = buffer.data() + bufferPos;
 
     std::copy(s.begin(), s.end(), ptr);
 
     bufferPos += s.size();
 }
 
-void StringStream::write(const std::string& s)
+void StringStream::write(const std::u8string& s)
 {
     addToBufferTest(s.size());
 
-    char* ptr = buffer.data() + bufferPos;
+    char8_t* ptr = buffer.data() + bufferPos;
 
     std::copy(s.begin(), s.end(), ptr);
 

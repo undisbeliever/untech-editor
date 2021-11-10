@@ -18,7 +18,7 @@ class BytecodeError : public GenericListError {
 public:
     const BytecodeErrorType type;
 
-    BytecodeError(const BytecodeErrorType type, unsigned index, std::string&& message)
+    BytecodeError(const BytecodeErrorType type, unsigned index, std::u8string&& message)
         : GenericListError(index, std::move(message))
         , type(type)
     {
@@ -34,7 +34,7 @@ class GameStateError : public GenericListError {
 public:
     const GameStateErrorType type;
 
-    GameStateError(const GameStateErrorType type, unsigned index, std::string&& message)
+    GameStateError(const GameStateErrorType type, unsigned index, std::u8string&& message)
         : GenericListError(index, std::move(message))
         , type(type)
     {
@@ -53,13 +53,13 @@ class ScriptError : public GenericListError {
 public:
     const ScriptErrorType type;
 
-    ScriptError(const ScriptErrorType type, unsigned index, std::string&& message)
+    ScriptError(const ScriptErrorType type, unsigned index, std::u8string&& message)
         : GenericListError(index, std::move(message))
         , type(type)
     {
     }
 
-    ScriptError(const ScriptErrorType type, unsigned index, unsigned childIndex, std::string&& message)
+    ScriptError(const ScriptErrorType type, unsigned index, unsigned childIndex, std::u8string&& message)
         : GenericListError(index, childIndex, std::move(message))
         , type(type)
     {

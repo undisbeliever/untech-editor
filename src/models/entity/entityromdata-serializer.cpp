@@ -10,48 +10,48 @@
 namespace UnTech::Entity {
 
 static const EnumMap<EntityType> entityTypeMap = {
-    { "entity", EntityType::ENTITY },
-    { "projectile", EntityType::PROJECTILE },
-    { "player", EntityType::PLAYER },
+    { u8"entity", EntityType::ENTITY },
+    { u8"projectile", EntityType::PROJECTILE },
+    { u8"player", EntityType::PLAYER },
 };
 
 static const EnumMap<DataType> dataTypeMap = {
-    { "uint8", DataType::UINT8 },
-    { "uint16", DataType::UINT16 },
-    { "uint24", DataType::UINT24 },
-    { "uint32", DataType::UINT32 },
-    { "sint8", DataType::SINT8 },
-    { "sint16", DataType::SINT16 },
-    { "sint24", DataType::SINT24 },
-    { "sint32", DataType::SINT32 },
+    { u8"uint8", DataType::UINT8 },
+    { u8"uint16", DataType::UINT16 },
+    { u8"uint24", DataType::UINT24 },
+    { u8"uint32", DataType::UINT32 },
+    { u8"sint8", DataType::SINT8 },
+    { u8"sint16", DataType::SINT16 },
+    { u8"sint24", DataType::SINT24 },
+    { u8"sint32", DataType::SINT32 },
 };
 
 static const EnumMap<ParameterType> parameterTypeMap = {
-    { "unused", ParameterType::UNUSED },
-    { "unsigned", ParameterType::UNSIGNED_BYTE },
+    { u8"unused", ParameterType::UNUSED },
+    { u8"unsigned", ParameterType::UNSIGNED_BYTE },
 };
 
 using namespace Xml;
 
 static void readEntityRomStruct(XmlReader& xml, const XmlTag& tag, NamedList<EntityRomStruct>& structs)
 {
-    assert(tag.name == "struct");
+    assert(tag.name == u8"struct");
 
     structs.insert_back();
     EntityRomStruct& romStruct = structs.back();
 
-    romStruct.name = tag.getAttributeOptionalId("name");
-    romStruct.parent = tag.getAttributeOptionalId("parent");
-    romStruct.comment = tag.getAttributeOrEmpty("comment");
+    romStruct.name = tag.getAttributeOptionalId(u8"name");
+    romStruct.parent = tag.getAttributeOptionalId(u8"parent");
+    romStruct.comment = tag.getAttributeOrEmpty(u8"comment");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == "struct-field") {
+        if (childTag.name == u8"struct-field") {
             romStruct.fields.emplace_back(
                 StructField{
-                    childTag.getAttributeOptionalId("name"),
-                    childTag.getAttributeEnum("type", dataTypeMap),
-                    childTag.getAttributeOrEmpty("default"),
-                    childTag.getAttributeOrEmpty("comment") });
+                    childTag.getAttributeOptionalId(u8"name"),
+                    childTag.getAttributeEnum(u8"type", dataTypeMap),
+                    childTag.getAttributeOrEmpty(u8"default"),
+                    childTag.getAttributeOrEmpty(u8"comment") });
         }
         else {
             throw unknown_tag_error(childTag);
@@ -63,47 +63,47 @@ static void readEntityRomStruct(XmlReader& xml, const XmlTag& tag, NamedList<Ent
 
 static void readEntityFunctionTable(const XmlTag& tag, NamedList<EntityFunctionTable>& functionTables)
 {
-    assert(tag.name == "function-table");
+    assert(tag.name == u8"function-table");
 
     functionTables.insert_back();
     EntityFunctionTable& ft = functionTables.back();
 
-    ft.name = tag.getAttributeOptionalId("name");
-    if (tag.hasAttribute("type")) {
-        ft.entityType = tag.getAttributeEnum("type", entityTypeMap);
+    ft.name = tag.getAttributeOptionalId(u8"name");
+    if (tag.hasAttribute(u8"type")) {
+        ft.entityType = tag.getAttributeEnum(u8"type", entityTypeMap);
     }
-    ft.entityStruct = tag.getAttributeOptionalId("struct");
-    ft.exportOrder = tag.getAttributeOptionalId("export-order");
-    ft.parameterType = tag.getAttributeEnum("parameter-type", parameterTypeMap);
-    ft.comment = tag.getAttributeOrEmpty("comment");
+    ft.entityStruct = tag.getAttributeOptionalId(u8"struct");
+    ft.exportOrder = tag.getAttributeOptionalId(u8"export-order");
+    ft.parameterType = tag.getAttributeEnum(u8"parameter-type", parameterTypeMap);
+    ft.comment = tag.getAttributeOrEmpty(u8"comment");
 }
 
 static void readEntityRomEntry(XmlReader& xml, const XmlTag& tag, const EntityType entityType,
                                NamedList<EntityRomEntry>& entries)
 {
-    assert(tag.name == "entry");
+    assert(tag.name == u8"entry");
 
     entries.insert_back();
     EntityRomEntry& entry = entries.back();
 
-    entry.name = tag.getAttributeOptionalId("name");
-    entry.functionTable = tag.getAttributeOptionalId("function-table");
-    entry.comment = tag.getAttributeOrEmpty("comment");
-    entry.initialProjectileId = tag.getAttributeOptionalId("projectileid");
+    entry.name = tag.getAttributeOptionalId(u8"name");
+    entry.functionTable = tag.getAttributeOptionalId(u8"function-table");
+    entry.comment = tag.getAttributeOrEmpty(u8"comment");
+    entry.initialProjectileId = tag.getAttributeOptionalId(u8"projectileid");
     if (entityType != EntityType::PLAYER) {
-        entry.initialListId = tag.getAttributeOptionalId("listid");
+        entry.initialListId = tag.getAttributeOptionalId(u8"listid");
     }
-    entry.frameSetId = tag.getAttributeOptionalId("frameset");
-    entry.displayFrame = tag.getAttributeOptionalId("frame");
-    entry.defaultPalette = tag.getAttributeUnsigned("palette");
+    entry.frameSetId = tag.getAttributeOptionalId(u8"frameset");
+    entry.displayFrame = tag.getAttributeOptionalId(u8"frame");
+    entry.defaultPalette = tag.getAttributeUnsigned(u8"palette");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == "entry-field") {
-            idstring fieldFor = childTag.getAttributeId("for");
-            std::string fieldValue = childTag.getAttribute("value");
+        if (childTag.name == u8"entry-field") {
+            idstring fieldFor = childTag.getAttributeId(u8"for");
+            std::u8string fieldValue = childTag.getAttribute(u8"value");
 
             if (entry.fields.find(fieldFor) != entry.fields.end()) {
-                throw xml_error(childTag, "Duplicate entry-field detected");
+                throw xml_error(childTag, u8"Duplicate entry-field detected");
             }
             entry.fields.emplace(fieldFor, fieldValue);
         }
@@ -119,7 +119,7 @@ static void readEntityRomEntries(XmlReader& xml, const EntityType entityType,
                                  NamedList<EntityRomEntry>& entries)
 {
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == "entry") {
+        if (childTag.name == u8"entry") {
             readEntityRomEntry(xml, childTag, entityType, entries);
         }
         else {
@@ -132,25 +132,25 @@ static void readEntityRomEntries(XmlReader& xml, const EntityType entityType,
 
 void readEntityRomData(XmlReader& xml, const XmlTag& tag, EntityRomData& entityRomData)
 {
-    assert(tag.name == "entity-rom-data");
+    assert(tag.name == u8"entity-rom-data");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == "listid") {
-            entityRomData.listIds.push_back(childTag.getAttributeOptionalId("name"));
+        if (childTag.name == u8"listid") {
+            entityRomData.listIds.push_back(childTag.getAttributeOptionalId(u8"name"));
         }
-        else if (childTag.name == "struct") {
+        else if (childTag.name == u8"struct") {
             readEntityRomStruct(xml, childTag, entityRomData.structs);
         }
-        else if (childTag.name == "function-table") {
+        else if (childTag.name == u8"function-table") {
             readEntityFunctionTable(childTag, entityRomData.functionTables);
         }
-        else if (childTag.name == "entities") {
+        else if (childTag.name == u8"entities") {
             readEntityRomEntries(xml, EntityType::ENTITY, entityRomData.entities);
         }
-        else if (childTag.name == "projectiles") {
+        else if (childTag.name == u8"projectiles") {
             readEntityRomEntries(xml, EntityType::PROJECTILE, entityRomData.projectiles);
         }
-        else if (childTag.name == "players") {
+        else if (childTag.name == u8"players") {
             readEntityRomEntries(xml, EntityType::PLAYER, entityRomData.players);
         }
         else {
@@ -161,7 +161,7 @@ void readEntityRomData(XmlReader& xml, const XmlTag& tag, EntityRomData& entityR
     }
 }
 
-void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const EntityType entityType,
+void writeEntityRomEntries(XmlWriter& xml, const std::u8string& tagName, const EntityType entityType,
                            const NamedList<EntityRomEntry>& entries)
 {
     if (entries.empty()) {
@@ -171,30 +171,30 @@ void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const Ent
     xml.writeTag(tagName);
 
     for (auto& entry : entries) {
-        xml.writeTag("entry");
+        xml.writeTag(u8"entry");
 
-        xml.writeTagAttributeOptional("name", entry.name);
-        xml.writeTagAttributeOptional("function-table", entry.functionTable);
-        xml.writeTagAttributeOptional("comment", entry.comment);
-        xml.writeTagAttributeOptional("projectileid", entry.initialProjectileId);
+        xml.writeTagAttributeOptional(u8"name", entry.name);
+        xml.writeTagAttributeOptional(u8"function-table", entry.functionTable);
+        xml.writeTagAttributeOptional(u8"comment", entry.comment);
+        xml.writeTagAttributeOptional(u8"projectileid", entry.initialProjectileId);
         if (entityType != EntityType::PLAYER) {
-            xml.writeTagAttributeOptional("listid", entry.initialListId);
+            xml.writeTagAttributeOptional(u8"listid", entry.initialListId);
         }
-        xml.writeTagAttributeOptional("frameset", entry.frameSetId);
-        xml.writeTagAttributeOptional("frame", entry.displayFrame);
-        xml.writeTagAttribute("palette", entry.defaultPalette);
+        xml.writeTagAttributeOptional(u8"frameset", entry.frameSetId);
+        xml.writeTagAttributeOptional(u8"frame", entry.displayFrame);
+        xml.writeTagAttribute(u8"palette", entry.defaultPalette);
 
         // Sort fields so output is the same on all systems
-        using FieldValue = std::unordered_map<idstring, std::string>::value_type;
+        using FieldValue = std::unordered_map<idstring, std::u8string>::value_type;
         std::vector<std::reference_wrapper<const FieldValue>> fields(entry.fields.begin(), entry.fields.end());
         std::sort(fields.begin(), fields.end(),
                   [](const FieldValue& a, const FieldValue& b) { return a.first < b.first; });
 
         for (const auto& f : fields) {
             if (!f.get().second.empty()) {
-                xml.writeTag("entry-field");
-                xml.writeTagAttribute("for", f.get().first);
-                xml.writeTagAttribute("value", f.get().second);
+                xml.writeTag(u8"entry-field");
+                xml.writeTagAttribute(u8"for", f.get().first);
+                xml.writeTagAttribute(u8"value", f.get().second);
                 xml.writeCloseTag();
             }
         }
@@ -207,45 +207,45 @@ void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const Ent
 
 void writeEntityRomData(XmlWriter& xml, const EntityRomData& entityRomData)
 {
-    xml.writeTag("entity-rom-data");
+    xml.writeTag(u8"entity-rom-data");
 
     for (auto& listId : entityRomData.listIds) {
-        xml.writeTag("listid");
-        xml.writeTagAttribute("name", listId);
+        xml.writeTag(u8"listid");
+        xml.writeTagAttribute(u8"name", listId);
         xml.writeCloseTag();
     }
 
     for (const auto& romStruct : entityRomData.structs) {
-        xml.writeTag("struct");
-        xml.writeTagAttributeOptional("name", romStruct.name);
-        xml.writeTagAttributeOptional("parent", romStruct.parent);
-        xml.writeTagAttributeOptional("comment", romStruct.comment);
+        xml.writeTag(u8"struct");
+        xml.writeTagAttributeOptional(u8"name", romStruct.name);
+        xml.writeTagAttributeOptional(u8"parent", romStruct.parent);
+        xml.writeTagAttributeOptional(u8"comment", romStruct.comment);
 
         for (const auto& field : romStruct.fields) {
-            xml.writeTag("struct-field");
-            xml.writeTagAttributeOptional("name", field.name);
-            xml.writeTagAttributeEnum("type", field.type, dataTypeMap);
-            xml.writeTagAttributeOptional("default", field.defaultValue);
-            xml.writeTagAttributeOptional("comment", field.comment);
+            xml.writeTag(u8"struct-field");
+            xml.writeTagAttributeOptional(u8"name", field.name);
+            xml.writeTagAttributeEnum(u8"type", field.type, dataTypeMap);
+            xml.writeTagAttributeOptional(u8"default", field.defaultValue);
+            xml.writeTagAttributeOptional(u8"comment", field.comment);
             xml.writeCloseTag();
         }
         xml.writeCloseTag();
     }
 
     for (const auto& ft : entityRomData.functionTables) {
-        xml.writeTag("function-table");
-        xml.writeTagAttributeOptional("name", ft.name);
-        xml.writeTagAttributeEnum("type", ft.entityType, entityTypeMap);
-        xml.writeTagAttributeOptional("struct", ft.entityStruct);
-        xml.writeTagAttributeOptional("export-order", ft.exportOrder);
-        xml.writeTagAttributeEnum("parameter-type", ft.parameterType, parameterTypeMap);
-        xml.writeTagAttributeOptional("comment", ft.comment);
+        xml.writeTag(u8"function-table");
+        xml.writeTagAttributeOptional(u8"name", ft.name);
+        xml.writeTagAttributeEnum(u8"type", ft.entityType, entityTypeMap);
+        xml.writeTagAttributeOptional(u8"struct", ft.entityStruct);
+        xml.writeTagAttributeOptional(u8"export-order", ft.exportOrder);
+        xml.writeTagAttributeEnum(u8"parameter-type", ft.parameterType, parameterTypeMap);
+        xml.writeTagAttributeOptional(u8"comment", ft.comment);
         xml.writeCloseTag();
     }
 
-    writeEntityRomEntries(xml, "entities", EntityType::ENTITY, entityRomData.entities);
-    writeEntityRomEntries(xml, "projectiles", EntityType::PROJECTILE, entityRomData.projectiles);
-    writeEntityRomEntries(xml, "players", EntityType::PLAYER, entityRomData.players);
+    writeEntityRomEntries(xml, u8"entities", EntityType::ENTITY, entityRomData.entities);
+    writeEntityRomEntries(xml, u8"projectiles", EntityType::PROJECTILE, entityRomData.projectiles);
+    writeEntityRomEntries(xml, u8"players", EntityType::PLAYER, entityRomData.players);
 
     xml.writeCloseTag();
 }
