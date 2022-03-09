@@ -110,7 +110,7 @@ else ifeq ($(PROFILE),mingw)
   SDL_DIR       ?= $(HOME)/.local/x86_64-w64-mingw32
 
   ifneq (1, $(words $(SDL_DIR)))
-    $(error "SDL_DIR cannot contain a space")
+    $(error 'SDL_DIR cannot contain a space')
   endif
 
 
@@ -127,7 +127,7 @@ else ifeq ($(PROFILE),mingw)
   LDFLAGS       += -O2 -flto
   LIBS          += -lshlwapi
 
-  # Split drawf causes a "not supported on this system" error when running the binaries in wine
+  # Split drawf causes a 'not supported on this system' error when running the binaries in wine
   NO_SPLIT_DWARF  := 1
 
 else
@@ -207,7 +207,7 @@ endif
 
 
 ifneq ($(findstring clang,$(CXX) $(CC)),)
-  # LTO on clang causes "signal not found" errors in Qt
+  # LTO on clang causes 'signal not found' errors in Qt
   CXXFLAGS := $(filter-out -flto,$(CXXFLAGS))
   CFLAGS   := $(filter-out -flto,$(CFLAGS))
   LDFLAGS  := $(filter-out -flto,$(LDFLAGS))
@@ -282,8 +282,8 @@ UNAME_S := $(shell uname -s)
 
 ifeq ($(PROFILE), mingw) # Cross compiling windows
   IMGUI_LDFLAGS   += -lgdi32 -lopengl32 -limm32
-  IMGUI_LDFLAGS   += $(shell PKG_CONFIG_LIBDIR="$(SDL_DIR)/lib/pkgconfig" pkg-config --define-prefix --libs sdl2)
-  IMGUI_CXXFLAGS  += $(shell PKG_CONFIG_LIBDIR="$(SDL_DIR)/lib/pkgconfig" pkg-config --define-prefix --cflags sdl2)
+  IMGUI_LDFLAGS   += $(shell PKG_CONFIG_LIBDIR='$(SDL_DIR)/lib/pkgconfig' pkg-config --define-prefix --libs sdl2)
+  IMGUI_CXXFLAGS  += $(shell PKG_CONFIG_LIBDIR='$(SDL_DIR)/lib/pkgconfig' pkg-config --define-prefix --cflags sdl2)
 
   ifneq ($(.SHELLSTATUS), 0)
     $(error Cannot find the sdl2 library, please set the `SDL_DIR` variable)
@@ -355,7 +355,7 @@ MAKEFLAGS += --no-builtin-rules
 
 
 # Add automatic dependency generation to the Makefile
-# The `-MP` prevents a "No rule to make target" make error when a header file is deleted.
+# The `-MP` prevents a 'No rule to make target' make error when a header file is deleted.
 CFLAGS      := -MMD -MP $(CFLAGS)
 CXXFLAGS    := -MMD -MP $(CXXFLAGS)
 
