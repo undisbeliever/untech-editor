@@ -418,7 +418,7 @@ void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::Project
         ImGui::BeginChild("Scroll");
 
         ImGui::Columns(7);
-        //ImGui::SetColumnWidth(0, 40);
+        // ImGui::SetColumnWidth(0, 40);
 
         ImGui::Separator();
         ImGui::NextColumn();

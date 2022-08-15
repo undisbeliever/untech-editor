@@ -80,7 +80,7 @@ static void setupGui(ImGuiIO& io)
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // This causes issues on my system - disabled for now
-    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     ImGui::StyleColorsDark();
 
