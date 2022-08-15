@@ -9,8 +9,10 @@
 #include "bit.h"
 #include "stringbuilder.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 
 namespace UnTech {

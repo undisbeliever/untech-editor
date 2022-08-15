@@ -8,6 +8,8 @@
 
 #include "models/common/errorlist.h"
 #include "models/common/idstring.h"
+#include <array>
+#include <unordered_map>
 
 namespace UnTech::Scripting {
 

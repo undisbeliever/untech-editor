@@ -8,6 +8,7 @@
 #include "gui/style.h"
 #include "models/common/iterators.h"
 #include "models/common/stringbuilder.h"
+#include <functional>
 
 namespace UnTech::Gui {
 

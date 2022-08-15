@@ -8,6 +8,7 @@
 
 #include "models/common/exceptions.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <climits>
 #include <cstdint>

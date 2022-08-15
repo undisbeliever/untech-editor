@@ -7,6 +7,7 @@
 #include "style.h"
 #include "models/common/clamp.h"
 #include "models/common/stringbuilder.h"
+#include <array>
 
 namespace UnTech::Gui {
 

@@ -11,6 +11,7 @@
 #include <array>
 #include <cstdint>
 #include <span>
+#include <vector>
 
 namespace UnTech::Snes {
 

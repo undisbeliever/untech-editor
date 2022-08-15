@@ -9,6 +9,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
+#include <array>
 #include <variant>
 
 namespace UnTech::Scripting {

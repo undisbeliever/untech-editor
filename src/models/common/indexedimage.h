@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <span>
 #include <string>
+#include <vector>
 
 namespace UnTech {
 

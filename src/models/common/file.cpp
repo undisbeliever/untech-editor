@@ -9,6 +9,7 @@
 #include "models/common/exceptions.h"
 #include "models/common/stringbuilder.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <fstream>
 #include <iostream>

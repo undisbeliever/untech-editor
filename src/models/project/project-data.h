@@ -10,6 +10,7 @@
 #include "models/common/idstring.h"
 #include "models/common/optional.h"
 #include "models/enums.h"
+#include <array>
 #include <memory>
 #include <optional>
 #include <shared_mutex>

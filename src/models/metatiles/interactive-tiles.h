@@ -10,6 +10,8 @@
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
 #include "models/common/rgba.h"
+#include <array>
+#include <unordered_map>
 
 namespace UnTech {
 class ErrorList;
