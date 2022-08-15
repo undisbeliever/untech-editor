@@ -420,8 +420,3 @@ clean:
 	$(call RM_COMMAND, $(THIRD_PARTY_OBJS))
 
 
-
-.PHONY: style
-style:
-	find src/ -path src/vendor -prune -o \( -name '*.h' -or -name '*.hpp' -or -name '*.cpp' \) -print0 | xargs -0 clang-format -i
-
