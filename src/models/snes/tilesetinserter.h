@@ -68,8 +68,8 @@ public:
         const auto& underTileData = underTile.data();
 
         // Using _tileset instead of _map to ensure the tiles are tested in a deterministic order.
-        for (const auto [i, tile] : const_enumerate(_tileset)) {
-            const auto tileId = i;
+        for (const auto [tileIndex, tile] : const_enumerate(_tileset)) {
+            const auto tileId = tileIndex;
             auto testTile = [&](const TileT& toTest, const bool hFlip, const bool vFlip) {
                 const auto& toTestData = toTest.data();
 
