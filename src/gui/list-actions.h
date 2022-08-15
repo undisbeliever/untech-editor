@@ -1553,7 +1553,7 @@ public:
     template <auto FieldPtr>
     static void fieldEdited(EditorT* editor, const index_type index)
     {
-        LA::_editListField<FieldPtr>(editor, std::make_tuple(), index);
+        LA::template _editListField<FieldPtr>(editor, std::make_tuple(), index);
     }
 };
 
