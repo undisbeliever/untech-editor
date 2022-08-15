@@ -39,7 +39,6 @@ struct FrameSetExportOrder {
     NamedList<ExportName> animations;
 
     FrameSetExportOrder() = default;
-    FrameSetExportOrder(const FrameSetExportOrder&) = delete;
 
     bool testFrameSet(const MetaSprite::FrameSet& frameSet, ErrorList& errorList) const;
     bool testFrameSet(const SpriteImporter::FrameSet& frameSet, ErrorList& errorList) const;
