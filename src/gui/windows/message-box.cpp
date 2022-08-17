@@ -24,8 +24,8 @@ struct Message {
     std::u8string title;
     std::u8string message;
 
-    Message(std::u8string t, std::u8string m)
-        : title(std::move(t))
+    Message(const std::u8string& t, std::u8string m)
+        : title(t + dialogSuffix)
         , message(std::move(m))
     {
     }
@@ -38,7 +38,7 @@ void showMessage(const std::u8string& t, const std::u8string& m)
 {
     std::lock_guard lock(mutex);
 
-    messages.emplace_back(t + dialogSuffix, m);
+    messages.emplace_back(t, m);
     toOpen = true;
 }
 
@@ -46,7 +46,7 @@ void showMessage(const std::u8string& t, const char* m)
 {
     std::lock_guard lock(mutex);
 
-    messages.emplace_back(t + dialogSuffix, convert_old_string(m));
+    messages.emplace_back(t, convert_old_string(m));
     toOpen = true;
 }
 
