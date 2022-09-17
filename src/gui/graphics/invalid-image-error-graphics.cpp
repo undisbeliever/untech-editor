@@ -35,14 +35,14 @@ void InvalidImageErrorGraphics::draw(ImDrawList* drawList, const ImVec2& zoom, c
     const ImVec2 mousePosFloat = ImGui::GetMousePos() - screenOffset;
     const point mousePos(std::floor(mousePosFloat.x / zoom.x), std::floor(mousePosFloat.y / zoom.y));
 
-    for (auto& tile : invalidTiles) {
+    for (const auto& tile : invalidTiles) {
         const ImVec2 p1(tile.rect.x1 * zoom.x + screenOffset.x, tile.rect.y1 * zoom.y + screenOffset.y);
         const ImVec2 p2(tile.rect.x2 * zoom.x + screenOffset.x, tile.rect.y2 * zoom.y + screenOffset.y);
 
         drawList->AddRectFilled(p1, p2, Style::invalidFillColor);
     }
 
-    for (auto& tile : invalidTiles) {
+    for (const auto& tile : invalidTiles) {
         const ImVec2 p1(tile.rect.x1 * zoom.x + screenOffset.x, tile.rect.y1 * zoom.y + screenOffset.y);
         const ImVec2 p2(tile.rect.x2 * zoom.x + screenOffset.x, tile.rect.y2 * zoom.y + screenOffset.y);
 
@@ -50,7 +50,7 @@ void InvalidImageErrorGraphics::draw(ImDrawList* drawList, const ImVec2& zoom, c
     }
 
     if (ImGui::IsWindowHovered()) {
-        for (auto& tile : invalidTiles) {
+        for (const auto& tile : invalidTiles) {
             if (tile.rect.contains(mousePos)) {
                 const char8_t* reason = Resources::InvalidImageError::reasonString(tile.reason);
                 ImGui::BeginTooltip();

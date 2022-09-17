@@ -166,16 +166,16 @@ void writeRoomInput(XmlWriter& xml, const RoomInput& input)
 
     MetaTiles::writeMetaTileGrid(xml, u8"map", input.map);
 
-    for (auto& en : input.entrances) {
+    for (const auto& en : input.entrances) {
         writeRoomEntrance(xml, en);
     }
-    for (auto& eg : input.entityGroups) {
+    for (const auto& eg : input.entityGroups) {
         writeEntityGroup(xml, eg);
     }
 
     Scripting::writeRoomScripts(xml, input.roomScripts);
 
-    for (auto& st : input.scriptTriggers) {
+    for (const auto& st : input.scriptTriggers) {
         writeScriptTrigger(xml, st);
     }
 

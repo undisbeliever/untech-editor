@@ -424,7 +424,7 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
     }
 
     case ResourceType::FrameSets: {
-        auto& fs = project.frameSets.at(index);
+        const auto& fs = project.frameSets.at(index);
         update(_exportOrder_frameSet, getExportOrder(fs));
 
         break;

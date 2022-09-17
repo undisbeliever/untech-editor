@@ -83,7 +83,7 @@ public:
 
     void addBankData(unsigned bankId, const unsigned addr, const std::vector<uint8_t> data)
     {
-        auto& bank = _romBanks.at(bankId);
+        const auto& bank = _romBanks.at(bankId);
         if (!bank.empty() || bank.currentAddress() != addr) {
             throw runtime_error(u8"Cannot store data in Rom Bank: incorrect address");
         }

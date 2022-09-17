@@ -1613,7 +1613,7 @@ public:
             for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
-                    auto& childSel = sel.childSel(groupIndex);
+                    const auto& childSel = sel.childSel(groupIndex);
                     auto values = indexesAndDataForMultipleSelection(*list, childSel);
                     if (!values.empty()) {
                         editor->addAction(
@@ -1632,7 +1632,7 @@ public:
             for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
-                    auto& childSel = sel.childSel(groupIndex);
+                    const auto& childSel = sel.childSel(groupIndex);
                     auto indexes = indexesForMultipleSelection(*list, childSel);
                     LA::moveMultiple(editor, listArgs, std::move(indexes), action);
                 }

@@ -588,7 +588,7 @@ static void writeIncFile_RomStruct(StringStream& out, const EntityRomStruct& s, 
     out.write(u8"namespace " ENTITY_ROM_STRUCT_NAMESPACE u8".", s.name, u8" {\n\t",
               structType, u8" (" ENTITY_ROM_STRUCT_NAMESPACE u8".", parent, u8")\n");
 
-    for (auto& f : s.fields) {
+    for (const auto& f : s.fields) {
         writeIncFile_StructField(out, f);
     }
     out.write(u8"\tendstruct()\n"
@@ -780,7 +780,7 @@ static void processRomData(const EntityType entityType,
                            const NamedList<EntityRomEntry>& entries,
                            const FunctionTableMap& ftMap, const Project::ProjectFile& project)
 {
-    for (auto& entry : entries) {
+    for (const auto& entry : entries) {
         unsigned pos = romData.size();
 
         processEntry(entityType, romData, entry, ftMap, project);

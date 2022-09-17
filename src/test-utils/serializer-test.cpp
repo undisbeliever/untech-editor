@@ -135,7 +135,7 @@ static bool testFrameSetFile(const MetaSprite::FrameSetFile& f)
 static bool testFrameSetFiles(const std::vector<MetaSprite::FrameSetFile>& frameSets)
 {
     bool valid = true;
-    for (auto& f : frameSets) {
+    for (const auto& f : frameSets) {
         valid &= testFrameSetFile(f);
     }
     return valid;

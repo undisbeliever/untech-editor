@@ -66,7 +66,7 @@ saveTilesetData(const TilesetData& tileset, CompiledRomData& out)
         ret.first = saveFrameTilesetData(tileset.staticTileset, tiles, out);
     }
 
-    for (auto& t : tileset.dynamicTilesets) {
+    for (const auto& t : tileset.dynamicTilesets) {
         ret.second.push_back(saveFrameTilesetData(t, tiles, out));
     }
 

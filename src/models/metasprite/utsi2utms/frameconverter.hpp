@@ -80,7 +80,7 @@ buildOverlappingObjectsSieve(const SI::Frame& siFrame, const unsigned frameIndex
 
     assert(siFrame.objects.size() <= MAX_FRAME_OBJECTS);
 
-    for (auto& oo : overlappingObjects) {
+    for (const auto& oo : overlappingObjects) {
         sieve.at(oo.overObjectId) = true;
 
         for (unsigned underObjId : oo.underObjectIds) {

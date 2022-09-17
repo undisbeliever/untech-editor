@@ -29,7 +29,7 @@ void ProjectFile::loadAllFilesIgnoringErrors()
             try {
                 item.loadFile();
             }
-            catch (std::exception& ex) {
+            catch (const std::exception& ex) {
                 // ignore error
             }
         }

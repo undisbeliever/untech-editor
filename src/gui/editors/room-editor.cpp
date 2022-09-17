@@ -1375,7 +1375,7 @@ public:
         bool edited = false;
 
         if (ImGui::BeginCombo(label, u8Cast(*value))) {
-            for (auto& item : projectFile.rooms) {
+            for (const auto& item : projectFile.rooms) {
                 if (item.value && item.value->name.isValid()) {
                     const auto& roomName = item.value->name;
                     if (ImGui::Selectable(u8Cast(roomName), roomName.str() == *value)) {
