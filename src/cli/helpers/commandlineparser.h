@@ -82,8 +82,8 @@ public:
     // may exit application on help/version/error
     void parse(int argc, const char* argv[]);
 
-    void printHelpText();
-    void printVersion();
+    void printHelpText() const;
+    void printVersion() const;
 
     const std::filesystem::path& inputFilename() const { return _inputFilename; }
     const auto& options() const { return _options; }
@@ -95,8 +95,8 @@ private:
     bool parseSwitch(const Argument& config, bool isShort, const char* nextArg);
 
     template <typename... Args>
-    void error(const Args... message);
-    void error(const char* message, const Argument& config, bool isShort);
+    void error(const Args... message) const;
+    void error(const char* message, const Argument& config, bool isShort) const;
 };
 
 }

@@ -309,7 +309,7 @@ static void selectScriptLine(NodeSelection& sel, const Scripting::Script& script
             parentIndex.at(depth) = NodeSelection::NO_SELECTION;
         }
 
-        void operator()(const Statement&)
+        void operator()(const Statement&) const
         {
         }
 
@@ -327,7 +327,7 @@ static void selectScriptLine(NodeSelection& sel, const Scripting::Script& script
             readStatements(s.statements, false);
         }
 
-        void operator()(const Comment&)
+        void operator()(const Comment&) const
         {
         }
     };

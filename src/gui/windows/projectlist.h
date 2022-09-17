@@ -57,7 +57,7 @@ public:
     void processMenu();
     void processGui(const Project::ProjectData& projectData);
 
-    bool hasPendingActions()
+    bool hasPendingActions() const
     {
         return _state == State::ADD_RESOURCE_CONFIRMED || _state == State::REMOVE_RESOURCE_CONFIRMED;
     }

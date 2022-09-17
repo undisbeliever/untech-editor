@@ -301,7 +301,7 @@ public:
     void createDependencyGraph(const ProjectFile& project);
     void updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index);
 
-    void markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index);
+    void markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index) const;
     void markDependantsUnchecked(ProjectData& projectData, const ResourceType type, const std::u8string& oldName, const std::u8string& name);
 };
 

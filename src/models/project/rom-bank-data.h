@@ -39,11 +39,11 @@ public:
     unsigned startingAddress() const { return _startingAddress; }
     unsigned currentAddress() const { return _data.size() + _startingAddress; }
 
-    bool canAddData(const size_t s)
+    bool canAddData(const size_t s) const
     {
         return _data.size() + s <= _bankSize;
     }
-    bool canAddData(const std::vector<uint8_t>& d)
+    bool canAddData(const std::vector<uint8_t>& d) const
     {
         return canAddData(d.size());
     }

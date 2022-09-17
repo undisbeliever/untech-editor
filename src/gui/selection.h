@@ -54,7 +54,7 @@ public:
         }
     }
 
-    bool isSelectionChanging() { return _selected != _pending; }
+    bool isSelectionChanging() const { return _selected != _pending; }
 
     // Must be called after the GUI has been processed.
     void update()

@@ -455,7 +455,7 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
     }
 }
 
-void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index)
+void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index) const
 {
     std::shared_lock lock(_mutex);
 

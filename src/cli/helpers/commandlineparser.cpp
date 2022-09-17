@@ -235,7 +235,7 @@ bool Parser::parseSwitch(const Argument& argument, bool isShort, const char* nex
     return false;
 }
 
-void Parser::printHelpText()
+void Parser::printHelpText() const
 {
     auto printArgument = [](const auto& a) {
         int spacing = 24;
@@ -291,7 +291,7 @@ void Parser::printHelpText()
     std::cout << std::endl;
 }
 
-void Parser::printVersion()
+void Parser::printVersion() const
 {
     std::cout << _config.programName
               << " version " UNTECH_VERSION
@@ -306,7 +306,7 @@ void Parser::printVersion()
 }
 
 template <typename... Args>
-inline void Parser::error(const Args... message)
+inline void Parser::error(const Args... message) const
 {
     std::cerr << _programExec << ": ";
 
@@ -316,7 +316,7 @@ inline void Parser::error(const Args... message)
     exit(EXIT_FAILURE);
 }
 
-void Parser::error(const char* message, const Argument& argument, bool isShort)
+void Parser::error(const char* message, const Argument& argument, bool isShort) const
 {
     std::cerr << _programExec << ": ";
 
