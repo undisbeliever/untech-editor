@@ -8,3 +8,6 @@
 
 .clang_complete
 
+.cache
+compile_commands.json
+
