@@ -20,7 +20,7 @@ namespace UnTech::File {
  *
  * Raises an exception if an error occurred.
  */
-std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filename, size_t limit);
+std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_t limit);
 
 /**
  * Reads a UTF-8 text file into a string.

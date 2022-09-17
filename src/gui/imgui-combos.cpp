@@ -69,18 +69,18 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::ObjectSize* v)
     return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }
 
-bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxType* value)
+bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxType* v)
 {
     using EHT = UnTech::MetaSprite::EntityHitboxType;
 
-    const unsigned currentIndex = value->romValue();
+    const unsigned currentIndex = v->romValue();
 
     bool changed = false;
-    if (ImGui::BeginCombo(label, u8Cast(value->to_string()))) {
+    if (ImGui::BeginCombo(label, u8Cast(v->to_string()))) {
         for (auto [i, ssv] : enumerate(EHT::SHORT_STRING_VALUES)) {
             if (ImGui::Selectable(u8Cast(ssv), i == currentIndex)) {
                 if (i != currentIndex) {
-                    *value = EHT::from_romValue(i);
+                    *v = EHT::from_romValue(i);
                     changed = true;
                 }
             }

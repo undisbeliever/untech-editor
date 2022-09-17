@@ -99,7 +99,7 @@ public:
     void setPaletteData(std::shared_ptr<const Resources::PaletteData> pd);
 
     void setTilesetData(const MetaTiles::MetaTileTilesetInput& input,
-                        std::shared_ptr<const MetaTiles::MetaTileTilesetData> tilesetData);
+                        std::shared_ptr<const MetaTiles::MetaTileTilesetData> td);
 
     void setTileCollisions(const TileCollisionData& tileCollisions)
     {

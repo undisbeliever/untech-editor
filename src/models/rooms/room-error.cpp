@@ -9,9 +9,9 @@
 
 namespace UnTech::Rooms {
 
-InvalidRoomTilesError::InvalidRoomTilesError(std::vector<InvalidRoomTile>&& tiles)
-    : AbstractError(stringBuilder(tiles.size(), u8" invalid room tiles"))
-    , invalidTiles(std::move(tiles))
+InvalidRoomTilesError::InvalidRoomTilesError(std::vector<InvalidRoomTile>&& invalidTiles_)
+    : AbstractError(stringBuilder(invalidTiles_.size(), u8" invalid room tiles"))
+    , invalidTiles(std::move(invalidTiles_))
 {
 }
 

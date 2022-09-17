@@ -65,7 +65,7 @@ public:
     point positionInt() const { return point(positionFP.x >> FP_SHIFT, positionFP.y >> FP_SHIFT); }
 
 private:
-    void nextAnimationFrame(const Animation& currentAnimation, const NamedList<Animation>& animations);
+    void nextAnimationFrame(const Animation& ani, const NamedList<Animation>& animations);
 };
 
 }

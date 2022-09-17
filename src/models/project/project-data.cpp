@@ -110,9 +110,9 @@ static inline const T& expandPresquite(const T& p)
 // ==================
 // All "write" methods MUST be implemented in the .cpp file and protected with a `std::unqiue_lock` or `std::lock_guard`
 
-ResourceListStatus::ResourceListStatus(std::u8string tnSingle, std::u8string tnPlural)
-    : _typeNameSingle(tnSingle)
-    , _typeNamePlural(tnPlural)
+ResourceListStatus::ResourceListStatus(std::u8string typeNameSingle, std::u8string typeNamePlural)
+    : _typeNameSingle(typeNameSingle)
+    , _typeNamePlural(typeNamePlural)
     , _currentCompileId(1)
     , _state(ResourceState::Unchecked)
     , _resources()

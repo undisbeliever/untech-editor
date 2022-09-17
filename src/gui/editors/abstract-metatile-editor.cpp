@@ -342,14 +342,14 @@ static AbstractMetaTileEditorGui::Geometry blankGeometry()
     return { tileSize, mapRenderSize, offset, zoom };
 }
 
-AbstractMetaTileEditorGui::Geometry AbstractMetaTileEditorGui::mapGeometry(const usize s, const ImVec2 zoom)
+AbstractMetaTileEditorGui::Geometry AbstractMetaTileEditorGui::mapGeometry(const usize size, const ImVec2 zoom)
 {
     // Prevent an ImGui::InvisibleButton assert failure
-    if (s.width == 0 || s.height == 0) {
+    if (size.width == 0 || size.height == 0) {
         return blankGeometry();
     }
     const ImVec2 tileSize(METATILE_SIZE_PX * zoom.x, METATILE_SIZE_PX * zoom.y);
-    const ImVec2 mapRenderSize(s.width * tileSize.x, s.height * tileSize.y);
+    const ImVec2 mapRenderSize(size.width * tileSize.x, size.height * tileSize.y);
     const ImVec2 offset = centreOffset(mapRenderSize);
 
     return { tileSize, mapRenderSize, offset, zoom };

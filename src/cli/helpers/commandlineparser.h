@@ -90,13 +90,13 @@ public:
 
 private:
     // all three return true if nextArg was used.
-    bool parseShortSwitches(const char* arg, const char* nextArg);
-    bool parseLongSwitch(const char* arg, const char* nextArg);
-    bool parseSwitch(const Argument& config, bool isShort, const char* nextArg);
+    bool parseShortSwitches(const char* argument, const char* nextArg);
+    bool parseLongSwitch(const char* argument, const char* nextArg);
+    bool parseSwitch(const Argument& argument, bool isShort, const char* nextArg);
 
     template <typename... Args>
     void error(const Args... message) const;
-    void error(const char* message, const Argument& config, bool isShort) const;
+    void error(const char* message, const Argument& argument, bool isShort) const;
 };
 
 }

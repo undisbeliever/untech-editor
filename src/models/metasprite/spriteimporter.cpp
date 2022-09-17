@@ -351,9 +351,9 @@ static bool validate(const FrameSet& input, const ActionPointMapping& actionPoin
 }
 
 // This function exists to allows utsi2utms to work without specifing a project file
-bool validate(const FrameSet& frameSet, ErrorList& errorList)
+bool validate(const FrameSet& input, ErrorList& errorList)
 {
-    return validate(frameSet, ActionPointMapping{}, errorList);
+    return validate(input, ActionPointMapping{}, errorList);
 }
 
 usize FrameSet::minimumFrameGridSize() const

@@ -60,7 +60,7 @@ public:
     const std::vector<InvalidRoomTile> invalidTiles;
 
 public:
-    InvalidRoomTilesError(std::vector<InvalidRoomTile>&& invalidTiles);
+    InvalidRoomTilesError(std::vector<InvalidRoomTile>&& invalidTiles_);
     virtual ~InvalidRoomTilesError();
 
     virtual void printIndented(StringStream& out) const final;

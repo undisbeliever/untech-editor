@@ -25,6 +25,6 @@ struct ProjectOutput {
 
 // may raise an exception
 std::unique_ptr<ProjectOutput>
-compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinaryFilename,
+compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                StringStream& errorStream);
 }

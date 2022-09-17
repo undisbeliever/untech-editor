@@ -108,24 +108,24 @@ static uint16_t saveCompiledFrames(const std::vector<FrameData>& frames,
     return out.frameList.addData_Index(table.data());
 }
 
-void CompiledRomData::addFrameSetData(const FrameSetData& data)
+void CompiledRomData::addFrameSetData(const FrameSetData& fsData)
 {
-    const auto [staticTileset, dynamicTilesets] = saveTilesetData(data.tileset, *this);
+    const auto [staticTileset, dynamicTilesets] = saveTilesetData(fsData.tileset, *this);
 
-    const uint16_t fsPalettes = savePalettes(data.palettes, *this);
-    const uint16_t fsAnimations = saveAnimations(data.animations, *this);
-    const uint16_t frameTableAddr = saveCompiledFrames(data.frames, dynamicTilesets, *this);
+    const uint16_t fsPalettes = savePalettes(fsData.palettes, *this);
+    const uint16_t fsAnimations = saveAnimations(fsData.animations, *this);
+    const uint16_t frameTableAddr = saveCompiledFrames(fsData.frames, dynamicTilesets, *this);
 
     DataBlock fsItem(12);
 
-    fsItem.addWord(fsPalettes);                   // paletteTable
-    fsItem.addByte(data.palettes.size());         // nPalettes
-    fsItem.addWord(staticTileset);                // tileset
-    fsItem.addByte(data.tileset.tilesetTypeByte); // tilesetType
-    fsItem.addWord(frameTableAddr);               // frameTable
-    fsItem.addByte(data.frames.size());           // nFrames
-    fsItem.addWord(fsAnimations);                 // animationsTable
-    fsItem.addByte(data.animations.size());       // nAnimations
+    fsItem.addWord(fsPalettes);                     // paletteTable
+    fsItem.addByte(fsData.palettes.size());         // nPalettes
+    fsItem.addWord(staticTileset);                  // tileset
+    fsItem.addByte(fsData.tileset.tilesetTypeByte); // tilesetType
+    fsItem.addWord(frameTableAddr);                 // frameTable
+    fsItem.addByte(fsData.frames.size());           // nFrames
+    fsItem.addWord(fsAnimations);                   // animationsTable
+    fsItem.addByte(fsData.animations.size());       // nAnimations
 
     assert(fsItem.atEnd());
 

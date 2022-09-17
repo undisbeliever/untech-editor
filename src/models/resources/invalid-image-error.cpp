@@ -35,10 +35,10 @@ static std::u8string invalidImageErrorMessage(unsigned frameId, const std::vecto
     }
 }
 
-InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& tiles, unsigned fId)
-    : AbstractError(invalidImageErrorMessage(fId, tiles))
-    , invalidTiles(std::move(tiles))
-    , frameId(fId)
+InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, unsigned frameId_)
+    : AbstractError(invalidImageErrorMessage(frameId_, invalidTiles_))
+    , invalidTiles(std::move(invalidTiles_))
+    , frameId(frameId_)
 {
 }
 

@@ -206,7 +206,7 @@ struct FrameSet {
     bool operator==(const FrameSet&) const = default;
 };
 
-bool validate(const FrameSet& fs, ErrorList& err);
+bool validate(const FrameSet& input, ErrorList& errorList);
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename);
 void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename);

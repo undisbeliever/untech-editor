@@ -42,58 +42,58 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     }
 }
 
-void UnTechEditor::newProject(const std::filesystem::path& fn)
+void UnTechEditor::newProject(const std::filesystem::path& filename)
 {
     if (_instance) {
         return;
     }
 
-    if (fn.empty()) {
+    if (filename.empty()) {
         return;
     }
 
     try {
         // no need for an std::error_code, we are inside a try/catch block
-        const auto filename = std::filesystem::absolute(fn).lexically_normal();
+        const auto absFilename = std::filesystem::absolute(filename).lexically_normal();
 
-        if (std::filesystem::exists(filename)) {
-            loadProject(filename);
+        if (std::filesystem::exists(absFilename)) {
+            loadProject(absFilename);
             return;
         }
 
         auto pf = std::make_unique<UnTech::Project::ProjectFile>();
-        UnTech::Project::saveProjectFile(*pf, filename);
+        UnTech::Project::saveProjectFile(*pf, absFilename);
 
-        ImGui::setFileDialogDirectory(filename.parent_path());
+        ImGui::setFileDialogDirectory(absFilename.parent_path());
 
-        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
+        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), absFilename));
     }
     catch (const std::exception& ex) {
         MsgBox::showMessage(u8"Cannot Create Project", ex.what());
     }
 }
 
-void UnTechEditor::loadProject(const std::filesystem::path& fn)
+void UnTechEditor::loadProject(const std::filesystem::path& filename)
 {
     if (_instance) {
         return;
     }
 
-    if (fn.empty()) {
+    if (filename.empty()) {
         return;
     }
 
     try {
         // no need for an std::error_code, we are inside a try/catch block
-        const auto filename = std::filesystem::absolute(fn).lexically_normal();
+        const auto absFilename = std::filesystem::absolute(filename).lexically_normal();
 
-        auto pf = UnTech::Project::loadProjectFile(filename);
+        auto pf = UnTech::Project::loadProjectFile(absFilename);
 
         pf->loadAllFilesIgnoringErrors();
 
-        ImGui::setFileDialogDirectory(filename.parent_path());
+        ImGui::setFileDialogDirectory(absFilename.parent_path());
 
-        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
+        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), absFilename));
     }
     catch (const std::exception& ex) {
         MsgBox::showMessage(u8"Unable to Load Project", ex.what());

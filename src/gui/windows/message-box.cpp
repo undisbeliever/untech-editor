@@ -34,19 +34,19 @@ struct Message {
 static std::vector<Message> messages;
 static bool toOpen = false;
 
-void showMessage(const std::u8string& t, const std::u8string& m)
+void showMessage(const std::u8string& title, const std::u8string& message)
 {
     std::lock_guard lock(mutex);
 
-    messages.emplace_back(t, m);
+    messages.emplace_back(title, message);
     toOpen = true;
 }
 
-void showMessage(const std::u8string& t, const char* m)
+void showMessage(const std::u8string& title, const char* message)
 {
     std::lock_guard lock(mutex);
 
-    messages.emplace_back(t, convert_old_string(m));
+    messages.emplace_back(title, convert_old_string(message));
     toOpen = true;
 }
 

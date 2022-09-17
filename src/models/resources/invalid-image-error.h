@@ -56,7 +56,7 @@ public:
     const unsigned frameId;
 
 public:
-    InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles, unsigned frameId = UINT_MAX);
+    InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, unsigned frameId_ = UINT_MAX);
     virtual ~InvalidImageError();
 
     bool hasFrameId() const { return frameId <= INT_MAX; }

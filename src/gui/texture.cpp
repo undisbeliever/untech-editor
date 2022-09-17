@@ -39,9 +39,9 @@ void Texture::replaceWithMissingImageSymbol()
     replace(*symbol);
 }
 
-void Texture::loadPngImage(const std::filesystem::path& fn)
+void Texture::loadPngImage(const std::filesystem::path& filename)
 {
-    auto image = ImageCache::loadPngImage(fn);
+    auto image = ImageCache::loadPngImage(filename);
     assert(image);
 
     if (!image->empty()) {

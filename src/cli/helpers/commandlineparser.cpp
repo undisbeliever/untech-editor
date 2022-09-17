@@ -143,9 +143,9 @@ void Parser::parse(int argc, const char* argv[])
     }
 }
 
-bool Parser::parseShortSwitches(const char* currentArg, const char* nextArg)
+bool Parser::parseShortSwitches(const char* argument, const char* nextArg)
 {
-    const char* arg = currentArg;
+    const char* arg = argument;
 
     if (*arg == '\0') {
         error("Expected argument after -");
@@ -180,15 +180,15 @@ bool Parser::parseShortSwitches(const char* currentArg, const char* nextArg)
     return false;
 }
 
-bool Parser::parseLongSwitch(const char* arg, const char* nextArg)
+bool Parser::parseLongSwitch(const char* argument, const char* nextArg)
 {
     for (const auto& a : _config.arguments) {
-        if (arg == a.longName) {
+        if (argument == a.longName) {
             return parseSwitch(a, false, nextArg);
         }
     }
 
-    error("Unknown argument --", arg);
+    error("Unknown argument --", argument);
     return false;
 }
 
