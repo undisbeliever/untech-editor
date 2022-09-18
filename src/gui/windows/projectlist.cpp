@@ -60,7 +60,7 @@ static unsigned addExternalFile(ExternalFileList<T>& list, const std::filesystem
 
     // Do not add resource if the file is used by the project
     auto it = std::find_if(list.begin(), list.end(),
-                           [&](auto& i) { return i.filename == fn; });
+                           [&](const auto& i) { return i.filename == fn; });
     if (it != list.end()) {
         return std::distance(list.begin(), it);
     }
@@ -90,7 +90,7 @@ static unsigned addFrameSet(std::vector<UnTech::MetaSprite::FrameSetFile>& list,
 
     // Do not add resource if the file is used by the project
     auto it = std::find_if(list.begin(), list.end(),
-                           [&](auto& i) { return i.filename == fn; });
+                           [&](const auto& i) { return i.filename == fn; });
     if (it != list.end()) {
         return std::distance(list.begin(), it);
     }
@@ -210,7 +210,7 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
             const ResourceType type = static_cast<ResourceType>(rtIndex);
             const Project::ResourceListStatus& list = projectData.resourceListStatus(type);
 
-            list.readResourceListState([&](auto& state, auto& resources) {
+            list.readResourceListState([&](const auto& state, const auto& resources) {
                 static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
                 static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
 

@@ -162,10 +162,10 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
         out->instructionNames.resize(input.BASE_INSTRUCTIONS.size() + input.instructions.size());
 
         auto it = std::transform(input.BASE_INSTRUCTIONS.begin(), input.BASE_INSTRUCTIONS.end(),
-                                 out->instructionNames.begin(), [](auto& inst) { return inst.name; });
+                                 out->instructionNames.begin(), [](const auto& inst) { return inst.name; });
 
         it = std::transform(input.instructions.begin(), input.instructions.end(),
-                            it, [](auto& inst) { return inst.name; });
+                            it, [](const auto& inst) { return inst.name; });
 
         assert(it == out->instructionNames.end());
 

@@ -70,7 +70,7 @@ static std::vector<DynamicTileset> tilesForEachFrame(const std::vector<ExportInd
         addFrameToTileset(tileset, frame, smallTileMap);
 
         auto it = std::find_if(ret.begin(), ret.end(),
-                               [&](auto& i) { return i.tiles == tileset; });
+                               [&](const auto& i) { return i.tiles == tileset; });
 
         if (it == ret.end()) {
             ret.emplace_back(std::move(tileset), frameId);
@@ -113,7 +113,7 @@ static vectorset<Tile16> calculateStaticTiles(const std::vector<DynamicTileset>&
     auto popularTiles = countTileUsage(ftVector);
 
     std::stable_sort(popularTiles.begin(), popularTiles.end(),
-                     [](auto& l, auto& r) { return l.second > r.second; });
+                     [](const auto& l, const auto& r) { return l.second > r.second; });
 
     if (popularTiles.size() > tilesetType_nTiles - 1) {
         popularTiles.resize(tilesetType_nTiles - 1);

@@ -99,7 +99,7 @@ static void writeIncList(StringStream& incData, const std::u8string& typeName, c
 static void printErrors(const ProjectData& projectData, StringStream& errorStream)
 {
     auto print = [&](const ResourceListStatus& listStatus) {
-        listStatus.readResourceListState([&](auto& state, auto& resources) {
+        listStatus.readResourceListState([&](const auto& state, const auto& resources) {
             static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
             static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
 

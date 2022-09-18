@@ -220,7 +220,7 @@ static bool validate(const EntityRomStruct& input, const unsigned structIndex, E
 
         bool fieldValid = validate(field, input, structIndex, index, err);
         if (fieldValid) {
-            auto dupIt = std::find_if(input.fields.begin(), it, [&](auto& f) { return f.name == field.name; });
+            auto dupIt = std::find_if(input.fields.begin(), it, [&](const auto& f) { return f.name == field.name; });
             if (dupIt != it) {
                 addStructFieldError(index, u8"Duplicate field name detected: ", field.name);
             }

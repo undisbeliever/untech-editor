@@ -139,7 +139,7 @@ void Zoom::processMouseWheel()
             if (io.MouseWheel < 0.0f) {
                 unsigned z = zoomComboItems.front().first;
                 auto it = std::find_if(zoomComboItems.begin(), zoomComboItems.end(),
-                                       [&](auto& z) { return z.first >= _zoomInt; });
+                                       [&](const auto& z) { return z.first >= _zoomInt; });
                 if (it != zoomComboItems.begin()) {
                     it--;
                     z = it->first;
@@ -149,7 +149,7 @@ void Zoom::processMouseWheel()
             else if (io.MouseWheel > 0.0f) {
                 unsigned z = zoomComboItems.back().first;
                 auto it = std::find_if(zoomComboItems.begin(), zoomComboItems.end(),
-                                       [&](auto& z) { return z.first > _zoomInt; });
+                                       [&](const auto& z) { return z.first > _zoomInt; });
                 if (it != zoomComboItems.end()) {
                     z = it->first;
                 }

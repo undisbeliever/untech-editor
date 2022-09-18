@@ -43,19 +43,19 @@ public:
     iterator find(const std::u8string& string) const
     {
         return std::find_if(_map.cbegin(), _map.cend(),
-                            [&](auto& p) { return p.first == string; });
+                            [&](const auto& p) { return p.first == string; });
     }
 
     iterator find(const std::u8string_view string) const
     {
         return std::find_if(_map.cbegin(), _map.cend(),
-                            [&](auto& p) { return p.first == string; });
+                            [&](const auto& p) { return p.first == string; });
     }
 
     iterator find(T value) const
     {
         return std::find_if(_map.cbegin(), _map.cend(),
-                            [&](auto& p) { return p.second == value; });
+                            [&](const auto& p) { return p.second == value; });
     }
 
     // throws out_of_range if string is not found

@@ -123,14 +123,14 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
     AbstractEditorData* editor = nullptr;
 
     auto it = std::find_if(_editors.cbegin(), _editors.cend(),
-                           [&](auto& e) { return e->itemIndex() == itemIndex; });
+                           [&](const auto& e) { return e->itemIndex() == itemIndex; });
     if (it != _editors.cend()) {
         editor = it->get();
     }
 
     if (editor == nullptr) {
         // Create editor
-        _projectFile.read([&](auto& pf) {
+        _projectFile.read([&](const auto& pf) {
             if (auto e = createEditor(itemIndex, pf)) {
                 if (e->loadDataFromProject(pf)) {
                     // itemIndex is valid
@@ -147,7 +147,7 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
         _currentEditor = editor;
         if (editor) {
             bool success = false;
-            _projectFile.read([&](auto& pf) {
+            _projectFile.read([&](const auto& pf) {
                 success = editor->loadDataFromProject(pf);
             });
 
@@ -197,7 +197,7 @@ bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
     assert(editor->hasPendingActions() == false);
 
     // ::TODO is this necessary? ::
-    _projectFile.read([&](auto& pf) {
+    _projectFile.read([&](const auto& pf) {
         bool dataLoaded = editor->loadDataFromProject(pf);
         assert(dataLoaded);
     });
@@ -221,7 +221,7 @@ bool UnTechEditor::saveProjectFile()
     forceProcessEditorActions();
 
     try {
-        _projectFile.read([&](auto& pf) {
+        _projectFile.read([&](const auto& pf) {
             UnTech::Project::saveProjectFile(pf, _filename);
         });
 
@@ -527,7 +527,7 @@ void UnTechEditor::processGui()
     if (_currentEditorGui) {
         assert(_currentEditor);
 
-        _projectFile.read([&](auto& pf) {
+        _projectFile.read([&](const auto& pf) {
             _currentEditorGui->processGui(pf, _projectData);
         });
 
@@ -622,7 +622,7 @@ void BackgroundThread::run()
                 std::unique_lock lock(mutex);
 
                 if (markAllResourcesInvalidFlag) {
-                    projectFile.read([&](auto& pf) {
+                    projectFile.read([&](const auto& pf) {
                         static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
 
                         projectData.clearAndPopulateNamesAndDependencies(pf);
@@ -638,7 +638,7 @@ void BackgroundThread::run()
 
                         // ::TODO add separate quque for updating dependencies::
                         // ::: and add flag in EditorUndoAction to mark when dependencies changes::
-                        projectFile.read([&](auto& pf) {
+                        projectFile.read([&](const auto& pf) {
                             static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
                             projectData.updateDependencyGraph(pf, r.type, r.index);
                         });

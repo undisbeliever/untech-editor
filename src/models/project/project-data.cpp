@@ -384,10 +384,10 @@ inline void ProjectDependencies::createDependencyGraph(const ProjectFile& projec
     update(_exportOrder_frameSet, project.frameSets, getExportOrder);
 
     update(_palette_backgroundImage, project.backgroundImages,
-           [](auto& bi) { return bi.conversionPlette; });
+           [](const auto& bi) { return bi.conversionPlette; });
 
     update(_palette_metaTileTilesets, project.metaTileTilesets,
-           [](auto& efi) { return efi.value ? efi.value->animationFrames.conversionPalette : idstring{}; });
+           [](const auto& efi) { return efi.value ? efi.value->animationFrames.conversionPalette : idstring{}; });
 }
 
 inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index)

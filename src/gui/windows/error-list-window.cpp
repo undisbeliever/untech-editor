@@ -56,7 +56,7 @@ void processErrorListWindow(const Project::ProjectData& projectData, AbstractEdi
 
     const auto& list = projectData.resourceListStatus(itemIndex.type);
 
-    list.readResourceListState([&](auto& state, auto& resources) {
+    list.readResourceListState([&](const auto& state, const auto& resources) {
         static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
         static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
 
