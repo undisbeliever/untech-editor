@@ -51,8 +51,8 @@ enum class ObjectSize {
 
 struct NameReference {
     idstring name;
-    bool hFlip;
-    bool vFlip;
+    bool hFlip = false;
+    bool vFlip = false;
 
     NameReference() = default;
 

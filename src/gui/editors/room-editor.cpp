@@ -489,6 +489,7 @@ RoomEditorGui::RoomEditorGui()
     , _entityTexture()
     , _entityGraphics(nullptr)
     , _scenesData(nullptr)
+    , _invalidTilesCompileId(0)
     , _entityTextureWindowOpen(false)
     , _mtTilesetValid(false)
 {

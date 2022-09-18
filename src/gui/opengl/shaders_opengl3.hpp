@@ -451,7 +451,10 @@ public:
     GLuint mapTextureId;
 
     ImVec2 mapSize;
-    float x1, y1, x2, y2;
+    float x1 = 0;
+    float y1 = 0;
+    float x2 = 0;
+    float y2 = 0;
 
     RenderData() = default;
 };

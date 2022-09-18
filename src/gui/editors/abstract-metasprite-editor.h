@@ -41,13 +41,13 @@ public:
 
     AnimationTimer _animationTimer;
     UnTech::MetaSprite::Animation::PreviewState _animationState;
-    unsigned prevAnimationIndex;
+    unsigned prevAnimationIndex = 0;
 
     // MUST BE cleared when the export order changes or when the frame/animation list is resize, reordered or renamed.
-    bool _exportOrderValid;
+    bool _exportOrderValid = false;
 
-    bool _animationHFlip;
-    bool _animationVFlip;
+    bool _animationHFlip = false;
+    bool _animationVFlip = false;
 
     static bool showTileHitbox;
     static bool showShield;

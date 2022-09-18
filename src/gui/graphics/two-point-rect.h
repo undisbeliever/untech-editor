@@ -14,8 +14,10 @@ namespace UnTech::Gui {
 struct TwoPointRect {
     // NOTE: This code assumes x2 > x1 and y2 > y1.
 
-    int x1, x2;
-    int y1, y2;
+    int x1 = 0;
+    int x2 = 1;
+    int y1 = 0;
+    int y2 = 1;
 
     TwoPointRect() = default;
 

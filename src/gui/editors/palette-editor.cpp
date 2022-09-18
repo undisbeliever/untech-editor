@@ -66,6 +66,7 @@ PaletteEditorGui::PaletteEditorGui()
     , _data(nullptr)
     , _animationTimer()
     , _imageTexture()
+    , _frameId(0)
     , _textureValid(false)
 {
 }

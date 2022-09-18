@@ -71,10 +71,10 @@ using StructFieldMap = std::unordered_map<idstring, FieldList>;
 
 struct EntityFunctionTable {
     idstring name;
-    EntityType entityType;
+    EntityType entityType = EntityType::ENTITY;
     idstring entityStruct;
     idstring exportOrder;
-    ParameterType parameterType;
+    ParameterType parameterType = ParameterType::UNUSED;
     std::u8string comment;
 
     EntityFunctionTable() = default;

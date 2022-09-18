@@ -36,12 +36,12 @@ class ProjectListWindow {
     };
 
 private:
-    State _state;
+    State _state = State::SELECT_RESOURCE;
     std::optional<ItemIndex> _selectedIndex;
     std::vector<std::unique_ptr<AbstractEditorData>> _removedEditors;
 
     // Selected index in the "Add Resource" menu
-    unsigned _addMenuIndex;
+    unsigned _addMenuIndex = 0;
 
     // Filename of the new resource to add
     std::filesystem::path _addResourceFilename;
@@ -49,6 +49,8 @@ private:
     bool _clean = true;
 
 public:
+    ProjectListWindow() = default;
+
     const std::optional<ItemIndex>& selectedIndex() const { return _selectedIndex; }
 
     bool isClean() const { return _clean; }

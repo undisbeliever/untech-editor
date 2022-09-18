@@ -64,6 +64,9 @@ void BackgroundImageEditorData::updateSelection()
 BackgroundImageEditorGui::BackgroundImageEditorGui()
     : AbstractEditorGui()
     , _data(nullptr)
+    , _invalidTilesCompileId(0)
+    , _imageTexture()
+    , _textureValid(false)
 {
 }
 

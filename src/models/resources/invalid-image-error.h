@@ -38,7 +38,8 @@ struct InvalidImageTile {
     }
 
     InvalidImageTile(unsigned size, unsigned x, unsigned y, InvalidTileReason reason)
-        : size(size)
+        : frameId(0)
+        , size(size)
         , x(x)
         , y(y)
         , reason(reason)
