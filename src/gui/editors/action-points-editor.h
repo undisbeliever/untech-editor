@@ -22,7 +22,7 @@ private:
     SingleSelection sel;
 
 public:
-    ActionPointsEditorData(ItemIndex itemIndex);
+    explicit ActionPointsEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void errorDoubleClicked(const AbstractError*) final;

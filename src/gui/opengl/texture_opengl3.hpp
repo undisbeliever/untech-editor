@@ -41,7 +41,7 @@ public:
         }
     }
 
-    Texture(const unsigned width = 0, const unsigned height = 0)
+    explicit Texture(const unsigned width = 0, const unsigned height = 0)
     {
         const bool hasSize = width > 0 && height > 0;
         _size.width = hasSize ? width : 0;
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    Texture(const usize& size)
+    explicit Texture(const usize& size)
         : Texture(size.width, size.height)
     {
     }

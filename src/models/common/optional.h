@@ -33,6 +33,7 @@ public:
     {
     }
 
+    // cppcheck-suppress noExplicitConstructor
     optional(T v)
         : _value(std::move(v))
         , _exists(true)
@@ -103,16 +104,19 @@ public:
     {
     }
 
+    // cppcheck-suppress noExplicitConstructor
     optional(std::nullopt_t)
         : _ptr(nullptr)
     {
     }
 
+    // cppcheck-suppress noExplicitConstructor
     optional(T& v)
         : _ptr(&v)
     {
     }
 
+    // cppcheck-suppress noExplicitConstructor
     optional(const std::unique_ptr<T>& v)
         : _ptr(v.get())
     {
@@ -120,7 +124,7 @@ public:
 
     template <typename U = T>
     requires std::is_const_v<T>
-    optional(const std::unique_ptr<std::remove_const_t<T>>& v)
+    optional(const std::unique_ptr<std::remove_const_t<T>>& v) // cppcheck-suppress noExplicitConstructor
         : _ptr(v.get())
     {
     }

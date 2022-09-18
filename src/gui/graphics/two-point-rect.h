@@ -27,17 +27,17 @@ struct TwoPointRect {
     {
     }
 
-    TwoPointRect(const ms8rect& r)
+    explicit TwoPointRect(const ms8rect& r)
         : TwoPointRect(r.x, r.x + r.width, r.y, r.y + r.height)
     {
     }
 
-    TwoPointRect(const urect& r)
+    explicit TwoPointRect(const urect& r)
         : TwoPointRect(r.x, r.x + r.width, r.y, r.y + r.height)
     {
     }
 
-    TwoPointRect(const rect& r)
+    explicit TwoPointRect(const rect& r)
         : TwoPointRect(r.x, r.x + r.width, r.y, r.y + r.height)
     {
     }

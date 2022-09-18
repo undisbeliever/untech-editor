@@ -254,7 +254,7 @@ static void selectScriptLine(NodeSelection& sel, const Scripting::Script& script
         std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> foundParentIndex;
         unsigned foundChildIndex = INT_MAX;
 
-        Visitor(const unsigned targetLineNo)
+        explicit Visitor(const unsigned targetLineNo)
             : targetLineNo(targetLineNo)
         {
         }

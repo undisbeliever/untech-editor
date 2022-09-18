@@ -70,7 +70,7 @@ private:
     std::vector<map_t> _maps;
 
 public:
-    Tilemap(unsigned width = 1, unsigned height = 1);
+    explicit Tilemap(unsigned width = 1, unsigned height = 1);
     Tilemap(const Tilemap&) = default;
     Tilemap(Tilemap&&) = default;
     Tilemap& operator=(const Tilemap&) = default;

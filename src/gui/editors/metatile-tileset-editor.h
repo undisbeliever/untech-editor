@@ -28,7 +28,7 @@ private:
     bool tilePropertiesWindowValid;
 
 public:
-    MetaTileTilesetEditorData(ItemIndex itemIndex);
+    explicit MetaTileTilesetEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;

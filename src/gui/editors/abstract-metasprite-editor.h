@@ -21,7 +21,7 @@ protected:
     SingleSelection animationsSel;
     MultipleChildSelection animationFramesSel;
 
-    AbstractMetaSpriteEditorData(ItemIndex itemIndex)
+    explicit AbstractMetaSpriteEditorData(ItemIndex itemIndex)
         : AbstractExternalFileEditorData(itemIndex)
     {
     }

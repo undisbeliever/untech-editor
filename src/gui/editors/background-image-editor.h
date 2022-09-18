@@ -21,7 +21,7 @@ private:
     UnTech::Resources::BackgroundImageInput data;
 
 public:
-    BackgroundImageEditorData(ItemIndex itemIndex);
+    explicit BackgroundImageEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void errorDoubleClicked(const AbstractError*) final;

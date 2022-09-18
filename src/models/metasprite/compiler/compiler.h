@@ -43,7 +43,7 @@ struct CompiledRomData {
 
     bool valid = true;
 
-    CompiledRomData(const Project::MemoryMapSettings& memoryMap);
+    explicit CompiledRomData(const Project::MemoryMapSettings& memoryMap);
 
     void addFrameSetData(const FrameSetData& fsData);
 };

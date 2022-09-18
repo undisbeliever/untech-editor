@@ -45,7 +45,7 @@ private:
     bool _tileSelectionValid;
 
 public:
-    MetaSpriteEditorData(ItemIndex itemIndex);
+    explicit MetaSpriteEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;

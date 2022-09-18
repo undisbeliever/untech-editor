@@ -21,7 +21,7 @@ private:
     UnTech::Resources::PaletteInput data;
 
 public:
-    PaletteEditorData(ItemIndex itemIndex);
+    explicit PaletteEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void errorDoubleClicked(const AbstractError*) final;

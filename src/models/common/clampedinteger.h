@@ -39,7 +39,7 @@ public:
         : data(MIN)
     {
     }
-    inline ClampedType(const COMP_TYPE v)
+    inline explicit ClampedType(const COMP_TYPE v)
         : data(v >= MIN ? (v <= MAX ? v : MAX) : MIN)
     {
     }

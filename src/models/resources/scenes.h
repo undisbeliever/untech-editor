@@ -125,7 +125,7 @@ struct SceneLayoutsData {
         uint8_t nMapBlocks;
         uint8_t mapSizeBits; // BGxSC tilemap size bits
 
-        LayerInput(const SceneLayerData& lds);
+        explicit LayerInput(const SceneLayerData& lds);
     };
 
     struct LayerLayout {

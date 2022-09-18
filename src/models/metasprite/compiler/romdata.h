@@ -90,7 +90,7 @@ private:
     unsigned _pos;
 
 public:
-    DataBlock(size_t size)
+    explicit DataBlock(size_t size)
         : _data(size)
         , _pos(0)
     {
@@ -127,7 +127,7 @@ private:
     bool _nullableType;
 
 public:
-    RomBinData(const std::u8string& label, bool nullableType = false)
+    explicit RomBinData(const std::u8string& label, bool nullableType = false)
         : _label(label)
         , _data()
         , _nullableType(nullableType)

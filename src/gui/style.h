@@ -23,7 +23,7 @@ private:
     std::u8string _zoomString;
 
 public:
-    Zoom(unsigned z);
+    explicit Zoom(unsigned z);
 
     unsigned zoomInt() const { return _zoomInt; }
     const ImVec2& zoom() const { return _zoom; }

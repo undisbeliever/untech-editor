@@ -25,7 +25,7 @@ private:
     MultipleChildSelection animationAlternativesSel;
 
 public:
-    FrameSetExportOrderEditorData(ItemIndex itemIndex);
+    explicit FrameSetExportOrderEditorData(ItemIndex itemIndex);
     ~FrameSetExportOrderEditorData() = default;
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;

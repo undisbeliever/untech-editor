@@ -23,7 +23,7 @@ private:
     SingleSelection wordSel;
 
 public:
-    GameStateEditorData(ItemIndex itemIndex);
+    explicit GameStateEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void errorDoubleClicked(const AbstractError*) final;

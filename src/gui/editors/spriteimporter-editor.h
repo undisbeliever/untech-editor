@@ -38,7 +38,7 @@ private:
     MultipleChildSelection actionPointsSel;
 
 public:
-    SpriteImporterEditorData(ItemIndex itemIndex);
+    explicit SpriteImporterEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;

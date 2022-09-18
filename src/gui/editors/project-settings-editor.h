@@ -19,7 +19,7 @@ private:
     UnTech::Project::ProjectSettings data;
 
 public:
-    ProjectSettingsEditorData(ItemIndex itemIndex);
+    explicit ProjectSettingsEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void errorDoubleClicked(const AbstractError*) final;

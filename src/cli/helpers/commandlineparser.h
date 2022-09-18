@@ -30,8 +30,11 @@ private:
     std::filesystem::path _path;
 
 public:
+    // cppcheck-suppress noExplicitConstructor
     OptionValue(bool boolean = false);
+    // cppcheck-suppress noExplicitConstructor
     OptionValue(unsigned uint);
+    // cppcheck-suppress noExplicitConstructor
     OptionValue(std::filesystem::path&& p);
 
     Type type() const { return _type; }
@@ -77,7 +80,7 @@ private:
     std::map<std::string, OptionValue> _options;
 
 public:
-    Parser(const Config& config);
+    explicit Parser(const Config& config);
 
     // may exit application on help/version/error
     void parse(int argc, const char* argv[]);

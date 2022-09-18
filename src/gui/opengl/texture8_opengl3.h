@@ -38,7 +38,7 @@ public:
         }
     }
 
-    Texture8(const unsigned width = 0, const unsigned height = 0)
+    explicit Texture8(const unsigned width = 0, const unsigned height = 0)
     {
         const bool hasSize = width > 0 && height > 0;
         _size.width = hasSize ? width : 0;
@@ -61,7 +61,7 @@ public:
         glBindTexture(GL_TEXTURE_2D, oldTexture);
     }
 
-    Texture8(const usize& size)
+    explicit Texture8(const usize& size)
         : Texture8(size.width, size.height)
     {
     }

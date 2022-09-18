@@ -78,7 +78,7 @@ private:
     }
 
 public:
-    RomTileData(const Project::MemoryMapSettings& memoryMap)
+    explicit RomTileData(const Project::MemoryMapSettings& memoryMap)
         : _memoryMap(memoryMap)
         , _tilesPerBlock(memoryMap.bankSize() / SNES_TILE16_SIZE)
         , _map()

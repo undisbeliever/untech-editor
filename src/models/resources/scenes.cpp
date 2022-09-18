@@ -576,6 +576,8 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
                   ErrorList& err)
 
 {
+    using LayerInput = SceneLayoutsData::LayerInput;
+
     constexpr unsigned SCENE_DATA_ENTRY_SIZE = 7;
 
     const unsigned oldErrorCount = err.errorCount();
@@ -635,7 +637,9 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
         auto& scene = out->scenes.at(sceneIndex);
         const auto& sc = scene.layers;
 
-        scene.vramLayout = out->sceneLayouts.findOrAdd({ sc.at(0), sc.at(1), sc.at(2), sc.at(3) });
+        scene.vramLayout = out->sceneLayouts.findOrAdd({ LayerInput{ sc.at(0) }, LayerInput{ sc.at(1) },
+                                                         LayerInput{ sc.at(2) }, LayerInput{ sc.at(3) } });
+
         if (!scene.vramLayout) {
             const SceneInput& sceneInput = resourceScenes.scenes.at(sceneIndex);
             err.addError(sceneError(sceneInput, sceneIndex, u8"Cannot generate VRAM layout"));

@@ -155,7 +155,7 @@ struct MetaTileTilesetData {
 
     Resources::AnimatedTilesetData animatedTileset;
 
-    MetaTileTilesetData(Resources::AnimatedTilesetData&&);
+    explicit MetaTileTilesetData(Resources::AnimatedTilesetData&&);
 
     usize sourceTileSize() const;
 

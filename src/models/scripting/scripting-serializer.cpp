@@ -268,7 +268,7 @@ static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
     struct V {
         Xml::XmlReader& xml;
 
-        V(Xml::XmlReader& x)
+        explicit V(Xml::XmlReader& x)
             : xml(x)
         {
         }
@@ -360,7 +360,7 @@ private:
     Xml::XmlWriter& xml;
 
 public:
-    ScriptNodeWriter(Xml::XmlWriter& x)
+    explicit ScriptNodeWriter(Xml::XmlWriter& x)
         : xml(x){};
 
     void writeStatements(const std::vector<ScriptNode>& statements)

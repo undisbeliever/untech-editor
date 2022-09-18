@@ -42,11 +42,11 @@ public:
     XmlWriter& operator=(const XmlWriter&) = delete;
     XmlWriter& operator=(XmlWriter&&) = delete;
 
-    XmlWriter(const std::u8string_view doctype, size_t bufferSize = StringStream::default_initial_size)
+    explicit XmlWriter(const std::u8string_view doctype, size_t bufferSize = StringStream::default_initial_size)
         : XmlWriter(std::filesystem::path(), doctype, bufferSize)
     {
     }
-    XmlWriter(const std::filesystem::path& filePath, const std::u8string_view doctype, size_t bufferSize = StringStream::default_initial_size);
+    explicit XmlWriter(const std::filesystem::path& filePath, const std::u8string_view doctype, size_t bufferSize = StringStream::default_initial_size);
     ~XmlWriter();
 
     // returned string_view is only valid until the next write call.

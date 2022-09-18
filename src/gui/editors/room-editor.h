@@ -41,7 +41,7 @@ private:
     upoint_vectorset selectedScratchpadTiles;
 
 public:
-    RoomEditorData(ItemIndex itemIndex);
+    explicit RoomEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;

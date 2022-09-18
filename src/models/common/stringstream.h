@@ -81,7 +81,7 @@ private:
     }
 
 public:
-    StringStream(size_t startingSize = default_initial_size)
+    explicit StringStream(size_t startingSize = default_initial_size)
         : buffer(initialBufferSize(startingSize), '\0')
         , bufferPos(0)
     {

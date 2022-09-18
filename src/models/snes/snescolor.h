@@ -28,7 +28,7 @@ public:
     {
     }
 
-    SnesColor(const uint16_t value)
+    explicit SnesColor(const uint16_t value)
         : _data(value & 0x7FFF)
     {
     }
