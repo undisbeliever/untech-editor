@@ -71,8 +71,6 @@ struct SpriteImporterEditorData::AP {
 
         constexpr static auto SelectionPtr = &EditorT::framesSel;
 
-        constexpr static auto validFlag = &SpriteImporterEditorGui::_exportOrderValid;
-
         static ListT* getList(SI::FrameSet& fs) { return &fs.frames; }
     };
 
