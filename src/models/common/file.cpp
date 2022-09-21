@@ -54,7 +54,10 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
     }
 
     std::vector<uint8_t> ret(size);
-    in.read((char*)ret.data(), ret.size());
+
+    static_assert(sizeof(uint8_t) == sizeof(char));
+    in.read(reinterpret_cast<char*>(ret.data()), ret.size());
+
     in.close();
 
     if (!in) {

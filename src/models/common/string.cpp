@@ -19,8 +19,9 @@ bool checkUtf8WellFormed(const std::u8string& str)
     // ::TODO test this code works with a std::u8string_view substring
 
     static_assert(sizeof(char8_t) == 1);
+    static_assert(sizeof(char8_t) == sizeof(char));
 
-    const char8_t* c = (const char8_t*)str.c_str();
+    const char8_t* c = reinterpret_cast<const char8_t*>(str.c_str());
     size_t length = 0;
 
     if (str.empty()) {

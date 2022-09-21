@@ -58,7 +58,7 @@ bool CombinedListButtons_AddButton(typename ActionPolicy::EditorT* editor)
 {
     bool changed = false;
 
-    ImGui::PushID((void*)ActionPolicy::name);
+    ImGui::PushID(ActionPolicy::name);
 
     if (ImGui::Button("A")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::ADD);

@@ -861,7 +861,7 @@ void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(entityDragDropId, flags)) {
             IM_ASSERT(payload->DataSize == sizeof(unsigned));
 
-            unsigned entityIndex = *(const unsigned*)payload->Data;
+            unsigned entityIndex = *reinterpret_cast<const unsigned*>(payload->Data);
 
             if (entityIndex < _entityGraphics->entities.size()) {
                 const auto& ds = _entityGraphics->entities.at(entityIndex);
