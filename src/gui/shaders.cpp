@@ -85,16 +85,11 @@ void MtTileset::setTilesetData(const MetaTiles::MetaTileTilesetInput& input,
             static grid<uint8_t> image(METATILE_SIZE_PX * TILESET_WIDTH, METATILE_SIZE_PX * TILESET_HEIGHT);
 
             const unsigned nFrames = std::min<unsigned>(_tilesetData->animatedTileset.nAnimatedFrames(), _tilesetFrames.size());
-
-            if (_nTilesetFrames != nFrames) {
-                _nTilesetFrames = nFrames;
-            }
-            _nTilesetFrames = nFrames;
-
             for (const auto i : range(nFrames)) {
                 drawAnimatedTileset(image, _tilesetData->animatedTileset, i);
                 _tilesetFrames.at(i).setData(image);
             }
+            _nTilesetFrames = nFrames;
         }
     }
 
