@@ -36,7 +36,7 @@ struct AnimatedTilesetIntermediate {
     std::vector<TM> tileMap;
 };
 
-static std::vector<std::vector<TileAndPalette>> tilesFromFrameImages(const AnimationFramesInput input,
+static std::vector<std::vector<TileAndPalette>> tilesFromFrameImages(const AnimationFramesInput& input,
                                                                      const std::vector<Snes::SnesColor>& palette,
                                                                      ErrorList& err)
 {

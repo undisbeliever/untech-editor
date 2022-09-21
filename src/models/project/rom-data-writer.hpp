@@ -81,7 +81,7 @@ public:
         }
     }
 
-    void addBankData(unsigned bankId, const unsigned addr, const std::vector<uint8_t> data)
+    void addBankData(unsigned bankId, const unsigned addr, const std::vector<uint8_t>& data)
     {
         const auto& bank = _romBanks.at(bankId);
         if (!bank.empty() || bank.currentAddress() != addr) {
