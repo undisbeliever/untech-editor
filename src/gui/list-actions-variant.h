@@ -12,7 +12,7 @@
 namespace UnTech::Gui {
 
 template <typename ActionPolicy>
-struct ListActionsVariant {
+class ListActionsVariant final : public ListActions<ActionPolicy> {
     using EditorT = typename ActionPolicy::EditorT;
     using EditorDataT = typename ActionPolicy::EditorDataT;
     using ListArgsT = typename ActionPolicy::ListArgsT;
@@ -21,8 +21,9 @@ struct ListActionsVariant {
     using index_type = typename ListT::size_type;
     using value_type = typename ListT::value_type;
 
+private:
     template <auto FieldPtr>
-    class EditVariantItemFieldAction final : public ListActions<ActionPolicy>::BaseAction {
+    class EditVariantItemFieldAction final : public AbstractListActions<ActionPolicy>::BaseAction {
         static_assert(std::is_member_object_pointer_v<decltype(FieldPtr)>);
 
         using ClassT = typename member_class<decltype(FieldPtr)>::type;
@@ -52,7 +53,7 @@ struct ListActionsVariant {
         EditVariantItemFieldAction(EditorT* editor,
                                    const ListArgsT& listArgs,
                                    const index_type index)
-            : ListActions<ActionPolicy>::BaseAction(editor, listArgs)
+            : AbstractListActions<ActionPolicy>::BaseAction(editor, listArgs)
             , index(index)
             , newValue(getEditorData().*FieldPtr)
         {
@@ -93,6 +94,7 @@ struct ListActionsVariant {
         }
     };
 
+public:
     template <auto FieldPtr>
     static void variantFieldEdited(EditorT* editor, const ListArgsT& listArgs, const index_type index)
     {
