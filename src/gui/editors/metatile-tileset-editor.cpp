@@ -517,14 +517,14 @@ void MetaTileTilesetEditorGui::tilePriorityClicked(const unsigned subTile, const
 void MetaTileTilesetEditorGui::tileFunctionTableSelected(const idstring& ft)
 {
     assert(_data);
-    auto& tileFunctionTables = _data->data.tileFunctionTables;
+    auto& tft = _data->data.tileFunctionTables;
 
     if (_data->selectedTilesetTiles.empty()) {
         return;
     }
 
     for (auto& i : _data->selectedTilesetTiles) {
-        tileFunctionTables.at(i) = ft;
+        tft.at(i) = ft;
     }
 
     EditorFieldActions<AP::TileFunctionTables>::fieldEdited(_data);

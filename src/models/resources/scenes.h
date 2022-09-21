@@ -145,7 +145,7 @@ public:
     SceneLayoutsData() = default;
 
     const std::vector<uint8_t>& sceneLayoutData() const { return _sceneLayoutData; }
-    const std::array<LayerLayout, N_LAYERS>& layout(unsigned index) const { return _sceneLayouts.at(index); }
+    const std::array<LayerLayout, N_LAYERS>& layoutForLayer(unsigned index) const { return _sceneLayouts.at(index); }
 
     unsigned nLayouts() const { return _sceneLayouts.size(); }
 

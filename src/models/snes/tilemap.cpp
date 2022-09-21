@@ -25,8 +25,8 @@ std::vector<uint8_t> Tilemap::snesData() const
     std::vector<uint8_t> out(_maps.size() * MAP_SIZE * MAP_SIZE * 2);
     auto outIt = out.begin();
 
-    for (const auto& map : _maps) {
-        for (const auto& cell : map) {
+    for (const auto& m : _maps) {
+        for (const auto& cell : m) {
             *outIt++ = cell.data & 0xff;
             *outIt++ = cell.data >> 8;
         }
@@ -46,8 +46,8 @@ void Tilemap::readSnesData(const std::vector<uint8_t>& data)
 
     auto inIt = data.begin();
 
-    for (auto& map : _maps) {
-        for (auto& cell : map) {
+    for (auto& m : _maps) {
+        for (auto& cell : m) {
             cell.data = inIt[0] | (inIt[1] << 8);
 
             inIt += 2;
