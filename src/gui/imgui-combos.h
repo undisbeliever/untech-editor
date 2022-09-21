@@ -172,7 +172,7 @@ extern const std::array<const char*, 4> flipsComboItems;
 
 inline bool FlipCombo(const char* label, bool* hFlip, bool* vFlip)
 {
-    int flips = (*vFlip << 1) | *hFlip;
+    int flips = (*vFlip << 1) | (*hFlip);
     if (ImGui::Combo(label, &flips, flipsComboItems.data(), flipsComboItems.size())) {
         *hFlip = flips & 1;
         *vFlip = flips & 2;
