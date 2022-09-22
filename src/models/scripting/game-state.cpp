@@ -126,9 +126,7 @@ compileGameState(const GameState& input,
         assert(it == ret->initialGameState.end());
     }
 
-    if (!valid) {
-        ret = nullptr;
-    }
+    assert(valid);
 
     return ret;
 }
