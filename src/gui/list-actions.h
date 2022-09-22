@@ -925,12 +925,10 @@ protected:
 
         static std::vector<value_type> getValues(const ListT& list, const std::vector<index_type>& indexes)
         {
-            std::vector<value_type> ret;
-            ret.reserve(indexes.size());
-
-            for (const index_type index : indexes) {
-                ret.push_back(list.at(index));
-            }
+            std::vector<value_type> ret(indexes.size());
+            std::transform(indexes.begin(), indexes.end(),
+                           ret.begin(),
+                           [&](const index_type i) { return list.at(i); });
 
             return ret;
         }
@@ -997,12 +995,10 @@ protected:
 
         static std::vector<FieldT> getValues(const ListT& list)
         {
-            std::vector<FieldT> ret;
-            ret.reserve(list.size());
-
-            for (const value_type& d : list) {
-                ret.push_back(d.*FieldPtr);
-            }
+            std::vector<FieldT> ret(list.size());
+            std::transform(list.begin(), list.end(),
+                           ret.begin(),
+                           [](const value_type& d) { return d.*FieldPtr; });
 
             return ret;
         }

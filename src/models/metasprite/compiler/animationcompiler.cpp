@@ -73,16 +73,12 @@ static std::vector<uint8_t> processAnimation(const ExportIndex& aniEntry,
 std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList,
                                                     const MS::FrameSet& frameSet)
 {
-    const size_t nAnimations = exportList.animations.size();
+    std::vector<std::vector<uint8_t>> ret(exportList.animations.size());
+    std::transform(exportList.animations.begin(), exportList.animations.end(),
+                   ret.begin(),
+                   [&](const auto& ani) { return processAnimation(ani, exportList, frameSet); });
 
-    std::vector<std::vector<uint8_t>> ret;
-    ret.reserve(nAnimations);
-
-    assert(nAnimations <= MAX_EXPORT_NAMES);
-
-    for (const auto& ani : exportList.animations) {
-        ret.push_back(processAnimation(ani, exportList, frameSet));
-    }
+    assert(ret.size() <= MAX_EXPORT_NAMES);
 
     return ret;
 }

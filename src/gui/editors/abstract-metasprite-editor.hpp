@@ -343,11 +343,10 @@ inline void buildExportOrderTree(std::vector<AbstractMetaSpriteEditorGui::Export
                                 [&](auto& alt) { return data.find(alt.name); });
         }
 
-        std::vector<idstring> alternatives;
-        alternatives.reserve(en.alternatives.size());
-        for (auto& alt : en.alternatives) {
-            alternatives.push_back(alt.name);
-        }
+        std::vector<idstring> alternatives(en.alternatives.size());
+        std::transform(en.alternatives.begin(), en.alternatives.end(),
+                       alternatives.begin(),
+                       [](const auto& alt) { return alt.name; });
 
         tree->push_back({ en.name, valid, std::move(alternatives) });
     }
