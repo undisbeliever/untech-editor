@@ -23,11 +23,11 @@ struct FrameTilesetData {
     // index into `TilesetData::tiles` for each tile in this tileset
     std::vector<unsigned> tiles;
 
-    bool dynamicTileset;
-
     // Mapping of tileId => Objects::charAttr bits
     std::vector<uint16_t> smallTilesCharAttr;
     std::vector<uint16_t> largeTilesCharAttr;
+
+    bool dynamicTileset = false;
 };
 
 struct TilesetData {
