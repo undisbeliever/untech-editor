@@ -38,6 +38,8 @@ public:
                  || (c >= 'a' && c <= 'z')));
     }
 
+    static bool isCharInvalid(const char c) { return !isCharValid(c); }
+
     static bool isValid(std::u8string_view name)
     {
         if (name.empty()) {
@@ -52,11 +54,7 @@ public:
         idstring ret;
 
         ret.data = s;
-        for (auto& c : ret.data) {
-            if (!isCharValid(c)) {
-                c = '_';
-            }
-        }
+        std::replace_if(ret.data.begin(), ret.data.end(), isCharInvalid, u8'_');
 
         return ret;
     }
