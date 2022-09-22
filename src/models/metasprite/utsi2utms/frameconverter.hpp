@@ -44,8 +44,6 @@ static std::vector<OverlappingObject> buildOverlappingObjects(const SI::Frame& s
 
     const auto& fobjs = siFrame.objects;
 
-    std::vector<std::vector<unsigned>> overlappingObjects(fobjs.size());
-
     for (f_iterator iIt = fobjs.begin(); iIt != fobjs.end(); ++iIt) {
         const SI::FrameObject& iObj = *iIt;
 
