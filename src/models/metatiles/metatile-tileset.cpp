@@ -136,13 +136,6 @@ MetaTileTilesetData::MetaTileTilesetData(Resources::AnimatedTilesetData&& animat
 {
 }
 
-usize MetaTileTilesetData::sourceTileSize() const
-{
-    return usize(
-        animatedTileset.tileMap.width() / 2,
-        animatedTileset.tileMap.height() / 2);
-}
-
 static bool validate(const MetaTileTilesetData& input, ErrorList& err)
 {
     // No need to validate `input.animatedTileset`,

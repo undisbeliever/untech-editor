@@ -5,11 +5,9 @@
  */
 
 #include "framesetfile.h"
-#include "models/common/errorlist.h"
 #include "models/common/exceptions.h"
 #include "models/common/string.h"
 #include "models/common/validateunique.h"
-#include "utsi2utms/utsi2utms.h"
 
 namespace UnTech::MetaSprite {
 
@@ -31,25 +29,6 @@ void FrameSetFile::setTypeFromExtension()
     }
     else {
         type = FrameSetType::UNKNOWN;
-    }
-}
-
-bool FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict)
-{
-    if (type == FrameSetType::SPRITE_IMPORTER && siFrameSet) {
-        const auto origListSize = errors.list().size();
-
-        msFrameSet = utsi2utms(*siFrameSet, errors);
-
-        if (strict && errors.list().size() != origListSize) {
-            msFrameSet = nullptr;
-            return false;
-        }
-
-        return msFrameSet == nullptr;
-    }
-    else {
-        return true;
     }
 }
 

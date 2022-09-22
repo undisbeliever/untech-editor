@@ -356,24 +356,4 @@ bool validate(const FrameSet& input, ErrorList& errorList)
     return validate(input, ActionPointMapping{}, errorList);
 }
 
-usize FrameSet::minimumFrameGridSize() const
-{
-    usize limit = usize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
-
-    for (const Frame& frame : frames) {
-        if (frame.location.useGridLocation) {
-            limit = limit.expand(frame.minimumViableSize());
-        }
-    }
-
-    return limit;
-}
-
-void FrameSet::updateFrameLocations()
-{
-    for (Frame& frame : frames) {
-        frame.location.update(grid, frame);
-    }
-}
-
 }

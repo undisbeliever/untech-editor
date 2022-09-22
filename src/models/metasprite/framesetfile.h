@@ -28,8 +28,6 @@ struct FrameSetFile {
 
     void setTypeFromExtension();
 
-    bool convertSpriteImporter(ErrorList& errors, bool strict = false);
-
     // throws an exception on error
     void loadFile();
 

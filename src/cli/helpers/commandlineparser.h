@@ -51,7 +51,6 @@ enum class OptionType {
     VERSION,
     HELP,
 };
-const char* optionString(const OptionType type);
 
 struct Argument {
     char shortName;

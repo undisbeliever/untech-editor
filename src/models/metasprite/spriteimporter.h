@@ -199,10 +199,6 @@ struct FrameSet {
 
     FrameSet() = default;
 
-    usize minimumFrameGridSize() const;
-
-    void updateFrameLocations();
-
     bool operator==(const FrameSet&) const = default;
 };
 

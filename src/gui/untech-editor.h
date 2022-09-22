@@ -95,8 +95,6 @@ public:
     static void loadProject(const std::filesystem::path& filename);
     static void closeProject();
 
-    std::optional<ItemIndex> selectedItemIndex() const;
-
     void requestExitEditor();
     bool editorExited() const { return _editorExited; }
 

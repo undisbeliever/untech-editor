@@ -107,16 +107,6 @@ void UnTechEditor::closeProject()
     }
 }
 
-std::optional<ItemIndex> UnTechEditor::selectedItemIndex() const
-{
-    if (_currentEditor) {
-        return _currentEditor->itemIndex();
-    }
-    else {
-        return std::nullopt;
-    }
-}
-
 // MUST ONLY be called by `updateProjectFile`
 void UnTechEditor::openEditor(const ItemIndex itemIndex)
 {

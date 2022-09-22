@@ -157,8 +157,6 @@ struct MetaTileTilesetData {
 
     explicit MetaTileTilesetData(Resources::AnimatedTilesetData&&);
 
-    usize sourceTileSize() const;
-
     std::vector<uint8_t> exportSnesData() const;
 
 private:

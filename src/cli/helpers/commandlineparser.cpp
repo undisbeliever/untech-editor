@@ -54,24 +54,6 @@ bool Argument::hasParameter() const
     abort();
 }
 
-const char* optionString(const OptionType type)
-{
-    switch (type) {
-    case OptionType::BOOLEAN:
-    case OptionType::VERSION:
-    case OptionType::HELP:
-        return "boolean";
-
-    case OptionType::FILENAME:
-        return "filename";
-
-    case OptionType::UNSIGNED:
-        return "number";
-    }
-
-    return "";
-}
-
 // PARSER
 // ======
 

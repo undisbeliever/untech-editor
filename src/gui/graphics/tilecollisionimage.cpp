@@ -57,11 +57,6 @@ bottomHeightTable = {
 };
 // clang-format on
 
-constexpr unsigned _lengthOfHeightTable(unsigned x)
-{
-    return bottomHeightTable.at(x) - topHeightTable.at(x);
-}
-
 using TileCollisionImageData = std::array<rgba, TILE_COLLISION_IMAGE_WIDTH * TILE_COLLISION_IMAGE_HEIGHT>;
 
 static constexpr TileCollisionImageData generateTileCollisionImageData()
