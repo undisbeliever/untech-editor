@@ -132,13 +132,16 @@ static std::list<FirstPassOutput> firstPass(const std::vector<TileGraphItem>& sm
     while (!toProcess.empty()) {
         assert(toProcess.size() % 2 == 0);
 
-        auto mostPopularIt = toProcess.begin();
+        // The most-popular element is the first element in `toProcess`.
+        // Using a constant reference (instead of an iterator) prevents a
+        // "Using iterator to local container 'toProcess' that may be invalid. [invalidContainer]" cppcheck error
+        const auto& mostPopular = toProcess.front();
 
         auto bestMatchIt = toProcess.end();
         {
             int bestScore = INT_MIN;
-            for (auto it = mostPopularIt + 1; it != toProcess.end(); ++it) {
-                int score = scoreTiles(*it, *mostPopularIt);
+            for (auto it = toProcess.begin() + 1; it != toProcess.end(); ++it) {
+                int score = scoreTiles(*it, mostPopular);
 
                 if (score > bestScore) {
                     bestMatchIt = it;
@@ -148,10 +151,12 @@ static std::list<FirstPassOutput> firstPass(const std::vector<TileGraphItem>& sm
         }
         assert(bestMatchIt != toProcess.end());
 
-        output.emplace_back(*mostPopularIt, *bestMatchIt);
+        output.emplace_back(mostPopular, *bestMatchIt);
 
         toProcess.erase(bestMatchIt);
-        toProcess.erase(mostPopularIt);
+
+        // Remove `mostPopular`
+        toProcess.erase(toProcess.begin());
     }
 
     return output;
