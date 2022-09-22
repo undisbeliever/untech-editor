@@ -121,10 +121,10 @@ static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Im
     for (const auto c : range(PALETTE_COLORS)) {
         const auto imgBits = startOfPalette.subspan(c * colorSize, colorSize);
 
-        for (const auto i : range(1, colorSize)) {
-            if (imgBits[0] != imgBits[i]) {
-                throw runtime_error(u8"Custom Palette is invalid");
-            }
+        const bool v = std::all_of(imgBits.begin() + 1, imgBits.begin() + colorSize,
+                                   [&](const auto& p) { return p == imgBits[0]; });
+        if (!v) {
+            throw runtime_error(u8"Custom Palette is invalid");
         }
     }
 

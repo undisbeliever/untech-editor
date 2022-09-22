@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <string>
 #include <string_view>
@@ -43,13 +44,7 @@ public:
             return false;
         }
 
-        for (const char8_t c : name) {
-            if (!isCharValid(c)) {
-                return false;
-            }
-        }
-
-        return true;
+        return std::all_of(name.begin(), name.end(), isCharValid);
     }
 
     static idstring fixup(const std::u8string& s)

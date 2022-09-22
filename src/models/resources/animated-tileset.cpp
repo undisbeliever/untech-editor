@@ -222,12 +222,11 @@ static bool validate(const AnimationFramesInput& input, ErrorList& err)
     }
 
     if (valid) {
-        for (const usize& imgSize : imageSizes) {
-            if (imgSize != imageSizes.front()) {
-                err.addErrorString(u8"All frame images must be the same size");
-                valid = false;
-                break;
-            }
+        const bool sameSize = std::all_of(imageSizes.begin(), imageSizes.end(),
+                                          [&](const auto& iSize) { return iSize == imageSizes.front(); });
+        if (!sameSize) {
+            err.addErrorString(u8"All frame images must be the same size");
+            valid = false;
         }
     }
 
