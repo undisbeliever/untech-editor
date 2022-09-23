@@ -7,23 +7,14 @@
 #pragma once
 
 #include "models/common/type-traits.h"
-#include <type_traits>
 
 namespace UnTech::Gui {
 
 class AbstractEditorGui;
 
-template <typename AP, typename = void>
-struct has_validFlag_member : std::false_type {
-};
-
-template <typename AP>
-struct has_validFlag_member<AP, std::void_t<decltype(AP::validFlag)>> : std::true_type {
-};
-
 template <typename ActionPolicy>
-typename std::enable_if_t<has_validFlag_member<ActionPolicy>::value, void>
-editorUndoAction_notifyGui(AbstractEditorGui* abstractGui)
+requires requires { ActionPolicy::validFlag; }
+void editorUndoAction_notifyGui(AbstractEditorGui* abstractGui)
 {
     using GuiClass = typename member_class<decltype(ActionPolicy::validFlag)>::type;
 
@@ -33,8 +24,7 @@ editorUndoAction_notifyGui(AbstractEditorGui* abstractGui)
 }
 
 template <typename ActionPolicy>
-typename std::enable_if_t<not has_validFlag_member<ActionPolicy>::value, void>
-editorUndoAction_notifyGui(AbstractEditorGui*)
+void editorUndoAction_notifyGui(AbstractEditorGui*)
 {
 }
 
