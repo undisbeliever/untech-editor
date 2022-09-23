@@ -36,24 +36,4 @@ std::vector<uint8_t> Tilemap::snesData() const
     return out;
 }
 
-void Tilemap::readSnesData(const std::vector<uint8_t>& data)
-{
-    size_t expectedSize = _maps.size() * MAP_SIZE * MAP_SIZE * 2;
-
-    if (data.size() != expectedSize) {
-        throw runtime_error(u8"Tilemap data is the incorrect size, expected ", expectedSize, u8" bytes");
-    }
-
-    auto inIt = data.begin();
-
-    for (auto& m : _maps) {
-        for (auto& cell : m) {
-            cell.data = inIt[0] | (inIt[1] << 8);
-
-            inIt += 2;
-        }
-    }
-    assert(inIt == data.end());
-}
-
 }

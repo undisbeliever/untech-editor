@@ -87,9 +87,6 @@ public:
     unsigned height() const { return _height; }
 
     std::vector<uint8_t> snesData() const;
-
-    // NOTE: overrides data
-    void readSnesData(const std::vector<uint8_t>& data);
 };
 
 }
