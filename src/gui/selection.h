@@ -233,6 +233,7 @@ public:
         int s = 0;
         for (const MultipleSelection& g : childSelections) {
             if (g.hasSelection()) {
+                // cppcheck-suppress useStlAlgorithm
                 s++;
             }
         }

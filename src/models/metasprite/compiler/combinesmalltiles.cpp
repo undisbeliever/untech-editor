@@ -120,6 +120,7 @@ static std::list<FirstPassOutput> firstPass(const std::vector<TileGraphItem>& sm
     std::vector<std::reference_wrapper<const TileGraphItem>> toProcess;
     toProcess.reserve(smallTileGraph.size());
     for (const TileGraphItem& it : smallTileGraph) {
+        // cppcheck-suppress useStlAlgorithm
         toProcess.emplace_back(it);
     }
 

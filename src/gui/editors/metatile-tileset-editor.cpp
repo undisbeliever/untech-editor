@@ -68,6 +68,7 @@ struct MetaTileTilesetEditorData::AP {
 
         constexpr static auto validFlag = &MetaTileTilesetEditorGui::_tilemapValid;
 
+        // cppcheck-suppress unusedFunction
         static GridT* getGrid(EditorDataT& editorData) { return &editorData.scratchpad; }
     };
 

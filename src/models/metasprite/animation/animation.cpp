@@ -16,11 +16,13 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
 // AnimationFrame
 // ==============
 
+// cppcheck-suppress unusedFunction
 bool AnimationFrame::testFrameValid(const SI::FrameSet& frameSet) const
 {
     return frameSet.frames.find(frame.name).exists();
 }
 
+// cppcheck-suppress unusedFunction
 bool AnimationFrame::testFrameValid(const MS::FrameSet& frameSet) const
 {
     return frameSet.frames.find(frame.name).exists();

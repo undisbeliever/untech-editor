@@ -54,7 +54,7 @@ inline constexpr size_t stringSize(uint64_t) { return 21; }
 
 template <unsigned N>
 inline constexpr size_t stringSize(const hex<N>) { return N; }
-inline constexpr size_t stringSize(const hex<0>) { return 8; }
+inline constexpr size_t stringSize(const hex<0>) { return 8; } // cppcheck-suppress syntaxError
 
 // Disable automated type casting on stringBuilder
 template <typename T>

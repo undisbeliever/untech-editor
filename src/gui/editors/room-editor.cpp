@@ -70,6 +70,7 @@ struct RoomEditorData::AP {
 
         constexpr static auto validFlag = &RoomEditorGui::_tilemapValid;
 
+        // cppcheck-suppress unusedFunction
         static GridT* getGrid(EditorDataT& entityRomData) { return &entityRomData.map; }
     };
 

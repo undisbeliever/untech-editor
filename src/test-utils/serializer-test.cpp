@@ -136,6 +136,7 @@ static bool testFrameSetFiles(const std::vector<MetaSprite::FrameSetFile>& frame
 {
     bool valid = true;
     for (const auto& f : frameSets) {
+        // cppcheck-suppress useStlAlgorithm
         valid &= testFrameSetFile(f);
     }
     return valid;

@@ -29,9 +29,9 @@ struct AnimatedTilesetIntermediate {
     std::vector<Tile8px> staticTiles;
 
     struct TM {
-        bool isAnimated;
-        unsigned tile;
-        unsigned palette;
+        bool isAnimated;  // cppcheck-suppress unusedStructMember
+        unsigned tile;    // cppcheck-suppress unusedStructMember
+        unsigned palette; // cppcheck-suppress unusedStructMember
     };
     std::vector<TM> tileMap;
 };

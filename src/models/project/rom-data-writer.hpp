@@ -77,6 +77,7 @@ public:
         _romBanks.reserve(memoryMap.nBanks);
 
         for (const auto i : range(memoryMap.nBanks)) {
+            // cppcheck-suppress useStlAlgorithm
             _romBanks.emplace_back(memoryMap.bankAddress(i), memoryMap.bankSize());
         }
     }

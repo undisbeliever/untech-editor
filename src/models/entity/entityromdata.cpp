@@ -724,6 +724,7 @@ static void processEntry(const EntityType entityType,
             const auto value = String::decimalOrHexToUint32(valueStr);
             const uint32_t v = value.value_or(0);
             for (const auto i : range(length)) {
+                // cppcheck-suppress useStlAlgorithm
                 romData.push_back(v >> (i * 8));
             }
         };
@@ -734,6 +735,7 @@ static void processEntry(const EntityType entityType,
             const auto value = String::decimalOrHexToInt32(valueStr);
             const uint64_t v = static_cast<uint32_t>(value.value_or(0));
             for (const auto i : range(length)) {
+                // cppcheck-suppress useStlAlgorithm
                 romData.push_back(v >> (i * 8));
             }
         };

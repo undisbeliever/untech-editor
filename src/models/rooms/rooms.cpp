@@ -605,6 +605,7 @@ static unsigned countEntities(const NamedList<EntityGroup>& entityGroups)
 {
     unsigned count = 0;
     for (const auto& eg : entityGroups) {
+        // cppcheck-suppress useStlAlgorithm
         count += eg.entities.size();
     }
 
