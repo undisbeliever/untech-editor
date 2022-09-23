@@ -27,7 +27,7 @@ public:
     {
     }
 
-    enumerate_iterator(It iterator)
+    explicit enumerate_iterator(It iterator)
         : index(std::numeric_limits<size_type>::max())
         , iterator(iterator)
     {
@@ -63,7 +63,7 @@ public:
     {
     }
 
-    reverse_enumerate_iterator(It iterator)
+    explicit reverse_enumerate_iterator(It iterator)
         : index(std::numeric_limits<size_type>::max())
         , iterator(iterator)
     {
@@ -92,7 +92,7 @@ private:
     T i;
 
 public:
-    range_iterator(const T v)
+    explicit range_iterator(const T v)
         : i(v)
     {
     }
@@ -118,7 +118,7 @@ private:
     T i;
 
 public:
-    reverse_range_iterator(const T v)
+    explicit reverse_range_iterator(const T v)
         : i(v)
     {
     }
@@ -142,7 +142,7 @@ private:
     const It endIt;
 
 public:
-    iterator_wrapper(It b, It e)
+    explicit iterator_wrapper(It b, It e)
         : beginIt(b)
         , endIt(e)
     {
