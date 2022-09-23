@@ -56,7 +56,7 @@ private:
     const std::u8string _blockRodata;
 
 private:
-    [[noreturn]] void throwOutOfRomSpaceException(size_t size)
+    [[noreturn]] static void throwOutOfRomSpaceException(size_t size)
     {
         throw runtime_error(u8"Unable to store ", size, u8" bytes of data, please add more banks to the Memory Map.");
     }

@@ -1399,7 +1399,7 @@ public:
     }
 
     template <typename F>
-    bool roomEntranceArgument(const char* label, std::u8string* value, F roomGetter)
+    static bool roomEntranceArgument(const char* label, std::u8string* value, F roomGetter)
     {
         bool edited = false;
 

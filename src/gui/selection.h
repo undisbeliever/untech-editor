@@ -30,7 +30,7 @@ private:
     unsigned _pending = NO_SELECTION;
 
 public:
-    std::tuple<> listArgs() const { return std::make_tuple(); }
+    static std::tuple<> listArgs() { return std::make_tuple(); }
 
     bool hasSelection() const { return _selected != NO_SELECTION; }
     bool hasSingleSelection() const { return _selected != NO_SELECTION; }
@@ -77,7 +77,7 @@ private:
     uint64_t _pending = NO_SELECTION;
 
 public:
-    std::tuple<> listArgs() const { return std::make_tuple(); }
+    static std::tuple<> listArgs() { return std::make_tuple(); }
 
     bool hasSelection() const { return _selected != NO_SELECTION; }
     bool hasSingleSelection() const { return isPowerOfTwo(_selected); }
