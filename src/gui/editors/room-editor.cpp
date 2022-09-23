@@ -1371,7 +1371,7 @@ public:
         assert(depth == 0);
     }
 
-    bool roomArgument(const char* label, std::u8string* value)
+    bool roomArgument(const char* label, std::u8string* value) const
     {
         bool edited = false;
 
