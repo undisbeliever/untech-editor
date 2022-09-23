@@ -9,6 +9,7 @@
 #include "models/common/iterators.h"
 #include "models/common/string.h"
 #include "models/common/u8strings.h"
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 
@@ -164,14 +165,17 @@ bool Parser::parseShortSwitches(const char* argument, const char* nextArg)
 
 bool Parser::parseLongSwitch(const char* argument, const char* nextArg)
 {
-    for (const auto& a : _config.arguments) {
-        if (argument == a.longName) {
-            return parseSwitch(a, false, nextArg);
-        }
-    }
+    const auto& cArgs = _config.arguments;
 
-    error("Unknown argument --", argument);
-    return false;
+    const auto it = std::find_if(cArgs.begin(), cArgs.end(),
+                                 [&](const auto& a) { return argument == a.longName; });
+    if (it != cArgs.end()) {
+        return parseSwitch(*it, false, nextArg);
+    }
+    else {
+        error("Unknown argument --", argument);
+        return false;
+    }
 }
 
 bool Parser::parseSwitch(const Argument& argument, bool isShort, const char* nextArg)
