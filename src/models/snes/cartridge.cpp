@@ -12,6 +12,7 @@
 #include <cassert>
 #include <climits>
 #include <fstream>
+#include <numeric>
 
 namespace UnTech::Snes::Cartridge {
 
@@ -89,6 +90,15 @@ uint16_t readChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
     return rom.at(addr) | rom.at(addr + 1) << 8;
 }
 
+static size_t checksumBlock(const std::vector<uint8_t>& data, size_t offset, size_t size)
+{
+    if (offset + size > data.size()) {
+        throw std::out_of_range("Invalid offset and/or size");
+    }
+
+    return std::accumulate(data.begin() + offset, data.begin() + offset + size, size_t(0));
+}
+
 uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 {
     static_assert(sizeof(int) > sizeof(uint16_t) + 1, u8"int too small");
@@ -107,13 +117,9 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
     }
     part1Size >>= 1;
 
-    int part1 = 0;
-    assert(part1Size <= rom.size());
-    for (const auto i : range(part1Size)) {
-        part1 += rom[i];
-    }
+    const unsigned part1 = checksumBlock(rom, 0, part1Size);
 
-    int part2 = 0;
+    unsigned part2 = 0;
     unsigned part2Count = 0;
     if (part1Size != rom.size()) {
         unsigned part2Size = rom.size() - part1Size;
@@ -123,17 +129,12 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
             throw runtime_error(u8"Invalid ROM size.");
         }
 
-        for (const auto i : range(part1Size, rom.size())) {
-            part2 += rom[i];
-        }
+        part2 = checksumBlock(rom, part1Size, rom.size() - part1Size);
     }
 
-    int oldSum = 0;
     static_assert(CHECKSUM_ADDR == CHECKSUM_COMPLEMENT_ADDR + 2, u8"assumption failed");
     unsigned ccAddr = checksumCompelementAddress(memoryMap);
-    for (const auto i : range(4)) {
-        oldSum += rom[i + ccAddr];
-    }
+    const unsigned oldSum = checksumBlock(rom, ccAddr, 4);
 
     int checkSum = part1 + part2 * part2Count - oldSum + 0xff * 2;
     while (checkSum < 0) {
