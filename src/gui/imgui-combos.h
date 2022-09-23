@@ -201,8 +201,6 @@ bool EnumCombo(const char* label, UnTech::Scripting::ArgumentType* v);
 bool EnumCombo(const char* label, UnTech::Scripting::ConditionalType* v);
 bool EnumCombo(const char* label, UnTech::Scripting::ComparisonType* v, UnTech::Scripting::ConditionalType t);
 
-bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxType* v);
-
 void TextEnum(const UnTech::Entity::DataType& type);
 void TextEnum(const UnTech::Scripting::ArgumentType& v);
 

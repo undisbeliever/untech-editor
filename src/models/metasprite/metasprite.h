@@ -7,7 +7,6 @@
 #pragma once
 
 #include "common.h"
-#include "entityhitboxtype.h"
 #include "animation/animation.h"
 #include "models/common/idstring.h"
 #include "models/common/ms8aabb.h"

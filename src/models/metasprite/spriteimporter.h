@@ -7,9 +7,9 @@
 #pragma once
 
 #include "common.h"
-#include "entityhitboxtype.h"
 #include "animation/animation.h"
 #include "models/common/aabb.h"
+#include "models/common/enummap.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
 #include "models/common/namedlist.h"
