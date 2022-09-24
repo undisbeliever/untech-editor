@@ -50,7 +50,7 @@ static std::unique_ptr<MS::FrameSet> utsi2utms(const SI::FrameSet& siFrameSet, E
     }
 
     TileExtractor tileExtractor(*msFrameSet, *image, colorMap);
-    processFrames(msFrameSet->frames, tileExtractor, siFrameSet.frames, errorList);
+    processFrames(msFrameSet->frames, tileExtractor, siFrameSet.frames, siFrameSet.grid, errorList);
 
     if (hasError()) {
         return nullptr;

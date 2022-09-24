@@ -52,87 +52,6 @@ static bool validate(const FrameSetGrid& input, ErrorList& errorList)
     return valid;
 }
 
-urect FrameSetGrid::cell(unsigned x, unsigned y) const
-{
-    return urect(
-        x * (frameSize.width + padding.x) + offset.x,
-        y * (frameSize.height + padding.y) + offset.y,
-        frameSize.width,
-        frameSize.height);
-}
-
-usize FrameSetGrid::originRange() const
-{
-    return usize(
-        std::min(MAX_ORIGIN, frameSize.width),
-        std::min(MAX_ORIGIN, frameSize.height));
-}
-
-/*
- * FRAME LOCATION
- * ==============
- */
-
-void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
-{
-    if (useGridLocation) {
-        aabb = grid.cell(gridLocation.x, gridLocation.y);
-    }
-
-    usize minSize = frame.minimumViableSize();
-
-    aabb.width = std::max(aabb.width, minSize.width);
-    aabb.height = std::max(aabb.height, minSize.height);
-
-    if (useGridLocation == false) {
-        // update gridLocation to match nearest grid cell
-        if (grid.frameSize.width > 0 && grid.frameSize.height > 0) {
-            unsigned x = aabb.x > grid.offset.x ? aabb.x - grid.offset.x : 0;
-            unsigned y = aabb.y > grid.offset.y ? aabb.y - grid.offset.y : 0;
-
-            gridLocation.x = x / grid.frameSize.width;
-            gridLocation.y = y / grid.frameSize.height;
-        }
-    }
-
-    if (useGridOrigin) {
-        origin = grid.origin;
-    }
-    origin.x = std::min(origin.x, aabb.width);
-    origin.y = std::min(origin.y, aabb.height);
-}
-
-static bool validate(const FrameLocation& input, const Frame& frame, const unsigned frameIndex, ErrorList& errorList)
-{
-    bool valid = true;
-    auto addError = [&](const auto&... msg) {
-        errorList.addError(frameError(frame, frameIndex, msg...));
-        valid = false;
-    };
-
-    if (input.aabb.width == 0 || input.aabb.height == 0) {
-        addError(u8"FrameLocation aabb has no size");
-    }
-    if (input.aabb.width > MAX_FRAME_SIZE || input.aabb.height > MAX_FRAME_SIZE) {
-        addError(u8"location.aabb is too large (", MAX_FRAME_SIZE, u8" x ", MAX_FRAME_SIZE, u8")");
-    }
-    if (input.origin.x > MAX_ORIGIN || input.origin.y > MAX_ORIGIN) {
-        addError(u8"location.origin is too large (max: ", MAX_ORIGIN, u8", u8", MAX_ORIGIN, u8")");
-    }
-    if (input.aabb.size().contains(input.origin) == false) {
-        addError(u8"location.origin is not inside frame");
-    }
-
-    return valid;
-}
-
-usize FrameLocation::originRange() const
-{
-    return usize(
-        std::min(MAX_ORIGIN, aabb.width),
-        std::min(MAX_ORIGIN, aabb.height));
-}
-
 /*
  * FRAME
  * =====
@@ -142,7 +61,7 @@ usize FrameLocation::originRange() const
  * NOTE: ActionPoint::type is only tested if actionPointMapping is not empty,
  *       which allows utsi2utms to work without specifing a project file.
  */
-static bool validate(const Frame& input, const unsigned frameIndex, const Image& image, const ActionPointMapping& actionPointMapping,
+static bool validate(const Frame& input, const unsigned frameIndex, const FrameSetGrid& grid, const Image& image, const ActionPointMapping& actionPointMapping,
                      ErrorList& errorList)
 {
     bool valid = true;
@@ -162,9 +81,28 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
         addError(u8"Too many action points");
     }
 
-    valid &= validate(input.location, input, frameIndex, errorList);
+    const auto aabb = input.frameLocation(grid);
+    const auto origin = input.origin(grid);
 
-    if (image.size().contains(input.location.aabb) == false) {
+    if (input.locationOverride) {
+        if (aabb.width == 0 || aabb.height == 0) {
+            addError(u8"frame location has no size");
+        }
+        if (aabb.width > MAX_FRAME_SIZE || aabb.height > MAX_FRAME_SIZE) {
+            addError(u8"frame location is too large (", MAX_FRAME_SIZE, u8" x ", MAX_FRAME_SIZE, u8")");
+        }
+    }
+
+    if (input.originOverride) {
+        if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
+            addError(u8"origin is too large (max: ", MAX_ORIGIN, u8", u8", MAX_ORIGIN, u8")");
+        }
+        if (aabb.size().contains(origin) == false) {
+            addError(u8"origin is not inside frame");
+        }
+    }
+
+    if (image.size().contains(aabb) == false) {
         addError(u8"Frame not inside image");
     }
 
@@ -172,7 +110,7 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
         return false;
     }
 
-    const usize frameSize = input.location.aabb.size();
+    const usize frameSize = aabb.size();
 
     for (auto [i, obj] : const_enumerate(input.objects)) {
         if (frameSize.contains(obj.location, obj.sizePx()) == false) {
@@ -196,7 +134,7 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
     }
 
     if (input.tileHitbox.exists) {
-        if (!input.tileHitbox.aabb.contains(input.location.origin)) {
+        if (!input.tileHitbox.aabb.contains(origin)) {
             addError(u8"Frame origin must be inside the tile hitbox");
         }
     }
@@ -224,11 +162,11 @@ static bool validate(const Frame& input, const unsigned frameIndex, const Image&
     return valid;
 }
 
-usize Frame::minimumViableSize() const
+usize Frame::minimumViableSize(const FrameSetGrid& grid) const
 {
     usize limit = usize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
 
-    limit = limit.expand(location.origin);
+    limit = limit.expand(origin(grid));
 
     auto expandCollisionBox = [&](const CollisionBox& box) {
         if (box.exists) {
@@ -340,7 +278,7 @@ static bool validate(const FrameSet& input, const ActionPointMapping& actionPoin
     });
 
     for (auto [i, frame] : enumerate(input.frames)) {
-        valid &= validate(frame, i, *image, actionPointMapping, errorList);
+        valid &= validate(frame, i, input.grid, *image, actionPointMapping, errorList);
     }
 
     for (auto [i, ani] : enumerate(input.animations)) {

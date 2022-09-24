@@ -32,9 +32,11 @@ static vectorset<rgba> getColorsFromImage(const SI::FrameSet& siFrameSet, const 
     vectorset<rgba> colors;
 
     for (const SI::Frame& siFrame : siFrameSet.frames) {
+        const auto aabb = siFrame.frameLocation(siFrameSet.grid);
+
         for (const SI::FrameObject& obj : siFrame.objects) {
-            unsigned lx = siFrame.location.aabb.x + obj.location.x;
-            unsigned ly = siFrame.location.aabb.y + obj.location.y;
+            unsigned lx = aabb.x + obj.location.x;
+            unsigned ly = aabb.y + obj.location.y;
 
             assert(lx + obj.sizePx() <= image.size().width);
             assert(ly + obj.sizePx() <= image.size().height);

@@ -41,14 +41,13 @@ public:
         assert(!image.empty());
     }
 
-    const Snes::TilesetInserterOutput getTilesetOutputFromImage(const SI::Frame& frame,
-                                                                const SI::FrameObject& obj)
+    const Snes::TilesetInserterOutput getTilesetOutputFromImage(const urect& frameAabb, const SI::FrameObject& obj)
     {
         if (obj.size == ObjectSize::SMALL) {
-            return smallTileset.getOrInsert(getTileFromImage<8>(frame, obj));
+            return smallTileset.getOrInsert(getTileFromImage<8>(frameAabb, obj));
         }
         else {
-            return largeTileset.getOrInsert(getTileFromImage<16>(frame, obj));
+            return largeTileset.getOrInsert(getTileFromImage<16>(frameAabb, obj));
         }
     }
 
@@ -56,11 +55,10 @@ public:
     Snes::TilesetInserterOutput getOrInsertTile(const Snes::Tile<OVER_SIZE>& tile);
 
     template <size_t TILE_SIZE>
-    inline Snes::Tile<TILE_SIZE> getTileFromImage(const SI::Frame& frame,
-                                                  const SI::FrameObject& obj) const
+    inline Snes::Tile<TILE_SIZE> getTileFromImage(const urect& frameAabb, const SI::FrameObject& obj) const
     {
-        unsigned xOffset = frame.location.aabb.x + obj.location.x;
-        unsigned yOffset = frame.location.aabb.y + obj.location.y;
+        unsigned xOffset = frameAabb.x + obj.location.x;
+        unsigned yOffset = frameAabb.y + obj.location.y;
 
         assert(yOffset + TILE_SIZE <= image.size().height);
         assert(xOffset + TILE_SIZE <= image.size().width);

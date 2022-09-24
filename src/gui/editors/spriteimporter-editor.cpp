@@ -146,6 +146,13 @@ struct SpriteImporterEditorData::AP {
     };
 };
 
+static usize originRange(const usize& frameSize)
+{
+    return usize(
+        std::min(SI::MAX_ORIGIN, frameSize.width),
+        std::min(SI::MAX_ORIGIN, frameSize.height));
+}
+
 SpriteImporterEditorData::SpriteImporterEditorData(ItemIndex itemIndex)
     : AbstractMetaSpriteEditorData(itemIndex)
 {
@@ -398,20 +405,12 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
                 ImGui::InputUpoint("Padding", &grid.padding, usize(511, 511));
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-                ImGui::InputUpoint("Origin", &grid.origin, grid.originRange());
+                ImGui::InputUpoint("Origin", &grid.origin, originRange(grid.frameSize));
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
                 if (edited) {
-                    for (auto& frame : fs.frames) {
-                        frame.location.update(grid, frame);
-                    }
-
-                    _data->startMacro();
                     EditorActions<AP::FrameSet>::fieldEdited<
                         &SI::FrameSet::grid>(_data);
-                    ListActions<AP::Frames>::allItemsInSelectedListFieldEdited<
-                        &SI::Frame::location>(_data);
-                    _data->endMacro();
                 }
 
                 ImGui::TreePop();
@@ -509,7 +508,8 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
         if (_data->framesSel.selectedIndex() < fs.frames.size()) {
             SI::Frame& frame = fs.frames.at(_data->framesSel.selectedIndex());
 
-            const usize frameSize = frame.location.aabb.size();
+            const urect frameAabb = frame.frameLocation(fs.grid);
+            const usize frameSize = frameAabb.size();
 
             {
                 ImGui::InputIdstring("Name", &frame.name);
@@ -528,44 +528,68 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                 }
 
                 if (ImGui::TreeNodeEx("Location", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    bool changed = false;
-                    bool edited = false;
+                    {
+                        bool useGridLocation = !frame.locationOverride.has_value();
 
-                    edited |= ImGui::Checkbox("Use Grid Location", &frame.location.useGridLocation);
+                        bool loEdited = ImGui::Checkbox("Use Grid Location", &useGridLocation);
+                        if (loEdited) {
+                            if (useGridLocation) {
+                                frame.locationOverride = std::nullopt;
+                            }
+                            else {
+                                frame.locationOverride = frameAabb;
+                            }
+                        }
 
-                    if (frame.location.useGridLocation) {
-                        changed |= ImGui::InputUpoint("Grid Location", &frame.location.gridLocation, usize(UINT8_MAX, UINT8_MAX));
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
+                        if (useGridLocation) {
+                            ImGui::InputUpoint("Grid Location", &frame.gridLocation, usize(UINT8_MAX, UINT8_MAX));
+                            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                                ListActions<AP::Frames_EditName>::selectedFieldEdited<&SI::Frame::gridLocation>(_data);
+                            }
 
-                        ImGui::LabelText("AABB", "%u, %u  %u x %u", frame.location.aabb.x, frame.location.aabb.y, frame.location.aabb.width, frame.location.aabb.height);
+                            ImGui::LabelText("AABB", "%u, %u  %u x %u", frameAabb.x, frameAabb.y, frameAabb.width, frameAabb.height);
+                        }
+                        else {
+                            ImGui::LabelText("Grid Location", " ");
+
+                            const auto& imgSize = _imageTexture.size();
+                            const usize bounds = (imgSize.width != 0 && imgSize.height != 0) ? imgSize : usize(4096, 4096);
+
+                            ImGui::InputUrect("AABB", &frame.locationOverride.value(), bounds);
+                            loEdited |= ImGui::IsItemDeactivatedAfterEdit();
+                        }
+
+                        if (loEdited) {
+                            ListActions<AP::Frames>::selectedFieldEdited<
+                                &SI::Frame::locationOverride>(_data);
+                        }
                     }
-                    else {
-                        ImGui::LabelText("Grid Location", " ");
 
-                        const auto& imgSize = _imageTexture.size();
-                        const usize bounds = (imgSize.width != 0 && imgSize.height != 0) ? imgSize : usize(4096, 4096);
+                    {
+                        bool useGridOrigin = !frame.originOverride.has_value();
 
-                        changed |= ImGui::InputUrect("AABB", &frame.location.aabb, bounds);
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                    }
+                        bool edited = ImGui::Checkbox("Use Grid Origin", &useGridOrigin);
+                        if (edited) {
+                            if (useGridOrigin) {
+                                frame.originOverride = std::nullopt;
+                            }
+                            else {
+                                frame.originOverride = fs.grid.origin;
+                            }
+                        }
 
-                    edited |= ImGui::Checkbox("Use Grid Origin", &frame.location.useGridOrigin);
+                        if (frame.originOverride.has_value() == false) {
+                            ImGui::LabelText("Origin", "%u, %u", fs.grid.origin.x, fs.grid.origin.y);
+                        }
+                        else {
+                            ImGui::InputUpoint("Origin", &frame.originOverride.value(), originRange(frameAabb.size()));
+                            edited |= ImGui::IsItemDeactivatedAfterEdit();
+                        }
 
-                    if (frame.location.useGridOrigin) {
-                        ImGui::LabelText("Origin", "%u, %u", frame.location.origin.x, frame.location.origin.y);
-                    }
-                    else {
-                        changed |= ImGui::InputUpoint("Origin", &frame.location.origin, frame.location.originRange());
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                    }
-
-                    if (edited || changed) {
-                        frame.location.update(fs.grid, frame);
-                    }
-
-                    if (edited) {
-                        ListActions<AP::Frames>::selectedFieldEdited<
-                            &SI::Frame::location>(_data);
+                        if (edited) {
+                            ListActions<AP::Frames>::selectedFieldEdited<
+                                &SI::Frame::originOverride>(_data);
+                        }
                     }
 
                     ImGui::TreePop();
@@ -681,9 +705,12 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
     assert(_data);
     const auto& fs = _data->data;
 
+    const auto frameAabb = frame.frameLocation(fs.grid);
+    const auto origin = frame.origin(fs.grid);
+
     const float lineThickness = AabbGraphics::lineThickness;
 
-    const ImVec2 pos(drawPos.x - frame.location.origin.x * zoom.x, drawPos.y - frame.location.origin.y * zoom.y);
+    const ImVec2 pos(drawPos.x - origin.x * zoom.x, drawPos.y - origin.y * zoom.y);
 
     auto* drawList = ImGui::GetWindowDrawList();
 
@@ -699,8 +726,8 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
         const ImVec2 uv(1.0f / _imageTexture.width(), 1.0f / _imageTexture.height());
 
         for (auto [i, obj] : reverse_enumerate(frame.objects)) {
-            const unsigned x = frame.location.aabb.x + obj.location.x;
-            const unsigned y = frame.location.aabb.y + obj.location.y;
+            const unsigned x = frameAabb.x + obj.location.x;
+            const unsigned y = frameAabb.y + obj.location.y;
 
             const ImVec2 uv0(x * uv.x, y * uv.y);
             const ImVec2 uv1((x + obj.sizePx()) * uv.x, (y + obj.sizePx()) * uv.y);
@@ -810,7 +837,8 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
 void SpriteImporterEditorGui::frameEditorWindow()
 {
     assert(_data);
-    auto& frames = _data->data.frames;
+    auto& fs = _data->data;
+    auto& frames = fs.frames;
 
     const rect graphicsRect(-IMAGE_PADDING, -IMAGE_PADDING, _imageTexture.width() + 2 * IMAGE_PADDING, _imageTexture.height() + 2 * IMAGE_PADDING);
 
@@ -832,16 +860,15 @@ void SpriteImporterEditorGui::frameEditorWindow()
         auto* drawList = ImGui::GetWindowDrawList();
 
         const SI::Frame* selectedFrame = _data->framesSel.selectedIndex() < frames.size() ? &frames.at(_data->framesSel.selectedIndex()) : nullptr;
+        const urect selectedFrameAabb = selectedFrame ? selectedFrame->frameLocation(fs.grid) : urect();
 
         // The editable area changes depending on which frame is selected
         rect bounds;
         if (selectedFrame) {
-            const auto& aabb = selectedFrame->location.aabb;
-
-            bounds.x = aabb.x;
-            bounds.y = aabb.y;
-            bounds.width = std::max(MINIMIM_FRAME_SIZE, aabb.width);
-            bounds.height = std::max(MINIMIM_FRAME_SIZE, aabb.height);
+            bounds.x = selectedFrameAabb.x;
+            bounds.y = selectedFrameAabb.y;
+            bounds.width = std::max(MINIMIM_FRAME_SIZE, selectedFrameAabb.width);
+            bounds.height = std::max(MINIMIM_FRAME_SIZE, selectedFrameAabb.height);
         }
 
         _graphics.startLoop("##Editor", graphicsRect, bounds, Style::spriteImporterZoom.zoom(),
@@ -852,7 +879,7 @@ void SpriteImporterEditorGui::frameEditorWindow()
         {
             // Cannot use `ImGuiHoveredFlags_AllowWhenBlockedByActiveItem` as it returns true when I click on the scrollbar.
             const upoint mousePos = _graphics.mousePosUpoint();
-            const bool mouseOverSelectedFrame = selectedFrame && selectedFrame->location.aabb.contains(mousePos);
+            const bool mouseOverSelectedFrame = selectedFrame && selectedFrameAabb.contains(mousePos);
             const bool windowHovered = ImGui::IsWindowHovered() || ImGui::IsItemActive();
 
             // Using double-click to select a frame as it easily allows me to determine
@@ -865,7 +892,7 @@ void SpriteImporterEditorGui::frameEditorWindow()
                 }
 
                 for (auto [frameIndex, frame] : const_enumerate(frames)) {
-                    if (frame.location.aabb.contains(mousePos)) {
+                    if (frame.frameLocation(fs.grid).contains(mousePos)) {
                         ImGui::BeginTooltip();
                         ImGui::TextUnformatted(frame.name);
                         ImGui::EndTooltip();
@@ -883,8 +910,8 @@ void SpriteImporterEditorGui::frameEditorWindow()
         _graphics.drawImage(drawList, _imageTexture, 0, 0);
 
         for (const auto& frame : frames) {
-            const auto& aabb = frame.location.aabb;
-            const auto& origin = frame.location.origin;
+            const auto& aabb = frame.frameLocation(fs.grid);
+            const auto& origin = frame.origin(fs.grid);
 
             // Draw origin (behind frame contents)
             _graphics.drawCrosshair(drawList, aabb.x + origin.x, aabb.y + origin.y, aabb, Style::spriteImporterOriginColor);
@@ -893,7 +920,9 @@ void SpriteImporterEditorGui::frameEditorWindow()
         }
 
         for (auto [frameIndex, frame] : enumerate(frames)) {
-            _graphics.setOrigin(frame.location.aabb.x, frame.location.aabb.y);
+            const auto& aabb = frame.frameLocation(fs.grid);
+
+            _graphics.setOrigin(aabb.x, aabb.y);
 
             if (_data->framesSel.selectedIndex() != frameIndex) {
                 drawFrame(drawList, &frame);
@@ -906,7 +935,7 @@ void SpriteImporterEditorGui::frameEditorWindow()
         _graphics.setOrigin(0, 0);
 
         if (selectedFrame) {
-            _graphics.drawAntiHighlight(drawList, selectedFrame->location.aabb, Style::antiHighlightColor);
+            _graphics.drawAntiHighlight(drawList, selectedFrameAabb, Style::antiHighlightColor);
         }
 
         _graphics.endLoop(drawList,

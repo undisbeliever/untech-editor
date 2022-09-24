@@ -177,33 +177,17 @@ private:
             frame.spriteOrder = tag.getAttributeUnsigned(u8"order", 0, frame.spriteOrder.MASK);
         }
 
-        if (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"location") {
-                frame.location.aabb = childTag.getAttributeUrect();
-                frame.location.useGridLocation = false;
-            }
-            else if (childTag.name == u8"gridlocation") {
-                if (frameSetGridSet == false) {
-                    throw xml_error(childTag, u8"Frameset grid is not set.");
-                }
-
-                frame.location.gridLocation = childTag.getAttributeUpoint();
-                frame.location.useGridLocation = true;
-            }
-            else {
-                throw xml_error(childTag, u8"location or gridlocation tag must be the first child of frame");
-            }
-            xml.parseCloseTag();
-        }
-        else {
-            throw xml_error(tag, u8"location or gridlocation tag must be the first child of frame");
-        }
-
-        frame.location.useGridOrigin = true;
-        frame.location.update(frameSet.grid, frame);
-
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"object") {
+            if (childTag.name == u8"gridlocation") {
+                frame.gridLocation = childTag.getAttributeUpoint();
+            }
+            else if (childTag.name == u8"location") {
+                frame.locationOverride = childTag.getAttributeUrect();
+            }
+            else if (childTag.name == u8"origin") {
+                frame.originOverride = childTag.getAttributeUpoint();
+            }
+            else if (childTag.name == u8"object") {
                 FrameObject obj;
 
                 obj.size = childTag.getAttributeEnum(u8"size", objectSizeEnumMap);
@@ -220,15 +204,6 @@ private:
 
                 frame.actionPoints.push_back(ap);
             }
-
-            else if (childTag.name == u8"origin") {
-                if (frame.location.useGridOrigin == false) {
-                    throw xml_error(childTag, u8"Can only have one origin per frame");
-                }
-                frame.location.useGridOrigin = false;
-                frame.location.origin = childTag.getAttributeUpoint();
-            }
-
             else if (childTag.name == u8"tilehitbox") {
                 readCollisionBox(childTag, frame.tileHitbox);
             }
@@ -302,20 +277,19 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
     xml.writeTagAttribute(u8"id", frame.name);
     xml.writeTagAttribute(u8"order", frame.spriteOrder);
 
-    if (frame.location.useGridLocation) {
-        xml.writeTag(u8"gridlocation");
-        xml.writeTagAttributeUpoint(frame.location.gridLocation);
-        xml.writeCloseTag();
-    }
-    else {
+    if (frame.locationOverride) {
         xml.writeTag(u8"location");
-        xml.writeTagAttributeUrect(frame.location.aabb);
+        xml.writeTagAttributeUrect(frame.locationOverride.value());
         xml.writeCloseTag();
     }
 
-    if (frame.location.useGridOrigin == false) {
+    xml.writeTag(u8"gridlocation");
+    xml.writeTagAttributeUpoint(frame.gridLocation);
+    xml.writeCloseTag();
+
+    if (frame.originOverride) {
         xml.writeTag(u8"origin");
-        xml.writeTagAttributeUpoint(frame.location.origin);
+        xml.writeTagAttributeUpoint(frame.originOverride.value());
         xml.writeCloseTag();
     }
 

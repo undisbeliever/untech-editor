@@ -14,6 +14,7 @@
 #include "models/common/image.h"
 #include "models/common/namedlist.h"
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -44,34 +45,16 @@ struct FrameSetGrid {
     {
     }
 
-    urect cell(unsigned x, unsigned y) const;
-
-    usize originRange() const;
-
-    bool operator==(const FrameSetGrid&) const = default;
-};
-
-struct FrameLocation {
-    urect aabb;
-    upoint origin;
-    upoint gridLocation;
-    bool useGridLocation;
-    bool useGridOrigin;
-
-    FrameLocation()
-        : aabb(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
-        , origin(MIN_FRAME_SIZE / 2, MIN_FRAME_SIZE / 2)
-        , gridLocation()
-        , useGridLocation(false)
-        , useGridOrigin(false)
+    inline urect cell(const upoint& gridLocation) const
     {
+        return urect(
+            gridLocation.x * (frameSize.width + padding.x) + offset.x,
+            gridLocation.y * (frameSize.height + padding.y) + offset.y,
+            frameSize.width,
+            frameSize.height);
     }
 
-    void update(const FrameSetGrid&, const Frame& frame);
-
-    usize originRange() const;
-
-    bool operator==(const FrameLocation&) const = default;
+    bool operator==(const FrameSetGrid&) const = default;
 };
 
 struct FrameObject {
@@ -130,7 +113,11 @@ struct CollisionBox {
 
 struct Frame {
     idstring name;
-    FrameLocation location;
+
+    upoint gridLocation;
+    std::optional<urect> locationOverride;
+    std::optional<upoint> originOverride;
+
     std::vector<FrameObject> objects;
     std::vector<ActionPoint> actionPoints;
     SpriteOrderType spriteOrder = DEFAULT_SPRITE_ORDER;
@@ -140,12 +127,22 @@ struct Frame {
     CollisionBox hitbox;
     CollisionBox hurtbox;
 
-    Frame()
-        : spriteOrder(DEFAULT_SPRITE_ORDER)
+    usize minimumViableSize(const FrameSetGrid& grid) const;
+
+    urect frameLocation(const FrameSetGrid& grid) const
     {
+        if (!locationOverride) {
+            return grid.cell(gridLocation);
+        }
+        else {
+            return locationOverride.value();
+        }
     }
 
-    usize minimumViableSize() const;
+    upoint origin(const FrameSetGrid& grid) const
+    {
+        return originOverride.value_or(grid.origin);
+    }
 
     bool operator==(const Frame&) const = default;
 };
