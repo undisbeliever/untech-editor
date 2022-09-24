@@ -8,7 +8,7 @@
 
 #include "idstring.h"
 #include "iterators.h"
-#include "optional.h"
+#include "optional_ref.h"
 #include "vector-helpers.h"
 #include <cassert>
 #include <climits>
@@ -54,24 +54,24 @@ public:
         return INT_MAX;
     }
 
-    optional<T&> find(const idstring& name)
+    optional_ref<T&> find(const idstring& name)
     {
         for (T& i : _list) {
             if (i.name == name) {
                 return i;
             }
         }
-        return {};
+        return std::nullopt;
     }
 
-    optional<const T&> find(const idstring& name) const
+    optional_ref<const T&> find(const idstring& name) const
     {
         for (const T& i : _list) {
             if (i.name == name) {
                 return i;
             }
         }
-        return {};
+        return std::nullopt;
     }
 
     T& at(size_type index) { return _list.at(index); }

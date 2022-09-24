@@ -414,11 +414,11 @@ inline void SceneLayoutsData::reserve(unsigned cap)
 // Scene
 // -----
 
-optional<const SceneData&> CompiledScenesData::findScene(const idstring& name) const
+optional_ref<const SceneData&> CompiledScenesData::findScene(const idstring& name) const
 {
     auto it = nameIndexMap.find(name);
     if (it == nameIndexMap.end()) {
-        return {};
+        return std::nullopt;
     }
     return scenes.at(it->second);
 }

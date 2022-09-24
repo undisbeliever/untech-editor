@@ -14,7 +14,6 @@
 #include "../int_ms8_t.h"
 #include "../iterators.h"
 #include "../ms8aabb.h"
-#include "../optional.h"
 #include <climits>
 #include <memory>
 #include <string>

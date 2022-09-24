@@ -8,7 +8,7 @@
 
 #include "idstring.h"
 #include "iterators.h"
-#include "optional.h"
+#include "optional_ref.h"
 #include <cassert>
 #include <climits>
 #include <filesystem>
@@ -71,25 +71,25 @@ public:
     size_type size() const { return _list.size(); }
 
     // return reference is valid until the item is removed or reloaded
-    optional<T&> find(const idstring& name)
+    optional_ref<T&> find(const idstring& name)
     {
         for (const Item& item : _list) {
             if (item.value && item.value->name == name) {
                 return item.value;
             }
         }
-        return optional<T&>{};
+        return std::nullopt;
     }
 
     // return reference is valid until the item is removed or reloaded
-    optional<const T&> find(const idstring& name) const
+    optional_ref<const T&> find(const idstring& name) const
     {
         for (const Item& item : _list) {
             if (item.value && item.value->name == name) {
                 return item.value;
             }
         }
-        return optional<const T&>{};
+        return std::nullopt;
     }
 
     // returns INT_MAX if name is not found
@@ -107,8 +107,8 @@ public:
     const Item& item(size_type index) const { return _list.at(index); }
 
     // return reference is valid until the item is removed or reloaded
-    optional<T&> at(size_type index) { return _list.at(index).value; }
-    optional<const T&> at(size_type index) const { return _list.at(index).value; }
+    optional_ref<T&> at(size_type index) { return _list.at(index).value; }
+    optional_ref<const T&> at(size_type index) const { return _list.at(index).value; }
 
     iterator begin() { return _list.begin(); }
     iterator end() { return _list.end(); }

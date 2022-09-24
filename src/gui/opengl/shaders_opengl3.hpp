@@ -12,7 +12,7 @@
 #include "gui/style.h"
 #include "gui/windows/message-box.h"
 #include "models/common/imagecache.h"
-#include "models/common/optional.h"
+#include "models/common/optional_ref.h"
 #include <iostream>
 
 namespace UnTech::Gui::Shaders {

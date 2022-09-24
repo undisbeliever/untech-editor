@@ -11,7 +11,7 @@
 
 namespace UnTech::MetaSprite::Animation {
 
-inline optional<const Animation&> getAnimation(const NamedList<Animation>& animations, const size_t index)
+inline optional_ref<const Animation&> getAnimation(const NamedList<Animation>& animations, const size_t index)
 {
     if (index < animations.size()) {
         return animations.at(index);
@@ -19,7 +19,7 @@ inline optional<const Animation&> getAnimation(const NamedList<Animation>& anima
     return std::nullopt;
 }
 
-inline std::pair<optional<const Animation&>, optional<const AnimationFrame&>>
+inline std::pair<optional_ref<const Animation&>, optional_ref<const AnimationFrame&>>
 getAnimationAndFrame(const NamedList<Animation>& animations, const size_t aniIndex, const size_t frameIndex)
 {
     if (aniIndex < animations.size()) {

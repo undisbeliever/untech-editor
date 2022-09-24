@@ -8,7 +8,7 @@
 
 #include "models/common/errorlist.h"
 #include "models/common/idstring.h"
-#include "models/common/optional.h"
+#include "models/common/optional_ref.h"
 #include "models/enums.h"
 #include <array>
 #include <memory>

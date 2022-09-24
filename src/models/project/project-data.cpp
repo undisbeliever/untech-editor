@@ -608,7 +608,7 @@ compileListItem(ConvertFunction convertFunction,
                 const ExternalFileList<InputT>& inputList, const unsigned index,
                 const PreresquitesT&... preresquites)
 {
-    const optional<const InputT&> input = inputList.at(index);
+    const optional_ref<const InputT&> input = inputList.at(index);
 
     if (input) {
         return compileData<DataT>(convertFunction, *input, preresquites...);
@@ -716,7 +716,7 @@ inline bool ProjectData::validateList(const ValidateFunction validateFunction, R
 
     for (const auto index : range(inputList.size())) {
         if (statusList.state(index) == ResourceState::Unchecked) {
-            const optional<const InputT&> input = inputList.at(index);
+            const optional_ref<const InputT&> input = inputList.at(index);
 
             ResourceStatus status;
 

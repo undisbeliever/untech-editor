@@ -169,7 +169,7 @@ struct CompiledScenesData {
 
     std::unordered_map<idstring, unsigned> nameIndexMap;
 
-    optional<const SceneData&> findScene(const idstring& name) const;
+    optional_ref<const SceneData&> findScene(const idstring& name) const;
 
     std::optional<unsigned> indexForScene(const idstring& name) const;
 };
