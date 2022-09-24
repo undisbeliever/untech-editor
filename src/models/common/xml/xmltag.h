@@ -182,7 +182,7 @@ public:
         return id;
     }
 
-    inline optional<std::u8string> getOptionalAttribute(const std::u8string_view aName) const
+    inline std::optional<std::u8string> getOptionalAttribute(const std::u8string_view aName) const
     {
         const auto i = findAttributeIndex(aName);
 
@@ -190,7 +190,7 @@ public:
             return unescapeXmlString(attrRawValues.at(i));
         }
         else {
-            return optional<std::u8string>();
+            return std::nullopt;
         }
     }
 
