@@ -130,7 +130,7 @@ void processGui()
         ImGui::TextUnformatted(u8"LodePNG"s);
         ImGui::Indent();
         ImGui::TextUnformatted(u8"http://lodev.org/lodepng/\n"
-                               "Copyright (c) 2005-2020 Lode Vandevenne\n"
+                               "Copyright (c) 2005-2022 Lode Vandevenne\n"
                                "zlib License, https://github.com/lvandeve/lodepng/blob/master/LICENSE  \n\n");
         ImGui::Unindent();
 
