@@ -815,7 +815,7 @@ void RoomEditorGui::entitiesWindow()
             if (filter.PassFilter(u8Cast(eg.name))) {
                 ImGui::PushID(i);
 
-                ImGui::ImageButton(textureId, size, eg.uvMin, eg.uvMax);
+                ImGui::ImageButton("##entity", textureId, size, eg.uvMin, eg.uvMax);
                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
                     ImGui::SetDragDropPayload(entityDragDropId, &i, sizeof(decltype(i)));
 

@@ -575,9 +575,7 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
                 const bool isSelected = _tileProperties->tileCollisionSame && _tileProperties->tileCollision == tct;
                 const auto& tint = isSelected ? Style::tilePropertiesButtonTint : Style::tilePropertiesButtonSelectedTint;
 
-                ImGui::PushID(unsigned(tct));
-
-                if (ImGui::ToggledImageButton(textureId, isSelected, buttonSize, uv, uv + uvSize, -1, bgCol, tint)) {
+                if (ImGui::ToggledImageButton(toolTip, textureId, isSelected, buttonSize, uv, uv + uvSize, bgCol, tint)) {
                     tileCollisionClicked(tct);
                     edited = true;
                 }
@@ -586,8 +584,6 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
                     ImGui::TextUnformatted(toolTip);
                     ImGui::EndTooltip();
                 }
-
-                ImGui::PopID();
             };
             button("No Collisions", TC::EMPTY);
             ImGui::SameLine();

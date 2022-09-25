@@ -298,13 +298,13 @@ bool ToggledButton(const char* label, bool selected, const ImVec2& size)
     return pressed;
 }
 
-bool ToggledImageButton(ImTextureID user_texture_id, bool selected, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
+bool ToggledImageButton(const char* str_id, ImTextureID user_texture_id, bool selected, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
 {
     if (selected) {
         PushStyleColor(ImGuiCol_Button, GetStyleColorVec4(ImGuiCol_ButtonActive));
     }
 
-    bool pressed = ImageButton(user_texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col);
+    bool pressed = ImageButton(str_id, user_texture_id, size, uv0, uv1, bg_col, tint_col);
 
     if (selected) {
         PopStyleColor();
@@ -321,9 +321,9 @@ bool ToggledButton(const char* label, bool* selected, const ImVec2& size)
     return pressed;
 }
 
-bool ToggledImageButton(ImTextureID user_texture_id, bool* selected, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
+bool ToggledImageButton(const char* str_id, ImTextureID user_texture_id, bool* selected, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
 {
-    bool pressed = ToggledImageButton(user_texture_id, *selected, size, uv0, uv1, frame_padding, bg_col, tint_col);
+    bool pressed = ToggledImageButton(str_id, user_texture_id, *selected, size, uv0, uv1, bg_col, tint_col);
     if (*selected) {
         PopStyleColor();
     }

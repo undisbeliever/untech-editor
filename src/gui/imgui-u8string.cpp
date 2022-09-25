@@ -1,7 +1,7 @@
 // This file is based on `imgui/misc/cpp/imgui_stdlib.cpp` from the Dear ImGui library.
 // https://github.com/ocornut/imgui
 // Licensed under the MIT License (MIT)
-// Copyright (c) 2014-2021 Omar Cornut
+// Copyright (c) 2014-2022 Omar Cornut
 // https://github.com/ocornut/imgui/blob/master/LICENSE.txt
 //
 
