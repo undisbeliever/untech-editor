@@ -151,7 +151,7 @@ void processGui()
         ImGui::TextUnformatted(u8"imgui-filebrowser"s);
         ImGui::Indent();
         ImGui::TextUnformatted(u8"https://github.com/AirGuanZ/imgui-filebrowser\n"
-                               "Copyright (c) 2019-2020 Zhuang Guan\n"
+                               "Copyright (c) 2019-2022 Zhuang Guan\n"
                                "MIT License, https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE  \n\n"s);
         ImGui::Unindent();
 

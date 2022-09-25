@@ -17,7 +17,7 @@ directory:
    [MIT License](https://github.com/ocornut/imgui/blob/master/LICENSE.txt).
 
  * [imgui-filebrowser](https://github.com/AirGuanZ/imgui-filebrowser) -
-   Copyright (c) 2019-2020 Zhuang Guan,
+   Copyright (c) 2019-2022 Zhuang Guan,
    [MIT License](https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE)
 
  * [gl3w](https://github.com/skaslev/gl3w),
