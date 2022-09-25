@@ -10,7 +10,7 @@ namespace UnTech {
 
 // Does not crash with an assert failure if `min > max`.
 template <typename T>
-inline T clamp(const T v, const T min, const T max)
+inline constexpr T clamp(const T v, const T min, const T max)
 {
     if (v < min) {
         return min;

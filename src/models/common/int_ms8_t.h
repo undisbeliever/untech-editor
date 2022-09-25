@@ -25,13 +25,13 @@ namespace UnTech {
 
 class int_ms8_t : public ClampedType<int16_t, -128, 127> {
 public:
-    static const unsigned OFFSET = 128;
-    static bool isValid(const int v) { return v >= MIN && v <= MAX; }
+    static constexpr unsigned OFFSET = 128;
+    static constexpr bool isValid(const int v) { return v >= MIN && v <= MAX; }
 
-    int_ms8_t() = default;
+    constexpr int_ms8_t() = default;
 
     // cppcheck-suppress noExplicitConstructor
-    int_ms8_t(const int_fast16_t& v)
+    constexpr int_ms8_t(const int_fast16_t& v)
         : ClampedType(v)
     {
     }

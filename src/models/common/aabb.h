@@ -25,13 +25,13 @@ struct _point {
     T x;
     T y;
 
-    _point()
+    constexpr _point()
         : x(0)
         , y(0)
     {
     }
 
-    _point(T x, T y)
+    constexpr _point(T x, T y)
         : x(x)
         , y(y)
     {
@@ -44,13 +44,13 @@ struct usize {
     unsigned width;
     unsigned height;
 
-    usize()
+    constexpr usize()
         : width(1)
         , height(1)
     {
     }
 
-    usize(unsigned width, unsigned height)
+    constexpr usize(unsigned width, unsigned height)
         : width(width)
         , height(height)
     {
@@ -96,7 +96,7 @@ struct _rect {
     unsigned width;
     unsigned height;
 
-    _rect()
+    constexpr _rect()
         : x(0)
         , y(0)
         , width(1)
@@ -104,7 +104,7 @@ struct _rect {
     {
     }
 
-    _rect(T x, T y, unsigned width, unsigned height)
+    constexpr _rect(T x, T y, unsigned width, unsigned height)
         : x(x)
         , y(y)
         , width(width)
@@ -112,7 +112,7 @@ struct _rect {
     {
     }
 
-    _rect(const _point<T>& point, unsigned size)
+    constexpr _rect(const _point<T>& point, unsigned size)
         : x(point.x)
         , y(point.y)
         , width(size)
@@ -120,7 +120,7 @@ struct _rect {
     {
     }
 
-    _rect(const _point<T>& point, unsigned width, unsigned height)
+    constexpr _rect(const _point<T>& point, unsigned width, unsigned height)
         : x(point.x)
         , y(point.y)
         , width(width)

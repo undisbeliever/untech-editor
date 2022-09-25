@@ -15,7 +15,7 @@ inline constexpr bool isPowerOfTwo(int64_t v)
     return v && (v & (v - 1)) == 0;
 }
 
-inline unsigned nextPowerOfTwo(unsigned i)
+inline constexpr unsigned nextPowerOfTwo(unsigned i)
 {
     unsigned p = 1;
     while (p < i) {

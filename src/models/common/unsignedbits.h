@@ -34,12 +34,12 @@ public:
     UnsignedBits& operator=(const UnsignedBits&) = default;
     UnsignedBits& operator=(UnsignedBits&&) = default;
 
-    inline UnsignedBits()
+    constexpr UnsignedBits()
         : data(0)
     {
     }
 
-    inline UnsignedBits(const T& v)
+    constexpr UnsignedBits(const T& v)
         : data(v & MASK)
     {
     }

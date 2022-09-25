@@ -17,19 +17,19 @@ struct ms8point {
     int_ms8_t x;
     int_ms8_t y;
 
-    ms8point()
+    constexpr ms8point()
         : x(0)
         , y(0)
     {
     }
 
-    ms8point(int_ms8_t x, int_ms8_t y)
+    constexpr ms8point(int_ms8_t x, int_ms8_t y)
         : x(x)
         , y(y)
     {
     }
 
-    static inline ms8point createFromOffset(const upoint& p, const upoint& offset)
+    static constexpr ms8point createFromOffset(const upoint& p, const upoint& offset)
     {
         int px = int(p.x) - int(offset.x);
         int py = int(p.y) - int(offset.y);
@@ -96,7 +96,7 @@ struct ms8rect {
     uint8_t width;
     uint8_t height;
 
-    ms8rect()
+    constexpr ms8rect()
         : x(0)
         , y(0)
         , width(0)
@@ -104,7 +104,7 @@ struct ms8rect {
     {
     }
 
-    ms8rect(int x, int y, uint8_t width, uint8_t height)
+    constexpr ms8rect(int x, int y, uint8_t width, uint8_t height)
         : x(x)
         , y(y)
         , width(width)
@@ -112,7 +112,7 @@ struct ms8rect {
     {
     }
 
-    ms8rect(const ms8point& p, uint8_t squareSize)
+    constexpr ms8rect(const ms8point& p, uint8_t squareSize)
         : x(p.x)
         , y(p.y)
         , width(squareSize)
@@ -120,7 +120,7 @@ struct ms8rect {
     {
     }
 
-    static inline ms8rect createFromOffset(const urect& r, const upoint& offset)
+    static constexpr ms8rect createFromOffset(const urect& r, const upoint& offset)
     {
         int rx = int(r.x) - int(offset.x);
         int ry = int(r.y) - int(offset.y);

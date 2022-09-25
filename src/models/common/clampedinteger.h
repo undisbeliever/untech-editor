@@ -35,11 +35,11 @@ public:
     ClampedType& operator=(const ClampedType&) = default;
     ClampedType& operator=(ClampedType&&) = default;
 
-    inline ClampedType()
+    constexpr ClampedType()
         : data(MIN)
     {
     }
-    inline explicit ClampedType(const COMP_TYPE v)
+    constexpr explicit ClampedType(const COMP_TYPE v)
         : data(v >= MIN ? (v <= MAX ? v : MAX) : MIN)
     {
     }

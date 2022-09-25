@@ -30,7 +30,7 @@ private:
     std::u8string data;
 
 public:
-    static bool isCharValid(const char c)
+    static constexpr bool isCharValid(const char c)
     {
         return ((c == '_'
                  || (c >= '0' && c <= '9')
@@ -38,9 +38,9 @@ public:
                  || (c >= 'a' && c <= 'z')));
     }
 
-    static bool isCharInvalid(const char c) { return !isCharValid(c); }
+    static constexpr bool isCharInvalid(const char c) { return !isCharValid(c); }
 
-    static bool isValid(std::u8string_view name)
+    static constexpr bool isValid(std::u8string_view name)
     {
         if (name.empty()) {
             return false;
@@ -49,7 +49,7 @@ public:
         return std::all_of(name.begin(), name.end(), isCharValid);
     }
 
-    static idstring fixup(const std::u8string& s)
+    static constexpr idstring fixup(const std::u8string& s)
     {
         idstring ret;
 
@@ -66,9 +66,9 @@ public:
     idstring& operator=(const idstring&) = default;
     idstring& operator=(idstring&&) = default;
 
-    idstring() = default;
+    constexpr idstring() = default;
 
-    static idstring fromString(std::u8string&& s)
+    static constexpr idstring fromString(std::u8string&& s)
     {
         idstring out;
         if (isValid(s)) {
@@ -78,7 +78,7 @@ public:
         return out;
     }
 
-    static idstring fromString(const std::u8string_view s)
+    static constexpr idstring fromString(const std::u8string_view s)
     {
         idstring out;
         if (isValid(s)) {
@@ -88,7 +88,7 @@ public:
         return out;
     }
 
-    static idstring fromString(const char8_t* s)
+    static constexpr idstring fromString(const char8_t* s)
     {
         return fromString(std::u8string_view(s));
     }

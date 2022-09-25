@@ -18,7 +18,7 @@ struct alignas(4) rgba {
     uint8_t blue;
     uint8_t alpha;
 
-    static rgba fromRgba(uint32_t rgbaValue)
+    static constexpr rgba fromRgba(uint32_t rgbaValue)
     {
         return rgba((rgbaValue >> 0) & 0xff,
                     (rgbaValue >> 8) & 0xff,
@@ -26,14 +26,14 @@ struct alignas(4) rgba {
                     (rgbaValue >> 24) & 0xff);
     }
 
-    static rgba fromRgbHex(uint32_t rgbHex)
+    static constexpr rgba fromRgbHex(uint32_t rgbHex)
     {
         return rgba((rgbHex >> 16) & 0xff,
                     (rgbHex >> 8) & 0xff,
                     (rgbHex >> 0) & 0xff);
     }
 
-    static rgba fromRgbaHex(uint32_t rgbaHex)
+    static constexpr rgba fromRgbaHex(uint32_t rgbaHex)
     {
         return rgba((rgbaHex >> 24) & 0xff,
                     (rgbaHex >> 16) & 0xff,
