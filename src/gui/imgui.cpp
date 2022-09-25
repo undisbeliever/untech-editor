@@ -321,15 +321,6 @@ bool ToggledButton(const char* label, bool* selected, const ImVec2& size)
     return pressed;
 }
 
-bool ToggledImageButton(const char* str_id, ImTextureID user_texture_id, bool* selected, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col)
-{
-    bool pressed = ToggledImageButton(str_id, user_texture_id, *selected, size, uv0, uv1, bg_col, tint_col);
-    if (*selected) {
-        PopStyleColor();
-    }
-    return pressed;
-}
-
 bool TreeNodeToggleSelection(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i)
 {
     constexpr ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
