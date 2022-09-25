@@ -25,8 +25,9 @@ namespace UnTech::Gui {
 
 namespace RM = UnTech::Rooms;
 
-// DragDrop Payload: unsigned int - index in _entityGraphics.entities
+// DragDrop Payload: index in _entityGraphics.entities
 static const char* const entityDragDropId = "DND_Entity";
+using EntityDragDropType = size_t;
 
 static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 
@@ -817,7 +818,8 @@ void RoomEditorGui::entitiesWindow()
 
                 ImGui::ImageButton("##entity", textureId, size, eg.uvMin, eg.uvMax);
                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                    ImGui::SetDragDropPayload(entityDragDropId, &i, sizeof(decltype(i)));
+                    const EntityDragDropType payload = i;
+                    ImGui::SetDragDropPayload(entityDragDropId, &payload, sizeof(decltype(payload)));
 
                     ImGui::TextUnformatted(eg.name);
                     ImGui::EndDragDropSource();
@@ -860,11 +862,11 @@ void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
         const auto flags = ImGuiDragDropFlags_AcceptNoDrawDefaultRect | ImGuiDragDropFlags_AcceptBeforeDelivery;
 
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(entityDragDropId, flags)) {
-            IM_ASSERT(payload->DataSize == sizeof(unsigned));
+            IM_ASSERT(payload->DataSize == sizeof(EntityDragDropType));
 
-            unsigned entityIndex = *reinterpret_cast<const unsigned*>(payload->Data);
+            auto entityIndex = *reinterpret_cast<const EntityDragDropType*>(payload->Data);
 
-            if (entityIndex < _entityGraphics->entities.size()) {
+            if (entityIndex >= 0 && entityIndex < _entityGraphics->entities.size()) {
                 const auto& ds = _entityGraphics->entities.at(entityIndex);
 
                 const auto pos = _graphics.mousePos();
