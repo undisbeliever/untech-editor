@@ -866,7 +866,8 @@ void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
 
             auto entityIndex = *reinterpret_cast<const EntityDragDropType*>(payload->Data);
 
-            if (entityIndex >= 0 && entityIndex < _entityGraphics->entities.size()) {
+            static_assert(std::is_unsigned_v<EntityDragDropType>);
+            if (entityIndex < _entityGraphics->entities.size()) {
                 const auto& ds = _entityGraphics->entities.at(entityIndex);
 
                 const auto pos = _graphics.mousePos();
