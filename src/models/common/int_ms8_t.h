@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "clampedinteger.h"
 #include <cstdint>
 
 namespace UnTech {
@@ -22,20 +21,38 @@ namespace UnTech {
  *
  * This is much faster than sign extending a byte value in 65816 assembly
  */
-
-class int_ms8_t : public ClampedType<int16_t, -128, 127> {
+class int_ms8_t final {
 public:
+    static constexpr int MIN = -128;
+    static constexpr int MAX = 127;
+
     static constexpr unsigned OFFSET = 128;
+
+    static_assert(MAX - MIN == UINT8_MAX);
+    static_assert(MAX + OFFSET == UINT8_MAX);
+
     static constexpr bool isValid(const int v) { return v >= MIN && v <= MAX; }
 
-    constexpr int_ms8_t() = default;
+    static constexpr int_fast16_t clamp(int v) { return v >= MIN ? (v <= MAX ? v : MAX) : MIN; }
 
+private:
+    int_fast16_t value;
+
+public:
     // cppcheck-suppress noExplicitConstructor
-    constexpr int_ms8_t(const int_fast16_t& v)
-        : ClampedType(v)
+    constexpr int_ms8_t(const int v = 0)
+        : value(clamp(v))
     {
     }
 
-    inline uint8_t romData() const { return *this + OFFSET; }
+    inline operator int_fast16_t() const { return value; }
+
+    inline auto& operator=(const int v)
+    {
+        value = clamp(v);
+        return *this;
+    }
+
+    inline uint8_t romData() const { return value + OFFSET; }
 };
 }

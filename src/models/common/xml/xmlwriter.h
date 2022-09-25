@@ -106,11 +106,10 @@ public:
         }
     }
 
-    template <typename T, T MIN, T MAX>
     inline void writeTagAttribute(const std::u8string_view name,
-                                  const ClampedType<T, MIN, MAX>& v)
+                                  const int_ms8_t& v)
     {
-        writeTagAttribute(name, T(v));
+        writeTagAttribute(name, int(v));
     }
 
     template <typename T>
