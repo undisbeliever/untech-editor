@@ -120,13 +120,12 @@ protected:
     // To be called at the start of `processGui`
     void updateMapAndProcessAnimations();
 
+    // These functions will also create an invisible button to capture mouse events
     // AutoZoom will zoom based on the width of the window
-    Geometry mapGeometry(const usize size, const ImVec2 zoom);
-    Geometry mapGeometryAutoZoom(const usize size);
-    Geometry tilesetGeometry(const ImVec2 zoom);
-    Geometry tilesetGeometryAutoZoom();
-
-    void invisibleButton(const char* label, const Geometry& geo);
+    Geometry mapGeometry(const char* strId, const usize size, const ImVec2 zoom);
+    Geometry mapGeometryAutoZoom(const char* strId, const usize size);
+    Geometry tilesetGeometry(const char* strId, const ImVec2 zoom);
+    Geometry tilesetGeometryAutoZoom(const char* strId);
 
     void tilesetMinimapWindow(const char* label);
 

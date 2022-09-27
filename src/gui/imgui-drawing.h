@@ -11,7 +11,11 @@
 
 namespace UnTech::Gui {
 
-static inline ImVec2 centreOffset(const ImVec2& size)
+// This function preforms 3 different actions:
+//      1) Expand the region if it is smaller than `size` (using an InvisibleButton).
+//      2) Cover the entire region with an InvisibleButton to capture mouse inputs.
+//      3) Calculate the screen offset to draw the canvas to (centering the offset if `size` > content-region).
+static inline ImVec2 captureMouseExpandCanvasAndCalcScreenPos(const char* strId, const ImVec2& size)
 {
     const ImVec2 region = ImGui::GetContentRegionAvail();
 
@@ -22,6 +26,9 @@ static inline ImVec2 centreOffset(const ImVec2& size)
     if (region.y > size.y) {
         offset.y += std::floor((region.y - size.y) / 2);
     }
+
+    ImGui::InvisibleButton(strId, ImVec2(std::max(region.x, size.x), std::max(region.y, size.y)));
+
     return offset;
 }
 

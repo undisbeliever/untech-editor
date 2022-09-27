@@ -270,12 +270,8 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
             ImVec2 drawPos(pos.x * zoom.x + centerOffset.x, pos.y * zoom.y + centerOffset.y);
 
             {
-                constexpr int moveSizeInt = 8;
-
-                const ImVec2 moveSize(moveSizeInt * zoom.x, moveSizeInt * zoom.y);
-
-                ImGui::SetCursorScreenPos(ImVec2(drawPos.x - moveSize.x / 2, drawPos.y - moveSize.y / 2));
-                ImGui::InvisibleButton("Mover", moveSize);
+                // Cover the entire region with an invisible button to capture mouse events
+                ImGui::InvisibleButton("Mover", region);
 
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);

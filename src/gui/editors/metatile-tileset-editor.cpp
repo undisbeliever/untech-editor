@@ -707,8 +707,7 @@ void MetaTileTilesetEditorGui::tilesetWindow()
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        auto geo = tilesetGeometry(Style::metaTileTilesetZoom.zoom());
-        invisibleButton("##Tileset", geo);
+        auto geo = tilesetGeometry("##Tileset", Style::metaTileTilesetZoom.zoom());
         drawTileset(geo);
 
         {
@@ -753,8 +752,7 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        const auto geo = mapGeometry(tileset.scratchpad.size(), Style::metaTileScratchpadZoom.zoom());
-        invisibleButton("##Scratchpad", geo);
+        const auto geo = mapGeometry("##Scratchpad", tileset.scratchpad.size(), Style::metaTileScratchpadZoom.zoom());
         drawAndEditMap(geo);
 
         Style::metaTileScratchpadZoom.processMouseWheel();

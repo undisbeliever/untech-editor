@@ -161,10 +161,7 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
             const ImVec2& zoom = Style::backgroundImageZoom.zoom();
 
             const ImVec2 imageSize(_imageTexture.width() * zoom.x, _imageTexture.height() * zoom.y);
-            const ImVec2 screenOffset = centreOffset(imageSize);
-
-            ImGui::SetCursorScreenPos(screenOffset);
-            ImGui::InvisibleButton("PaletteImage", imageSize);
+            const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("PaletteImage", imageSize);
 
             auto* drawList = ImGui::GetWindowDrawList();
 

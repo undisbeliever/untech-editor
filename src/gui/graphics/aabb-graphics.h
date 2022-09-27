@@ -191,13 +191,11 @@ public:
 
         _zoom = zoom;
         const ImVec2 drawSize(sceneRect.width * zoom.x, sceneRect.height * zoom.y);
-        const ImVec2 screenOffset = centreOffset(drawSize);
+
+        const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos(strId, drawSize);
 
         _sceneOffset = screenOffset - ImVec2(sceneRect.x * zoom.x, sceneRect.y * zoom.y);
         _offset = _sceneOffset;
-
-        ImGui::SetCursorScreenPos(screenOffset);
-        ImGui::InvisibleButton(strId, drawSize);
 
         _mouseScenePos = toPoint(ImGui::GetMousePos());
         _mousePos = _mouseScenePos;

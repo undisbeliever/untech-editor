@@ -180,10 +180,7 @@ void PaletteEditorGui::paletteWindow()
                 constexpr float zoom = 24;
 
                 const ImVec2 imageSize(_imageTexture.width() * zoom, _imageTexture.height() * zoom);
-                const ImVec2 screenOffset = centreOffset(imageSize);
-
-                ImGui::SetCursorScreenPos(screenOffset);
-                ImGui::InvisibleButton("PaletteImage", imageSize);
+                const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("Image", imageSize);
 
                 auto* drawList = ImGui::GetWindowDrawList();
 
@@ -208,9 +205,7 @@ void PaletteEditorGui::paletteWindow()
                 constexpr float zoom = 48;
 
                 const ImVec2 imageSize(_imageTexture.width() * zoom, rowsPerFrame * zoom);
-                const ImVec2 screenOffset = centreOffset(imageSize);
-                ImGui::SetCursorScreenPos(screenOffset);
-                ImGui::InvisibleButton("FrameImage", imageSize);
+                const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("FrameImage", imageSize);
 
                 auto* drawList = ImGui::GetWindowDrawList();
 
