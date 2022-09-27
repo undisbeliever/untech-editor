@@ -707,15 +707,16 @@ void MetaTileTilesetEditorGui::tilesetWindow()
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        auto geo = tilesetGeometry("##Tileset", Style::metaTileTilesetZoom.zoom());
-        drawTileset(geo);
+        const ImVec2& zoom = Style::metaTileTilesetZoom.zoom();
+
+        const ImVec2 offset = drawTileset("##Tileset", zoom);
 
         {
             auto* drawList = ImGui::GetWindowDrawList();
 
-            _invalidTilesCommon.draw(drawList, geo.zoom, geo.offset);
+            _invalidTilesCommon.draw(drawList, zoom, offset);
             if (_data->tilesetFrameSel.selectedIndex() < _invalidTilesFrame.size()) {
-                _invalidTilesFrame.at(_data->tilesetFrameSel.selectedIndex()).draw(drawList, geo.zoom, geo.offset);
+                _invalidTilesFrame.at(_data->tilesetFrameSel.selectedIndex()).draw(drawList, zoom, offset);
             }
         }
 
@@ -729,7 +730,6 @@ void MetaTileTilesetEditorGui::tilesetWindow()
 void MetaTileTilesetEditorGui::scratchpadWindow()
 {
     assert(_data);
-    auto& tileset = _data->data;
 
     ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Scratchpad")) {
@@ -752,8 +752,7 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        const auto geo = mapGeometry("##Scratchpad", tileset.scratchpad.size(), Style::metaTileScratchpadZoom.zoom());
-        drawAndEditMap(geo);
+        drawAndEditMap("##Scratchpad", Style::metaTileScratchpadZoom.zoom());
 
         Style::metaTileScratchpadZoom.processMouseWheel();
 

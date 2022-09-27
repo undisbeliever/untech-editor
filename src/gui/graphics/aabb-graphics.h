@@ -124,6 +124,8 @@ public:
 
     const point& mousePos() const { return _mousePos; }
 
+    const ImVec2& zoom() const { return _zoom; }
+
     upoint mousePosUpoint() const
     {
         if (_mousePos.x >= 0 && _mousePos.y >= 0) {

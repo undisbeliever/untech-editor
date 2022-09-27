@@ -1103,13 +1103,7 @@ void RoomEditorGui::editorWindow()
 
         // ::TODO set initial scroll to position top-left of map ::
 
-        const Geometry geo{
-            ImVec2(METATILE_SIZE_PX * zoom.x, METATILE_SIZE_PX * zoom.y),
-            ImVec2(room.map.width() * METATILE_SIZE_PX * zoom.x, room.map.height() * METATILE_SIZE_PX * zoom.y),
-            _graphics.toVec2(0, 0),
-            zoom
-        };
-        drawAndEditMap(geo);
+        const ImVec2 offset = drawAndEditMap(_graphics);
 
         if (editMode() == EditMode::SelectObjects) {
             drawAndEditObjects(drawList);
@@ -1121,7 +1115,7 @@ void RoomEditorGui::editorWindow()
         _graphics.endLoop(drawList,
                           &_data->entrancesSel, &_data->entityEntriesSel, &_data->scriptTriggersSel);
 
-        _invalidTiles.draw(drawList, geo.zoom, geo.offset);
+        _invalidTiles.draw(drawList, _graphics.zoom(), offset);
 
         // Draw drag+drop entity on top of selected entity outlines
         entityDropTarget(drawList);

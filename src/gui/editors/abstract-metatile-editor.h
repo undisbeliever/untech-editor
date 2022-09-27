@@ -17,6 +17,8 @@
 
 namespace UnTech::Gui {
 
+class AabbGraphics;
+
 class AbstractMetaTileEditorData : public AbstractExternalFileEditorData {
 public:
     friend class AbstractMetaTileEditorGui;
@@ -43,6 +45,8 @@ class AbstractMetaTileEditorGui : public AbstractEditorGui {
     const static usize TILESET_TEXTURE_SIZE;
 
 public:
+    struct Geometry;
+
     enum class EditMode {
         None,
         SelectObjects,
@@ -51,20 +55,6 @@ public:
         // ::TODO add eraser cursor::
         // ::TODO add random cursor::
         // ::TODO add slope tiles cursor::
-    };
-
-    struct Geometry {
-        ImVec2 tileSize;
-        ImVec2 mapSize;
-        ImVec2 offset;
-        ImVec2 zoom;
-
-        point toTilePos(const ImVec2 globalPos) const;
-        point toTilePos(const ImVec2 globalPos, const usize cursorSize) const;
-
-        ImVec2 tilePosToVec2(const unsigned x, const unsigned y) const;
-        ImVec2 tilePosToVec2(const upoint pos) const;
-        ImVec2 tilePosToVec2(const point pos) const;
     };
 
     struct CursorState {
@@ -120,13 +110,6 @@ protected:
     // To be called at the start of `processGui`
     void updateMapAndProcessAnimations();
 
-    // These functions will also create an invisible button to capture mouse events
-    // AutoZoom will zoom based on the width of the window
-    Geometry mapGeometry(const char* strId, const usize size, const ImVec2 zoom);
-    Geometry mapGeometryAutoZoom(const char* strId, const usize size);
-    Geometry tilesetGeometry(const char* strId, const ImVec2 zoom);
-    Geometry tilesetGeometryAutoZoom(const char* strId);
-
     void tilesetMinimapWindow(const char* label);
 
     void minimapWindow(const char* label);
@@ -135,9 +118,11 @@ protected:
     bool scratchpadMinimapWindow(const char* label, const Shaders::MtTilemap& tilemap,
                                  const grid<uint8_t>& mapData, upoint_vectorset* sel);
 
-    // The previous Dear ImGui item must be an invisible button that covers the entire map
-    void drawTileset(const Geometry& geo);
-    void drawAndEditMap(const Geometry& geo);
+    // These functions with a `strId` argument will create an InvisibleButton that covers the entire map.
+    // Return the screen position of the tileset/map
+    ImVec2 drawTileset(const char* strId, const ImVec2 zoom);
+    ImVec2 drawAndEditMap(const char* strId, const ImVec2 zoom);
+    ImVec2 drawAndEditMap(const AabbGraphics& graphics);
 
     void animationButtons();
     bool selectObjectsButton();
@@ -153,6 +138,9 @@ protected:
     void abandonPlacedTiles();
 
 private:
+    void drawAndEditMap(const Geometry& geo);
+
+    void drawTileset(const Geometry& geo);
     void drawTilemap(const Shaders::MtTilemap& tilemap, const Geometry& geo);
     void drawSelection(const upoint_vectorset& selection, const Geometry& geo);
     void drawGrid(ImDrawList* drawList, const Geometry& geo);
