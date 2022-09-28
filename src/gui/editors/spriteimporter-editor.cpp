@@ -503,6 +503,8 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
         ImGui::Separator();
         ImGui::Spacing();
 
+        ImGui::BeginChild("Scroll");
+
         if (_data->framesSel.selectedIndex() < fs.frames.size()) {
             SI::Frame& frame = fs.frames.at(_data->framesSel.selectedIndex());
 
@@ -524,116 +526,115 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &SI::Frame::spriteOrder>(_data);
                 }
+            }
 
-                if (ImGui::TreeNodeEx("Location", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    {
-                        bool useGridLocation = !frame.locationOverride.has_value();
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+            {
+                bool useGridLocation = !frame.locationOverride.has_value();
 
-                        bool loEdited = ImGui::Checkbox("Use Grid Location", &useGridLocation);
-                        if (loEdited) {
-                            if (useGridLocation) {
-                                frame.locationOverride = std::nullopt;
-                            }
-                            else {
-                                frame.locationOverride = frameAabb;
-                            }
-                        }
+                bool loEdited = ImGui::Checkbox("Use Grid Location", &useGridLocation);
+                if (loEdited) {
+                    if (useGridLocation) {
+                        frame.locationOverride = std::nullopt;
+                    }
+                    else {
+                        frame.locationOverride = frameAabb;
+                    }
+                }
 
-                        if (useGridLocation) {
-                            ImGui::InputUpoint("Grid Location", &frame.gridLocation, usize(UINT8_MAX, UINT8_MAX));
-                            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                                ListActions<AP::Frames_EditName>::selectedFieldEdited<&SI::Frame::gridLocation>(_data);
-                            }
-
-                            ImGui::LabelText("AABB", "%u, %u  %u x %u", frameAabb.x, frameAabb.y, frameAabb.width, frameAabb.height);
-                        }
-                        else {
-                            ImGui::LabelText("Grid Location", " ");
-
-                            const auto& imgSize = _imageTexture.size();
-                            const usize bounds = (imgSize.width != 0 && imgSize.height != 0) ? imgSize : usize(4096, 4096);
-
-                            ImGui::InputUrect("AABB", &frame.locationOverride.value(), bounds);
-                            loEdited |= ImGui::IsItemDeactivatedAfterEdit();
-                        }
-
-                        if (loEdited) {
-                            ListActions<AP::Frames>::selectedFieldEdited<
-                                &SI::Frame::locationOverride>(_data);
-                        }
+                if (useGridLocation) {
+                    ImGui::InputUpoint("Grid Location", &frame.gridLocation, usize(UINT8_MAX, UINT8_MAX));
+                    if (ImGui::IsItemDeactivatedAfterEdit()) {
+                        ListActions<AP::Frames_EditName>::selectedFieldEdited<&SI::Frame::gridLocation>(_data);
                     }
 
-                    {
-                        bool useGridOrigin = !frame.originOverride.has_value();
+                    ImGui::LabelText("AABB", "%u, %u  %u x %u", frameAabb.x, frameAabb.y, frameAabb.width, frameAabb.height);
+                }
+                else {
+                    ImGui::LabelText("Grid Location", " ");
 
-                        bool edited = ImGui::Checkbox("Use Grid Origin", &useGridOrigin);
-                        if (edited) {
-                            if (useGridOrigin) {
-                                frame.originOverride = std::nullopt;
-                            }
-                            else {
-                                frame.originOverride = fs.grid.origin;
-                            }
-                        }
+                    const auto& imgSize = _imageTexture.size();
+                    const usize bounds = (imgSize.width != 0 && imgSize.height != 0) ? imgSize : usize(4096, 4096);
 
-                        if (frame.originOverride.has_value() == false) {
-                            ImGui::LabelText("Origin", "%u, %u", fs.grid.origin.x, fs.grid.origin.y);
-                        }
-                        else {
-                            ImGui::InputUpoint("Origin", &frame.originOverride.value(), originRange(frameAabb.size()));
-                            edited |= ImGui::IsItemDeactivatedAfterEdit();
-                        }
+                    ImGui::InputUrect("AABB", &frame.locationOverride.value(), bounds);
+                    loEdited |= ImGui::IsItemDeactivatedAfterEdit();
+                }
 
-                        if (edited) {
-                            ListActions<AP::Frames>::selectedFieldEdited<
-                                &SI::Frame::originOverride>(_data);
-                        }
+                if (loEdited) {
+                    ListActions<AP::Frames>::selectedFieldEdited<
+                        &SI::Frame::locationOverride>(_data);
+                }
+            }
+
+            {
+                bool useGridOrigin = !frame.originOverride.has_value();
+
+                bool edited = ImGui::Checkbox("Use Grid Origin", &useGridOrigin);
+                if (edited) {
+                    if (useGridOrigin) {
+                        frame.originOverride = std::nullopt;
                     }
+                    else {
+                        frame.originOverride = fs.grid.origin;
+                    }
+                }
 
-                    ImGui::TreePop();
+                if (frame.originOverride.has_value() == false) {
+                    ImGui::LabelText("Origin", "%u, %u", fs.grid.origin.x, fs.grid.origin.y);
+                }
+                else {
+                    ImGui::InputUpoint("Origin", &frame.originOverride.value(), originRange(frameAabb.size()));
+                    edited |= ImGui::IsItemDeactivatedAfterEdit();
+                }
+
+                if (edited) {
+                    ListActions<AP::Frames>::selectedFieldEdited<
+                        &SI::Frame::originOverride>(_data);
                 }
             }
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
 
+            collisionBox<&SI::Frame::tileHitbox>("Tile Hitbox", frame, frameSize, &_data->tileHitboxSel);
+            collisionBox<&SI::Frame::shield>("Shield", frame, frameSize, &_data->shieldSel);
+            collisionBox<&SI::Frame::hitbox>("Entity Hitbox", frame, frameSize, &_data->hitboxSel);
+            collisionBox<&SI::Frame::hurtbox>("Entity Hurtbox", frame, frameSize, &_data->hurtboxSel);
+
+            ImGui::Spacing();
             {
-                ImGui::BeginChild("FC Scroll");
+                ImGui::TextUnformatted(u8"Objects:");
+                ImGui::Indent();
 
-                collisionBox<&SI::Frame::tileHitbox>("Tile Hitbox", frame, frameSize, &_data->tileHitboxSel);
-                collisionBox<&SI::Frame::shield>("Shield", frame, frameSize, &_data->shieldSel);
-                collisionBox<&SI::Frame::hitbox>("Entity Hitbox", frame, frameSize, &_data->hitboxSel);
-                collisionBox<&SI::Frame::hurtbox>("Entity Hurtbox", frame, frameSize, &_data->hurtboxSel);
+                apTable_noScrolling<AP::FrameObjects>(
+                    "Objects", _data,
+                    std::to_array({ "Location", "Size" }),
 
-                if (ImGui::TreeNodeEx("Objects", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
-                    ImGui::Indent();
+                    [&](auto& obj) { return Cell("##location", &obj.location, frameSize, usize(obj.sizePx(), obj.sizePx())); },
+                    [&](auto& obj) { return Cell("##size", &obj.size); });
 
-                    apTable_noScrolling<AP::FrameObjects>(
-                        "Objects", _data,
-                        std::to_array({ "Location", "Size" }),
+                ImGui::Unindent();
+            }
 
-                        [&](auto& obj) { return Cell("##location", &obj.location, frameSize, usize(obj.sizePx(), obj.sizePx())); },
-                        [&](auto& obj) { return Cell("##size", &obj.size); });
+            ImGui::Spacing();
+            {
+                ImGui::TextUnformatted(u8"Action Points:");
+                ImGui::Indent();
 
-                    ImGui::Unindent();
-                }
+                apTable_noScrolling<AP::ActionPoints>(
+                    "AP", _data,
+                    std::to_array({ "Location", "Type" }),
 
-                if (ImGui::TreeNodeEx("Action Points", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
-                    ImGui::Indent();
+                    [&](auto& ap) { return Cell("##location", &ap.location, frameSize); },
+                    [&](auto& ap) { return Cell("##type", &ap.type, projectFile.actionPointFunctions); });
 
-                    apTable_noScrolling<AP::ActionPoints>(
-                        "AP", _data,
-                        std::to_array({ "Location", "Type" }),
-
-                        [&](auto& ap) { return Cell("##location", &ap.location, frameSize); },
-                        [&](auto& ap) { return Cell("##type", &ap.type, projectFile.actionPointFunctions); });
-
-                    ImGui::Unindent();
-                }
-
-                ImGui::EndChild();
+                ImGui::Unindent();
             }
         }
+
+        ImGui::EndChild();
     }
     ImGui::End();
 }

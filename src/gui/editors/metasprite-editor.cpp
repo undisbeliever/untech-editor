@@ -556,6 +556,8 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
         ImGui::Separator();
         ImGui::Spacing();
 
+        ImGui::BeginChild("Scroll");
+
         if (_data->framesSel.selectedIndex() < fs.frames.size()) {
             MS::Frame& frame = fs.frames.at(_data->framesSel.selectedIndex());
 
@@ -579,51 +581,51 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
             ImGui::Separator();
             ImGui::Spacing();
 
+            collisionBox<&MS::Frame::tileHitbox>("Tile Hitbox", frame, &_data->tileHitboxSel);
+            collisionBox<&MS::Frame::shield>("Shield", frame, &_data->shieldSel);
+            collisionBox<&MS::Frame::hitbox>("Entity Hitbox", frame, &_data->hitboxSel);
+            collisionBox<&MS::Frame::hurtbox>("Entity Hurtbox", frame, &_data->hurtboxSel);
+
+            ImGui::Spacing();
             {
-                ImGui::BeginChild("FC Scroll");
+                ImGui::TextUnformatted(u8"Objects:");
+                ImGui::Indent();
 
-                collisionBox<&MS::Frame::tileHitbox>("Tile Hitbox", frame, &_data->tileHitboxSel);
-                collisionBox<&MS::Frame::shield>("Shield", frame, &_data->shieldSel);
-                collisionBox<&MS::Frame::hitbox>("Entity Hitbox", frame, &_data->hitboxSel);
-                collisionBox<&MS::Frame::hurtbox>("Entity Hurtbox", frame, &_data->hurtboxSel);
+                const unsigned maxSmallTileId = std::max<size_t>(1, fs.smallTileset.size()) - 1;
+                const unsigned maxLargeTileId = std::max<size_t>(1, fs.largeTileset.size()) - 1;
 
-                if (ImGui::TreeNodeEx("Objects", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
-                    ImGui::Indent();
+                apTable_noScrolling<AP::FrameObjects>(
+                    "Objects", _data,
+                    std::to_array({ "Location", "Size", "Tile ID", "Flip" }),
 
-                    const unsigned maxSmallTileId = std::max<size_t>(1, fs.smallTileset.size()) - 1;
-                    const unsigned maxLargeTileId = std::max<size_t>(1, fs.largeTileset.size()) - 1;
+                    [&](auto& obj) { return Cell("##location", &obj.location); },
+                    [&](auto& obj) { return Cell("##size", &obj.size); },
+                    [&](auto& obj) {
+                        const unsigned maxTileId = (obj.size == ObjectSize::SMALL) ? maxSmallTileId : maxLargeTileId;
+                        return Cell("##tileId", &obj.tileId, maxTileId);
+                    },
+                    [&](auto& obj) { return Cell_FlipCombo("##flip", &obj.hFlip, &obj.vFlip); });
 
-                    apTable_noScrolling<AP::FrameObjects>(
-                        "Objects", _data,
-                        std::to_array({ "Location", "Size", "Tile ID", "Flip" }),
+                ImGui::Unindent();
+            }
 
-                        [&](auto& obj) { return Cell("##location", &obj.location); },
-                        [&](auto& obj) { return Cell("##size", &obj.size); },
-                        [&](auto& obj) {
-                            const unsigned maxTileId = (obj.size == ObjectSize::SMALL) ? maxSmallTileId : maxLargeTileId;
-                            return Cell("##tileId", &obj.tileId, maxTileId);
-                        },
-                        [&](auto& obj) { return Cell_FlipCombo("##flip", &obj.hFlip, &obj.vFlip); });
+            ImGui::Spacing();
+            {
+                ImGui::TextUnformatted(u8"Action Points:");
+                ImGui::Indent();
 
-                    ImGui::Unindent();
-                }
+                apTable_noScrolling<AP::ActionPoints>(
+                    "AP", _data,
+                    std::to_array({ "Location", "Type" }),
 
-                if (ImGui::TreeNodeEx("Action Points", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
-                    ImGui::Indent();
+                    [&](auto& ap) { return Cell("##location", &ap.location); },
+                    [&](auto& ap) { return Cell("##type", &ap.type, projectFile.actionPointFunctions); });
 
-                    apTable_noScrolling<AP::ActionPoints>(
-                        "AP", _data,
-                        std::to_array({ "Location", "Type" }),
-
-                        [&](auto& ap) { return Cell("##location", &ap.location); },
-                        [&](auto& ap) { return Cell("##type", &ap.type, projectFile.actionPointFunctions); });
-
-                    ImGui::Unindent();
-                }
-
-                ImGui::EndChild();
+                ImGui::Unindent();
             }
         }
+
+        ImGui::EndChild();
     }
     ImGui::End();
 }
