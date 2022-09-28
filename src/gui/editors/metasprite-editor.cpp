@@ -590,8 +590,8 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                 if (ImGui::TreeNodeEx("Objects", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     ImGui::Indent();
 
-                    const unsigned nSmallTiles = fs.smallTileset.size();
-                    const unsigned nLargeTiles = fs.smallTileset.size();
+                    const unsigned maxSmallTileId = std::max<size_t>(1, fs.smallTileset.size()) - 1;
+                    const unsigned maxLargeTileId = std::max<size_t>(1, fs.largeTileset.size()) - 1;
 
                     apTable_noScrolling<AP::FrameObjects>(
                         "Objects", _data,
@@ -600,8 +600,8 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                         [&](auto& obj) { return Cell("##location", &obj.location); },
                         [&](auto& obj) { return Cell("##size", &obj.size); },
                         [&](auto& obj) {
-                            const unsigned nTiles = (obj.size == ObjectSize::SMALL) ? nSmallTiles : nLargeTiles;
-                            return Cell("##tileId", &obj.tileId, nTiles);
+                            const unsigned maxTileId = (obj.size == ObjectSize::SMALL) ? maxSmallTileId : maxLargeTileId;
+                            return Cell("##tileId", &obj.tileId, maxTileId);
                         },
                         [&](auto& obj) { return Cell_FlipCombo("##flip", &obj.hFlip, &obj.vFlip); });
 
