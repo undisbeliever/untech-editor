@@ -5,20 +5,12 @@
  */
 
 #include "frameset-export-order-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
 #include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "models/metasprite/metasprite-error.h"
 
 namespace UnTech::Gui {
-
-static const char* flipItems[] = {
-    "",
-    "hFlip",
-    "vFlip",
-    "hvFlip",
-};
 
 struct FrameSetExportOrderEditorData::AP {
     struct ExportOrder {
@@ -194,89 +186,83 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label)
     assert(_data);
     auto& exportOrder = _data->data;
 
-    const auto indentSpacing = ImGui::GetStyle().IndentSpacing;
-
     ImGui::Spacing();
     ImGui::Spacing();
     if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen)) {
-        // Putting this code outside the `label` scope allows me to resize
-        // both "tables" at the same time.
-        ImGui::Columns(3);
-        ImGui::SetColumnWidth(0, 50);
-        ImGui::SetColumnWidth(1, 300);
 
-        ImGui::Separator();
+        constexpr auto columnNames = std::to_array({ "Name", "Flip" });
 
-        ImGui::PushID(label);
+        if (beginApTable_noScrolling("Table", columnNames)) {
+            auto* list = ExportNameAP::getList(exportOrder);
+            assert(list);
 
-        auto* list = ExportNameAP::getList(exportOrder);
-        assert(list);
+            // This table cannot be built with `apTable_data()`
+            // (`apTable_data()` can only build flat tables).
 
-        for (auto [i, en] : enumerate(*list)) {
-            ImGui::PushID(i);
+            for (auto [i, en] : enumerate(*list)) {
+                ImGui::TableNextRow();
 
-            if (ImGui::Selectable(&sel, i)) {
-                // unselect the other items
-                (_data->*OtherNameAP::SelectionPtr).clearSelection();
-            }
-            ImGui::NextColumn();
+                ImGui::PushID(i);
 
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &en.name);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                ListActions<ExportNameAP>::template fieldEdited<&ExportName::name>(_data, i);
-            }
-            ImGui::NextColumn();
+                {
+                    bool edited = false;
 
-            if (sel.isSelected(i)) {
-                ListButtons<AltAP>(_data);
-            }
-            ImGui::NextColumn();
+                    ImGui::TableNextColumn();
+                    ImGui::Selectable(&sel, i);
 
-            for (auto [j, alt] : enumerate(en.alternatives)) {
-                bool edited = false;
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-1);
+                    edited |= Cell("##Name", &en.name);
 
-                ImGui::PushID(j);
+                    if (sel.isSelected(i)) {
+                        ImGui::TableNextColumn();
+                        ListButtons<AltAP>(_data);
+                    }
 
-                ImGui::Indent(indentSpacing / 2);
-                if (ImGui::Selectable(&sel, &altSel, i, j)) {
-                    // unselect the other items
-                    (_data->*OtherNameAP::SelectionPtr).clearSelection();
+                    if (edited) {
+                        ListActions<ExportNameAP>::template fieldEdited<&ExportName::name>(_data, i);
+                    }
                 }
-                ImGui::Unindent(indentSpacing / 2);
-                ImGui::NextColumn();
 
-                ImGui::Text("  Alt:");
-                ImGui::SameLine();
+                ImGui::Indent();
 
-                ImGui::SetNextItemWidth(-1);
-                ImGui::InputIdstring("##Name", &alt.name);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-                ImGui::NextColumn();
+                for (auto [j, alt] : enumerate(en.alternatives)) {
+                    ImGui::TableNextRow();
+                    ImGui::PushID(j);
 
-                ImGui::SetNextItemWidth(-1);
-                int flip = (alt.vFlip << 1) | alt.hFlip;
-                if (ImGui::Combo("##Alt", &flip, flipItems, IM_ARRAYSIZE(flipItems))) {
-                    alt.hFlip = flip & 1;
-                    alt.vFlip = flip & 2;
-                    edited = true;
+                    bool edited = false;
+
+                    ImGui::TableNextColumn();
+                    if (ImGui::Selectable(&sel, &altSel, i, j)) {
+                        // unselect the other items
+                        (_data->*OtherNameAP::SelectionPtr).clearSelection();
+                    }
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("  Alt:");
+                    ImGui::SameLine();
+
+                    ImGui::SetNextItemWidth(-1);
+                    edited |= Cell("##Name", &alt.name);
+
+                    ImGui::TableNextColumn();
+                    ImGui::SetNextItemWidth(-1);
+                    edited |= Cell_FlipCombo("##Flip", &alt.hFlip, &alt.vFlip);
+
+                    if (edited) {
+                        ListActions<AltAP>::itemEdited(_data, i, j);
+                    }
+
+                    ImGui::PopID();
                 }
-                ImGui::NextColumn();
 
-                if (edited) {
-                    ListActions<AltAP>::itemEdited(_data, i, j);
-                }
+                ImGui::Unindent();
 
                 ImGui::PopID();
             }
-            ImGui::Separator();
 
-            ImGui::PopID();
+            endApTable();
         }
-
-        ImGui::Columns(1);
-
-        ImGui::PopID();
     }
 }
 

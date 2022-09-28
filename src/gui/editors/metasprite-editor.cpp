@@ -646,34 +646,36 @@ void MetaSpriteEditorGui::palettesWindow()
     ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Palettes##MS")) {
 
-        {
-            ListButtons<AP::Palettes>(_data);
+        ListButtons<AP::Palettes>(_data);
 
-            const float scrollHeight = ImGui::GetWindowHeight() - ImGui::GetCursorPosY() - style.WindowPadding.y - colorButtonsHeight;
-            ImGui::BeginChild("Scroll", ImVec2(0, scrollHeight));
+        const float scrollHeight = ImGui::GetWindowHeight() - ImGui::GetCursorPosY() - style.WindowPadding.y - colorButtonsHeight;
+        constexpr auto tableFlags = ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollY;
 
-            ImGui::Columns(2);
-            ImGui::SetColumnWidth(0, 40);
-
+        if (ImGui::BeginTable("Palettes", 2, tableFlags, ImVec2(0, scrollHeight))) {
             const int palColorSize = ImGui::GetFontSize();
             const ImVec2 palSize(palColorSize * PALETTE_TEXTURE_WIDTH, palColorSize);
             ImVec2 palUv0(0, 0);
             ImVec2 palUv1 = _paletteUvSize;
 
-            for (const auto i : range(fs.palettes.size())) {
-                ImGui::Selectable(&_data->palettesSel, i, ImGuiSelectableFlags_SpanAllColumns);
-                ImGui::NextColumn();
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, palSize.x + 8.0f);
 
+            for (const auto i : range(fs.palettes.size())) {
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
+                ImGui::Selectable(&_data->palettesSel, i, ImGuiSelectableFlags_SpanAllColumns);
+
+                ImGui::TableNextColumn();
                 if (i < PALETTE_TEXTURE_HEIGHT) {
                     ImGui::Image(_paletteTexture.imguiTextureId(), palSize, palUv0, palUv1);
                 }
-                ImGui::NextColumn();
 
                 palUv0.y += _paletteUvSize.y;
                 palUv1.y += _paletteUvSize.y;
             }
 
-            ImGui::EndChild();
+            ImGui::EndTable();
         }
         ImGui::Spacing();
 
