@@ -5,10 +5,7 @@
  */
 
 #include "entity-rom-data-editor.h"
-#include "gui/imgui-combos.h"
-#include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
+#include "gui/aptable.h"
 #include "models/common/iterators.h"
 #include "models/entity/entityromdata-error.h"
 
@@ -219,47 +216,14 @@ void EntityRomDataEditorGui::editorClosed()
 void EntityRomDataEditorGui::listIdsWindow()
 {
     assert(_data);
-    auto& entityRomData = _data->entityRomData;
 
     ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("EntityListIds")) {
+        apTable<AP::ListIds>(
+            "ListIds", _data,
+            std::to_array({ "Name" }),
 
-        ListButtons<AP::ListIds>(_data);
-
-        ImGui::BeginChild("Scroll");
-
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, 40);
-
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-
-        for (auto [i, listId] : enumerate(entityRomData.listIds)) {
-            bool edited = false;
-
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->listIdsSel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &listId);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            if (edited) {
-                ListActions<AP::ListIds>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
+            [&](auto& listId) { return Cell("##name", &listId); });
     }
     ImGui::End();
 }
@@ -317,85 +281,40 @@ void EntityRomDataEditorGui::structsWindow()
 
                 ImGui::Separator();
 
-                {
-                    ListButtons<AP::StructFields>(_data);
+                ListButtons<AP::StructFields>(_data);
 
-                    ImGui::BeginChild("Scroll");
-
-                    ImGui::Columns(5);
-                    ImGui::SetColumnWidth(0, 40);
-
-                    ImGui::Separator();
-                    ImGui::NextColumn();
-                    ImGui::Text("Name");
-                    ImGui::NextColumn();
-                    ImGui::Text("Type");
-                    ImGui::NextColumn();
-                    ImGui::Text("Default Value");
-                    ImGui::NextColumn();
-                    ImGui::Text("Comment");
-                    ImGui::NextColumn();
-
+                constexpr auto columnNames = std::to_array({ "Name", "Type", "Default Value", "Comment" });
+                if (beginApTable("Table", columnNames)) {
                     const auto parentChain = generateStructChain(st.parent);
 
                     for (const auto& parentIndex : reverse(parentChain)) {
                         const auto& parent = entityRomData.structs.at(parentIndex);
 
                         for (auto [i, field] : enumerate(parent.fields)) {
-                            ImGui::NextColumn();
+                            ImGui::TableNextColumn();
 
+                            ImGui::TableNextColumn();
                             ImGui::TextUnformatted(field.name);
-                            ImGui::NextColumn();
 
+                            ImGui::TableNextColumn();
                             ImGui::TextEnum(field.type);
-                            ImGui::NextColumn();
 
+                            ImGui::TableNextColumn();
                             ImGui::TextUnformatted(field.defaultValue);
-                            ImGui::NextColumn();
 
+                            ImGui::TableNextColumn();
                             ImGui::TextUnformatted(field.comment);
-                            ImGui::NextColumn();
                         }
                     }
 
-                    for (auto [i, field] : enumerate(st.fields)) {
-                        bool edited = false;
+                    apTable_data<AP::StructFields>(
+                        _data,
+                        [&](auto& sf) { return Cell("##Name", &sf.name); },
+                        [&](auto& sf) { return Cell("##Type", &sf.type); },
+                        [&](auto& sf) { return Cell("##Default Value", &sf.defaultValue); },
+                        [&](auto& sf) { return Cell("##Comment", &sf.comment); });
 
-                        ImGui::PushID(i);
-
-                        ImGui::Selectable(&_data->structFieldsSel, i);
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::InputIdstring("##Name", &field.name);
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        edited |= ImGui::EnumCombo("##Type", &field.type);
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::InputText("##Default Value", &field.defaultValue);
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::InputText("##Comment", &field.comment);
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                        ImGui::NextColumn();
-
-                        if (edited) {
-                            ListActions<AP::StructFields>::selectedListItemEdited(_data, i);
-                        }
-
-                        ImGui::PopID();
-                    }
-
-                    ImGui::Columns(1);
-                    ImGui::Separator();
-
-                    ImGui::EndChild();
+                    ImGui::EndTable();
                 }
             }
         }
@@ -413,74 +332,16 @@ void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::Project
     ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Entity Function Tables")) {
 
-        ListButtons<AP::FunctionTables>(_data);
+        apTable<AP::FunctionTables>(
+            "Table", _data,
+            std::to_array({ "Name", "EntityType", "EntityStruct", "FS Export Order", "Parameter Type", "Comment" }),
 
-        ImGui::BeginChild("Scroll");
-
-        ImGui::Columns(7);
-        // ImGui::SetColumnWidth(0, 40);
-
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-        ImGui::Text("Entity Type");
-        ImGui::NextColumn();
-        ImGui::Text("Struct");
-        ImGui::NextColumn();
-        ImGui::Text("FS Export Order");
-        ImGui::NextColumn();
-        ImGui::Text("Parameter Type");
-        ImGui::NextColumn();
-        ImGui::Text("Comment");
-        ImGui::NextColumn();
-        ImGui::Separator();
-
-        for (auto [i, ft] : enumerate(entityRomData.functionTables)) {
-            bool edited = false;
-
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->functionTablesSel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &ft.name);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::EnumCombo("##EntityType", &ft.entityType);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::IdStringCombo("##EntityStruct", &ft.entityStruct, entityRomData.structs, true);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::IdStringCombo("##ExportOrder", &ft.exportOrder, projectFile.frameSetExportOrders);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::EnumCombo("##ParameterType", &ft.parameterType);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputText("##Comment", &ft.comment);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            if (edited) {
-                ListActions<AP::FunctionTables>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
+            [&](auto& ft) { return Cell("##Name", &ft.name); },
+            [&](auto& ft) { return Cell("##EntityType", &ft.entityType); },
+            [&](auto& ft) { return Cell("##EntityStruct", &ft.entityStruct, entityRomData.structs, true); },
+            [&](auto& ft) { return Cell("##ExportOrder", &ft.exportOrder, projectFile.frameSetExportOrders); },
+            [&](auto& ft) { return Cell("##ParameterType", &ft.parameterType); },
+            [&](auto& ft) { return Cell("##Comment", &ft.comment); });
     }
     ImGui::End();
 }

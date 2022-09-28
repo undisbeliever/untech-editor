@@ -5,10 +5,9 @@
  */
 
 #include "bytecode-editor.h"
+#include "gui/aptable.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "models/common/iterators.h"
 #include "models/scripting/scripting-error.h"
 
@@ -110,74 +109,34 @@ void BytecodeEditorGui::instructionsWindow()
 
         ListButtons<AP::Instructions>(_data);
 
-        ImGui::BeginChild("Scroll");
+        constexpr auto columnNames = std::to_array({ "Name", "Argument 1", "Argument 2", "Yields" });
 
-        ImGui::Columns(5);
-        ImGui::SetColumnWidth(0, 40);
+        if (beginApTable("Table", columnNames)) {
+            for (auto& inst : bytecode.BASE_INSTRUCTIONS) {
+                ImGui::TableNextColumn();
 
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-        ImGui::Text("Argument 1");
-        ImGui::NextColumn();
-        ImGui::Text("Argument 2");
-        ImGui::NextColumn();
-        ImGui::Text("Yields");
-        ImGui::NextColumn();
-        ImGui::Separator();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(inst.name);
 
-        for (auto& inst : bytecode.BASE_INSTRUCTIONS) {
-            ImGui::NextColumn();
+                for (auto& a : inst.arguments) {
+                    ImGui::TableNextColumn();
+                    ImGui::TextEnum(a);
+                }
 
-            ImGui::TextUnformatted(inst.name);
-            ImGui::NextColumn();
-
-            for (auto& a : inst.arguments) {
-                ImGui::TextEnum(a);
-                ImGui::NextColumn();
+                ImGui::TableNextColumn();
+                bool yields = inst.yields;
+                ImGui::Checkbox("Yields", &yields);
             }
 
-            bool yields = inst.yields;
-            ImGui::Checkbox("Yields", &yields);
-            ImGui::NextColumn();
+            apTable_data<AP::Instructions>(
+                _data,
+                [&](auto& inst) { return Cell("##Name", &inst.name); },
+                [&](auto& inst) { return Cell("##Arg1", &inst.arguments.at(0)); },
+                [&](auto& inst) { return Cell("##Arg2", &inst.arguments.at(1)); },
+                [&](auto& inst) { return Cell("Yields", &inst.yields); });
+
+            endApTable();
         }
-
-        ImGui::Separator();
-
-        for (auto [i, inst] : enumerate(bytecode.instructions)) {
-            bool edited = false;
-
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->instructionSel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &inst.name);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            edited |= ImGui::EnumCombo("##Arg1", &inst.arguments.at(0));
-            ImGui::NextColumn();
-
-            edited |= ImGui::EnumCombo("##Arg2", &inst.arguments.at(1));
-            ImGui::NextColumn();
-
-            edited |= ImGui::Checkbox("Yields", &inst.yields);
-            ImGui::NextColumn();
-
-            if (edited) {
-                ListActions<AP::Instructions>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
     }
     ImGui::End();
 }

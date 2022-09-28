@@ -5,12 +5,10 @@
  */
 
 #include "spriteimporter-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
-#include "gui/imgui-combos.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "models/common/bit.h"
 #include "models/common/imagecache.h"
@@ -600,8 +598,6 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
             ImGui::Spacing();
 
             {
-                CombinedListButtons<AP::FrameObjects, AP::ActionPoints>("FC_Buttons", _data);
-
                 ImGui::BeginChild("FC Scroll");
 
                 collisionBox<&SI::Frame::tileHitbox>("Tile Hitbox", frame, frameSize, &_data->tileHitboxSel);
@@ -609,86 +605,29 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                 collisionBox<&SI::Frame::hitbox>("Entity Hitbox", frame, frameSize, &_data->hitboxSel);
                 collisionBox<&SI::Frame::hurtbox>("Entity Hurtbox", frame, frameSize, &_data->hurtboxSel);
 
-                // Indent required to prevent a glitch when the columns are resized
-                ImGui::Indent();
-                ImGui::Columns(3);
-                ImGui::SetColumnWidth(0, 40);
-                ImGui::SetColumnWidth(1, 150);
-                ImGui::Unindent();
-                ImGui::Columns(1);
-
                 if (ImGui::TreeNodeEx("Objects", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     ImGui::Indent();
-                    ImGui::Columns(3);
-                    ImGui::PushID("Obj");
 
-                    for (auto [i, obj] : enumerate(frame.objects)) {
-                        bool edited = false;
+                    apTable_noScrolling<AP::FrameObjects>(
+                        "Objects", _data,
+                        std::to_array({ "Location", "Size" }),
 
-                        ImGui::PushID(i);
+                        [&](auto& obj) { return Cell("##location", &obj.location, frameSize, usize(obj.sizePx(), obj.sizePx())); },
+                        [&](auto& obj) { return Cell("##size", &obj.size); });
 
-                        ImGui::Selectable(&_data->frameObjectsSel, i);
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::InputUpoint("##location", &obj.location, frameSize, usize(obj.sizePx(), obj.sizePx()));
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        edited |= ImGui::EnumCombo("##size", &obj.size);
-                        ImGui::NextColumn();
-
-                        if (edited) {
-                            ListActions<AP::FrameObjects>::selectedListItemEdited(_data, i);
-                        }
-
-                        ImGui::PopID();
-                    }
-
-                    ImGui::PopID();
-                    ImGui::Columns(1);
                     ImGui::Unindent();
                 }
 
                 if (ImGui::TreeNodeEx("Action Points", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     ImGui::Indent();
-                    ImGui::Columns(3);
-                    ImGui::PushID("AP");
 
-                    for (auto [i, ap] : enumerate(frame.actionPoints)) {
-                        bool edited = false;
+                    apTable_noScrolling<AP::ActionPoints>(
+                        "AP", _data,
+                        std::to_array({ "Location", "Type" }),
 
-                        ImGui::PushID(i);
+                        [&](auto& ap) { return Cell("##location", &ap.location, frameSize); },
+                        [&](auto& ap) { return Cell("##type", &ap.type, projectFile.actionPointFunctions); });
 
-                        ImGui::Selectable(&_data->actionPointsSel, i);
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::InputUpoint("##location", &ap.location, frameSize);
-                        edited |= ImGui::IsItemDeactivatedAfterEdit();
-                        ImGui::NextColumn();
-
-                        ImGui::SetNextItemWidth(-1);
-                        edited |= ImGui::IdStringCombo("##type", &ap.type, projectFile.actionPointFunctions);
-                        if (ImGui::IsItemHovered()) {
-                            if (ap.type.isValid()) {
-                                ImGui::BeginTooltip();
-                                ImGui::TextUnformatted(ap.type);
-                                ImGui::EndTooltip();
-                            }
-                        }
-                        ImGui::NextColumn();
-
-                        if (edited) {
-                            ListActions<AP::ActionPoints>::selectedListItemEdited(_data, i);
-                        }
-
-                        ImGui::PopID();
-                    }
-
-                    ImGui::PopID();
-                    ImGui::Columns(1);
                     ImGui::Unindent();
                 }
 

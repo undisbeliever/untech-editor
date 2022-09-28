@@ -5,11 +5,8 @@
  */
 
 #include "game-state-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
-#include "gui/imgui-combos.h"
-#include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "models/common/iterators.h"
 #include "models/scripting/scripting-error.h"
 
@@ -156,49 +153,13 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
         ImGui::BeginChild("FlagsChild", childSize, true);
         {
             ImGui::TextUnformatted(u8"Game State Flags:\n\n");
-            ListButtons<AP::Flags>(_data);
 
-            ImGui::BeginChild("Scroll");
+            apTable<AP::Flags>(
+                "Flags", _data,
+                std::to_array({ "Name", "Room" }),
 
-            ImGui::Columns(3);
-            ImGui::SetColumnWidth(0, 40);
-
-            ImGui::Separator();
-            ImGui::NextColumn();
-            ImGui::Text("Name");
-            ImGui::NextColumn();
-            ImGui::Text("Room");
-            ImGui::NextColumn();
-            ImGui::Separator();
-
-            for (auto [i, f] : enumerate(gameState.flags)) {
-                bool edited = false;
-
-                ImGui::PushID(i);
-
-                ImGui::Selectable(&_data->flagSel, i);
-                ImGui::NextColumn();
-
-                ImGui::SetNextItemWidth(-1);
-                ImGui::InputIdstring("##Name", &f.name);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-                ImGui::NextColumn();
-
-                ImGui::SetNextItemWidth(-1);
-                edited |= ImGui::IdStringCombo("##Room", &f.room, projectFile.rooms, true);
-                ImGui::NextColumn();
-
-                if (edited) {
-                    ListActions<AP::Flags>::itemEdited(_data, i);
-                }
-
-                ImGui::PopID();
-            }
-
-            ImGui::Columns(1);
-            ImGui::Separator();
-
-            ImGui::EndChild();
+                [&](auto& f) { return Cell("##name", &f.name); },
+                [&](auto& f) { return Cell("##room", &f.room); });
         }
         ImGui::EndChild();
 
@@ -207,56 +168,14 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
         ImGui::BeginChild("WordsChild", childSize, true);
         {
             ImGui::TextUnformatted(u8"Game State Words:\n\n");
-            ListButtons<AP::Words>(_data);
 
-            ImGui::BeginChild("Scroll");
+            apTable<AP::Words>(
+                "Words", _data,
+                std::to_array({ "Name", "Room", "Initial Value" }),
 
-            ImGui::Columns(4);
-            ImGui::SetColumnWidth(0, 40);
-
-            ImGui::Separator();
-            ImGui::NextColumn();
-            ImGui::Text("Name");
-            ImGui::NextColumn();
-            ImGui::Text("Room");
-            ImGui::NextColumn();
-            ImGui::Text("Initial Value");
-            ImGui::NextColumn();
-            ImGui::Separator();
-
-            for (auto [i, w] : enumerate(gameState.words)) {
-                bool edited = false;
-
-                ImGui::PushID(i);
-
-                ImGui::Selectable(&_data->wordSel, i);
-                ImGui::NextColumn();
-
-                ImGui::SetNextItemWidth(-1);
-                ImGui::InputIdstring("##Name", &w.name);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-                ImGui::NextColumn();
-
-                ImGui::SetNextItemWidth(-1);
-                edited |= ImGui::IdStringCombo("##Room", &w.room, projectFile.rooms, true);
-                ImGui::NextColumn();
-
-                ImGui::SetNextItemWidth(-1);
-                ImGui::InputUint16("##Value", &w.initialValue);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-                ImGui::NextColumn();
-
-                if (edited) {
-                    ListActions<AP::Words>::itemEdited(_data, i);
-                }
-
-                ImGui::PopID();
-            }
-
-            ImGui::Columns(1);
-            ImGui::Separator();
-
-            ImGui::EndChild();
+                [&](auto& w) { return Cell("##name", &w.name); },
+                [&](auto& w) { return Cell("##room", &w.room); },
+                [&](auto& w) { return Cell("##value", &w.initialValue); });
         }
         ImGui::EndChild();
     }

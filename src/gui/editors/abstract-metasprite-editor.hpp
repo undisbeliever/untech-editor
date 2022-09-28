@@ -7,12 +7,9 @@
 #pragma once
 
 #include "abstract-metasprite-editor.h"
+#include "gui/aptable.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui-drawing.h"
-#include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
-#include "gui/selection.h"
 #include "gui/style.h"
 #include "models/common/clamp.h"
 #include "models/common/iterators.h"
@@ -76,57 +73,18 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
             ImGui::Separator();
             ImGui::Spacing();
 
-            {
-                ImGui::PushID("AnimationFrames");
+            apTable<typename AP::AnimationFrames>(
+                "AnimationFrames", editor,
+                std::to_array({ "Frame", "Flip", "Duration", "" }),
 
-                ImGui::TextUnformatted("Animation Frames:");
+                [&](auto& af) { return Cell("##frame", &af.frame.name, frameSet->frames); },
+                [&](auto& af) { return Cell_FlipCombo("##flip", &af.frame.hFlip, &af.frame.vFlip); },
+                [&](auto& af) { return Cell("##duration", &af.duration); },
 
-                ListButtons<typename AP::AnimationFrames>(editor);
-
-                ImGui::BeginChild("Scroll");
-
-                ImGui::Columns(3);
-
-                ImGui::Separator();
-                ImGui::NextColumn();
-                ImGui::Text("Frame");
-                ImGui::NextColumn();
-                ImGui::Text("Duration");
-                ImGui::NextColumn();
-                ImGui::Separator();
-
-                for (auto [i, aFrame] : enumerate(animation.frames)) {
-                    bool edited = false;
-
-                    ImGui::PushID(i);
-
-                    ImGui::Selectable(&editor->animationFramesSel, i);
-                    ImGui::NextColumn();
-
-                    ImGui::SetNextItemWidth(-1);
-                    edited |= ImGui::IdStringCombo("##frame", &aFrame.frame.name, frameSet->frames);
-
-                    ImGui::SetNextItemWidth(-1);
-                    edited |= ImGui::FlipCombo("##flip", &aFrame.frame.hFlip, &aFrame.frame.vFlip);
-                    ImGui::NextColumn();
-
-                    ImGui::SetNextItemWidth(-1);
-                    edited |= ImGui::InputUint8("##duration", &aFrame.duration, 0);
-
-                    durationFormatText(animation.durationFormat, aFrame.duration);
-                    ImGui::NextColumn();
-
-                    if (edited) {
-                        ListActions<typename AP::AnimationFrames>::selectedListItemEdited(editor, i);
-                    }
-
-                    ImGui::PopID();
-                }
-
-                ImGui::Columns(1);
-                ImGui::EndChild();
-                ImGui::PopID();
-            }
+                [&](const auto& af) {
+                    durationFormatText(animation.durationFormat, af.duration);
+                    return false;
+                });
         }
     }
     ImGui::End();

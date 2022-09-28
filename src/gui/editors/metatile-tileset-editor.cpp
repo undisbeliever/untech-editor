@@ -5,15 +5,13 @@
  */
 
 #include "metatile-tileset-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
 #include "gui/graphics/tilecollisionimage.h"
 #include "gui/grid-actions.h"
-#include "gui/imgui-combos.h"
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "gui/texture.h"
 #include "models/common/iterators.h"
@@ -271,36 +269,19 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
         }
 
         ImGui::Spacing();
+        ImGui::Spacing();
         {
             ImGui::TextUnformatted(u8"Palettes:");
 
-            ImGui::PushID("Palettes");
-            ListButtons<AP::Palettes>(_data);
-            ImGui::PopID();
-
             ImGui::Indent();
-            ImGui::Columns(2);
-            ImGui::SetColumnWidth(0, 40);
 
-            ImGui::PushID("Palettes");
+            apTable<AP::Palettes>(
+                "Palettes", _data,
+                std::to_array({ "Palette" }),
+                ImVec2(0, 150),
 
-            for (auto [i, palette] : enumerate(tileset.palettes)) {
-                ImGui::PushID(i);
+                [&](auto& p) { return Cell("##Palette", &p, projectFile.palettes); });
 
-                ImGui::Selectable(&_data->paletteSel, i);
-                ImGui::NextColumn();
-
-                ImGui::SetNextItemWidth(-1);
-                if (ImGui::IdStringCombo("##Palette", &palette, projectFile.palettes)) {
-                    ListActions<AP::Palettes>::itemEdited(_data, i);
-                }
-                ImGui::NextColumn();
-
-                ImGui::PopID();
-            }
-
-            ImGui::PopID();
-            ImGui::Columns(1);
             ImGui::Unindent();
         }
 
@@ -308,33 +289,15 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
         {
             ImGui::TextUnformatted(u8"Frame Images:");
 
-            ImGui::PushID("FrameImages");
-            ListButtons<AP::FrameImages>(_data);
-            ImGui::PopID();
-
             ImGui::Indent();
-            ImGui::Columns(2);
-            ImGui::SetColumnWidth(0, 40);
 
-            ImGui::PushID("FrameImages");
+            apTable<AP::FrameImages>(
+                "Images", _data,
+                std::to_array({ "Image Filename" }),
+                ImVec2(0, 150),
 
-            for (auto [i, imageFilename] : enumerate(tileset.animationFrames.frameImageFilenames)) {
-                ImGui::PushID(i);
+                [&](auto& fn) { return ImGui::InputPngImageFilename("##Image", &fn); });
 
-                ImGui::Selectable(&_data->tilesetFrameSel, i);
-                ImGui::NextColumn();
-
-                ImGui::SetNextItemWidth(-1);
-                if (ImGui::InputPngImageFilename("##Image", &imageFilename)) {
-                    ListActions<AP::FrameImages>::itemEdited(_data, i);
-                }
-                ImGui::NextColumn();
-
-                ImGui::PopID();
-            }
-
-            ImGui::PopID();
-            ImGui::Columns(1);
             ImGui::Unindent();
         }
 

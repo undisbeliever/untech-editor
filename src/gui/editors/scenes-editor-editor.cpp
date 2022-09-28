@@ -5,10 +5,7 @@
  */
 
 #include "scenes-editor-editor.h"
-#include "gui/imgui-combos.h"
-#include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
+#include "gui/aptable.h"
 #include "models/common/iterators.h"
 #include "models/resources/scene-bgmode.hpp"
 #include "models/resources/scene-error.h"
@@ -123,83 +120,35 @@ void ScenesEditorGui::editorClosed()
 void ScenesEditorGui::settingsWindow()
 {
     assert(_data);
-    auto& scenes = _data->scenes;
 
     ImGui::SetNextWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Scene Settings")) {
 
-        ListButtons<AP::SceneSettings>(_data);
+        apTable<AP::SceneSettings>(
+            "Table", _data,
+            std::to_array({ "Name", "BG Mode", "Layer 0 Type", "Layer 1 Type", "Layer 2 Type", "Layer 3 Type" }),
 
-        ImGui::BeginChild("Scroll");
-
-        ImGui::Columns(7);
-
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-        ImGui::Text("BG Mode");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 0 Type");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 1 Type");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 2 Type");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 3 Type");
-        ImGui::NextColumn();
-        ImGui::Separator();
-
-        for (auto [i, sceneSettings] : enumerate(scenes.settings)) {
-            bool edited = false;
-
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->settingsSel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &sceneSettings.name);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::EnumCombo("##BgMode", &sceneSettings.bgMode);
-            ImGui::NextColumn();
-
-            static const std::array<const char*, 4> layerLabels = { "##LT0", "##LT1", "##LT2", "##LT3" };
-            assert(layerLabels.size() == sceneSettings.layerTypes.size());
-
-            for (auto [l, layerType] : enumerate(sceneSettings.layerTypes)) {
-                ImGui::SetNextItemWidth(-1);
-                edited |= ImGui::EnumCombo(layerLabels.at(l), &layerType);
-                ImGui::NextColumn();
-            }
-
-            if (edited) {
-                ListActions<AP::SceneSettings>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
+            [&](auto& ss) { return Cell("##name", &ss.name); },
+            [&](auto& ss) { return Cell("##bgMode", &ss.bgMode); },
+            [&](auto& ss) { return Cell("##lt0", &ss.layerTypes.at(0)); },
+            [&](auto& ss) { return Cell("##lt1", &ss.layerTypes.at(1)); },
+            [&](auto& ss) { return Cell("##lt2", &ss.layerTypes.at(2)); },
+            [&](auto& ss) { return Cell("##lt3", &ss.layerTypes.at(3)); });
     }
     ImGui::End();
 }
 
-bool ScenesEditorGui::sceneLayerCombo(const char* label, idstring* value,
-                                      const Project::ProjectFile& projectFile, const Resources::SceneSettingsInput& sceneSettings, const unsigned layerId)
+static bool sceneLayerCombo(const char* label, idstring* value,
+                            const Project::ProjectFile& projectFile, optional_ref<const Resources::SceneSettingsInput&> sceneSettings, const unsigned layerId)
 {
     using namespace std::string_literals;
     using LayerType = Resources::LayerType;
 
-    assert(_data);
+    if (!sceneSettings) {
+        return false;
+    }
 
-    const auto layer = sceneSettings.layerTypes.at(layerId);
+    const auto layer = sceneSettings->layerTypes.at(layerId);
 
     switch (layer) {
     case LayerType::None: {
@@ -212,7 +161,7 @@ bool ScenesEditorGui::sceneLayerCombo(const char* label, idstring* value,
     }
 
     case LayerType::BackgroundImage: {
-        const unsigned bitDepth = Resources::bitDepthForLayer(sceneSettings.bgMode, layerId);
+        const unsigned bitDepth = Resources::bitDepthForLayer(sceneSettings->bgMode, layerId);
 
         bool e = ImGui::IdStringCombo(label, value, projectFile.backgroundImages, false,
                                       [&](auto& item) {
@@ -225,7 +174,7 @@ bool ScenesEditorGui::sceneLayerCombo(const char* label, idstring* value,
     }
 
     case LayerType::MetaTileTileset: {
-        const unsigned bitDepth = Resources::bitDepthForLayer(sceneSettings.bgMode, layerId);
+        const unsigned bitDepth = Resources::bitDepthForLayer(sceneSettings->bgMode, layerId);
 
         bool e = ImGui::IdStringCombo(label, value, projectFile.metaTileTilesets, false,
                                       [&](const auto& efi) {
@@ -245,79 +194,22 @@ bool ScenesEditorGui::sceneLayerCombo(const char* label, idstring* value,
 void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
 {
     assert(_data);
-    auto& scenes = _data->scenes;
+    const auto& settings = _data->scenes.settings;
 
     ImGui::SetNextWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Scenes")) {
 
-        ListButtons<AP::Scenes>(_data);
+        apTable<AP::Scenes>(
+            "Table", _data,
+            std::to_array({ "Name", "Scene Settings", "Palette", "Layer 0", "Layer 1", "Layer 2", "Layer 3" }),
 
-        ImGui::BeginChild("Scroll");
-
-        ImGui::Columns(8);
-
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-        ImGui::Text("Scene Settings");
-        ImGui::NextColumn();
-        ImGui::Text("Palette");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 0");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 1");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 2");
-        ImGui::NextColumn();
-        ImGui::Text("Layer 3");
-        ImGui::NextColumn();
-        ImGui::Separator();
-
-        for (auto [i, scene] : enumerate(scenes.scenes)) {
-            bool edited = false;
-
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->scenesSel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &scene.name);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::IdStringCombo("##SceneSettings", &scene.sceneSettings, _data->scenes.settings);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::IdStringCombo("##Palette", &scene.palette, projectFile.palettes);
-            ImGui::NextColumn();
-
-            const auto sceneSettings = scenes.settings.find(scene.sceneSettings);
-
-            static const std::array<const char*, 4> layerLabels = { "##LT0", "##LT1", "##LT2", "##LT3" };
-            assert(layerLabels.size() == scene.layers.size());
-            for (auto [l, layer] : enumerate(scene.layers)) {
-                if (sceneSettings) {
-                    ImGui::SetNextItemWidth(-1);
-                    edited |= sceneLayerCombo(layerLabels.at(l), &layer, projectFile, *sceneSettings, l);
-                }
-                ImGui::NextColumn();
-            }
-
-            if (edited) {
-                ListActions<AP::Scenes>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
+            [&](auto& s) { return Cell("##name", &s.name); },
+            [&](auto& s) { return Cell("##scenesettings", &s.sceneSettings); },
+            [&](auto& s) { return Cell("##palette", &s.palette, projectFile.palettes); },
+            [&](auto& s) { return sceneLayerCombo("##layer0", &s.layers.at(0), projectFile, settings.find(s.sceneSettings), 0); },
+            [&](auto& s) { return sceneLayerCombo("##layer1", &s.layers.at(1), projectFile, settings.find(s.sceneSettings), 1); },
+            [&](auto& s) { return sceneLayerCombo("##layer2", &s.layers.at(2), projectFile, settings.find(s.sceneSettings), 2); },
+            [&](auto& s) { return sceneLayerCombo("##layer3", &s.layers.at(3), projectFile, settings.find(s.sceneSettings), 3); });
     }
     ImGui::End();
 }

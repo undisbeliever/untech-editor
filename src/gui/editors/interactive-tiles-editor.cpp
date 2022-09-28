@@ -5,9 +5,8 @@
  */
 
 #include "interactive-tiles-editor.h"
+#include "gui/aptable.h"
 #include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "models/common/iterators.h"
 #include "models/metatiles/metatiles-error.h"
 
@@ -102,66 +101,40 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
 
     ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Interactive Tiles")) {
-
         ListButtons<AP::FunctionTables>(_data);
 
-        ImGui::BeginChild("scroll");
+        constexpr auto columnNames = std::to_array({ "Name", "Tint" });
 
-        ImGui::Columns(3);
-        ImGui::SetColumnWidth(0, 40);
+        if (beginApTable("Table", columnNames)) {
+            for (auto [i, ft] : enumerate(interactiveTiles.FIXED_FUNCTION_TABLES)) {
+                const int engineId = i;
 
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-        ImGui::Text("Tint");
-        ImGui::NextColumn();
-        ImGui::Separator();
+                ImGui::TableNextColumn();
+                ImGui::Text("%d", engineId);
 
-        unsigned engineId = 0;
-        for (const auto& ft : interactiveTiles.FIXED_FUNCTION_TABLES) {
-            ImGui::Text("%d", engineId++);
-            ImGui::NextColumn();
-            ImGui::TextUnformatted(ft.name);
-            ImGui::NextColumn();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(ft.name);
 
-            ImGui::Text("%06X", ft.tint.rgbHex());
-            // ::TODO add color square::
-            ImGui::NextColumn();
-        }
-
-        ImGui::Separator();
-
-        for (auto [i, ft] : enumerate(interactiveTiles.functionTables)) {
-            bool edited = false;
-
-            ImGui::PushID(i);
-
-            const std::u8string selLabel = stringBuilder(engineId++);
-            ImGui::Selectable(u8Cast(selLabel), &_data->sel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &ft.name);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputRgb("##Tint", &ft.tint);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            if (edited) {
-                ListActions<AP::FunctionTables>::itemEdited(_data, i);
+                ImGui::TableNextColumn();
+                ImGui::Text("%06X", ft.tint.rgbHex());
+                // ::TODO add color square::
             }
 
-            ImGui::PopID();
+            const auto nFixedFunctions = interactiveTiles.FIXED_FUNCTION_TABLES.size();
+
+            apTable_data_customSel<AP::FunctionTables>(
+                _data,
+
+                [&](auto* sel, const auto index) {
+                    const std::u8string selLabel = stringBuilder(index + nFixedFunctions);
+                    ImGui::Selectable(u8Cast(selLabel), sel, index);
+                },
+
+                [&](auto& ft) { return Cell("##name", &ft.name); },
+                [&](auto& ft) { return Cell("##tint", &ft.tint); });
+
+            endApTable();
         }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
     }
     ImGui::End();
 }

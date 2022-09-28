@@ -5,21 +5,19 @@
  */
 
 #include "room-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/graphics/entity-graphics.h"
 #include "gui/grid-actions.h"
-#include "gui/imgui-combos.h"
-#include "gui/imgui.h"
 #include "gui/list-actions-variant.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "models/common/iterators.h"
 #include "models/project/project-data.h"
 #include "models/rooms/room-error.h"
 #include "models/rooms/rooms-serializer.h"
 #include "models/scripting/scripting-error.h"
+#include "vendor/imgui/imgui.h"
 
 namespace UnTech::Gui {
 
@@ -559,58 +557,15 @@ void RoomEditorGui::entrancesWindow()
 
     ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Entrances##Room", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-
-        ListButtons<AP::Entrances>(_data);
-
-        ImGui::BeginChild("Scroll");
-
-        ImGui::Columns(4);
-
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-        ImGui::Text("Position");
-        ImGui::NextColumn();
-        ImGui::Text("Orientation");
-        ImGui::NextColumn();
-        ImGui::Separator();
-
         const usize bounds(room.mapRight(), room.mapBottom());
 
-        for (auto [i, en] : enumerate(room.entrances)) {
-            bool edited = false;
+        apTable<AP::Entrances>(
+            "Entrances", _data,
+            std::to_array({ "Name", "Position", "Orientation" }),
 
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->entrancesSel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##name", &en.name);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputUpoint("##pos", &en.position, bounds);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::EnumCombo("##orientation", &en.orientation);
-            ImGui::NextColumn();
-
-            if (edited) {
-                ListActions<AP::Entrances>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
+            [&](auto& en) { return Cell("##name", &en.name); },
+            [&](auto& en) { return Cell("##pos", &en.position, bounds); },
+            [&](auto& en) { return Cell("##orientation", &en.orientation); });
     }
     ImGui::End();
 }
@@ -636,6 +591,8 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 
     assert(_data);
     auto& room = _data->data;
+
+    // ::TODO convert to a table::
 
     ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Entities##Room_Entities", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
@@ -720,53 +677,16 @@ void RoomEditorGui::scriptTriggersWindow()
 
     ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Script Triggers##Room", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        ListButtons<AP::ScriptTriggers>(_data);
-
-        ImGui::BeginChild("Scroll");
-
-        ImGui::Columns(4);
-
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Script");
-        ImGui::NextColumn();
-        ImGui::Text("AABB");
-        ImGui::NextColumn();
-        ImGui::Text("Once");
-        ImGui::NextColumn();
-        ImGui::Separator();
 
         const usize bounds(room.mapRight(), room.mapBottom());
 
-        for (auto [i, st] : enumerate(room.scriptTriggers)) {
-            bool edited = false;
+        apTable<AP::ScriptTriggers>(
+            "Table", _data,
+            std::to_array({ "Script", "AABB", "Once" }),
 
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->scriptTriggersSel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::IdStringCombo("##script", &st.script, room.roomScripts.scripts);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputUrect("##aabb", &st.aabb, bounds);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::Checkbox("Once", &st.once);
-            ImGui::NextColumn();
-
-            if (edited) {
-                ListActions<AP::ScriptTriggers>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::EndChild();
+            [&](auto& st) { return Cell("##script", &st.script, room.roomScripts.scripts); },
+            [&](auto& st) { return Cell("##aabb", &st.aabb, bounds); },
+            [&](auto& st) { return Cell("Once", &st.once); });
     }
     ImGui::End();
 }
@@ -1857,39 +1777,14 @@ private:
 std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::addMenuParentIndex;
 
 template <typename AP>
-static void tempVariableList(RoomEditorData* data)
+static void tempVariableList(const char* strId, RoomEditorData* data, const float outerHeight)
 {
-    assert(data);
-    std::vector<idstring>* list = AP::getList(data->data);
-    assert(list);
+    apTable<AP>(
+        strId, data,
+        std::to_array({ "Name" }),
+        ImVec2(0.0f, outerHeight),
 
-    ListButtons<AP>(data);
-
-    ImGui::Separator();
-
-    auto& sel = data->*AP::SelectionPtr;
-
-    for (auto [i, var] : enumerate(*list)) {
-        bool edited = false;
-
-        ImGui::PushID(i);
-
-        ImGui::Selectable("##Sel", &sel, i, ImGuiSelectableFlags_AllowItemOverlap);
-        ImGui::SameLine(30);
-
-        ImGui::SetNextItemWidth(-1);
-        ImGui::InputIdstring("##Name", &var);
-        edited |= ImGui::IsItemDeactivatedAfterEdit();
-        ImGui::NextColumn();
-
-        if (edited) {
-            ListActions<AP>::itemEdited(data, i);
-        }
-
-        ImGui::PopID();
-    }
-
-    ImGui::Separator();
+        [&](auto& var) { return Cell("##name", &var); });
 }
 
 void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
@@ -1902,24 +1797,20 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
 
         ImGui::BeginChild("Temp-Vars", ImVec2(200, 0), true);
         {
-            ImGui::PushID("Flags");
+            const float tableHeight = (ImGui::GetContentRegionAvail().y - 125) / 2;
 
             ImGui::TextUnformatted(u8"Temporary Flags:\n"
                                    "(cleared on room load)");
-            tempVariableList<AP::TempScriptFlags>(_data);
 
-            ImGui::PopID();
+            tempVariableList<AP::TempScriptFlags>("Flags", _data, tableHeight);
 
             ImGui::Spacing();
             ImGui::Spacing();
-
-            ImGui::PushID("Words");
 
             ImGui::TextUnformatted(u8"Temporary Words:\n"
                                    "(reset to 0 on room load)");
-            tempVariableList<AP::TempScriptWords>(_data);
 
-            ImGui::PopID();
+            tempVariableList<AP::TempScriptWords>("Words", _data, tableHeight);
         }
         ImGui::EndChild();
         ImGui::SameLine();

@@ -5,9 +5,8 @@
  */
 
 #include "action-points-editor.h"
+#include "gui/aptable.h"
 #include "gui/imgui.h"
-#include "gui/list-actions.h"
-#include "gui/list-helpers.h"
 #include "models/common/iterators.h"
 #include "models/metasprite/metasprite-error.h"
 
@@ -96,54 +95,16 @@ void ActionPointsEditorGui::editorClosed()
 void ActionPointsEditorGui::actionPointsWindow()
 {
     assert(_data);
-    auto& actionPointFunctions = _data->actionPointFunctions;
 
     ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Action Points")) {
 
-        ListButtons<AP::ActionPointFunctions>(_data);
+        apTable<AP::ActionPointFunctions>(
+            "Table", _data,
+            std::to_array({ "Name", "Manually Invoked" }),
 
-        ImGui::BeginChild("Scroll");
-
-        ImGui::Columns(3);
-        ImGui::SetColumnWidth(0, 40);
-
-        ImGui::Separator();
-        ImGui::NextColumn();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
-        ImGui::Text("Manually Invoked");
-        ImGui::NextColumn();
-        ImGui::Separator();
-
-        for (auto [i, ap] : enumerate(actionPointFunctions)) {
-            bool edited = false;
-
-            ImGui::PushID(i);
-
-            ImGui::Selectable(&_data->sel, i);
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputIdstring("##Name", &ap.name);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::Checkbox("##ManuallyInvoked", &ap.manuallyInvoked);
-            ImGui::NextColumn();
-
-            if (edited) {
-                ListActions<AP::ActionPointFunctions>::itemEdited(_data, i);
-            }
-
-            ImGui::PopID();
-        }
-
-        ImGui::Columns(1);
-        ImGui::Separator();
-
-        ImGui::EndChild();
+            [&](auto& ap) { return Cell("##name", &ap.name); },
+            [&](auto& ap) { return Cell("##Manually Invoked", &ap.manuallyInvoked); });
     }
     ImGui::End();
 }
