@@ -25,7 +25,7 @@ bool IdStringComboSelection(UnTech::idstring* value, const ListT& list, bool inc
 
     if (includeBlank) {
         const bool selected = value->isValid() == false;
-        if (ImGui::Selectable("", selected)) {
+        if (ImGui::Selectable("##Empty", selected)) {
             if (!selected) {
                 *value = UnTech::idstring();
                 changed = true;
