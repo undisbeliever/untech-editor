@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui/abstract-editor.h"
+#include "gui/imgui.h"
 #include "gui/selection.h"
 #include "models/project/project.h"
 
@@ -54,7 +55,7 @@ private:
     void exportOrderWindow();
 
     template <typename ExportNameActionPolicy>
-    void exportNameTree(const char* label);
+    void exportNameTree(const char* label, const ImVec2& childSize);
 };
 
 }
