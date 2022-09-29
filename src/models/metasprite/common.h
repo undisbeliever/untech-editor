@@ -30,7 +30,7 @@ const static size_t MAX_ACTION_POINT_FUNCTIONS = 126;
 
 const static size_t PALETTE_COLORS = 16;
 
-typedef UnsignedBits<3, uint_fast8_t> SpriteOrderType;
+using SpriteOrderType = UnsignedBits<2, uint_fast8_t>;
 const static SpriteOrderType DEFAULT_SPRITE_ORDER = 2;
 
 enum class TilesetType {
