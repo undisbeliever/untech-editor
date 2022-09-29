@@ -30,28 +30,34 @@ inline bool Cell(const char* label, std::u8string* input)
 
 inline bool Cell(const char* label, uint8_t* v)
 {
-    ImGui::InputUint8(label, v);
+    ImGui::InputUint8(label, v, 0);
     return ImGui::IsItemDeactivatedAfterEdit();
 }
 
 inline bool Cell(const char* label, uint16_t* v)
 {
-    ImGui::InputUint16(label, v);
+    ImGui::InputUint16(label, v, 0);
     return ImGui::IsItemDeactivatedAfterEdit();
 }
 
 inline bool Cell(const char* label, unsigned* v)
 {
-    ImGui::InputUnsigned(label, v);
+    ImGui::InputUnsigned(label, v, 0);
     return ImGui::IsItemDeactivatedAfterEdit();
 }
 
 inline bool Cell(const char* label, unsigned* v, unsigned maxValue)
 {
-    bool modified = ImGui::InputUnsigned(label, v);
+    bool modified = ImGui::InputUnsigned(label, v, 0);
     if (modified) {
         *v = std::min(*v, maxValue);
     }
+    return ImGui::IsItemDeactivatedAfterEdit();
+}
+
+inline bool Cell(const char* label, point* v, const rect& bounds)
+{
+    ImGui::InputPoint(label, v, bounds);
     return ImGui::IsItemDeactivatedAfterEdit();
 }
 
