@@ -5,10 +5,10 @@
  */
 
 #include "palette-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
-#include "gui/imgui.h"
 #include "gui/style.h"
 #include "models/common/clamp.h"
 #include "models/common/iterators.h"
@@ -101,8 +101,7 @@ void PaletteEditorGui::paletteWindow()
     if (ImGui::Begin(u8Cast(windowName))) {
 
         {
-            ImGui::InputIdstring("Name", &palette.name);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Name", &palette.name)) {
                 EditorActions<AP::Palette>::fieldEdited<
                     &PaletteInput::name>(_data);
             }
@@ -111,20 +110,17 @@ void PaletteEditorGui::paletteWindow()
                 EditorFieldActions<AP::ImageFilename>::fieldEdited(_data);
             }
 
-            ImGui::InputUnsigned("Rows Per Frame", &palette.rowsPerFrame);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Rows Per Frame", &palette.rowsPerFrame)) {
                 EditorActions<AP::Palette>::fieldEdited<
                     &PaletteInput::rowsPerFrame>(_data);
             }
 
-            ImGui::InputUnsigned("Animation Delay", &palette.animationDelay);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Animation Delay", &palette.animationDelay)) {
                 EditorActions<AP::Palette>::fieldEdited<
                     &PaletteInput::animationDelay>(_data);
             }
 
-            ImGui::Checkbox("Skip First Frame", &palette.skipFirstFrame);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Skip First Frame", &palette.skipFirstFrame)) {
                 EditorActions<AP::Palette>::fieldEdited<
                     &PaletteInput::skipFirstFrame>(_data);
             }

@@ -258,22 +258,17 @@ void EntityRomDataEditorGui::structsWindow()
                 auto& st = entityRomData.structs.at(_data->structsSel.selectedIndex());
 
                 {
-                    bool edited = false;
-
-                    ImGui::InputIdstring("Name", &st.name);
-                    if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    if (Cell("Name", &st.name)) {
                         ListActions<AP::Structs>::selectedFieldEdited<
                             &UnTech::Entity::EntityRomStruct::name>(_data);
                     }
 
-                    edited = parentCombo("Parent", &st.parent, entityRomData.structs, _data->structsSel.selectedIndex());
-                    if (edited) {
+                    if (parentCombo("Parent", &st.parent, entityRomData.structs, _data->structsSel.selectedIndex())) {
                         ListActions<AP::Structs>::selectedFieldEdited<
                             &UnTech::Entity::EntityRomStruct::parent>(_data);
                     }
 
-                    ImGui::InputText("Comment", &st.comment);
-                    if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    if (Cell("Comment", &st.comment)) {
                         ListActions<AP::Structs>::selectedFieldEdited<
                             &UnTech::Entity::EntityRomStruct::name>(_data);
                     }
@@ -375,22 +370,16 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
 
                 bool edited = false;
 
-                ImGui::InputIdstring("Name", &entry.name);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                edited |= ImGui::IdStringCombo("Function Table", &entry.functionTable, entityRomData.functionTables);
-
-                const auto functionTable = entityRomData.functionTables.find(entry.functionTable);
-
-                ImGui::InputText("Comment", &entry.comment);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
+                edited |= Cell("Name", &entry.name);
+                edited |= Cell("Function Table", &entry.functionTable, entityRomData.functionTables);
+                edited |= Cell("Comment", &entry.comment);
 
                 ImGui::Separator();
 
-                edited |= ImGui::IdStringCombo("initialProjectileId", &entry.initialProjectileId, entityRomData.projectiles);
+                edited |= Cell("initialProjectileId", &entry.initialProjectileId, entityRomData.projectiles);
 
                 if (ActionPolicy::entityType != EntityType::PLAYER) {
-                    edited |= ImGui::IdStringCombo("initialListId", &entry.initialListId, entityRomData.listIds, false);
+                    edited |= Cell("initialListId", &entry.initialListId, entityRomData.listIds, false);
                 }
 
                 edited |= ImGui::IdStringCombo("frameSetId", &entry.frameSetId, projectFile.frameSets, false,
@@ -416,6 +405,7 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
                     ImGui::EndCombo();
                 }
 
+                const auto functionTable = entityRomData.functionTables.find(entry.functionTable);
                 if (functionTable) {
                     const auto structChain = generateStructChain(functionTable->entityStruct);
 
@@ -433,8 +423,8 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
 
                             std::u8string label = stringBuilder(field.name, u8"###Field_", i);
 
-                            ImGui::InputText(u8Cast(label), &value);
-                            edited |= ImGui::IsItemDeactivatedAfterEdit();
+                            edited |= Cell(u8Cast(label), &value);
+
                             if (ImGui::IsItemHovered() && !field.comment.empty()) {
                                 ImGui::BeginTooltip();
                                 ImGui::TextUnformatted(field.comment);

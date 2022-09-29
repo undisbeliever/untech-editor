@@ -528,21 +528,19 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
 
-        ImGui::InputIdstring("Name", &room.name);
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+        if (Cell("Name", &room.name)) {
             EditorActions<AP::Room>::fieldEdited<
                 &RM::RoomInput::name>(_data);
         }
 
-        if (ImGui::IdStringCombo("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
+        if (Cell("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
             EditorFieldActions<AP::Scene>::fieldEdited(_data);
         }
 
-        if (ImGui::InputUsize("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
+        if (Cell("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
             _mapSize.width = std::max(_mapSize.width, AP::Map::MIN_SIZE.width);
             _mapSize.height = std::max(_mapSize.height, AP::Map::MIN_SIZE.height);
-        }
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+
             GridActions<AP::Map>::resizeGrid(_data, _mapSize);
         }
     }
@@ -1370,8 +1368,7 @@ public:
         case Type::RoomScript:
         case Type::EntityGroup: {
             ImGui::SameLine();
-            ImGui::InputText(label, value);
-            edited = ImGui::IsItemDeactivatedAfterEdit();
+            edited = Cell(label, value);
 
             if (ImGui::IsItemHovered()) {
                 ImGui::BeginTooltip();
@@ -1463,7 +1460,7 @@ public:
     {
         bool edited = false;
 
-        edited |= ImGui::IdStringCombo("##Name", &statement.opcode, bcMapping.instructionNames);
+        edited |= Cell("##Name", &statement.opcode, bcMapping.instructionNames);
 
         auto it = bcMapping.instructions.find(statement.opcode);
         if (it != bcMapping.instructions.end()) {
@@ -1513,8 +1510,7 @@ public:
         ImGui::SameLine();
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::InputText("##Text", &comment.text);
-        edited |= ImGui::IsItemDeactivatedAfterEdit();
+        edited |= Cell("##Text", &comment.text);
 
         if (edited) {
             ListActions<AP::ScriptStatements>::itemEdited(data, parentIndex, index);
@@ -1529,7 +1525,7 @@ private:
         bool edited = false;
 
         ImGui::SetNextItemWidth(75);
-        edited |= ImGui::EnumCombo("##type", &c->type);
+        edited |= Cell("##type", &c->type);
         if (edited) {
             switch (c->type) {
             case Scripting::ConditionalType::Flag:
@@ -1544,12 +1540,11 @@ private:
         }
 
         ImGui::SameLine();
-        ImGui::InputIdstring("##var", &c->variable);
-        edited |= ImGui::IsItemDeactivatedAfterEdit();
+        edited |= Cell("##var", &c->variable);
 
         ImGui::SameLine();
         ImGui::SetNextItemWidth(75);
-        edited |= ImGui::EnumCombo("##comp", &c->comparison, c->type);
+        edited |= Cell("##comp", &c->comparison, c->type);
 
         switch (c->type) {
         case Scripting::ConditionalType::Flag:
@@ -1557,8 +1552,7 @@ private:
 
         case Scripting::ConditionalType::Word:
             ImGui::SameLine();
-            ImGui::InputText("##value", &c->value);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
+            edited |= Cell("##value", &c->value);
             break;
         }
 
@@ -1863,8 +1857,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
             Scripting::Script& script = !isStartupScript ? roomScripts.scripts.at(scriptId) : roomScripts.startupScript;
 
             if (!isStartupScript) {
-                ImGui::InputIdstring("Name", &script.name);
-                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                if (Cell("Name", &script.name)) {
                     // NOTE: Cannot edit the startup script using the AP::Scripts Action Policy.
                     ListActions<AP::Scripts>::selectedFieldEdited<
                         &Scripting::Script::name>(_data);

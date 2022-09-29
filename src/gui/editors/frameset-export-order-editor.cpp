@@ -7,7 +7,6 @@
 #include "frameset-export-order-editor.h"
 #include "gui/aptable.h"
 #include "gui/editor-actions.h"
-#include "gui/imgui.h"
 #include "models/metasprite/metasprite-error.h"
 
 namespace UnTech::Gui {
@@ -278,8 +277,7 @@ void FrameSetExportOrderEditorGui::exportOrderWindow()
     ImGui::SetNextWindowSize(ImVec2(550, 700), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(u8Cast(windowName))) {
 
-        ImGui::InputIdstring("Name", &exportOrder.name);
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+        if (Cell("Name", &exportOrder.name)) {
             EditorActions<AP::ExportOrder>::fieldEdited<
                 &MetaSprite::FrameSetExportOrder::name>(_data);
         }

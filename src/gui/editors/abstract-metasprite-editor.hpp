@@ -41,23 +41,22 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
             MsAnimation& animation = frameSet->animations.at(editor->animationsSel.selectedIndex());
 
             {
-                ImGui::InputIdstring("Name", &animation.name);
-                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                if (Cell("Name", &animation.name)) {
                     ListActions<typename AP::Animations_EditName>::template selectedFieldEdited<
                         &MsAnimation::name>(editor);
                 }
 
-                if (ImGui::EnumCombo("Duration Format", &animation.durationFormat)) {
+                if (Cell("Duration Format", &animation.durationFormat)) {
                     ListActions<typename AP::Animations>::template selectedFieldEdited<
                         &MsAnimation::durationFormat>(editor);
                 }
 
-                if (ImGui::Checkbox("One Shot", &animation.oneShot)) {
+                if (Cell("One Shot", &animation.oneShot)) {
                     ListActions<typename AP::Animations>::template selectedFieldEdited<
                         &MsAnimation::oneShot>(editor);
                 }
 
-                if (ImGui::IdStringCombo("Next Animation", &animation.nextAnimation, frameSet->animations)) {
+                if (Cell("Next Animation", &animation.nextAnimation, frameSet->animations)) {
                     ListActions<typename AP::Animations>::template selectedFieldEdited<
                         &MsAnimation::nextAnimation>(editor);
                 }

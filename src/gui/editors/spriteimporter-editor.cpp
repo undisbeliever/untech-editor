@@ -330,18 +330,17 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
         {
-            ImGui::InputIdstring("Name", &fs.name);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Name", &fs.name)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
                     &SI::FrameSet::name>(_data);
             }
 
-            if (ImGui::EnumCombo("Tileset Type", &fs.tilesetType)) {
+            if (Cell("Tileset Type", &fs.tilesetType)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
                     &SI::FrameSet::tilesetType>(_data);
             }
 
-            if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
+            if (Cell("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
                 EditorFieldActions<AP::ExportOrder>::fieldEdited(_data);
             }
 
@@ -394,17 +393,10 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
 
                 auto& grid = fs.grid;
 
-                ImGui::InputUsize("Frame Size", &grid.frameSize, usize(SI::MAX_FRAME_SIZE, SI::MAX_FRAME_SIZE));
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                ImGui::InputUpoint("Offset", &grid.offset, usize(511, 511));
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                ImGui::InputUpoint("Padding", &grid.padding, usize(511, 511));
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                ImGui::InputUpoint("Origin", &grid.origin, originRange(grid.frameSize));
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
+                edited |= Cell("Frame Size", &grid.frameSize, usize(SI::MAX_FRAME_SIZE, SI::MAX_FRAME_SIZE));
+                edited |= Cell("Offset", &grid.offset, usize(511, 511));
+                edited |= Cell("Padding", &grid.padding, usize(511, 511));
+                edited |= Cell("Origin", &grid.origin, originRange(grid.frameSize));
 
                 if (edited) {
                     EditorActions<AP::FrameSet>::fieldEdited<
@@ -415,37 +407,32 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
             }
 
             if (ImGui::TreeNodeEx("Palette", ImGuiTreeNodeFlags_DefaultOpen)) {
-                bool changed = false;
                 bool edited = false;
 
                 auto& palette = fs.palette;
 
                 bool usePalette = palette.usesUserSuppliedPalette();
-                edited |= ImGui::Checkbox("User Supplied Palette", &usePalette);
+                edited |= Cell("User Supplied Palette", &usePalette);
 
                 if (usePalette) {
-                    changed |= ImGui::EnumCombo("Position", &palette.position);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
+                    edited |= Cell("Position", &palette.position);
+                    edited |= Cell("No of Palettes", &palette.nPalettes);
+                    edited |= Cell("Color Size", &palette.colorSize);
 
-                    changed |= ImGui::InputUnsigned("No of Palettes", &palette.nPalettes);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                    changed |= ImGui::InputUnsigned("Color Size", &palette.colorSize);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
-                }
-
-                if (changed || edited) {
-                    if (usePalette) {
-                        palette.nPalettes = std::max(1U, palette.nPalettes);
-                        palette.colorSize = std::max(1U, palette.colorSize);
+                    if (palette.nPalettes == 0) {
+                        palette.nPalettes = 1;
                     }
-                    else {
-                        palette.nPalettes = 0;
-                        palette.colorSize = 0;
+                    if (palette.colorSize == 0) {
+                        palette.colorSize = 1;
                     }
                 }
 
                 if (edited) {
+                    if (usePalette == false) {
+                        palette.nPalettes = 0;
+                        palette.colorSize = 0;
+                    }
+
                     EditorActions<AP::FrameSet>::fieldEdited<
                         &SI::FrameSet::palette>(_data);
                 }
@@ -465,7 +452,7 @@ void SpriteImporterEditorGui::collisionBox(const char* label, SI::Frame& frame, 
 
     const auto style = ImGui::GetStyle();
 
-    if (ImGui::Checkbox(label, &cb.exists)) {
+    if (Cell(label, &cb.exists)) {
         ListActions<AP::Frames>::selectedFieldEdited<FieldPtr>(_data);
     }
     if (cb.exists) {
@@ -475,8 +462,7 @@ void SpriteImporterEditorGui::collisionBox(const char* label, SI::Frame& frame, 
         ImGui::SameLine(style.IndentSpacing * 2);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::InputUrect("##aabb", &cb.aabb, frameSize);
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+        if (Cell("##aabb", &cb.aabb, frameSize)) {
             ListActions<AP::Frames>::selectedFieldEdited<FieldPtr>(_data);
         }
 
@@ -503,17 +489,12 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
             const usize frameSize = frameAabb.size();
 
             {
-                ImGui::InputIdstring("Name", &frame.name);
-                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                if (Cell("Name", &frame.name)) {
                     ListActions<AP::Frames_EditName>::selectedFieldEdited<
                         &SI::Frame::name>(_data);
                 }
 
-                unsigned spriteOrder = frame.spriteOrder;
-                if (ImGui::InputUnsigned("Sprite Order", &spriteOrder)) {
-                    frame.spriteOrder = clamp<unsigned>(spriteOrder, 0, frame.spriteOrder.MASK);
-                }
-                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                if (Cell("Sprite Order", &frame.spriteOrder)) {
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &SI::Frame::spriteOrder>(_data);
                 }
@@ -525,7 +506,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
             {
                 bool useGridLocation = !frame.locationOverride.has_value();
 
-                bool loEdited = ImGui::Checkbox("Use Grid Location", &useGridLocation);
+                bool loEdited = Cell("Use Grid Location", &useGridLocation);
                 if (loEdited) {
                     if (useGridLocation) {
                         frame.locationOverride = std::nullopt;
@@ -536,8 +517,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                 }
 
                 if (useGridLocation) {
-                    ImGui::InputUpoint("Grid Location", &frame.gridLocation, usize(UINT8_MAX, UINT8_MAX));
-                    if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    if (Cell("Grid Location", &frame.gridLocation, usize(UINT8_MAX, UINT8_MAX))) {
                         ListActions<AP::Frames_EditName>::selectedFieldEdited<&SI::Frame::gridLocation>(_data);
                     }
 
@@ -549,8 +529,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                     const auto& imgSize = _imageTexture.size();
                     const usize bounds = (imgSize.width != 0 && imgSize.height != 0) ? imgSize : usize(4096, 4096);
 
-                    ImGui::InputUrect("AABB", &frame.locationOverride.value(), bounds);
-                    loEdited |= ImGui::IsItemDeactivatedAfterEdit();
+                    loEdited |= Cell("AABB", &frame.locationOverride.value(), bounds);
                 }
 
                 if (loEdited) {
@@ -562,7 +541,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
             {
                 bool useGridOrigin = !frame.originOverride.has_value();
 
-                bool edited = ImGui::Checkbox("Use Grid Origin", &useGridOrigin);
+                bool edited = Cell("Use Grid Origin", &useGridOrigin);
                 if (edited) {
                     if (useGridOrigin) {
                         frame.originOverride = std::nullopt;
@@ -576,8 +555,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                     ImGui::LabelText("Origin", "%u, %u", fs.grid.origin.x, fs.grid.origin.y);
                 }
                 else {
-                    ImGui::InputUpoint("Origin", &frame.originOverride.value(), originRange(frameAabb.size()));
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
+                    edited |= Cell("Origin", &frame.originOverride.value(), originRange(frameAabb.size()));
                 }
 
                 if (edited) {

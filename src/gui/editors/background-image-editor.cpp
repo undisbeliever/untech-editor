@@ -5,11 +5,10 @@
  */
 
 #include "background-image-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
-#include "gui/imgui-combos.h"
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
-#include "gui/imgui.h"
 #include "gui/style.h"
 #include "models/project/project-data.h"
 
@@ -96,13 +95,12 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
     if (ImGui::Begin("Background Image")) {
 
         {
-            ImGui::InputIdstring("Name", &bi.name);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Name", &bi.name)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::name>(_data);
             }
 
-            if (ImGui::EnumCombo("Bit Depth", &bi.bitDepth)) {
+            if (Cell("Bit Depth", &bi.bitDepth)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::bitDepth>(_data);
             }
@@ -111,25 +109,22 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
                 EditorFieldActions<AP::ImageFilename>::fieldEdited(_data);
             }
 
-            if (ImGui::IdStringCombo("Conversion Palette", &bi.conversionPlette, projectFile.palettes)) {
+            if (Cell("Conversion Palette", &bi.conversionPlette, projectFile.palettes)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::conversionPlette>(_data);
             }
 
-            ImGui::InputUnsigned("First Palette", &bi.firstPalette);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("First Palette", &bi.firstPalette)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::firstPalette>(_data);
             }
 
-            ImGui::InputUnsigned("Number of Palettes", &bi.nPalettes);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Number of Palettes", &bi.nPalettes)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::nPalettes>(_data);
             }
 
-            ImGui::Checkbox("Default Order", &bi.defaultOrder);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Default Order", &bi.defaultOrder)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::defaultOrder>(_data);
             }

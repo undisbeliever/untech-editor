@@ -488,18 +488,17 @@ void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& p
             ImGui::TextUnformatted(u8"Properties:");
             ImGui::Indent();
 
-            ImGui::InputIdstring("Name", &fs.name);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (Cell("Name", &fs.name)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
                     &MS::FrameSet::name>(_data);
             }
 
-            if (ImGui::EnumCombo("Tileset Type", &fs.tilesetType)) {
+            if (Cell("Tileset Type", &fs.tilesetType)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
                     &MS::FrameSet::tilesetType>(_data);
             }
 
-            if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
+            if (Cell("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
                 EditorFieldActions<AP::ExportOrder>::fieldEdited(_data);
             }
 
@@ -518,7 +517,7 @@ void MetaSpriteEditorGui::collisionBox(const char* label, MS::Frame& frame, Togg
 
     const auto style = ImGui::GetStyle();
 
-    if (ImGui::Checkbox(label, &cb.exists)) {
+    if (Cell(label, &cb.exists)) {
         ListActions<AP::Frames>::selectedFieldEdited<FieldPtr>(_data);
     }
     if (cb.exists) {
@@ -528,8 +527,7 @@ void MetaSpriteEditorGui::collisionBox(const char* label, MS::Frame& frame, Togg
         ImGui::SameLine(style.IndentSpacing * 2);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::InputMs8rect("##aabb", &cb.aabb);
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+        if (Cell("##aabb", &cb.aabb)) {
             ListActions<AP::Frames>::selectedFieldEdited<FieldPtr>(_data);
         }
 
@@ -553,17 +551,12 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
             MS::Frame& frame = fs.frames.at(_data->framesSel.selectedIndex());
 
             {
-                ImGui::InputIdstring("Name", &frame.name);
-                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                if (Cell("Name", &frame.name)) {
                     ListActions<AP::Frames_EditName>::selectedFieldEdited<
                         &MS::Frame::name>(_data);
                 }
 
-                unsigned spriteOrder = frame.spriteOrder;
-                if (ImGui::InputUnsigned("Sprite Order", &spriteOrder)) {
-                    frame.spriteOrder = clamp<unsigned>(spriteOrder, 0, frame.spriteOrder.MASK);
-                }
-                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                if (Cell("Sprite Order", &frame.spriteOrder)) {
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &MS::Frame::spriteOrder>(_data);
                 }

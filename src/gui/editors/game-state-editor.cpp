@@ -125,7 +125,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
 
         const ImVec2 childSize = ImVec2((ImGui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2, 0);
 
-        if (ImGui::IdStringCombo("Starting Room", &gameState.startingRoom, projectFile.rooms)) {
+        if (Cell("Starting Room", &gameState.startingRoom, projectFile.rooms)) {
             EditorActions<AP::GameState>::fieldEdited<
                 &Scripting::GameState::startingRoom>(_data);
         }
@@ -141,7 +141,7 @@ void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile
             ImGui::EndCombo();
         }
 
-        if (ImGui::IdStringCombo("Starting Player", &gameState.startingPlayer, projectFile.entityRomData.players)) {
+        if (Cell("Starting Player", &gameState.startingPlayer, projectFile.entityRomData.players)) {
             EditorActions<AP::GameState>::fieldEdited<
                 &Scripting::GameState::startingPlayer>(_data);
         }

@@ -234,28 +234,22 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.5f);
 
-        ImGui::InputIdstring("Name", &tileset.name);
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+        if (Cell("Name", &tileset.name)) {
             EditorActions<AP::MtTileset>::fieldEdited<
                 &MetaTileTilesetInput::name>(_data);
         }
 
-        ImGui::InputUsize("Scratchpad Size", &_scratchpadSize, AP::Scratchpad::MAX_SIZE);
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+        if (Cell("Scratchpad Size", &_scratchpadSize, AP::Scratchpad::MAX_SIZE)) {
             GridActions<AP::Scratchpad>::resizeGrid(_data, _scratchpadSize);
         }
 
         {
             bool edited = false;
 
-            edited |= ImGui::EnumCombo("Bit Depth", &tileset.animationFrames.bitDepth);
-
-            ImGui::InputUnsigned("Animation Delay", &tileset.animationFrames.animationDelay, 0, 0);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-            edited |= ImGui::IdStringCombo("Conversion Palette", &tileset.animationFrames.conversionPalette, projectFile.palettes);
-
-            edited |= ImGui::Checkbox("Add Transparent Tile", &tileset.animationFrames.addTransparentTile);
+            edited |= Cell("Bit Depth", &tileset.animationFrames.bitDepth);
+            edited |= Cell("Animation Delay", &tileset.animationFrames.animationDelay);
+            edited |= Cell("Conversion Palette", &tileset.animationFrames.conversionPalette, projectFile.palettes);
+            edited |= Cell("Add Transparent Tile", &tileset.animationFrames.addTransparentTile);
 
             if (edited) {
                 EditorActions<AP::MtTileset>::fieldEdited<
@@ -314,16 +308,11 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
                 ImGui::TextUnformatted(labels.at(i));
                 ImGui::Indent();
 
-                ImGui::InputUint8("First Tile Id", &ct.firstTileId, 0, 0);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
+                edited |= Cell("First Tile Id", &ct.firstTileId);
+                edited |= Cell("First Delay", &ct.firstDelay);
+                edited |= Cell("Second Tile Id", &ct.secondTileId);
 
-                ImGui::InputUint16("First Delay", &ct.firstDelay, 0, 0);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                ImGui::InputUint8("Second Tile Id", &ct.secondTileId, 0, 0);
-                edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                if (ImGui::Checkbox("Third Transition", &thirdTransition)) {
+                if (Cell("Third Transition", &thirdTransition)) {
                     if (thirdTransition == true) {
                         if (ct.secondDelay == ct.NO_THIRD_TRANSITION) {
                             ct.secondDelay = 600;
@@ -335,11 +324,8 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
                     edited = true;
                 }
                 if (thirdTransition) {
-                    ImGui::InputUint16("Second Delay", &ct.secondDelay, 0, 0);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                    ImGui::InputUint8("Third Tile Id", &ct.thirdTileId, 0, 0);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
+                    edited |= Cell("Second Delay", &ct.secondDelay);
+                    edited |= Cell("Third Tile Id", &ct.thirdTileId);
                 }
 
                 ImGui::Unindent();

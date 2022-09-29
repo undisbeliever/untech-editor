@@ -10,6 +10,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "models/metasprite/common.h"
 #include <type_traits>
 
 namespace UnTech::Gui {
@@ -40,6 +41,12 @@ inline bool Cell(const char* label, uint16_t* v)
     return ImGui::IsItemDeactivatedAfterEdit();
 }
 
+inline bool Cell_Formatted(const char* label, uint32_t* v, const char* format, ImGuiInputTextFlags flags = 0)
+{
+    ImGui::InputUnsignedFormat(label, v, format, flags);
+    return ImGui::IsItemDeactivatedAfterEdit();
+}
+
 inline bool Cell(const char* label, unsigned* v)
 {
     ImGui::InputUnsigned(label, v, 0);
@@ -51,6 +58,16 @@ inline bool Cell(const char* label, unsigned* v, unsigned maxValue)
     bool modified = ImGui::InputUnsigned(label, v, 0);
     if (modified) {
         *v = std::min(*v, maxValue);
+    }
+    return ImGui::IsItemDeactivatedAfterEdit();
+}
+
+inline bool Cell(const char* label, MetaSprite::SpriteOrderType* v)
+{
+    ImU32 i = *v;
+    const bool modified = ImGui::InputUnsigned(label, &i, 0);
+    if (modified) {
+        *v = i;
     }
     return ImGui::IsItemDeactivatedAfterEdit();
 }
@@ -105,6 +122,11 @@ inline bool Cell(const char* label, rgba* v)
 
 // ----------------
 
+inline bool Cell(const char* label, idstring* input, const std::vector<idstring>& list, bool includeBlank = false)
+{
+    return ImGui::IdStringCombo(label, input, list, includeBlank);
+}
+
 template <typename T>
 inline bool Cell(const char* label, idstring* input, const NamedList<T>& list, bool includeBlank = false)
 {
@@ -122,6 +144,11 @@ requires std::is_enum_v<T>
 inline bool Cell(const char* label, T* v)
 {
     return ImGui::EnumCombo(label, v);
+}
+
+inline bool Cell(const char* label, Scripting::ComparisonType* v, Scripting::ConditionalType t)
+{
+    return ImGui::EnumCombo(label, v, t);
 }
 
 inline bool Cell(const char* label, bool* v)

@@ -5,9 +5,9 @@
  */
 
 #include "project-settings-editor.h"
+#include "gui/aptable.h"
 #include "gui/editor-actions.h"
 #include "gui/imgui-combos.h"
-#include "gui/imgui.h"
 
 namespace UnTech::Gui {
 
@@ -96,14 +96,9 @@ void ProjectSettingsEditorGui::projectSettingsWindow()
         if (ImGui::TreeNodeEx("Memory Map", ImGuiTreeNodeFlags_DefaultOpen)) {
             bool edited = false;
 
-            edited |= ImGui::EnumCombo("Mapping Mode", &memoryMap.mode);
-            ImGui::IsItemDeactivatedAfterEdit();
-
-            ImGui::InputUnsignedFormat("First Bank", &memoryMap.firstBank, "0x%02X", ImGuiInputTextFlags_CharsHexadecimal);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-            ImGui::InputUnsigned("Number of Banks", &memoryMap.nBanks, 0);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
+            edited |= Cell("Mapping Mode", &memoryMap.mode);
+            edited |= Cell_Formatted("First Bank", &memoryMap.firstBank, "0x%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            edited |= Cell("Number of Banks", &memoryMap.nBanks, 0);
 
             if (edited) {
                 EditorActions<AP::MemoryMapSettings>::editorDataEdited(_data);
@@ -115,8 +110,7 @@ void ProjectSettingsEditorGui::projectSettingsWindow()
         if (ImGui::TreeNodeEx("Room Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
             bool edited = false;
 
-            ImGui::InputUnsignedFormat("Max Room Data Size", &roomSettings.roomDataSize, "%u bytes");
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
+            edited |= Cell_Formatted("Max Room Data Size", &roomSettings.roomDataSize, "%u bytes");
 
             if (edited) {
                 EditorActions<AP::RoomSettings>::editorDataEdited(_data);
