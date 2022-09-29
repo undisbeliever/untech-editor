@@ -122,9 +122,9 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
 
             const auto nFixedFunctions = interactiveTiles.FIXED_FUNCTION_TABLES.size();
 
-            apTable_data_customSel<AP::FunctionTables>(
+            apTable_data_custom<AP::FunctionTables>(
                 _data,
-
+                _data->sel.listArgs(),
                 [&](auto* sel, const auto index) {
                     const std::u8string selLabel = stringBuilder(index + nFixedFunctions);
                     ImGui::Selectable(u8Cast(selLabel), sel, index);

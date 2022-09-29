@@ -574,19 +574,19 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 {
     using namespace std::string_literals;
 
-    constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGroupNames{
-        u8"Entity Group 0",
-        u8"Entity Group 1",
-        u8"Entity Group 2",
-        u8"Entity Group 3",
-        u8"Entity Group 4",
-        u8"Entity Group 5",
-        u8"Entity Group 6",
-        u8"Entity Group 7",
-        u8"Entity Group OUT OF BOUNDS",
-        u8"Entity Group OUT OF BOUNDS",
-        u8"Entity Group OUT OF BOUNDS",
-        u8"Entity Group OUT OF BOUNDS",
+    constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGroupText{
+        u8"Entity Group 0:",
+        u8"Entity Group 1:",
+        u8"Entity Group 2:",
+        u8"Entity Group 3:",
+        u8"Entity Group 4:",
+        u8"Entity Group 5:",
+        u8"Entity Group 6:",
+        u8"Entity Group 7:",
+        u8"Entity Group OUT OF BOUNDS:",
+        u8"Entity Group OUT OF BOUNDS:",
+        u8"Entity Group OUT OF BOUNDS:",
+        u8"Entity Group OUT OF BOUNDS:",
     };
 
     assert(_data);
@@ -606,66 +606,75 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
         ListButtons<AP::EntityEntries>(_data);
         ImGui::PopID();
 
-        ImGui::BeginChild("Scroll");
+        constexpr auto columnNames = std::to_array({ "Name\nPosition", "Entity Id\nParameter" });
 
-        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
+        if (beginApTable("Entities", columnNames)) {
+            unsigned entityId = 0;
 
-        unsigned entityId = 0;
+            const unsigned nGroups = std::min(room.entityGroups.size(), entityGroupText.size());
+            for (const auto groupIndex : range(nGroups)) {
+                auto& group = room.entityGroups.at(groupIndex);
 
-        const unsigned nGroups = std::min(room.entityGroups.size(), entityGroupNames.size());
-        for (const auto groupIndex : range(nGroups)) {
-            auto& group = room.entityGroups.at(groupIndex);
+                ImGui::PushID(groupIndex);
 
-            if (ImGui::TreeNodeToggleSelection(u8Cast(entityGroupNames.at(groupIndex)), &_data->entityGroupsSel, groupIndex)) {
                 {
                     bool edited = false;
 
-                    ImGui::InputIdstring("Name", &group.name);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
+                    ImGui::TableNextRow();
+
+                    ImGui::TableNextColumn();
+                    ImGui::Separator();
+                    ImGui::Selectable(&_data->entityGroupsSel, groupIndex);
+
+                    ImGui::TableNextColumn();
+                    ImGui::Separator();
+                    ImGui::TextUnformatted(entityGroupText.at(groupIndex));
+                    ImGui::NewLine();
+
+                    ImGui::TableNextColumn();
+                    ImGui::Separator();
+                    ImGui::SetNextItemWidth(-1);
+                    edited |= Cell("##name", &group.name);
 
                     if (edited) {
                         ListActions<AP::EntityGroups>::itemEdited(_data, groupIndex);
                     }
                 }
+
+                ImGui::Indent();
+
+                apTable_data_custom<AP::EntityEntries>(
+                    _data,
+                    std::make_tuple(groupIndex),
+                    [&](auto* sel, auto index) {
+                        const std::u8string selLabel = stringBuilder(entityId);
+                        entityId++;
+                        ImGui::Selectable(u8Cast(selLabel), sel, groupIndex, index);
+                    },
+
+                    [&](auto& ee) {
+                        bool edited = false;
+                        edited |= Cell("##name", &ee.name);
+                        ImGui::SetNextItemWidth(-1);
+                        edited |= Cell("##position", &ee.position, bounds);
+                        return edited;
+                    },
+                    [&](auto& ee) {
+                        bool edited = false;
+                        edited |= Cell("##entityId", &ee.entityId, projectFile.entityRomData.entities);
+                        ImGui::SetNextItemWidth(-1);
+                        edited |= Cell("##parameter", &ee.parameter);
+                        return edited;
+                    });
+
+                ImGui::Unindent();
                 ImGui::Spacing();
 
-                for (auto [i, entity] : enumerate(group.entities)) {
-                    bool edited = false;
-
-                    ImGui::PushID(i);
-
-                    const std::u8string selLabel = stringBuilder(u8"Entity ", entityId);
-                    entityId++;
-
-                    ImGui::Selectable(u8Cast(selLabel), &_data->entityEntriesSel, groupIndex, i);
-
-                    ImGui::Indent();
-
-                    ImGui::InputIdstring("Name", &entity.name);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                    edited |= ImGui::IdStringCombo("Entity Id", &entity.entityId, projectFile.entityRomData.entities);
-
-                    ImGui::InputPoint("Position", &entity.position, bounds);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                    ImGui::InputText("Parameter", &entity.parameter);
-                    edited |= ImGui::IsItemDeactivatedAfterEdit();
-
-                    if (edited) {
-                        ListActions<AP::EntityEntries>::itemEdited(_data, groupIndex, i);
-                    }
-
-                    ImGui::Unindent();
-                    ImGui::PopID();
-                }
-                ImGui::Spacing();
-
-                ImGui::TreePop();
+                ImGui::PopID();
             }
-        }
 
-        ImGui::EndChild();
+            endApTable();
+        }
     }
     ImGui::End();
 }

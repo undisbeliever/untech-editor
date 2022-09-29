@@ -183,8 +183,9 @@ inline void endApTable() { ImGui::EndTable(); }
 // ----------------
 
 // The `columnFunctions` take a `value_type&` input and return `true` when the item has finished editing
-template <typename ActionPolicy, typename EditorT>
-inline void apTable_data_customSel(EditorT* editor, auto selFunction, auto... columnFunctions)
+template <typename ActionPolicy, typename EditorT, typename... T>
+inline void apTable_data_custom(EditorT* editor, const std::tuple<T...> listArgs,
+                                auto selFunction, auto... columnFunctions)
 {
     // ::TODO improve selection::
 
@@ -193,7 +194,7 @@ inline void apTable_data_customSel(EditorT* editor, auto selFunction, auto... co
 
     auto& sel = editor->*ActionPolicy::SelectionPtr;
     auto* list = std::apply(&ActionPolicy::getList,
-                            std::tuple_cat(std::forward_as_tuple(*data), sel.listArgs()));
+                            std::tuple_cat(std::forward_as_tuple(*data), listArgs));
 
     if (list) {
         for (auto p : enumerate(*list)) {
@@ -220,7 +221,7 @@ inline void apTable_data_customSel(EditorT* editor, auto selFunction, auto... co
             (processColumn(columnFunctions), ...);
 
             if (edited) {
-                ListActions<ActionPolicy>::selectedListItemEdited(editor, index);
+                AbstractListActions<ActionPolicy>::itemEdited(editor, listArgs, index);
             }
 
             ImGui::PopID();
@@ -231,8 +232,10 @@ inline void apTable_data_customSel(EditorT* editor, auto selFunction, auto... co
 template <typename ActionPolicy, typename EditorT>
 inline void apTable_data(EditorT* editor, auto... columnFunctions)
 {
-    apTable_data_customSel<ActionPolicy>(
-        editor,
+    auto& sel = editor->*ActionPolicy::SelectionPtr;
+
+    apTable_data_custom<ActionPolicy>(
+        editor, sel.listArgs(),
         [](auto* sel, auto index) { ImGui::Selectable(sel, index); },
         columnFunctions...);
 }

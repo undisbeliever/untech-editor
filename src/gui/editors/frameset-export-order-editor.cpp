@@ -181,7 +181,6 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label, const ImVec
     using OtherNameAP = std::conditional_t<!std::is_same_v<ExportNameAP, AP::Frames>, AP::Frames, AP::Animations>;
 
     SingleSelection& sel = _data->*ExportNameAP::SelectionPtr;
-    MultipleChildSelection& altSel = _data->*AltAP::SelectionPtr;
 
     assert(_data);
     auto& exportOrder = _data->data;
@@ -202,6 +201,8 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label, const ImVec
         // (`apTable_data()` can only build flat tables).
 
         for (auto [i, en] : enumerate(*list)) {
+            const auto enIndex = i;
+
             ImGui::TableNextRow();
 
             ImGui::PushID(i);
@@ -210,14 +211,17 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label, const ImVec
                 bool edited = false;
 
                 ImGui::TableNextColumn();
+                ImGui::Separator();
                 ImGui::Selectable(&sel, i);
 
                 ImGui::TableNextColumn();
+                ImGui::Separator();
                 ImGui::SetNextItemWidth(-1);
                 edited |= Cell("##Name", &en.name);
 
+                ImGui::TableNextColumn();
+                ImGui::Separator();
                 if (sel.isSelected(i)) {
-                    ImGui::TableNextColumn();
                     ListButtons<AltAP>(_data);
                 }
 
@@ -228,37 +232,30 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label, const ImVec
 
             ImGui::Indent();
 
-            for (auto [j, alt] : enumerate(en.alternatives)) {
-                ImGui::TableNextRow();
-                ImGui::PushID(j);
+            apTable_data_custom<AltAP>(
+                _data,
+                std::make_tuple(enIndex),
+                [&](auto* altSel, auto index) {
+                    if (ImGui::Selectable(&sel, altSel, enIndex, index)) {
+                        // unselect the other items
+                        (_data->*OtherNameAP::SelectionPtr).clearSelection();
+                    }
+                },
 
-                bool edited = false;
-
-                ImGui::TableNextColumn();
-                if (ImGui::Selectable(&sel, &altSel, i, j)) {
-                    // unselect the other items
-                    (_data->*OtherNameAP::SelectionPtr).clearSelection();
-                }
-
-                ImGui::TableNextColumn();
-                ImGui::Text("  Alt:");
-                ImGui::SameLine();
-
-                ImGui::SetNextItemWidth(-1);
-                edited |= Cell("##Name", &alt.name);
-
-                ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(-1);
-                edited |= Cell_FlipCombo("##Flip", &alt.hFlip, &alt.vFlip);
-
-                if (edited) {
-                    ListActions<AltAP>::itemEdited(_data, i, j);
-                }
-
-                ImGui::PopID();
-            }
+                [&](auto& alt) {
+                    ImGui::TextUnformatted("  Alt:");
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(-1);
+                    return Cell("##name", &alt.name);
+                },
+                [&](auto& alt) {
+                    return Cell_FlipCombo("##Flip", &alt.hFlip, &alt.vFlip);
+                });
 
             ImGui::Unindent();
+            if (!en.alternatives.empty()) {
+                ImGui::Spacing();
+            }
 
             ImGui::PopID();
         }
