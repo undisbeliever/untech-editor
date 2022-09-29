@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "bit-depth.h"
 #include "snescolor.h"
 #include "tile.h"
 #include "models/common/indexedimage.h"
@@ -23,22 +24,22 @@ namespace UnTech::Snes {
 class ImageToTileset {
 public:
     static void convertAndSave(
-        const IndexedImage& image, int bitDepth,
+        const IndexedImage& image, BitDepthSpecial bitDepth,
         const std::filesystem::path& tilesetFile, const std::filesystem::path& paletteFile);
 
 private:
-    const unsigned _bitDepth;
+    const BitDepthSpecial _bitDepth;
     std::vector<Tile8px> _tileset;
     std::vector<SnesColor> _palette;
 
 public:
-    ImageToTileset(int bitDepth);
+    ImageToTileset(BitDepthSpecial bd);
     ImageToTileset(const ImageToTileset&) = delete;
 
     void writeTileset(const std::filesystem::path& filename) const;
     void writePalette(const std::filesystem::path& filename) const;
 
-    unsigned bitDepth() const { return _bitDepth; }
+    BitDepthSpecial bitDepth() const { return _bitDepth; }
 
     auto& tileset() { return _tileset; }
     const auto& tileset() const { return _tileset; }

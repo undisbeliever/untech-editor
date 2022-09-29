@@ -102,12 +102,7 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
                     &BackgroundImageInput::name>(_data);
             }
 
-            if (ImGui::InputUnsigned("Bit Depth", &bi.bitDepth, 0, 0, "%u bpp")) {
-                if (bi.isBitDepthValid() == false) {
-                    bi.bitDepth = 4;
-                }
-            }
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (ImGui::EnumCombo("Bit Depth", &bi.bitDepth)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::bitDepth>(_data);
             }

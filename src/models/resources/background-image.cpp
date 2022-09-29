@@ -27,11 +27,6 @@ static constexpr unsigned BG_MAP_DATA_SIZE = BG_MAP_WIDTH * BG_MAP_HEIGHT * 2;
 
 static bool validate(const BackgroundImageData& input, ErrorList& err);
 
-bool BackgroundImageInput::isBitDepthValid() const
-{
-    return bitDepth == 2 || bitDepth == 4 || bitDepth == 8;
-}
-
 static bool validate(const BackgroundImageInput& input, ErrorList& err)
 {
     bool valid = true;
@@ -42,10 +37,6 @@ static bool validate(const BackgroundImageInput& input, ErrorList& err)
 
     if (input.name.isValid() == false) {
         addError(u8"Expected name");
-    }
-
-    if (!input.isBitDepthValid()) {
-        addError(u8"Invalid bit-depth, expected 2, 4 or 8");
     }
 
     const auto& image = ImageCache::loadPngImage(input.imageFilename);
@@ -63,12 +54,12 @@ static bool validate(const BackgroundImageInput& input, ErrorList& err)
         }
     }
 
-    if (input.bitDepth > 4) {
+    if (input.bitDepth > Snes::BitDepth::BD_4BPP) {
         if (input.firstPalette != 0) {
-            addError(u8"When bitDepth is > 4, firstPalette must be 0");
+            addError(u8"When bitDepth is > 4bpp, firstPalette must be 0");
         }
         if (input.nPalettes != 1) {
-            addError(u8"When bitDepth is > 4, nPalettes must be 1");
+            addError(u8"When bitDepth is > 4bpp, nPalettes must be 1");
         }
     }
 
@@ -99,7 +90,7 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
     }
     const auto& palette = paletteData->conversionPalette;
 
-    const unsigned lastColor = (input.firstPalette + input.nPalettes) * (1 << input.bitDepth);
+    const unsigned lastColor = (input.firstPalette + input.nPalettes) * Snes::colorsForBitDepth(input.bitDepth);
     if (lastColor > palette.size()) {
         err.addErrorString(u8"Palette ", input.conversionPlette, u8" does not contain enough colors (expected ", lastColor, u8")");
         return nullptr;

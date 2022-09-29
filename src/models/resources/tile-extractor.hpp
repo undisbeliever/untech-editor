@@ -7,6 +7,7 @@
 #include "invalid-image-error.h"
 #include "models/common/image.h"
 #include "models/common/iterators.h"
+#include "models/snes/bit-depth.h"
 #include "models/snes/convert-snescolor.h"
 #include "models/snes/tile.h"
 #include <vector>
@@ -68,14 +69,14 @@ inline bool extractTileAndPalette(TileAndPalette& ft, const Image& image, const 
     return false;
 }
 
-inline std::vector<TileAndPalette> tilesFromImage(const Image& image, const unsigned bitDepth,
+inline std::vector<TileAndPalette> tilesFromImage(const Image& image, const Snes::BitDepth bitDepth,
                                                   const std::vector<Snes::SnesColor>& palette,
                                                   const unsigned firstPalette, const unsigned nPalettes,
                                                   std::vector<InvalidImageTile>& err)
 {
     const static unsigned TS = decltype(TileAndPalette::tile)::TILE_SIZE;
 
-    const unsigned colorsPerPalette = 1 << bitDepth;
+    const unsigned colorsPerPalette = Snes::colorsForBitDepth(bitDepth);
 
     const usize iSize = image.size();
 

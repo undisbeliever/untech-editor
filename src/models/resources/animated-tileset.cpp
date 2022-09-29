@@ -179,19 +179,9 @@ static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const usize&
     }
 }
 
-bool AnimationFramesInput::isBitDepthValid() const
-{
-    return bitDepth == 2 || bitDepth == 4 || bitDepth == 8;
-}
-
 static bool validate(const AnimationFramesInput& input, ErrorList& err)
 {
     bool valid = true;
-
-    if (!input.isBitDepthValid()) {
-        err.addErrorString(u8"Invalid bit-depth, expected 2, 4 or 8");
-        valid = false;
-    }
 
     if (input.frameImageFilenames.empty()) {
         err.addErrorString(u8"Missing frame image");

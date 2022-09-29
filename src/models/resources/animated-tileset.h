@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/grid.h"
+#include "models/snes/bit-depth.h"
 #include "models/snes/tile.h"
 #include "models/snes/tilemap.h"
 #include <optional>
@@ -34,10 +35,8 @@ struct AnimationFramesInput {
 
     unsigned animationDelay = 30;
 
-    unsigned bitDepth = 4;
+    Snes::BitDepth bitDepth = Snes::BitDepth::BD_4BPP;
     bool addTransparentTile = false;
-
-    bool isBitDepthValid() const;
 
     bool operator==(const AnimationFramesInput&) const = default;
 };
@@ -52,7 +51,7 @@ struct AnimatedTilesetData {
 
     std::vector<Snes::Tile8px> staticTiles;
     std::vector<std::vector<Snes::Tile8px>> animatedTiles;
-    unsigned bitDepth;
+    Snes::BitDepth bitDepth;
 
     unsigned conversionPaletteIndex;
 

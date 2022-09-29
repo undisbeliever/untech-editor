@@ -182,7 +182,7 @@ private:
 
         const auto data = xml.parseBase64OfUnknownSize();
 
-        constexpr unsigned smallTileSize = Snes::snesTileSizeForBitdepth(4);
+        constexpr unsigned smallTileSize = Snes::snesTileSizeForBitdepth(Snes::BitDepth::BD_4BPP);
         assert(smallTileSize == 32);
         if ((data.size() % smallTileSize) != 0) {
             throw xml_error(tag, u8"Small Tileset data must be a multiple of 32 bytes");
@@ -197,7 +197,7 @@ private:
 
         const auto data = xml.parseBase64OfUnknownSize();
 
-        constexpr unsigned largeTileSize = Snes::snesTileSizeForBitdepth(4) * 4;
+        constexpr unsigned largeTileSize = Snes::snesTileSizeForBitdepth(Snes::BitDepth::BD_4BPP) * 4;
 
         static_assert(largeTileSize == 128, u8"Bad assumption");
         if ((data.size() % largeTileSize) != 0) {

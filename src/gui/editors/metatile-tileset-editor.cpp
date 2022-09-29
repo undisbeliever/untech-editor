@@ -248,12 +248,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
         {
             bool edited = false;
 
-            if (ImGui::InputUnsigned("Bit Depth", &tileset.animationFrames.bitDepth, 0, 0, "%u bpp")) {
-                if (tileset.animationFrames.isBitDepthValid() == false) {
-                    tileset.animationFrames.bitDepth = 4;
-                }
-            }
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
+            edited |= ImGui::EnumCombo("Bit Depth", &tileset.animationFrames.bitDepth);
 
             ImGui::InputUnsigned("Animation Delay", &tileset.animationFrames.animationDelay, 0, 0);
             edited |= ImGui::IsItemDeactivatedAfterEdit();

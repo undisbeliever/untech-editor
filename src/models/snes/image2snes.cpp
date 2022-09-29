@@ -468,8 +468,8 @@ private:
  * ==========
  */
 
-Image2Snes::Image2Snes(int bitDepth)
-    : _bitDepth(bitDepth)
+Image2Snes::Image2Snes(BitDepthSpecial bd)
+    : _bitDepth(bd)
     , _palette()
     , _tilemap()
 {
@@ -477,7 +477,7 @@ Image2Snes::Image2Snes(int bitDepth)
 
 void Image2Snes::process(const IndexedImage& image)
 {
-    if (_bitDepth > 4) {
+    if (_bitDepth > BitDepthSpecial::BD_4BPP) {
         _maxPalettes = 1;
         _paletteOffset = 0;
     }

@@ -30,6 +30,12 @@ static const EnumMap<LayerType> layerTypeEnumMap = {
     { u8"text", LayerType::TextConsole },
 };
 
+static const EnumMap<Snes::BitDepth> bitDepthEnumMap = {
+    { u8"2", Snes::BitDepth::BD_2BPP },
+    { u8"4", Snes::BitDepth::BD_4BPP },
+    { u8"8", Snes::BitDepth::BD_8BPP },
+};
+
 void readPalette(const XmlTag& tag, NamedList<PaletteInput>& palettes)
 {
     assert(tag.name == u8"palette");
@@ -72,7 +78,7 @@ void readBackgroundImage(const XmlTag& tag, NamedList<BackgroundImageInput>& bac
     auto& bi = backgroundImages.back();
 
     bi.name = tag.getAttributeId(u8"name");
-    bi.bitDepth = tag.getAttributeUnsigned(u8"bit-depth");
+    bi.bitDepth = tag.getAttributeEnum(u8"bit-depth", bitDepthEnumMap);
     bi.imageFilename = tag.getAttributeFilename(u8"image");
     bi.conversionPlette = tag.getAttributeOptionalId(u8"palette");
     bi.firstPalette = tag.getAttributeUnsigned(u8"first-palette");
@@ -85,7 +91,7 @@ void writeBackgroundImages(XmlWriter& xml, const NamedList<BackgroundImageInput>
     for (const auto& bi : backgroundImages) {
         xml.writeTag(u8"background-image");
         xml.writeTagAttribute(u8"name", bi.name);
-        xml.writeTagAttribute(u8"bit-depth", bi.bitDepth);
+        xml.writeTagAttributeEnum(u8"bit-depth", bi.bitDepth, bitDepthEnumMap);
         xml.writeTagAttributeFilename(u8"image", bi.imageFilename);
         xml.writeTagAttributeOptional(u8"palette", bi.conversionPlette);
         xml.writeTagAttribute(u8"first-palette", bi.firstPalette);
@@ -102,7 +108,7 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
 
     afi.conversionPalette = tag.getAttributeOptionalId(u8"palette");
 
-    afi.bitDepth = tag.getAttributeUnsigned(u8"bit-depth", 2, 8);
+    afi.bitDepth = tag.getAttributeEnum(u8"bit-depth", bitDepthEnumMap);
     afi.animationDelay = tag.getAttributeUnsigned(u8"animation-delay");
     afi.addTransparentTile = tag.getAttributeBoolean(u8"add-transparent-tile");
 
@@ -123,7 +129,7 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
     xml.writeTag(u8"animation-frames");
 
     xml.writeTagAttribute(u8"palette", afi.conversionPalette);
-    xml.writeTagAttribute(u8"bit-depth", afi.bitDepth);
+    xml.writeTagAttributeEnum(u8"bit-depth", afi.bitDepth, bitDepthEnumMap);
     xml.writeTagAttribute(u8"animation-delay", afi.animationDelay);
     xml.writeTagAttribute(u8"add-transparent-tile", afi.addTransparentTile);
 

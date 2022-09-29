@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "bit-depth.h"
 #include "models/common/indexedimage.h"
 #include "models/snes/snescolor.h"
 #include "models/snes/tile-data.h"
@@ -25,13 +26,13 @@ private:
     unsigned _maxPalettes = 8;
     bool _order = 0;
 
-    const unsigned _bitDepth;
+    const Snes::BitDepthSpecial _bitDepth;
     std::vector<Tile8px> _tileset;
     std::vector<SnesColor> _palette;
     Tilemap _tilemap;
 
 public:
-    Image2Snes(int bitDepth);
+    Image2Snes(BitDepthSpecial bd);
 
     void setTileOffset(unsigned o) { _tileOffset = o; }
     void setMaxTiles(unsigned t) { _maxTiles = t; }
@@ -39,7 +40,7 @@ public:
     void setMaxPalettes(unsigned m) { _maxPalettes = m; }
     void setOrder(bool o) { _order = o; }
 
-    unsigned bitDepth() const { return _bitDepth; }
+    BitDepthSpecial bitDepth() const { return _bitDepth; }
     const auto& tileset() const { return _tileset; }
     const auto& palette() const { return _palette; }
     const auto& tilemap() const { return _tilemap; }

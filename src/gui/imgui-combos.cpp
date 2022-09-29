@@ -192,6 +192,44 @@ bool EnumCombo(const char* label, UnTech::Scripting::ComparisonType* v, UnTech::
     return edited;
 }
 
+bool EnumCombo(const char* label, UnTech::Snes::BitDepth* v)
+{
+    using BitDepth = UnTech::Snes::BitDepth;
+
+    const char* text = "---";
+    switch (*v) {
+    case BitDepth::BD_2BPP:
+        text = "2bpp";
+        break;
+
+    case BitDepth::BD_4BPP:
+        text = "4bpp";
+        break;
+
+    case BitDepth::BD_8BPP:
+        text = "8bpp";
+        break;
+    }
+
+    bool edited = false;
+    auto sel = [&](UnTech::Snes::BitDepth bd, const char* str) {
+        if (ImGui::Selectable(str, bd == *v)) {
+            *v = bd;
+            edited = true;
+        }
+    };
+
+    if (ImGui::BeginCombo(label, text)) {
+        sel(BitDepth::BD_2BPP, "2bpp");
+        sel(BitDepth::BD_4BPP, "4bpp");
+        sel(BitDepth::BD_8BPP, "8bpp");
+
+        ImGui::EndCombo();
+    }
+
+    return edited;
+}
+
 bool EnumCombo(const char* label, UnTech::Entity::EntityType* v)
 {
     static const char* const items[] = {

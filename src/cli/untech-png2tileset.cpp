@@ -39,7 +39,7 @@ int process(const CommandLine::Parser& args)
     const std::filesystem::path& tilesetFile = args.options().at("output").path();
     const std::filesystem::path& paletteFile = args.options().at("palette").path();
 
-    const unsigned bitDepth = args.options().at("bpp").uint();
+    const auto bitDepth = toBitDepthSpecial(args.options().at("bpp").uint());
 
     ImageToTileset::convertAndSave(*image, bitDepth, tilesetFile, paletteFile);
 

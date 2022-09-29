@@ -8,6 +8,7 @@
 
 #include "palette.h"
 #include "models/common/grid.h"
+#include "models/snes/bit-depth.h"
 #include "models/snes/tile-data.h"
 #include "models/snes/tilemap.h"
 #include <filesystem>
@@ -26,7 +27,7 @@ namespace UnTech::Resources {
 struct BackgroundImageInput {
     idstring name;
 
-    unsigned bitDepth = 4;
+    Snes::BitDepth bitDepth = Snes::BitDepth::BD_4BPP;
 
     std::filesystem::path imageFilename;
 
@@ -37,8 +38,6 @@ struct BackgroundImageInput {
     unsigned nPalettes = 8;
 
     bool defaultOrder = 0;
-
-    bool isBitDepthValid() const;
 
     bool operator==(const BackgroundImageInput&) const = default;
 };
@@ -52,7 +51,7 @@ struct BackgroundImageData {
 
     unsigned conversionPaletteIndex;
 
-    unsigned bitDepth;
+    Snes::BitDepth bitDepth;
     std::vector<Snes::Tile8px> tiles;
     grid<Snes::TilemapEntry> tileMap;
 

@@ -8,6 +8,7 @@
 #include "models/common/exceptions.h"
 #include "models/common/file.h"
 #include "models/common/indexedimage.h"
+#include "models/snes/bit-depth.h"
 #include "models/snes/image2snes.h"
 #include "models/snes/tile-data.h"
 #include <cstdlib>
@@ -40,7 +41,7 @@ int process(const CommandLine::Parser& args)
 {
     const std::filesystem::path& inputFile = args.inputFilename();
 
-    const unsigned bitDepth = args.options().at("bpp").uint();
+    const auto bitDepth = toBitDepthSpecial(args.options().at("bpp").uint());
     const unsigned tileOffset = args.options().at("tile-offset").uint();
     const unsigned maxTiles = args.options().at("max-tiles").uint();
     const unsigned paletteOffset = args.options().at("palette-offset").uint();
@@ -65,11 +66,11 @@ int process(const CommandLine::Parser& args)
 
     if (verbose) {
         std::cout << "SETTINGS:\n"
-                  << "   Bit Depth:      " << bitDepth << "bpp\n"
+                  << "   Bit Depth:      " << unsigned(bitDepth) << "bpp\n"
                   << "   Max Tiles:      " << maxTiles << '\n'
                   << "   Tile Offset:    " << tileOffset << '\n';
 
-        if (bitDepth <= 4) {
+        if (bitDepth <= Snes::BitDepthSpecial::BD_4BPP) {
             std::cout
                 << "   Max Palettes:   " << maxPalettes << '\n'
                 << "   Palette Offset: " << paletteOffset << '\n';
@@ -89,7 +90,7 @@ int process(const CommandLine::Parser& args)
         const auto& tileset = image2Snes.tileset();
         const auto& tilemap = image2Snes.tilemap();
 
-        const unsigned colorsPerPalette = 1 << bitDepth;
+        const unsigned colorsPerPalette = colorsForBitDepth(bitDepth);
         unsigned nPalettes = (palette.size() + colorsPerPalette - 1) / colorsPerPalette;
 
         const char* paletteString = nPalettes == 1 ? "palette" : "palettes";

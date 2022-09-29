@@ -235,22 +235,38 @@ std::vector<uint8_t> snesTileData8bpp(const std::vector<Tile8px>& tiles)
     return tilesToSnesData<8>(tiles);
 }
 
-std::vector<uint8_t> snesTileData(const std::vector<Tile8px>& tiles, const unsigned bitDepth)
+std::vector<uint8_t> snesTileData(const std::vector<Tile8px>& tiles, const BitDepth bitDepth)
 {
     switch (bitDepth) {
-    case 1:
-        return snesTileData1bpp(tiles);
-
-    case 2:
+    case BitDepth::BD_2BPP:
         return snesTileData2bpp(tiles);
 
-    case 3:
-        return snesTileData3bpp(tiles);
-
-    case 4:
+    case BitDepth::BD_4BPP:
         return snesTileData4bpp(tiles);
 
-    case 8:
+    case BitDepth::BD_8BPP:
+        return snesTileData8bpp(tiles);
+    }
+
+    throw runtime_error(u8"Invalid bitdepth");
+}
+
+std::vector<uint8_t> snesTileData(const std::vector<Tile8px>& tiles, const BitDepthSpecial bitDepth)
+{
+    switch (bitDepth) {
+    case BitDepthSpecial::BD_1BPP:
+        return snesTileData1bpp(tiles);
+
+    case BitDepthSpecial::BD_2BPP:
+        return snesTileData2bpp(tiles);
+
+    case BitDepthSpecial::BD_3BPP:
+        return snesTileData3bpp(tiles);
+
+    case BitDepthSpecial::BD_4BPP:
+        return snesTileData4bpp(tiles);
+
+    case BitDepthSpecial::BD_8BPP:
         return snesTileData8bpp(tiles);
     }
 
@@ -282,22 +298,38 @@ std::vector<Tile8px> readSnesTileData8bpp(const std::vector<uint8_t>& in)
     return snesDataToTiles<8>(in);
 }
 
-std::vector<Tile8px> readSnesTileData(const std::vector<uint8_t>& in, const unsigned bitDepth)
+std::vector<Tile8px> readSnesTileData(const std::vector<uint8_t>& in, const BitDepth bitDepth)
 {
     switch (bitDepth) {
-    case 1:
-        return readSnesTileData1bpp(in);
-
-    case 2:
+    case BitDepth::BD_2BPP:
         return readSnesTileData2bpp(in);
 
-    case 3:
-        return readSnesTileData3bpp(in);
-
-    case 4:
+    case BitDepth::BD_4BPP:
         return readSnesTileData4bpp(in);
 
-    case 8:
+    case BitDepth::BD_8BPP:
+        return readSnesTileData8bpp(in);
+    }
+
+    throw runtime_error(u8"Invalid bitdepth");
+}
+
+std::vector<Tile8px> readSnesTileData(const std::vector<uint8_t>& in, const BitDepthSpecial bitDepth)
+{
+    switch (bitDepth) {
+    case BitDepthSpecial::BD_1BPP:
+        return readSnesTileData1bpp(in);
+
+    case BitDepthSpecial::BD_2BPP:
+        return readSnesTileData2bpp(in);
+
+    case BitDepthSpecial::BD_3BPP:
+        return readSnesTileData3bpp(in);
+
+    case BitDepthSpecial::BD_4BPP:
+        return readSnesTileData4bpp(in);
+
+    case BitDepthSpecial::BD_8BPP:
         return readSnesTileData8bpp(in);
     }
 

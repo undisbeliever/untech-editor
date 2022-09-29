@@ -161,20 +161,21 @@ static bool sceneLayerCombo(const char* label, idstring* value,
     }
 
     case LayerType::BackgroundImage: {
-        const unsigned bitDepth = Resources::bitDepthForLayer(sceneSettings->bgMode, layerId);
+        const auto bitDepth = Resources::bitDepthForLayer(sceneSettings->bgMode, layerId);
 
         bool e = ImGui::IdStringCombo(label, value, projectFile.backgroundImages, false,
                                       [&](auto& item) {
                                           return (item.bitDepth == bitDepth) ? &item.name : nullptr;
                                       });
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Background Image (%d bpp)", bitDepth);
+            const int bitDepthInt = bitDepth ? int(*bitDepth) : 0;
+            ImGui::SetTooltip("Background Image (%d bpp)", bitDepthInt);
         }
         return e;
     }
 
     case LayerType::MetaTileTileset: {
-        const unsigned bitDepth = Resources::bitDepthForLayer(sceneSettings->bgMode, layerId);
+        const auto bitDepth = Resources::bitDepthForLayer(sceneSettings->bgMode, layerId);
 
         bool e = ImGui::IdStringCombo(label, value, projectFile.metaTileTilesets, false,
                                       [&](const auto& efi) {
@@ -182,7 +183,8 @@ static bool sceneLayerCombo(const char* label, idstring* value,
                                           return (mt->animationFrames.bitDepth == bitDepth) ? &mt->name : nullptr;
                                       });
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("MetaTile Tileset (%d bpp)", bitDepth);
+            const int bitDepthInt = bitDepth ? int(*bitDepth) : 0;
+            ImGui::SetTooltip("MetaTile Tileset (%d bpp)", bitDepthInt);
         }
         return e;
     }

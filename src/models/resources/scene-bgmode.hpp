@@ -7,6 +7,7 @@
 #pragma once
 
 #include "scenes.h"
+#include "models/snes/bit-depth.h"
 
 namespace UnTech::Resources {
 
@@ -29,15 +30,17 @@ inline unsigned numberOfLayers(const BgMode mode)
     return 0;
 }
 
-inline unsigned bitDepthForLayer(BgMode mode, unsigned layer)
+inline std::optional<Snes::BitDepth> bitDepthForLayer(BgMode mode, unsigned layer)
 {
-    constexpr static std::array<unsigned, (N_BG_MODES * N_LAYERS)> bitDepths = {
-        2, 2, 2, 2, // MODE_0
-        4, 4, 2, 0, // MODE_1
-        4, 4, 2, 0, // MODE_1_BG_PRIORITY
-        4, 4, 0, 0, // MODE_2
-        8, 4, 0, 0, // MODE_3
-        8, 2, 0, 0, // MODE_4
+    using B = Snes::BitDepth;
+
+    constexpr static std::array<std::optional<Snes::BitDepth>, (N_BG_MODES * N_LAYERS)> bitDepths = {
+        B::BD_2BPP, B::BD_2BPP, B::BD_2BPP, B::BD_2BPP,     // MODE_0
+        B::BD_4BPP, B::BD_4BPP, B::BD_2BPP, std::nullopt,   // MODE_1
+        B::BD_4BPP, B::BD_4BPP, B::BD_2BPP, std::nullopt,   // MODE_1_BG_PRIORITY
+        B::BD_4BPP, B::BD_4BPP, std::nullopt, std::nullopt, // MODE_2
+        B::BD_8BPP, B::BD_4BPP, std::nullopt, std::nullopt, // MODE_3
+        B::BD_8BPP, B::BD_2BPP, std::nullopt, std::nullopt, // MODE_4
     };
 
     return bitDepths.at(unsigned(mode) * N_LAYERS + (layer % N_LAYERS));

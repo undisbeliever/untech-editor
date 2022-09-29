@@ -15,14 +15,14 @@
 
 namespace UnTech::Snes {
 
-ImageToTileset::ImageToTileset(int bitDepth)
-    : _bitDepth(bitDepth)
+ImageToTileset::ImageToTileset(BitDepthSpecial bd)
+    : _bitDepth(bd)
     , _tileset()
     , _palette()
 {
 }
 
-void ImageToTileset::convertAndSave(const IndexedImage& image, int bitDepth,
+void ImageToTileset::convertAndSave(const IndexedImage& image, BitDepthSpecial bitDepth,
                                     const std::filesystem::path& tilesetFile, const std::filesystem::path& paletteFile)
 {
     ImageToTileset converter(bitDepth);

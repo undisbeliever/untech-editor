@@ -13,6 +13,7 @@
 #include "models/common/stringstream.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
+#include "models/snes/bit-depth.h"
 #include <numeric>
 
 namespace UnTech::Resources {
@@ -441,8 +442,11 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
         err.addError(sceneLayerError(sceneInput, sceneIndex, layerIndex, msg...));
     };
 
-    const unsigned bitDepth = bitDepthForLayer(sceneSettings.bgMode, layerIndex);
+    const auto bitDepth = bitDepthForLayer(sceneSettings.bgMode, layerIndex);
     const idstring& layer = sceneInput.layers.at(layerIndex);
+
+    // Used for printing error messages
+    const unsigned bitDepthUint = bitDepth ? unsigned(*bitDepth) : 0;
 
     SceneLayerData out{ 0, 0, 0, false, false };
 
@@ -466,7 +470,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
         // ::SHOULDDO add warning if palette conversion colours do not match::
 
         if (bi->bitDepth != bitDepth) {
-            addError(u8"Invalid bit depth, expected ", bitDepth, u8" got ", bi->bitDepth);
+            addError(u8"Invalid bit depth, expected ", bitDepthUint, u8" got ", unsigned(bi->bitDepth));
             break;
         }
 
@@ -488,7 +492,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
         }
 
         if (mt->animatedTileset.bitDepth != bitDepth) {
-            addError(u8"Invalid bit depth, expected ", bitDepth, u8" got ", mt->animatedTileset.bitDepth);
+            addError(u8"Invalid bit depth, expected ", bitDepthUint, u8" got ", unsigned(mt->animatedTileset.bitDepth));
             break;
         }
 
@@ -507,7 +511,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
             addError(u8"Text Console layer must be blank");
         }
 
-        out.tileSize = 256 * (bitDepth * 8 * 8 / 8);
+        out.tileSize = 256 * Snes::snesTileSizeForBitdepth(bitDepth.value());
 
         // The tilemap is fixed for MetaTile Tilesets
         out.nMaps = 1;
