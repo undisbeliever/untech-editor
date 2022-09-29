@@ -489,20 +489,11 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
     assert(_data);
     auto& fs = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(550, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Frames##SI")) {
+        NamedListSidebar<AP::Frames_EditName>(_data);
 
-        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
-
-        ListButtons<AP::Frames_EditName>(_data);
-
-        ImGui::SetNextItemWidth(-1);
-        ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames);
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
+        ImGui::SameLine();
         ImGui::BeginChild("Scroll");
 
         if (_data->framesSel.selectedIndex() < fs.frames.size()) {

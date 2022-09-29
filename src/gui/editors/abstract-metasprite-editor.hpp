@@ -30,19 +30,12 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
 {
     using MsAnimation = UnTech::MetaSprite::Animation::Animation;
 
-    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(550, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(windowLabel)) {
+        NamedListSidebar<typename AP::Animations_EditName>(editor);
 
-        ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
-
-        ListButtons<typename AP::Animations_EditName>(editor);
-
-        ImGui::SetNextItemWidth(-1);
-        ImGui::NamedListListBox("##AnimationList", &editor->animationsSel, frameSet->animations);
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        ImGui::SameLine();
+        ImGui::BeginChild("Scroll");
 
         if (editor->animationsSel.selectedIndex() < frameSet->animations.size()) {
             MsAnimation& animation = frameSet->animations.at(editor->animationsSel.selectedIndex());
@@ -86,6 +79,8 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
                     return false;
                 });
         }
+
+        ImGui::EndChild();
     }
     ImGui::End();
 }
