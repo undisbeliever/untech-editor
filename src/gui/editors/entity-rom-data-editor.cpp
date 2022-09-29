@@ -440,7 +440,6 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
                                 ImGui::TextUnformatted(field.comment);
                                 ImGui::EndTooltip();
                             }
-                            ImGui::NextColumn();
 
                             ImGui::PopID();
                         }
