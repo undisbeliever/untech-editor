@@ -113,9 +113,6 @@ protected:
 
 private:
     void propertiesWindow(const Project::ProjectFile& projectFile);
-    void entrancesWindow();
-    void roomEntitiesWindow(const Project::ProjectFile& projectFile);
-    void scriptTriggersWindow();
 
     void entityTextureWindow();
 

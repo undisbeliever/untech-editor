@@ -518,6 +518,21 @@ void RoomEditorGui::editorClosed()
     AbstractMetaTileEditorGui::editorClosed();
 }
 
+constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGroupText{
+    u8"Entity Group 0:",
+    u8"Entity Group 1:",
+    u8"Entity Group 2:",
+    u8"Entity Group 3:",
+    u8"Entity Group 4:",
+    u8"Entity Group 5:",
+    u8"Entity Group 6:",
+    u8"Entity Group 7:",
+    u8"Entity Group OUT OF BOUNDS:",
+    u8"Entity Group OUT OF BOUNDS:",
+    u8"Entity Group OUT OF BOUNDS:",
+    u8"Entity Group OUT OF BOUNDS:",
+};
+
 void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
 {
     assert(_data);
@@ -525,77 +540,59 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
 
     ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room Properties")) {
+        const usize mapSize(room.map.size());
+        const usize mapSizePx(room.mapRight(), room.mapBottom());
+        const rect entityArea = room.validEntityArea();
 
-        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
+        const ImVec2 fixedTableSize(0, std::round(ImGui::GetFrameHeightWithSpacing() * 4.125f));
 
-        if (Cell("Name", &room.name)) {
-            EditorActions<AP::Room>::fieldEdited<
-                &RM::RoomInput::name>(_data);
+        {
+            ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
+
+            if (Cell("Name", &room.name)) {
+                EditorActions<AP::Room>::fieldEdited<
+                    &RM::RoomInput::name>(_data);
+            }
+
+            if (Cell("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
+                EditorFieldActions<AP::Scene>::fieldEdited(_data);
+            }
+
+            if (Cell("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
+                _mapSize.width = std::max(_mapSize.width, AP::Map::MIN_SIZE.width);
+                _mapSize.height = std::max(_mapSize.height, AP::Map::MIN_SIZE.height);
+
+                GridActions<AP::Map>::resizeGrid(_data, _mapSize);
+            }
         }
 
-        if (Cell("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
-            EditorFieldActions<AP::Scene>::fieldEdited(_data);
-        }
-
-        if (Cell("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
-            _mapSize.width = std::max(_mapSize.width, AP::Map::MIN_SIZE.width);
-            _mapSize.height = std::max(_mapSize.height, AP::Map::MIN_SIZE.height);
-
-            GridActions<AP::Map>::resizeGrid(_data, _mapSize);
-        }
-    }
-
-    ImGui::End();
-}
-
-void RoomEditorGui::entrancesWindow()
-{
-    assert(_data);
-    auto& room = _data->data;
-
-    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Entrances##Room", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        const usize bounds(room.mapRight(), room.mapBottom());
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::TextUnformatted(u8"Entrances:");
 
         apTable<AP::Entrances>(
             "Entrances", _data,
             std::to_array({ "Name", "Position", "Orientation" }),
+            fixedTableSize,
 
             [&](auto& en) { return Cell("##name", &en.name); },
-            [&](auto& en) { return Cell("##pos", &en.position, bounds); },
+            [&](auto& en) { return Cell("##pos", &en.position, mapSizePx); },
             [&](auto& en) { return Cell("##orientation", &en.orientation); });
-    }
-    ImGui::End();
-}
 
-void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
-{
-    using namespace std::string_literals;
+        ImGui::Separator();
+        ImGui::TextUnformatted(u8"Script Triggers:");
 
-    constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGroupText{
-        u8"Entity Group 0:",
-        u8"Entity Group 1:",
-        u8"Entity Group 2:",
-        u8"Entity Group 3:",
-        u8"Entity Group 4:",
-        u8"Entity Group 5:",
-        u8"Entity Group 6:",
-        u8"Entity Group 7:",
-        u8"Entity Group OUT OF BOUNDS:",
-        u8"Entity Group OUT OF BOUNDS:",
-        u8"Entity Group OUT OF BOUNDS:",
-        u8"Entity Group OUT OF BOUNDS:",
-    };
+        apTable<AP::ScriptTriggers>(
+            "Table", _data,
+            std::to_array({ "Script", "AABB", "Once" }),
+            fixedTableSize,
 
-    assert(_data);
-    auto& room = _data->data;
+            [&](auto& st) { return Cell("##script", &st.script, room.roomScripts.scripts); },
+            [&](auto& st) { return Cell("##aabb", &st.aabb, mapSize); },
+            [&](auto& st) { return Cell("Once", &st.once); });
 
-    // ::TODO convert to a table::
-
-    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Entities##Room_Entities", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-
-        const rect bounds = room.validEntityArea();
+        ImGui::Separator();
+        ImGui::TextUnformatted(u8"Entities:");
 
         ImGui::PushID("Entity Groups");
         ListButtons<AP::EntityGroups>(_data);
@@ -654,7 +651,7 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
                         bool edited = false;
                         edited |= Cell("##name", &ee.name);
                         ImGui::SetNextItemWidth(-1);
-                        edited |= Cell("##position", &ee.position, bounds);
+                        edited |= Cell("##position", &ee.position, entityArea);
                         return edited;
                     },
                     [&](auto& ee) {
@@ -674,27 +671,7 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
             endApTable();
         }
     }
-    ImGui::End();
-}
 
-void RoomEditorGui::scriptTriggersWindow()
-{
-    assert(_data);
-    auto& room = _data->data;
-
-    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Script Triggers##Room", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-
-        const usize bounds(room.mapRight(), room.mapBottom());
-
-        apTable<AP::ScriptTriggers>(
-            "Table", _data,
-            std::to_array({ "Script", "AABB", "Once" }),
-
-            [&](auto& st) { return Cell("##script", &st.script, room.roomScripts.scripts); },
-            [&](auto& st) { return Cell("##aabb", &st.aabb, bounds); },
-            [&](auto& st) { return Cell("Once", &st.once); });
-    }
     ImGui::End();
 }
 
@@ -1081,10 +1058,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
     updateInvalidTileList(projectData);
 
     propertiesWindow(projectFile);
-    entrancesWindow();
     entitiesWindow();
-    roomEntitiesWindow(projectFile);
-    scriptTriggersWindow();
 
     editorWindow();
 
@@ -1894,5 +1868,4 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
     }
     ImGui::End();
 }
-
 }
