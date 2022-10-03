@@ -687,9 +687,9 @@ void RoomEditorGui::entityTextureWindow()
         const ImVec2 size(_entityTexture.width() * 2, _entityTexture.height() * 2);
 
         ImGui::Image(_entityTexture.imguiTextureId(), size);
-
-        ImGui::End();
     }
+
+    ImGui::End();
 }
 
 void RoomEditorGui::entitiesWindow()
@@ -747,9 +747,9 @@ void RoomEditorGui::entitiesWindow()
         }
 
         ImGui::EndChild();
-
-        ImGui::End();
     }
+
+    ImGui::End();
 }
 
 void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
