@@ -6,6 +6,7 @@
 
 #include "entity-rom-data-editor.h"
 #include "gui/aptable.h"
+#include "gui/splitter.hpp"
 #include "models/common/iterators.h"
 #include "models/entity/entityromdata-error.h"
 
@@ -195,8 +196,13 @@ void EntityRomDataEditorData::updateSelection()
 }
 
 EntityRomDataEditorGui::EntityRomDataEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##Entity Rom Data Editor")
     , _data(nullptr)
+    , _sidebar{ 575, 400, 500 }
+    , _leftTopbar{ 400, 200, 200 }
+    , _listIdsSidebar{ 200, 120, 350 }
+    , _playersTopbar{ 250, 150, 320 }
+    , _projectilesTopbar{ 250, 150, 150 }
 {
 }
 
@@ -213,19 +219,17 @@ void EntityRomDataEditorGui::editorClosed()
 {
 }
 
-void EntityRomDataEditorGui::listIdsWindow()
+void EntityRomDataEditorGui::listIdsGui()
 {
     assert(_data);
 
-    ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("EntityListIds")) {
-        apTable<AP::ListIds>(
-            "ListIds", _data,
-            std::to_array({ "Name" }),
+    ImGui::TextUnformatted(u8"ListIds:");
 
-            [&](auto& listId) { return Cell("##name", &listId); });
-    }
-    ImGui::End();
+    apTable<AP::ListIds>(
+        "ListIds", _data,
+        std::to_array({ "Name" }),
+
+        [&](auto& listId) { return Cell("##name", &listId); });
 }
 
 static bool parentCombo(const char* label, idstring* value, const NamedList<EntityRomStruct>& structs,
@@ -239,111 +243,104 @@ static bool parentCombo(const char* label, idstring* value, const NamedList<Enti
                                 });
 }
 
-void EntityRomDataEditorGui::structsWindow()
+void EntityRomDataEditorGui::structsGui()
 {
     assert(_data);
     auto& entityRomData = _data->entityRomData;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Entity Rom Structs")) {
+    ImGui::TextUnformatted(u8"Entity Structs:");
 
-        NamedListSidebar<AP::Structs>(_data);
+    NamedListSidebar<AP::Structs>(_data);
 
-        ImGui::SameLine();
+    ImGui::SameLine();
 
-        ImGui::BeginGroup();
-        ImGui::BeginChild("Item");
-        {
-            if (_data->structsSel.selectedIndex() < entityRomData.structs.size()) {
-                auto& st = entityRomData.structs.at(_data->structsSel.selectedIndex());
+    ImGui::BeginGroup();
+    ImGui::BeginChild("Item");
+    {
+        if (_data->structsSel.selectedIndex() < entityRomData.structs.size()) {
+            auto& st = entityRomData.structs.at(_data->structsSel.selectedIndex());
 
-                {
-                    if (Cell("Name", &st.name)) {
-                        ListActions<AP::Structs>::selectedFieldEdited<
-                            &UnTech::Entity::EntityRomStruct::name>(_data);
-                    }
-
-                    if (parentCombo("Parent", &st.parent, entityRomData.structs, _data->structsSel.selectedIndex())) {
-                        ListActions<AP::Structs>::selectedFieldEdited<
-                            &UnTech::Entity::EntityRomStruct::parent>(_data);
-                    }
-
-                    if (Cell("Comment", &st.comment)) {
-                        ListActions<AP::Structs>::selectedFieldEdited<
-                            &UnTech::Entity::EntityRomStruct::name>(_data);
-                    }
+            {
+                if (Cell("Name", &st.name)) {
+                    ListActions<AP::Structs>::selectedFieldEdited<
+                        &UnTech::Entity::EntityRomStruct::name>(_data);
                 }
 
-                ImGui::Separator();
+                if (parentCombo("Parent", &st.parent, entityRomData.structs, _data->structsSel.selectedIndex())) {
+                    ListActions<AP::Structs>::selectedFieldEdited<
+                        &UnTech::Entity::EntityRomStruct::parent>(_data);
+                }
 
-                ListButtons<AP::StructFields>(_data);
-
-                constexpr auto columnNames = std::to_array({ "Name", "Type", "Default Value", "Comment" });
-                if (beginApTable("Table", columnNames)) {
-                    const auto parentChain = generateStructChain(st.parent);
-
-                    for (const auto& parentIndex : reverse(parentChain)) {
-                        const auto& parent = entityRomData.structs.at(parentIndex);
-
-                        for (auto [i, field] : enumerate(parent.fields)) {
-                            ImGui::TableNextColumn();
-
-                            ImGui::TableNextColumn();
-                            ImGui::TextUnformatted(field.name);
-
-                            ImGui::TableNextColumn();
-                            ImGui::TextEnum(field.type);
-
-                            ImGui::TableNextColumn();
-                            ImGui::TextUnformatted(field.defaultValue);
-
-                            ImGui::TableNextColumn();
-                            ImGui::TextUnformatted(field.comment);
-                        }
-                    }
-
-                    apTable_data<AP::StructFields>(
-                        _data,
-                        [&](auto& sf) { return Cell("##Name", &sf.name); },
-                        [&](auto& sf) { return Cell("##Type", &sf.type); },
-                        [&](auto& sf) { return Cell("##Default Value", &sf.defaultValue); },
-                        [&](auto& sf) { return Cell("##Comment", &sf.comment); });
-
-                    ImGui::EndTable();
+                if (Cell("Comment", &st.comment)) {
+                    ListActions<AP::Structs>::selectedFieldEdited<
+                        &UnTech::Entity::EntityRomStruct::name>(_data);
                 }
             }
+
+            ImGui::Separator();
+
+            ListButtons<AP::StructFields>(_data);
+
+            constexpr auto columnNames = std::to_array({ "Name", "Type", "Default Value", "Comment" });
+            if (beginApTable("Table", columnNames)) {
+                const auto parentChain = generateStructChain(st.parent);
+
+                for (const auto& parentIndex : reverse(parentChain)) {
+                    const auto& parent = entityRomData.structs.at(parentIndex);
+
+                    for (auto [i, field] : enumerate(parent.fields)) {
+                        ImGui::TableNextColumn();
+
+                        ImGui::TableNextColumn();
+                        ImGui::TextUnformatted(field.name);
+
+                        ImGui::TableNextColumn();
+                        ImGui::TextEnum(field.type);
+
+                        ImGui::TableNextColumn();
+                        ImGui::TextUnformatted(field.defaultValue);
+
+                        ImGui::TableNextColumn();
+                        ImGui::TextUnformatted(field.comment);
+                    }
+                }
+
+                apTable_data<AP::StructFields>(
+                    _data,
+                    [&](auto& sf) { return Cell("##Name", &sf.name); },
+                    [&](auto& sf) { return Cell("##Type", &sf.type); },
+                    [&](auto& sf) { return Cell("##Default Value", &sf.defaultValue); },
+                    [&](auto& sf) { return Cell("##Comment", &sf.comment); });
+
+                ImGui::EndTable();
+            }
         }
-        ImGui::EndChild();
-        ImGui::EndGroup();
     }
-    ImGui::End();
+    ImGui::EndChild();
+    ImGui::EndGroup();
 }
 
-void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::ProjectFile& projectFile)
+void EntityRomDataEditorGui::functionTablesGui(const UnTech::Project::ProjectFile& projectFile)
 {
     assert(_data);
     auto& entityRomData = _data->entityRomData;
 
-    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Entity Function Tables")) {
+    ImGui::TextUnformatted(u8"Entity Function Tables:");
 
-        apTable<AP::FunctionTables>(
-            "Table", _data,
-            std::to_array({ "Name", "EntityType", "EntityStruct", "FS Export Order", "Parameter Type", "Comment" }),
+    apTable<AP::FunctionTables>(
+        "Table", _data,
+        std::to_array({ "Name", "EntityType", "EntityStruct", "FS Export Order", "Parameter Type", "Comment" }),
 
-            [&](auto& ft) { return Cell("##Name", &ft.name); },
-            [&](auto& ft) { return Cell("##EntityType", &ft.entityType); },
-            [&](auto& ft) { return Cell("##EntityStruct", &ft.entityStruct, entityRomData.structs, true); },
-            [&](auto& ft) { return Cell("##ExportOrder", &ft.exportOrder, projectFile.frameSetExportOrders); },
-            [&](auto& ft) { return Cell("##ParameterType", &ft.parameterType); },
-            [&](auto& ft) { return Cell("##Comment", &ft.comment); });
-    }
-    ImGui::End();
+        [&](auto& ft) { return Cell("##Name", &ft.name); },
+        [&](auto& ft) { return Cell("##EntityType", &ft.entityType); },
+        [&](auto& ft) { return Cell("##EntityStruct", &ft.entityStruct, entityRomData.structs, true); },
+        [&](auto& ft) { return Cell("##ExportOrder", &ft.exportOrder, projectFile.frameSetExportOrders); },
+        [&](auto& ft) { return Cell("##ParameterType", &ft.parameterType); },
+        [&](auto& ft) { return Cell("##Comment", &ft.comment); });
 }
 
 template <typename ActionPolicy>
-void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
-                                                 const Project::ProjectFile& projectFile)
+void EntityRomDataEditorGui::entityEntriesGui(const char8_t* text, const Project::ProjectFile& projectFile)
 {
     using SelectionT = typename ActionPolicy::SelectionT;
     using EntityRomEntry = UnTech::Entity::EntityRomEntry;
@@ -352,99 +349,96 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
     assert(_data);
     auto& entityRomData = _data->entityRomData;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(name)) {
+    ImGui::TextUnformatted(text);
 
-        NamedListSidebar<ActionPolicy>(_data);
+    NamedListSidebar<ActionPolicy>(_data);
 
-        SelectionT& sel = _data->*ActionPolicy::SelectionPtr;
-        NamedList<EntityRomEntry>* list = ActionPolicy::getList(entityRomData);
+    SelectionT& sel = _data->*ActionPolicy::SelectionPtr;
+    NamedList<EntityRomEntry>* list = ActionPolicy::getList(entityRomData);
 
-        ImGui::SameLine();
+    ImGui::SameLine();
 
-        ImGui::BeginGroup();
-        ImGui::BeginChild("Item");
-        {
-            if (list && sel.selectedIndex() < list->size()) {
-                auto& entry = list->at(sel.selectedIndex());
+    ImGui::BeginGroup();
+    ImGui::BeginChild("Item");
+    {
+        if (list && sel.selectedIndex() < list->size()) {
+            auto& entry = list->at(sel.selectedIndex());
 
-                bool edited = false;
+            bool edited = false;
 
-                edited |= Cell("Name", &entry.name);
-                edited |= Cell("Function Table", &entry.functionTable, entityRomData.functionTables);
-                edited |= Cell("Comment", &entry.comment);
+            edited |= Cell("Name", &entry.name);
+            edited |= Cell("Function Table", &entry.functionTable, entityRomData.functionTables);
+            edited |= Cell("Comment", &entry.comment);
+
+            ImGui::Separator();
+
+            edited |= Cell("initialProjectileId", &entry.initialProjectileId, entityRomData.projectiles);
+
+            if (ActionPolicy::entityType != EntityType::PLAYER) {
+                edited |= Cell("initialListId", &entry.initialListId, entityRomData.listIds, false);
+            }
+
+            edited |= ImGui::IdStringCombo("frameSetId", &entry.frameSetId, projectFile.frameSets, false,
+                                           [](auto& fsf) { return &fsf.name(); });
+
+            if (ImGui::BeginCombo("displayFrame", u8Cast(entry.displayFrame))) {
+                auto frameSetIt = std::find_if(projectFile.frameSets.begin(), projectFile.frameSets.end(),
+                                               [&](auto& fs) { return fs.name() == entry.frameSetId; });
+
+                if (frameSetIt != projectFile.frameSets.end()) {
+                    auto& fs = *frameSetIt;
+
+                    if (fs.siFrameSet) {
+                        edited |= ImGui::IdStringComboSelection(&entry.displayFrame, fs.siFrameSet->frames, false,
+                                                                [](auto& f) { return &f.name; });
+                    }
+                    else if (fs.msFrameSet) {
+                        edited |= ImGui::IdStringComboSelection(&entry.displayFrame, fs.msFrameSet->frames, false,
+                                                                [](auto& f) { return &f.name; });
+                    }
+                }
+
+                ImGui::EndCombo();
+            }
+
+            const auto functionTable = entityRomData.functionTables.find(entry.functionTable);
+            if (functionTable) {
+                const auto structChain = generateStructChain(functionTable->entityStruct);
 
                 ImGui::Separator();
 
-                edited |= Cell("initialProjectileId", &entry.initialProjectileId, entityRomData.projectiles);
+                unsigned id = 0;
 
-                if (ActionPolicy::entityType != EntityType::PLAYER) {
-                    edited |= Cell("initialListId", &entry.initialListId, entityRomData.listIds, false);
-                }
+                for (const auto& sIndex : reverse(structChain)) {
+                    auto& st = entityRomData.structs.at(sIndex);
 
-                edited |= ImGui::IdStringCombo("frameSetId", &entry.frameSetId, projectFile.frameSets, false,
-                                               [](auto& fsf) { return &fsf.name(); });
+                    for (auto [i, field] : enumerate(st.fields)) {
+                        std::u8string& value = entry.fields[field.name];
 
-                if (ImGui::BeginCombo("displayFrame", u8Cast(entry.displayFrame))) {
-                    auto frameSetIt = std::find_if(projectFile.frameSets.begin(), projectFile.frameSets.end(),
-                                                   [&](auto& fs) { return fs.name() == entry.frameSetId; });
+                        ImGui::PushID(id++);
 
-                    if (frameSetIt != projectFile.frameSets.end()) {
-                        auto& fs = *frameSetIt;
+                        std::u8string label = stringBuilder(field.name, u8"###Field_", i);
 
-                        if (fs.siFrameSet) {
-                            edited |= ImGui::IdStringComboSelection(&entry.displayFrame, fs.siFrameSet->frames, false,
-                                                                    [](auto& f) { return &f.name; });
+                        edited |= Cell(u8Cast(label), &value);
+
+                        if (ImGui::IsItemHovered() && !field.comment.empty()) {
+                            ImGui::BeginTooltip();
+                            ImGui::TextUnformatted(field.comment);
+                            ImGui::EndTooltip();
                         }
-                        else if (fs.msFrameSet) {
-                            edited |= ImGui::IdStringComboSelection(&entry.displayFrame, fs.msFrameSet->frames, false,
-                                                                    [](auto& f) { return &f.name; });
-                        }
+
+                        ImGui::PopID();
                     }
-
-                    ImGui::EndCombo();
-                }
-
-                const auto functionTable = entityRomData.functionTables.find(entry.functionTable);
-                if (functionTable) {
-                    const auto structChain = generateStructChain(functionTable->entityStruct);
-
-                    ImGui::Separator();
-
-                    unsigned id = 0;
-
-                    for (const auto& sIndex : reverse(structChain)) {
-                        auto& st = entityRomData.structs.at(sIndex);
-
-                        for (auto [i, field] : enumerate(st.fields)) {
-                            std::u8string& value = entry.fields[field.name];
-
-                            ImGui::PushID(id++);
-
-                            std::u8string label = stringBuilder(field.name, u8"###Field_", i);
-
-                            edited |= Cell(u8Cast(label), &value);
-
-                            if (ImGui::IsItemHovered() && !field.comment.empty()) {
-                                ImGui::BeginTooltip();
-                                ImGui::TextUnformatted(field.comment);
-                                ImGui::EndTooltip();
-                            }
-
-                            ImGui::PopID();
-                        }
-                    }
-                }
-
-                if (edited) {
-                    ListActions<ActionPolicy>::selectedItemEdited(_data);
                 }
             }
+
+            if (edited) {
+                ListActions<ActionPolicy>::selectedItemEdited(_data);
+            }
         }
-        ImGui::EndChild();
-        ImGui::EndGroup();
     }
-    ImGui::End();
+    ImGui::EndChild();
+    ImGui::EndGroup();
 }
 
 void EntityRomDataEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
@@ -453,15 +447,47 @@ void EntityRomDataEditorGui::processGui(const Project::ProjectFile& projectFile,
         return;
     }
 
-    listIdsWindow();
-    structsWindow();
-    functionTablesWindow(projectFile);
-
-    entityEntriesWindow<AP::Entities>("Entity ROM Entries", projectFile);
-
-    entityEntriesWindow<AP::Projectiles>("Projectile ROM Entries", projectFile);
-
-    entityEntriesWindow<AP::Players>("Player ROM Entries", projectFile);
+    splitterSidebarRight(
+        "##splitter", &_sidebar,
+        "##Content",
+        [&] {
+            splitterTopbar(
+                "##ltsplitter", &_leftTopbar,
+                "##Top",
+                [&] {
+                    splitterSidebarLeft(
+                        "##listSplitter", &_listIdsSidebar,
+                        "##ListIds",
+                        [&]() {
+                            listIdsGui();
+                        },
+                        "##Structs",
+                        [&]() {
+                            structsGui();
+                        });
+                },
+                "##Bottom",
+                [&] {
+                    functionTablesGui(projectFile);
+                });
+        },
+        "##Sidebar",
+        [&] {
+            splitterTopbar3(
+                "##esplitOne", "##esplitTwo", &_playersTopbar, &_projectilesTopbar,
+                "##Players",
+                [&] {
+                    entityEntriesGui<AP::Players>(u8"Players:", projectFile);
+                },
+                "##Projectiles",
+                [&] {
+                    entityEntriesGui<AP::Projectiles>(u8"Projectiles:", projectFile);
+                },
+                "##Entities",
+                [&] {
+                    entityEntriesGui<AP::Entities>(u8"Entities:", projectFile);
+                });
+        });
 }
 
 // ::TODO replace with array_vector::

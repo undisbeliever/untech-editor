@@ -61,7 +61,7 @@ void BackgroundImageEditorData::updateSelection()
 }
 
 BackgroundImageEditorGui::BackgroundImageEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##BG image editor")
     , _data(nullptr)
     , _invalidTilesCompileId(0)
     , _imageTexture()
@@ -84,86 +84,83 @@ void BackgroundImageEditorGui::editorClosed()
 {
 }
 
-void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile& projectFile)
+void BackgroundImageEditorGui::backgroundImageGui(const Project::ProjectFile& projectFile)
 {
     using BackgroundImageInput = UnTech::Resources::BackgroundImageInput;
 
     assert(_data);
     auto& bi = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Background Image")) {
+    ImGui::TextUnformatted(u8"Background Image:");
 
-        {
-            if (Cell("Name", &bi.name)) {
-                EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::name>(_data);
-            }
-
-            if (Cell("Bit Depth", &bi.bitDepth)) {
-                EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::bitDepth>(_data);
-            }
-
-            if (ImGui::InputPngImageFilename("Image", &bi.imageFilename)) {
-                EditorFieldActions<AP::ImageFilename>::fieldEdited(_data);
-            }
-
-            if (Cell("Conversion Palette", &bi.conversionPlette, projectFile.palettes)) {
-                EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::conversionPlette>(_data);
-            }
-
-            if (Cell("First Palette", &bi.firstPalette)) {
-                EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::firstPalette>(_data);
-            }
-
-            if (Cell("Number of Palettes", &bi.nPalettes)) {
-                EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::nPalettes>(_data);
-            }
-
-            if (Cell("Default Order", &bi.defaultOrder)) {
-                EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::defaultOrder>(_data);
-            }
+    {
+        if (Cell("Name", &bi.name)) {
+            EditorActions<AP::BackgroundImage>::fieldEdited<
+                &BackgroundImageInput::name>(_data);
         }
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
 
-        {
-            // ::TODO read BackgroundImageData::tiles.size()::
-            const unsigned numberOfTiles = 0;
-
-            ImGui::Text("Number of Tiles: %u", numberOfTiles);
+        if (Cell("Bit Depth", &bi.bitDepth)) {
+            EditorActions<AP::BackgroundImage>::fieldEdited<
+                &BackgroundImageInput::bitDepth>(_data);
         }
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
 
-        // ::TODO add palette animation::
+        if (ImGui::InputPngImageFilename("Image", &bi.imageFilename)) {
+            EditorFieldActions<AP::ImageFilename>::fieldEdited(_data);
+        }
 
-        {
-            ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+        if (Cell("Conversion Palette", &bi.conversionPlette, projectFile.palettes)) {
+            EditorActions<AP::BackgroundImage>::fieldEdited<
+                &BackgroundImageInput::conversionPlette>(_data);
+        }
 
-            const ImVec2& zoom = Style::backgroundImageZoom.zoom();
+        if (Cell("First Palette", &bi.firstPalette)) {
+            EditorActions<AP::BackgroundImage>::fieldEdited<
+                &BackgroundImageInput::firstPalette>(_data);
+        }
 
-            const ImVec2 imageSize(_imageTexture.width() * zoom.x, _imageTexture.height() * zoom.y);
-            const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("PaletteImage", imageSize);
+        if (Cell("Number of Palettes", &bi.nPalettes)) {
+            EditorActions<AP::BackgroundImage>::fieldEdited<
+                &BackgroundImageInput::nPalettes>(_data);
+        }
 
-            auto* drawList = ImGui::GetWindowDrawList();
-
-            drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
-            _invalidTiles.draw(drawList, zoom, screenOffset);
-
-            Style::backgroundImageZoom.processMouseWheel();
-
-            ImGui::EndChild();
+        if (Cell("Default Order", &bi.defaultOrder)) {
+            EditorActions<AP::BackgroundImage>::fieldEdited<
+                &BackgroundImageInput::defaultOrder>(_data);
         }
     }
-    ImGui::End();
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    {
+        // ::TODO read BackgroundImageData::tiles.size()::
+        const unsigned numberOfTiles = 0;
+
+        ImGui::Text("Number of Tiles: %u", numberOfTiles);
+    }
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // ::TODO add palette animation::
+
+    {
+        ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+
+        const ImVec2& zoom = Style::backgroundImageZoom.zoom();
+
+        const ImVec2 imageSize(_imageTexture.width() * zoom.x, _imageTexture.height() * zoom.y);
+        const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("PaletteImage", imageSize);
+
+        auto* drawList = ImGui::GetWindowDrawList();
+
+        drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
+        _invalidTiles.draw(drawList, zoom, screenOffset);
+
+        Style::backgroundImageZoom.processMouseWheel();
+
+        ImGui::EndChild();
+    }
 }
 
 void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
@@ -175,7 +172,7 @@ void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFil
     updateImageTexture();
     updateInvalidTileList(projectData);
 
-    backgroundImageWindow(projectFile);
+    backgroundImageGui(projectFile);
 }
 
 void BackgroundImageEditorGui::updateImageTexture()

@@ -152,7 +152,7 @@ void FrameSetExportOrderEditorData::updateSelection()
 }
 
 FrameSetExportOrderEditorGui::FrameSetExportOrderEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##FSEO editor")
     , _data(nullptr)
 {
 }
@@ -265,36 +265,31 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label, const ImVec
     ImGui::EndChild();
 }
 
-void FrameSetExportOrderEditorGui::exportOrderWindow()
+void FrameSetExportOrderEditorGui::exportOrderGui()
 {
     using namespace std::string_literals;
 
     assert(_data);
     auto& exportOrder = _data->data;
 
-    const std::u8string windowName = stringBuilder(exportOrder.name, u8" Export Order###ExportOrder");
+    ImGui::TextUnformatted(u8"MetaSprite FrameSet Export Order:");
 
-    ImGui::SetNextWindowSize(ImVec2(550, 700), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(u8Cast(windowName))) {
-
-        if (Cell("Name", &exportOrder.name)) {
-            EditorActions<AP::ExportOrder>::fieldEdited<
-                &MetaSprite::FrameSetExportOrder::name>(_data);
-        }
-
-        ImGui::Spacing();
-
-        ImGui::BeginGroup();
-
-        const ImVec2 childSize(ImGui::GetContentRegionAvail().x / 2, 0);
-
-        exportNameTree<AP::Frames>("Still Frames:", childSize);
-        ImGui::SameLine();
-        exportNameTree<AP::Animations>("Animations:", childSize);
-
-        ImGui::EndGroup();
+    if (Cell("Name", &exportOrder.name)) {
+        EditorActions<AP::ExportOrder>::fieldEdited<
+            &MetaSprite::FrameSetExportOrder::name>(_data);
     }
-    ImGui::End();
+
+    ImGui::Spacing();
+
+    ImGui::BeginGroup();
+
+    const ImVec2 childSize(ImGui::GetContentRegionAvail().x / 2, 0);
+
+    exportNameTree<AP::Frames>("Still Frames:", childSize);
+    ImGui::SameLine();
+    exportNameTree<AP::Animations>("Animations:", childSize);
+
+    ImGui::EndGroup();
 }
 
 void FrameSetExportOrderEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
@@ -303,7 +298,7 @@ void FrameSetExportOrderEditorGui::processGui(const Project::ProjectFile&, const
         return;
     }
 
-    exportOrderWindow();
+    exportOrderGui();
 }
 
 }

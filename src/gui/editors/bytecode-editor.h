@@ -46,7 +46,7 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void instructionsWindow();
+    void instructionsGui();
 };
 
 }

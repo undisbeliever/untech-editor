@@ -66,7 +66,7 @@ void ProjectSettingsEditorData::updateSelection()
 }
 
 ProjectSettingsEditorGui::ProjectSettingsEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##Project settings editor")
     , _data(nullptr)
 {
 }
@@ -84,41 +84,36 @@ void ProjectSettingsEditorGui::editorClosed()
 {
 }
 
-void ProjectSettingsEditorGui::projectSettingsWindow()
+void ProjectSettingsEditorGui::projectSettingsGui()
 {
     assert(_data);
     auto& memoryMap = _data->data.memoryMap;
     auto& roomSettings = _data->data.roomSettings;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Project Settings")) {
+    if (ImGui::TreeNodeEx("Memory Map", ImGuiTreeNodeFlags_DefaultOpen)) {
+        bool edited = false;
 
-        if (ImGui::TreeNodeEx("Memory Map", ImGuiTreeNodeFlags_DefaultOpen)) {
-            bool edited = false;
+        edited |= Cell("Mapping Mode", &memoryMap.mode);
+        edited |= Cell_Formatted("First Bank", &memoryMap.firstBank, "0x%02X", ImGuiInputTextFlags_CharsHexadecimal);
+        edited |= Cell("Number of Banks", &memoryMap.nBanks, 0);
 
-            edited |= Cell("Mapping Mode", &memoryMap.mode);
-            edited |= Cell_Formatted("First Bank", &memoryMap.firstBank, "0x%02X", ImGuiInputTextFlags_CharsHexadecimal);
-            edited |= Cell("Number of Banks", &memoryMap.nBanks, 0);
-
-            if (edited) {
-                EditorActions<AP::MemoryMapSettings>::editorDataEdited(_data);
-            }
-
-            ImGui::TreePop();
+        if (edited) {
+            EditorActions<AP::MemoryMapSettings>::editorDataEdited(_data);
         }
 
-        if (ImGui::TreeNodeEx("Room Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-            bool edited = false;
-
-            edited |= Cell_Formatted("Max Room Data Size", &roomSettings.roomDataSize, "%u bytes");
-
-            if (edited) {
-                EditorActions<AP::RoomSettings>::editorDataEdited(_data);
-            }
-            ImGui::TreePop();
-        }
+        ImGui::TreePop();
     }
-    ImGui::End();
+
+    if (ImGui::TreeNodeEx("Room Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        bool edited = false;
+
+        edited |= Cell_Formatted("Max Room Data Size", &roomSettings.roomDataSize, "%u bytes");
+
+        if (edited) {
+            EditorActions<AP::RoomSettings>::editorDataEdited(_data);
+        }
+        ImGui::TreePop();
+    }
 }
 
 void ProjectSettingsEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
@@ -127,7 +122,7 @@ void ProjectSettingsEditorGui::processGui(const Project::ProjectFile&, const Pro
         return;
     }
 
-    projectSettingsWindow();
+    projectSettingsGui();
 }
 
 }

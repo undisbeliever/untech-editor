@@ -12,6 +12,7 @@
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
+#include "gui/splitter.hpp"
 #include "gui/style.h"
 #include "gui/texture.h"
 #include "models/common/iterators.h"
@@ -188,11 +189,13 @@ void MetaTileTilesetEditorData::selectedTilesChanged()
 }
 
 MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
-    : AbstractMetaTileEditorGui()
+    : AbstractMetaTileEditorGui("##MT Tileset editor")
     , _data(nullptr)
     , _scratchpadSize()
     , _tileProperties(std::nullopt)
     , _invalidTilesCompileId(0)
+    , _sidebar{ 300, 200, 400 }
+    , _minimapSidebar{ 320, 280, 400 }
     , _tilesetShaderImageFilenamesValid(false)
     , _tileCollisionsValid(false)
     , _interactiveTilesValid(false)
@@ -224,137 +227,131 @@ void MetaTileTilesetEditorGui::editorClosed()
     AbstractMetaTileEditorGui::editorClosed();
 }
 
-void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
+void MetaTileTilesetEditorGui::propertiesGui(const Project::ProjectFile& projectFile)
 {
     assert(_data);
     auto& tileset = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(350, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("MetaTile Tileset Properties")) {
+    ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.5f);
 
-        ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.5f);
+    if (Cell("Name", &tileset.name)) {
+        EditorActions<AP::MtTileset>::fieldEdited<
+            &MetaTileTilesetInput::name>(_data);
+    }
 
-        if (Cell("Name", &tileset.name)) {
+    if (Cell("Scratchpad Size", &_scratchpadSize, AP::Scratchpad::MAX_SIZE)) {
+        GridActions<AP::Scratchpad>::resizeGrid(_data, _scratchpadSize);
+    }
+
+    {
+        bool edited = false;
+
+        edited |= Cell("Bit Depth", &tileset.animationFrames.bitDepth);
+        edited |= Cell("Animation Delay", &tileset.animationFrames.animationDelay);
+        edited |= Cell("Conversion Palette", &tileset.animationFrames.conversionPalette, projectFile.palettes);
+        edited |= Cell("Add Transparent Tile", &tileset.animationFrames.addTransparentTile);
+
+        if (edited) {
             EditorActions<AP::MtTileset>::fieldEdited<
-                &MetaTileTilesetInput::name>(_data);
-        }
-
-        if (Cell("Scratchpad Size", &_scratchpadSize, AP::Scratchpad::MAX_SIZE)) {
-            GridActions<AP::Scratchpad>::resizeGrid(_data, _scratchpadSize);
-        }
-
-        {
-            bool edited = false;
-
-            edited |= Cell("Bit Depth", &tileset.animationFrames.bitDepth);
-            edited |= Cell("Animation Delay", &tileset.animationFrames.animationDelay);
-            edited |= Cell("Conversion Palette", &tileset.animationFrames.conversionPalette, projectFile.palettes);
-            edited |= Cell("Add Transparent Tile", &tileset.animationFrames.addTransparentTile);
-
-            if (edited) {
-                EditorActions<AP::MtTileset>::fieldEdited<
-                    &MetaTileTilesetInput::animationFrames>(_data);
-            }
-        }
-
-        ImGui::Spacing();
-        ImGui::Spacing();
-        {
-            ImGui::TextUnformatted(u8"Palettes:");
-
-            ImGui::Indent();
-
-            apTable<AP::Palettes>(
-                "Palettes", _data,
-                std::to_array({ "Palette" }),
-                ImVec2(0, 150),
-
-                [&](auto& p) { return Cell("##Palette", &p, projectFile.palettes); });
-
-            ImGui::Unindent();
-        }
-
-        ImGui::Spacing();
-        {
-            ImGui::TextUnformatted(u8"Frame Images:");
-
-            ImGui::Indent();
-
-            apTable<AP::FrameImages>(
-                "Images", _data,
-                std::to_array({ "Image Filename" }),
-                ImVec2(0, 150),
-
-                [&](auto& fn) { return ImGui::InputPngImageFilename("##Image", &fn); });
-
-            ImGui::Unindent();
-        }
-
-        {
-            static constexpr std::array<const char*, 2> labels = {
-                "Crumbling Tiles Chain A:",
-                "Crumbling Tiles Chain B:",
-            };
-
-            bool edited = false;
-
-            for (auto [i, ct] : enumerate(tileset.crumblingTiles)) {
-                bool thirdTransition = ct.hasThirdTransition();
-
-                ImGui::PushID(labels.at(i));
-
-                ImGui::Spacing();
-
-                ImGui::TextUnformatted(labels.at(i));
-                ImGui::Indent();
-
-                edited |= Cell("First Tile Id", &ct.firstTileId);
-                edited |= Cell("First Delay", &ct.firstDelay);
-                edited |= Cell("Second Tile Id", &ct.secondTileId);
-
-                if (Cell("Third Transition", &thirdTransition)) {
-                    if (thirdTransition == true) {
-                        if (ct.secondDelay == ct.NO_THIRD_TRANSITION) {
-                            ct.secondDelay = 600;
-                        }
-                    }
-                    else {
-                        ct.secondDelay = ct.NO_THIRD_TRANSITION;
-                    }
-                    edited = true;
-                }
-                if (thirdTransition) {
-                    edited |= Cell("Second Delay", &ct.secondDelay);
-                    edited |= Cell("Third Tile Id", &ct.thirdTileId);
-                }
-
-                ImGui::Unindent();
-                ImGui::PopID();
-            }
-
-            if (edited) {
-                static_assert(sizeof(tileset.crumblingTiles) < 100);
-                EditorActions<AP::MtTileset>::fieldEdited<
-                    &MetaTileTilesetInput::crumblingTiles>(_data);
-            }
-        }
-
-        ImGui::Spacing();
-        {
-            ImGui::TextUnformatted(u8"Compiled Data:");
-
-            ImGui::Indent();
-
-            if (const auto& td = _tilesetShader.tilesetData()) {
-                ImGui::LabelText("Static Tiles", "%u", unsigned(td->animatedTileset.staticTiles.size()));
-                ImGui::LabelText("Animated Tiles", "%u", unsigned(td->animatedTileset.nAnimatedTiles()));
-            }
-
-            ImGui::Unindent();
+                &MetaTileTilesetInput::animationFrames>(_data);
         }
     }
 
-    ImGui::End();
+    ImGui::Spacing();
+    ImGui::Spacing();
+    {
+        ImGui::TextUnformatted(u8"Palettes:");
+
+        ImGui::Indent();
+
+        apTable<AP::Palettes>(
+            "Palettes", _data,
+            std::to_array({ "Palette" }),
+            ImVec2(0, 150),
+
+            [&](auto& p) { return Cell("##Palette", &p, projectFile.palettes); });
+
+        ImGui::Unindent();
+    }
+
+    ImGui::Spacing();
+    {
+        ImGui::TextUnformatted(u8"Frame Images:");
+
+        ImGui::Indent();
+
+        apTable<AP::FrameImages>(
+            "Images", _data,
+            std::to_array({ "Image Filename" }),
+            ImVec2(0, 150),
+
+            [&](auto& fn) { return ImGui::InputPngImageFilename("##Image", &fn); });
+
+        ImGui::Unindent();
+    }
+
+    {
+        static constexpr std::array<const char*, 2> labels = {
+            "Crumbling Tiles Chain A:",
+            "Crumbling Tiles Chain B:",
+        };
+
+        bool edited = false;
+
+        for (auto [i, ct] : enumerate(tileset.crumblingTiles)) {
+            bool thirdTransition = ct.hasThirdTransition();
+
+            ImGui::PushID(labels.at(i));
+
+            ImGui::Spacing();
+
+            ImGui::TextUnformatted(labels.at(i));
+            ImGui::Indent();
+
+            edited |= Cell("First Tile Id", &ct.firstTileId);
+            edited |= Cell("First Delay", &ct.firstDelay);
+            edited |= Cell("Second Tile Id", &ct.secondTileId);
+
+            if (Cell("Third Transition", &thirdTransition)) {
+                if (thirdTransition == true) {
+                    if (ct.secondDelay == ct.NO_THIRD_TRANSITION) {
+                        ct.secondDelay = 600;
+                    }
+                }
+                else {
+                    ct.secondDelay = ct.NO_THIRD_TRANSITION;
+                }
+                edited = true;
+            }
+            if (thirdTransition) {
+                edited |= Cell("Second Delay", &ct.secondDelay);
+                edited |= Cell("Third Tile Id", &ct.thirdTileId);
+            }
+
+            ImGui::Unindent();
+            ImGui::PopID();
+        }
+
+        if (edited) {
+            static_assert(sizeof(tileset.crumblingTiles) < 100);
+            EditorActions<AP::MtTileset>::fieldEdited<
+                &MetaTileTilesetInput::crumblingTiles>(_data);
+        }
+    }
+
+    ImGui::Spacing();
+    {
+        ImGui::TextUnformatted(u8"Compiled Data:");
+
+        ImGui::Indent();
+
+        if (const auto& td = _tilesetShader.tilesetData()) {
+            ImGui::LabelText("Static Tiles", "%u", unsigned(td->animatedTileset.staticTiles.size()));
+            ImGui::LabelText("Animated Tiles", "%u", unsigned(td->animatedTileset.nAnimatedTiles()));
+        }
+
+        ImGui::Unindent();
+    }
 }
 
 void MetaTileTilesetEditorGui::selectionChanged()
@@ -475,234 +472,218 @@ void MetaTileTilesetEditorGui::tileFunctionTableSelected(const idstring& ft)
     EditorFieldActions<AP::TileFunctionTables>::fieldEdited(_data);
 }
 
-void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& projectFile)
+void MetaTileTilesetEditorGui::tilePropertiesGui(const Project::ProjectFile& projectFile)
 {
     assert(_data);
 
     static const ImVec2 buttonSize = ImVec2(32.0f, 32.0f);
 
-    ImGui::SetNextWindowSize(ImVec2(350, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Tile Properties")) {
-
-        if (_data->selectedTilesetTiles.empty()) {
-            ImGui::End();
-            return;
-        }
-
-        const auto& style = ImGui::GetStyle();
-        const float tileCollisionButtonsWidth = (buttonSize.x + style.FramePadding.x * 2) * 6 + style.ItemSpacing.x * 5;
-
-        updateTileProperties();
-
-        assert(_tileProperties);
-
-        bool edited = false;
-
-        {
-            ImGui::TextUnformatted(u8"Tile Collision:");
-            ImGui::Indent();
-            ImGui::PushID("TC");
-
-            using TC = MetaTiles::TileCollisionType;
-
-            const auto textureId = tileCollisionTypeTexture().imguiTextureId();
-
-            // Image Button background is unused (0 alpha)
-            const ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-
-            static_assert(TILE_COLLISION_IMAGE_WIDTH == METATILE_SIZE_PX);
-            const ImVec2 uvSize = ImVec2(1.0f, 1.0f / (TILE_COLLISION_IMAGE_HEIGHT / METATILE_SIZE_PX));
-
-            auto button = [&](const char* toolTip, const TC tct) {
-                const ImVec2 uv(0.0f, unsigned(tct) * uvSize.y);
-
-                const bool isSelected = _tileProperties->tileCollisionSame && _tileProperties->tileCollision == tct;
-                const auto& tint = isSelected ? Style::tilePropertiesButtonTint : Style::tilePropertiesButtonSelectedTint;
-
-                if (ImGui::ToggledImageButton(toolTip, textureId, isSelected, buttonSize, uv, uv + uvSize, bgCol, tint)) {
-                    tileCollisionClicked(tct);
-                    edited = true;
-                }
-                if (ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::TextUnformatted(toolTip);
-                    ImGui::EndTooltip();
-                }
-            };
-            button("No Collisions", TC::EMPTY);
-            ImGui::SameLine();
-            button("Solid", TC::SOLID);
-            ImGui::SameLine();
-            button("Up Platform", TC::UP_PLATFORM);
-            ImGui::SameLine();
-            button("Down Platform", TC::DOWN_PLATFORM);
-            ImGui::SameLine();
-            button("End Slope", TC::END_SLOPE);
-
-            button("Down Right Slope", TC::DOWN_RIGHT_SLOPE);
-            ImGui::SameLine();
-            button("Down Left Slope", TC::DOWN_LEFT_SLOPE);
-            ImGui::SameLine();
-            button("Down Right Short Slope", TC::DOWN_RIGHT_SHORT_SLOPE);
-            ImGui::SameLine();
-            button("Down Right Tall Slope", TC::DOWN_RIGHT_TALL_SLOPE);
-            ImGui::SameLine();
-            button("Down Left Tall Slope", TC::DOWN_LEFT_TALL_SLOPE);
-            ImGui::SameLine();
-            button("Down Left Sort Slope", TC::DOWN_LEFT_SHORT_SLOPE);
-
-            button("Up Right Slope", TC::UP_RIGHT_SLOPE);
-            ImGui::SameLine();
-            button("Up Left Slope", TC::UP_LEFT_SLOPE);
-            ImGui::SameLine();
-            button("Up Right Short Slope", TC::UP_RIGHT_SHORT_SLOPE);
-            ImGui::SameLine();
-            button("Up Right Tall Slope", TC::UP_RIGHT_TALL_SLOPE);
-            ImGui::SameLine();
-            button("Up Left Tall Slope", TC::UP_LEFT_TALL_SLOPE);
-            ImGui::SameLine();
-            button("Up Left Short Slope", TC::UP_LEFT_SHORT_SLOPE);
-
-            ImGui::PopID();
-            ImGui::Unindent();
-            ImGui::Spacing();
-        }
-
-        {
-            ImGui::TextUnformatted(u8"Tile Priority:");
-            ImGui::Indent();
-
-            constexpr std::array<const char*, 4> labels = { "##TP_TL", "##TP_TR", "##TP_BL", "##TP_BR" };
-            constexpr std::array<const char*, 4> toolTips = { "Top Left", "Top Right", "Bottom Left", "Bottom Right" };
-
-            for (auto [i, sel] : const_enumerate(_tileProperties->tilePriorities)) {
-                const bool allSame = _tileProperties->tilePrioritiesSame.at(i);
-
-                if (!allSame) {
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-                }
-                else if (sel) {
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-                }
-
-                if (ImGui::Button(labels.at(i), buttonSize)) {
-                    tilePriorityClicked(i, !sel);
-                    edited = true;
-                }
-                if (ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::TextUnformatted(toolTips.at(i));
-                    ImGui::EndTooltip();
-                }
-
-                if (sel || !allSame) {
-                    ImGui::PopStyleColor();
-                }
-
-                if (i % 2 == 0) {
-                    ImGui::SameLine();
-                }
-            }
-
-            ImGui::Unindent();
-            ImGui::Spacing();
-        }
-
-        {
-            ImGui::TextUnformatted(u8"Interactive Tile Functions:");
-            ImGui::Indent();
-
-            // Use a different label if the selected tiles have different functions
-            const char8_t* comboText = _tileProperties->functionTableSame ? _tileProperties->functionTable.c_str() : u8"------------";
-
-            ImGui::SetNextItemWidth(tileCollisionButtonsWidth);
-            if (ImGui::BeginCombo("##ITFT", u8Cast(comboText))) {
-                if (ImGui::IdStringComboSelection(&_tileProperties->functionTable, projectFile.interactiveTiles.functionTables, true)) {
-                    tileFunctionTableSelected(_tileProperties->functionTable);
-                    edited = true;
-                }
-                ImGui::EndCombo();
-            }
-
-            ImGui::Unindent();
-            ImGui::Spacing();
-        }
-
-        if (edited) {
-            resetTileProperties();
-        }
+    if (_data->selectedTilesetTiles.empty()) {
+        return;
     }
-    ImGui::End();
+
+    const auto& style = ImGui::GetStyle();
+    const float tileCollisionButtonsWidth = (buttonSize.x + style.FramePadding.x * 2) * 6 + style.ItemSpacing.x * 5;
+
+    updateTileProperties();
+
+    assert(_tileProperties);
+
+    bool edited = false;
+
+    {
+        ImGui::TextUnformatted(u8"Tile Collision:");
+        ImGui::Indent();
+        ImGui::PushID("TC");
+
+        using TC = MetaTiles::TileCollisionType;
+
+        const auto textureId = tileCollisionTypeTexture().imguiTextureId();
+
+        // Image Button background is unused (0 alpha)
+        const ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+        static_assert(TILE_COLLISION_IMAGE_WIDTH == METATILE_SIZE_PX);
+        const ImVec2 uvSize = ImVec2(1.0f, 1.0f / (TILE_COLLISION_IMAGE_HEIGHT / METATILE_SIZE_PX));
+
+        auto button = [&](const char* toolTip, const TC tct) {
+            const ImVec2 uv(0.0f, unsigned(tct) * uvSize.y);
+
+            const bool isSelected = _tileProperties->tileCollisionSame && _tileProperties->tileCollision == tct;
+            const auto& tint = isSelected ? Style::tilePropertiesButtonTint : Style::tilePropertiesButtonSelectedTint;
+
+            if (ImGui::ToggledImageButton(toolTip, textureId, isSelected, buttonSize, uv, uv + uvSize, bgCol, tint)) {
+                tileCollisionClicked(tct);
+                edited = true;
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(toolTip);
+                ImGui::EndTooltip();
+            }
+        };
+        button("No Collisions", TC::EMPTY);
+        ImGui::SameLine();
+        button("Solid", TC::SOLID);
+        ImGui::SameLine();
+        button("Up Platform", TC::UP_PLATFORM);
+        ImGui::SameLine();
+        button("Down Platform", TC::DOWN_PLATFORM);
+        ImGui::SameLine();
+        button("End Slope", TC::END_SLOPE);
+
+        button("Down Right Slope", TC::DOWN_RIGHT_SLOPE);
+        ImGui::SameLine();
+        button("Down Left Slope", TC::DOWN_LEFT_SLOPE);
+        ImGui::SameLine();
+        button("Down Right Short Slope", TC::DOWN_RIGHT_SHORT_SLOPE);
+        ImGui::SameLine();
+        button("Down Right Tall Slope", TC::DOWN_RIGHT_TALL_SLOPE);
+        ImGui::SameLine();
+        button("Down Left Tall Slope", TC::DOWN_LEFT_TALL_SLOPE);
+        ImGui::SameLine();
+        button("Down Left Sort Slope", TC::DOWN_LEFT_SHORT_SLOPE);
+
+        button("Up Right Slope", TC::UP_RIGHT_SLOPE);
+        ImGui::SameLine();
+        button("Up Left Slope", TC::UP_LEFT_SLOPE);
+        ImGui::SameLine();
+        button("Up Right Short Slope", TC::UP_RIGHT_SHORT_SLOPE);
+        ImGui::SameLine();
+        button("Up Right Tall Slope", TC::UP_RIGHT_TALL_SLOPE);
+        ImGui::SameLine();
+        button("Up Left Tall Slope", TC::UP_LEFT_TALL_SLOPE);
+        ImGui::SameLine();
+        button("Up Left Short Slope", TC::UP_LEFT_SHORT_SLOPE);
+
+        ImGui::PopID();
+        ImGui::Unindent();
+        ImGui::Spacing();
+    }
+
+    {
+        ImGui::TextUnformatted(u8"Tile Priority:");
+        ImGui::Indent();
+
+        constexpr std::array<const char*, 4> labels = { "##TP_TL", "##TP_TR", "##TP_BL", "##TP_BR" };
+        constexpr std::array<const char*, 4> toolTips = { "Top Left", "Top Right", "Bottom Left", "Bottom Right" };
+
+        for (auto [i, sel] : const_enumerate(_tileProperties->tilePriorities)) {
+            const bool allSame = _tileProperties->tilePrioritiesSame.at(i);
+
+            if (!allSame) {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+            }
+            else if (sel) {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+            }
+
+            if (ImGui::Button(labels.at(i), buttonSize)) {
+                tilePriorityClicked(i, !sel);
+                edited = true;
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(toolTips.at(i));
+                ImGui::EndTooltip();
+            }
+
+            if (sel || !allSame) {
+                ImGui::PopStyleColor();
+            }
+
+            if (i % 2 == 0) {
+                ImGui::SameLine();
+            }
+        }
+
+        ImGui::Unindent();
+        ImGui::Spacing();
+    }
+
+    {
+        ImGui::TextUnformatted(u8"Interactive Tile Functions:");
+        ImGui::Indent();
+
+        // Use a different label if the selected tiles have different functions
+        const char8_t* comboText = _tileProperties->functionTableSame ? _tileProperties->functionTable.c_str() : u8"------------";
+
+        ImGui::SetNextItemWidth(tileCollisionButtonsWidth);
+        if (ImGui::BeginCombo("##ITFT", u8Cast(comboText))) {
+            if (ImGui::IdStringComboSelection(&_tileProperties->functionTable, projectFile.interactiveTiles.functionTables, true)) {
+                tileFunctionTableSelected(_tileProperties->functionTable);
+                edited = true;
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::Unindent();
+        ImGui::Spacing();
+    }
+
+    if (edited) {
+        resetTileProperties();
+    }
 }
 
-void MetaTileTilesetEditorGui::tilesetWindow()
+void MetaTileTilesetEditorGui::tilesetGui()
 {
     assert(_data);
 
-    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("MetaTile Tileset")) {
+    {
+        showLayerButtons();
+        ImGui::SameLine();
 
-        {
-            showLayerButtons();
-            ImGui::SameLine();
-
-            Style::metaTileTilesetZoom.zoomCombo("##zoom");
-        }
-
-        ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-        const ImVec2& zoom = Style::metaTileTilesetZoom.zoom();
-
-        const ImVec2 offset = drawTileset("##Tileset", zoom);
-
-        {
-            auto* drawList = ImGui::GetWindowDrawList();
-
-            _invalidTilesCommon.draw(drawList, zoom, offset);
-            if (_data->tilesetFrameSel.selectedIndex() < _invalidTilesFrame.size()) {
-                _invalidTilesFrame.at(_data->tilesetFrameSel.selectedIndex()).draw(drawList, zoom, offset);
-            }
-        }
-
-        Style::metaTileTilesetZoom.processMouseWheel();
-
-        ImGui::EndChild();
+        Style::metaTileTilesetZoom.zoomCombo("##zoom");
     }
-    ImGui::End();
+
+    ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    const ImVec2& zoom = Style::metaTileTilesetZoom.zoom();
+
+    const ImVec2 offset = drawTileset("##Tileset", zoom);
+
+    {
+        auto* drawList = ImGui::GetWindowDrawList();
+
+        _invalidTilesCommon.draw(drawList, zoom, offset);
+        if (_data->tilesetFrameSel.selectedIndex() < _invalidTilesFrame.size()) {
+            _invalidTilesFrame.at(_data->tilesetFrameSel.selectedIndex()).draw(drawList, zoom, offset);
+        }
+    }
+
+    Style::metaTileTilesetZoom.processMouseWheel();
+
+    ImGui::EndChild();
 }
 
-void MetaTileTilesetEditorGui::scratchpadWindow()
+void MetaTileTilesetEditorGui::scratchpadGui()
 {
     assert(_data);
 
-    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Scratchpad")) {
+    {
+        animationButtons();
+        ImGui::SameLine(0.0f, 12.0f);
 
-        {
-            animationButtons();
-            ImGui::SameLine(0.0f, 12.0f);
+        undoStackButtons();
+        ImGui::SameLine(0.0f, 12.0f);
 
-            undoStackButtons();
-            ImGui::SameLine(0.0f, 12.0f);
+        editModeButtons();
+        ImGui::SameLine(0.0f, 12.0f);
 
-            editModeButtons();
-            ImGui::SameLine(0.0f, 12.0f);
+        showLayerButtons();
+        ImGui::SameLine();
 
-            showLayerButtons();
-            ImGui::SameLine();
-
-            Style::metaTileScratchpadZoom.zoomCombo("##zoom");
-        }
-
-        ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-        drawAndEditMap("##Scratchpad", Style::metaTileScratchpadZoom.zoom());
-
-        Style::metaTileScratchpadZoom.processMouseWheel();
-
-        ImGui::EndChild();
+        Style::metaTileScratchpadZoom.zoomCombo("##zoom");
     }
-    ImGui::End();
+
+    ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    drawAndEditMap("##Scratchpad", Style::metaTileScratchpadZoom.zoom());
+
+    Style::metaTileScratchpadZoom.processMouseWheel();
+
+    ImGui::EndChild();
 }
 
 void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
@@ -722,14 +703,49 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
     updateMapAndProcessAnimations();
     updateInvalidTileList(projectData);
 
-    propertiesWindow(projectFile);
-    tilePropertiesWindow(projectFile);
+    splitterSidebarRight(
+        "##splitter", &_sidebar,
+        "##Content",
+        [&] {
+            splitterSidebarRight(
+                "##mmapsp", &_minimapSidebar,
+                "##Editor",
+                [&] {
+                    if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
+                        if (ImGui::BeginTabItem("Tileset")) {
+                            tilesetGui();
+                            ImGui::EndTabItem();
+                        }
+                        if (ImGui::BeginTabItem("Scratchpad")) {
+                            scratchpadGui();
+                            ImGui::EndTabItem();
+                        }
+                        ImGui::EndTabBar();
+                    }
+                },
+                "##minimaps",
+                [&] {
+                    ImGui::BeginChild("##tileProperties", ImVec2(0, 300), false);
+                    tilePropertiesGui(projectFile);
+                    ImGui::EndChild();
 
-    tilesetWindow();
-    scratchpadWindow();
+                    ImGui::Separator();
 
-    tilesetMinimapWindow("Minimap###Tileset_MiniMap");
-    minimapWindow("Scratchpad Minimap###Tileset_Scratchpad_MiniMap");
+                    ImGui::BeginChild("##tsMinimap", ImVec2(0, 270), false);
+                    tilesetMinimapGui("##ts minimap");
+                    ImGui::EndChild();
+
+                    ImGui::Separator();
+
+                    ImGui::BeginChild("##Minimap", ImVec2(0, 0), false);
+                    minimapGui("##sp minimap");
+                    ImGui::EndChild();
+                });
+        },
+        "Sidebar",
+        [&] {
+            propertiesGui(projectFile);
+        });
 
     if (!_data->tilesetFrameSel.isSelectionChanging()) {
         // Number of frames in the compiled data might not equal frameImageFilenames.size()

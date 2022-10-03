@@ -26,62 +26,58 @@ inline void AbstractMetaSpriteEditorData::updateSelection()
 }
 
 template <typename AP, typename EditorT, typename FrameSetT>
-void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet)
+void AbstractMetaSpriteEditorGui::animationPropertiesGui(EditorT* editor, FrameSetT* frameSet)
 {
     using MsAnimation = UnTech::MetaSprite::Animation::Animation;
 
-    ImGui::SetNextWindowSize(ImVec2(550, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(windowLabel)) {
-        NamedListSidebar<typename AP::Animations_EditName>(editor);
+    NamedListSidebar<typename AP::Animations_EditName>(editor);
 
-        ImGui::SameLine();
-        ImGui::BeginChild("Scroll");
+    ImGui::SameLine();
+    ImGui::BeginChild("Scroll");
 
-        if (editor->animationsSel.selectedIndex() < frameSet->animations.size()) {
-            MsAnimation& animation = frameSet->animations.at(editor->animationsSel.selectedIndex());
+    if (editor->animationsSel.selectedIndex() < frameSet->animations.size()) {
+        MsAnimation& animation = frameSet->animations.at(editor->animationsSel.selectedIndex());
 
-            {
-                if (Cell("Name", &animation.name)) {
-                    ListActions<typename AP::Animations_EditName>::template selectedFieldEdited<
-                        &MsAnimation::name>(editor);
-                }
-
-                if (Cell("Duration Format", &animation.durationFormat)) {
-                    ListActions<typename AP::Animations>::template selectedFieldEdited<
-                        &MsAnimation::durationFormat>(editor);
-                }
-
-                if (Cell("One Shot", &animation.oneShot)) {
-                    ListActions<typename AP::Animations>::template selectedFieldEdited<
-                        &MsAnimation::oneShot>(editor);
-                }
-
-                if (Cell("Next Animation", &animation.nextAnimation, frameSet->animations)) {
-                    ListActions<typename AP::Animations>::template selectedFieldEdited<
-                        &MsAnimation::nextAnimation>(editor);
-                }
+        {
+            if (Cell("Name", &animation.name)) {
+                ListActions<typename AP::Animations_EditName>::template selectedFieldEdited<
+                    &MsAnimation::name>(editor);
             }
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
 
-            apTable<typename AP::AnimationFrames>(
-                "AnimationFrames", editor,
-                std::to_array({ "Frame", "Flip", "Duration", "" }),
+            if (Cell("Duration Format", &animation.durationFormat)) {
+                ListActions<typename AP::Animations>::template selectedFieldEdited<
+                    &MsAnimation::durationFormat>(editor);
+            }
 
-                [&](auto& af) { return Cell("##frame", &af.frame.name, frameSet->frames); },
-                [&](auto& af) { return Cell_FlipCombo("##flip", &af.frame.hFlip, &af.frame.vFlip); },
-                [&](auto& af) { return Cell("##duration", &af.duration); },
+            if (Cell("One Shot", &animation.oneShot)) {
+                ListActions<typename AP::Animations>::template selectedFieldEdited<
+                    &MsAnimation::oneShot>(editor);
+            }
 
-                [&](const auto& af) {
-                    durationFormatText(animation.durationFormat, af.duration);
-                    return false;
-                });
+            if (Cell("Next Animation", &animation.nextAnimation, frameSet->animations)) {
+                ListActions<typename AP::Animations>::template selectedFieldEdited<
+                    &MsAnimation::nextAnimation>(editor);
+            }
         }
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
 
-        ImGui::EndChild();
+        apTable<typename AP::AnimationFrames>(
+            "AnimationFrames", editor,
+            std::to_array({ "Frame", "Flip", "Duration", "" }),
+
+            [&](auto& af) { return Cell("##frame", &af.frame.name, frameSet->frames); },
+            [&](auto& af) { return Cell_FlipCombo("##flip", &af.frame.hFlip, &af.frame.vFlip); },
+            [&](auto& af) { return Cell("##duration", &af.duration); },
+
+            [&](const auto& af) {
+                durationFormatText(animation.durationFormat, af.duration);
+                return false;
+            });
     }
-    ImGui::End();
+
+    ImGui::EndChild();
 }
 
 template <typename EditorDataT, typename DrawFunction>

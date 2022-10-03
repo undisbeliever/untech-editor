@@ -81,7 +81,7 @@ void BytecodeEditorData::updateSelection()
 }
 
 BytecodeEditorGui::BytecodeEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##Bytecode editor")
     , _data(nullptr)
 {
 }
@@ -99,46 +99,43 @@ void BytecodeEditorGui::editorClosed()
 {
 }
 
-void BytecodeEditorGui::instructionsWindow()
+void BytecodeEditorGui::instructionsGui()
 {
     assert(_data);
     auto& bytecode = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Bytecode Instructions")) {
+    ImGui::TextUnformatted(u8"Bytecode Instructions:");
 
-        ListButtons<AP::Instructions>(_data);
+    ListButtons<AP::Instructions>(_data);
 
-        constexpr auto columnNames = std::to_array({ "Name", "Argument 1", "Argument 2", "Yields" });
+    constexpr auto columnNames = std::to_array({ "Name", "Argument 1", "Argument 2", "Yields" });
 
-        if (beginApTable("Table", columnNames)) {
-            for (auto& inst : bytecode.BASE_INSTRUCTIONS) {
+    if (beginApTable("Table", columnNames)) {
+        for (auto& inst : bytecode.BASE_INSTRUCTIONS) {
+            ImGui::TableNextColumn();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(inst.name);
+
+            for (auto& a : inst.arguments) {
                 ImGui::TableNextColumn();
-
-                ImGui::TableNextColumn();
-                ImGui::TextUnformatted(inst.name);
-
-                for (auto& a : inst.arguments) {
-                    ImGui::TableNextColumn();
-                    ImGui::TextEnum(a);
-                }
-
-                ImGui::TableNextColumn();
-                bool yields = inst.yields;
-                ImGui::Checkbox("Yields", &yields);
+                ImGui::TextEnum(a);
             }
 
-            apTable_data<AP::Instructions>(
-                _data,
-                [&](auto& inst) { return Cell("##Name", &inst.name); },
-                [&](auto& inst) { return Cell("##Arg1", &inst.arguments.at(0)); },
-                [&](auto& inst) { return Cell("##Arg2", &inst.arguments.at(1)); },
-                [&](auto& inst) { return Cell("Yields", &inst.yields); });
-
-            endApTable();
+            ImGui::TableNextColumn();
+            bool yields = inst.yields;
+            ImGui::Checkbox("Yields", &yields);
         }
+
+        apTable_data<AP::Instructions>(
+            _data,
+            [&](auto& inst) { return Cell("##Name", &inst.name); },
+            [&](auto& inst) { return Cell("##Arg1", &inst.arguments.at(0)); },
+            [&](auto& inst) { return Cell("##Arg2", &inst.arguments.at(1)); },
+            [&](auto& inst) { return Cell("Yields", &inst.yields); });
+
+        endApTable();
     }
-    ImGui::End();
 }
 
 void BytecodeEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
@@ -147,7 +144,7 @@ void BytecodeEditorGui::processGui(const Project::ProjectFile&, const Project::P
         return;
     }
 
-    instructionsWindow();
+    instructionsGui();
 }
 
 }

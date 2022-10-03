@@ -74,7 +74,7 @@ void ActionPointsEditorData::updateSelection()
 }
 
 ActionPointsEditorGui::ActionPointsEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##AP editor")
     , _data(nullptr)
 {
 }
@@ -92,21 +92,18 @@ void ActionPointsEditorGui::editorClosed()
 {
 }
 
-void ActionPointsEditorGui::actionPointsWindow()
+void ActionPointsEditorGui::actionPointsGui()
 {
     assert(_data);
 
-    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Action Points")) {
+    ImGui::TextUnformatted(u8"Action Points:");
 
-        apTable<AP::ActionPointFunctions>(
-            "Table", _data,
-            std::to_array({ "Name", "Manually Invoked" }),
+    apTable<AP::ActionPointFunctions>(
+        "Table", _data,
+        std::to_array({ "Name", "Manually Invoked" }),
 
-            [&](auto& ap) { return Cell("##name", &ap.name); },
-            [&](auto& ap) { return Cell("##Manually Invoked", &ap.manuallyInvoked); });
-    }
-    ImGui::End();
+        [&](auto& ap) { return Cell("##name", &ap.name); },
+        [&](auto& ap) { return Cell("##Manually Invoked", &ap.manuallyInvoked); });
 }
 
 void ActionPointsEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
@@ -115,7 +112,7 @@ void ActionPointsEditorGui::processGui(const Project::ProjectFile&, const Projec
         return;
     }
 
-    actionPointsWindow();
+    actionPointsGui();
 }
 
 }

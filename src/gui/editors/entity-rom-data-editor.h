@@ -8,6 +8,7 @@
 
 #include "gui/abstract-editor.h"
 #include "gui/selection.h"
+#include "gui/splitter.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -48,6 +49,12 @@ private:
 
     EntityRomDataEditorData* _data;
 
+    SplitterBarState _sidebar;
+    SplitterBarState _leftTopbar;
+    SplitterBarState _listIdsSidebar;
+    SplitterBarState _playersTopbar;
+    SplitterBarState _projectilesTopbar;
+
 public:
     EntityRomDataEditorGui();
 
@@ -59,13 +66,12 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void listIdsWindow();
-    void structsWindow();
-    void functionTablesWindow(const Project::ProjectFile& projectFile);
+    void listIdsGui();
+    void structsGui();
+    void functionTablesGui(const Project::ProjectFile& projectFile);
 
     template <typename ActionPolicy>
-    void entityEntriesWindow(const char* name,
-                             const Project::ProjectFile& projectFile);
+    void entityEntriesGui(const char8_t* text, const Project::ProjectFile& projectFile);
 
     std::vector<unsigned> generateStructChain(const idstring& name) const;
 };

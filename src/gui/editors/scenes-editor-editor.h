@@ -8,6 +8,7 @@
 
 #include "gui/abstract-editor.h"
 #include "gui/selection.h"
+#include "gui/splitter.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -36,6 +37,8 @@ private:
 
     ScenesEditorData* _data;
 
+    SplitterBarState _topbar;
+
 public:
     ScenesEditorGui();
 
@@ -47,8 +50,8 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void settingsWindow();
-    void scenesWindow(const Project::ProjectFile& projectFile);
+    void settingsGui();
+    void scenesGui(const Project::ProjectFile& projectFile);
 };
 
 }

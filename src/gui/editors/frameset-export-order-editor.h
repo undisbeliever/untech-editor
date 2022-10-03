@@ -52,7 +52,7 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void exportOrderWindow();
+    void exportOrderGui();
 
     template <typename ExportNameActionPolicy>
     void exportNameTree(const char* label, const ImVec2& childSize);

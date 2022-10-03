@@ -146,6 +146,14 @@ int main(int argc, char* argv[])
 
     Shaders::initialize();
 
+    // Fix Missing BG window
+    // (Done in a hidden, non-visible frame to prevent a visible glitched window)
+    {
+        imgui.newFrame();
+        UnTechEditor::fixMissingBgWindow();
+        ImGui::EndFrame();
+    }
+
     processProgramArguments(argc, argv);
 
     if (UnTechEditor::instance() == nullptr) {

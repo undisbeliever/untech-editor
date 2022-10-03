@@ -174,11 +174,19 @@ private:
     AbstractEditorGui& operator=(AbstractEditorGui&&) = delete;
 
 public:
+    // str_id of the child window inside the BG window
+    const char* const childWindowStrId;
+
     bool undoClicked = false;
     bool redoClicked = false;
 
 public:
-    AbstractEditorGui() = default;
+    AbstractEditorGui(const char* strId)
+        : childWindowStrId(strId)
+        , undoClicked(false)
+        , redoClicked(false)
+    {
+    }
     virtual ~AbstractEditorGui() = default;
 
     virtual bool setEditorData(AbstractEditorData* data) = 0;
@@ -189,6 +197,7 @@ public:
     virtual void editorClosed() = 0;
 
     virtual void processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData) = 0;
+    virtual void processExtraWindows(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     virtual void viewMenu();
 

@@ -47,7 +47,7 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void gameStateWindow(const Project::ProjectFile& projectFile);
+    void gameStateGui(const Project::ProjectFile& projectFile);
 };
 
 }

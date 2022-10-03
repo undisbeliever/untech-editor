@@ -9,6 +9,7 @@
 #include "gui/editors/abstract-metatile-editor.h"
 #include "gui/graphics/invalid-image-error-graphics.h"
 #include "gui/selection.h"
+#include "gui/splitter.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -68,6 +69,9 @@ private:
     std::vector<InvalidImageErrorGraphics> _invalidTilesFrame;
     unsigned _invalidTilesCompileId;
 
+    SplitterBarState _sidebar;
+    SplitterBarState _minimapSidebar;
+
 public:
     bool _tilesetShaderImageFilenamesValid;
     bool _tileCollisionsValid;
@@ -94,11 +98,11 @@ private:
     void tilePriorityClicked(const unsigned subTile, const bool v);
     void tileFunctionTableSelected(const idstring& ft);
 
-    void propertiesWindow(const Project::ProjectFile& projectFile);
-    void tilePropertiesWindow(const Project::ProjectFile& projectFile);
+    void propertiesGui(const Project::ProjectFile& projectFile);
+    void tilePropertiesGui(const Project::ProjectFile& projectFile);
 
-    void tilesetWindow();
-    void scratchpadWindow();
+    void tilesetGui();
+    void scratchpadGui();
 
     void updateMtTilesetShader(const Project::ProjectFile& projectFile,
                                const Project::ProjectData& projectData);

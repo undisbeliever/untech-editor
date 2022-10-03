@@ -305,8 +305,8 @@ AbstractMetaTileEditorData::AbstractMetaTileEditorData(ItemIndex itemIndex)
 {
 }
 
-AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
-    : AbstractEditorGui()
+AbstractMetaTileEditorGui::AbstractMetaTileEditorGui(const char* strId)
+    : AbstractEditorGui(strId)
     , _data(nullptr)
     , _tilesetShader()
     , _tilemap()
@@ -505,82 +505,67 @@ ImVec2 AbstractMetaTileEditorGui::drawTileset(const char* strId, const ImVec2 zo
     return geo.offset;
 }
 
-void AbstractMetaTileEditorGui::tilesetMinimapWindow(const char* label)
+void AbstractMetaTileEditorGui::tilesetMinimapGui(const char* label)
 {
     assert(_data);
 
-    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-
-        const auto geo = invisibleButtonAndMapGeometryAutoZoom("##Map", usize{ TILESET_WIDTH, TILESET_HEIGHT });
-        drawTileset(geo);
-    }
-    ImGui::End();
+    const auto geo = invisibleButtonAndMapGeometryAutoZoom(label, usize{ TILESET_WIDTH, TILESET_HEIGHT });
+    drawTileset(geo);
 }
 
-void AbstractMetaTileEditorGui::minimapWindow(const char* label)
+void AbstractMetaTileEditorGui::minimapGui(const char* label)
 {
     assert(_data);
 
-    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+    if (!_tilemap.empty()) {
+        const auto& mapData = _data->map();
 
-        if (!_tilemap.empty()) {
-            const auto& mapData = _data->map();
+        const auto geo = invisibleButtonAndMapGeometryAutoZoom(label, _tilemap.gridSize());
 
-            const auto geo = invisibleButtonAndMapGeometryAutoZoom("##Map", _tilemap.gridSize());
+        drawTilemap(_tilemap, geo);
+        drawSelection(_data->selectedTiles, geo);
 
-            drawTilemap(_tilemap, geo);
-            drawSelection(_data->selectedTiles, geo);
+        interactiveTilesTooltip(mapData, geo);
 
-            interactiveTilesTooltip(mapData, geo);
+        const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, _tilemap.gridSize());
+        if (sc) {
+            const auto& map = _data->map();
 
-            const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, _tilemap.gridSize());
-            if (sc) {
-                const auto& map = _data->map();
-
-                createTileCursor(map, _data->selectedTiles);
-                if (_currentEditMode == EditMode::SelectTiles) {
-                    setEditMode(EditMode::PlaceTiles);
-                }
-                _data->selectedTilesChanged();
-                selectionChanged();
+            createTileCursor(map, _data->selectedTiles);
+            if (_currentEditMode == EditMode::SelectTiles) {
+                setEditMode(EditMode::PlaceTiles);
             }
+            _data->selectedTilesChanged();
+            selectionChanged();
         }
     }
-    ImGui::End();
 }
 
-bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, const Shaders::MtTilemap& tilemap,
-                                                        const grid<uint8_t>& mapData, upoint_vectorset* sel)
+bool AbstractMetaTileEditorGui::scratchpadMinimapGui(const char* label, const Shaders::MtTilemap& tilemap,
+                                                     const grid<uint8_t>& mapData, upoint_vectorset* sel)
 {
     assert(_data);
 
     bool selChanged = false;
 
-    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+    if (!tilemap.empty()) {
+        const auto geo = invisibleButtonAndMapGeometryAutoZoom(label, tilemap.gridSize());
+        drawTilemap(tilemap, geo);
+        drawSelection(*sel, geo);
 
-        if (!tilemap.empty()) {
-            const auto geo = invisibleButtonAndMapGeometryAutoZoom("##Map", tilemap.gridSize());
-            drawTilemap(tilemap, geo);
-            drawSelection(*sel, geo);
+        interactiveTilesTooltip(mapData, geo);
 
-            interactiveTilesTooltip(mapData, geo);
+        const bool sc = scratchpadTilesSelector.processSelection(sel, geo, tilemap.gridSize());
+        if (sc) {
+            selChanged = true;
 
-            const bool sc = scratchpadTilesSelector.processSelection(sel, geo, tilemap.gridSize());
-            if (sc) {
-                selChanged = true;
+            createTileCursorFromScratchpad(mapData, *sel);
 
-                createTileCursorFromScratchpad(mapData, *sel);
-
-                if (_currentEditMode == EditMode::SelectTiles) {
-                    setEditMode(EditMode::PlaceTiles);
-                }
+            if (_currentEditMode == EditMode::SelectTiles) {
+                setEditMode(EditMode::PlaceTiles);
             }
         }
     }
-    ImGui::End();
 
     return selChanged;
 }

@@ -202,66 +202,62 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
 {
     using namespace std::string_literals;
 
-    if (ImGui::Begin(windowTitle)) {
-        const ImGuiSelectableFlags leafFlags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick;
+    const ImGuiSelectableFlags leafFlags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick;
 
-        std::optional<ItemIndex> pendingIndex = _selectedIndex;
+    std::optional<ItemIndex> pendingIndex = _selectedIndex;
 
-        for (const auto rtIndex : range(N_RESOURCE_TYPES)) {
-            const ResourceType type = static_cast<ResourceType>(rtIndex);
-            const Project::ResourceListStatus& list = projectData.resourceListStatus(type);
+    for (const auto rtIndex : range(N_RESOURCE_TYPES)) {
+        const ResourceType type = static_cast<ResourceType>(rtIndex);
+        const Project::ResourceListStatus& list = projectData.resourceListStatus(type);
 
-            list.readResourceListState([&](const auto& state, const auto& resources) {
-                static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
-                static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
+        list.readResourceListState([&](const auto& state, const auto& resources) {
+            static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
+            static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
 
-                assert(resources.size() < INT_MAX);
+            assert(resources.size() < INT_MAX);
 
-                resourceStateIcon(state);
-                ImGui::SameLine();
-                ImGui::TextUnformatted(list.typeNamePlural());
+            resourceStateIcon(state);
+            ImGui::SameLine();
+            ImGui::TextUnformatted(list.typeNamePlural());
 
-                ImGui::PushID(int(type));
-                ImGui::Indent();
+            ImGui::PushID(int(type));
+            ImGui::Indent();
 
-                for (auto [index, item] : enumerate(resources)) {
-                    const ItemIndex itemIndex{ type, unsigned(index) };
+            for (auto [index, item] : enumerate(resources)) {
+                const ItemIndex itemIndex{ type, unsigned(index) };
 
-                    ImGui::PushID(index);
+                ImGui::PushID(index);
 
-                    if (ImGui::Selectable("##sel", _selectedIndex == itemIndex, leafFlags)) {
-                        pendingIndex = itemIndex;
-                        _state = State::SELECT_RESOURCE;
-                    }
-                    if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1)) {
-                        // Ensure item is selected when opening a context menu
-                        pendingIndex = itemIndex;
-                    }
-
-                    ImGui::SameLine();
-
-                    resourceStateIcon(item.state);
-                    ImGui::SameLine();
-
-                    ImGui::TextUnformatted(item.name);
-
-                    ImGui::PopID();
+                if (ImGui::Selectable("##sel", _selectedIndex == itemIndex, leafFlags)) {
+                    pendingIndex = itemIndex;
+                    _state = State::SELECT_RESOURCE;
+                }
+                if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1)) {
+                    // Ensure item is selected when opening a context menu
+                    pendingIndex = itemIndex;
                 }
 
-                ImGui::Unindent();
+                ImGui::SameLine();
+
+                resourceStateIcon(item.state);
+                ImGui::SameLine();
+
+                ImGui::TextUnformatted(item.name);
+
                 ImGui::PopID();
-            });
-        }
+            }
 
-        _selectedIndex = pendingIndex;
-
-        if (ImGui::BeginPopupContextWindow()) {
-            processMenu();
-            ImGui::EndPopup();
-        }
+            ImGui::Unindent();
+            ImGui::PopID();
+        });
     }
 
-    ImGui::End();
+    _selectedIndex = pendingIndex;
+
+    if (ImGui::BeginPopupContextWindow()) {
+        processMenu();
+        ImGui::EndPopup();
+    }
 }
 
 void ProjectListWindow::processMenu()

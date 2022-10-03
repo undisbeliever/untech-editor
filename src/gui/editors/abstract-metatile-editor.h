@@ -93,7 +93,7 @@ public:
     static bool showInteractiveTiles;
 
 public:
-    AbstractMetaTileEditorGui();
+    AbstractMetaTileEditorGui(const char* strId);
 
     virtual bool setEditorData(AbstractEditorData* data) override;
     virtual void resetState() override;
@@ -110,13 +110,13 @@ protected:
     // To be called at the start of `processGui`
     void updateMapAndProcessAnimations();
 
-    void tilesetMinimapWindow(const char* label);
+    void tilesetMinimapGui(const char* label);
 
-    void minimapWindow(const char* label);
+    void minimapGui(const char* label);
 
     // Returns true if sel changed
-    bool scratchpadMinimapWindow(const char* label, const Shaders::MtTilemap& tilemap,
-                                 const grid<uint8_t>& mapData, upoint_vectorset* sel);
+    bool scratchpadMinimapGui(const char* label, const Shaders::MtTilemap& tilemap,
+                              const grid<uint8_t>& mapData, upoint_vectorset* sel);
 
     // These functions with a `strId` argument will create an InvisibleButton that covers the entire map.
     // Return the screen position of the tileset/map

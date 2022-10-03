@@ -10,6 +10,7 @@
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/graphics/invalid-room-tile-graphics.h"
 #include "gui/selection.h"
+#include "gui/splitter.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -83,6 +84,10 @@ private:
     InvalidRoomTileGraphics _invalidTiles;
     unsigned _invalidTilesCompileId;
 
+    SplitterBarState _sidebar;
+    SplitterBarState _minimapSidebar;
+    SplitterBarState _minimapBottombar;
+
     bool _entityTextureWindowOpen;
 
 public:
@@ -104,6 +109,9 @@ public:
     virtual void processGui(const Project::ProjectFile& projectFile,
                             const Project::ProjectData& projectData) final;
 
+    virtual void processExtraWindows(const Project::ProjectFile& projectFile,
+                                     const Project::ProjectData& projectData) final;
+
     virtual void viewMenu() final;
 
 protected:
@@ -112,15 +120,16 @@ protected:
     virtual const std::array<idstring, 256>& tileFunctionTables() const final;
 
 private:
-    void propertiesWindow(const Project::ProjectFile& projectFile);
+    void propertiesGui(const Project::ProjectFile& projectFile);
+    void scratchpadGui();
+
+    void editorGui();
+    void scriptsGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     void entityTextureWindow();
 
     void entitiesWindow();
     void entityDropTarget(ImDrawList* drawList);
-
-    void editorWindow();
-    void scriptsWindow(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     void drawObjects(ImDrawList* drawList);
     void drawAndEditObjects(ImDrawList* drawList);

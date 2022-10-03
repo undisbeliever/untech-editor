@@ -7,6 +7,7 @@
 #pragma once
 
 #include "item-index.h"
+#include "splitter.h"
 #include "gui/graphics/entity-graphics.h"
 #include "models/project/project-data.h"
 #include "models/project/project-file-mutex.h"
@@ -78,6 +79,8 @@ private:
 
     ProjectListWindow _projectListWindow;
 
+    SplitterBarState _projectListSidebar;
+
     bool _openUnsavedChangesOnExitPopup;
     bool _editorExited;
     std::vector<std::u8string> _unsavedFilesList;
@@ -103,6 +106,8 @@ public:
     // called after ImGUI render
     void updateProjectFile();
 
+    static void fixMissingBgWindow();
+
 private:
     void openEditor(const ItemIndex itemIndex);
     void closeEditor();
@@ -119,6 +124,8 @@ private:
 
     void processMenu();
     void processKeyboardShortcuts();
+
+    void fullscreenBackgroundWindow();
 
     void unsavedChangesOnExitPopup();
 };

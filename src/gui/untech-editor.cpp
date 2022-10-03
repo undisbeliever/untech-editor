@@ -33,6 +33,7 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     , _currentEditor(nullptr)
     , _currentEditorGui(nullptr)
     , _projectListWindow()
+    , _projectListSidebar{ 280, 150, 500 }
     , _openUnsavedChangesOnExitPopup(false)
     , _editorExited(false)
     , _unsavedFilesList()
@@ -512,19 +513,65 @@ void UnTechEditor::unsavedChangesOnExitPopup()
     }
 }
 
+/**
+ * This function fixes a bug where the `##BgWindow` is not visible.
+ * The bug appears to be caused by `ImGuiWindowFlags_NoBringToFrontOnFocus` flag.
+ * Creating a `##BgWindow` without the flag for a single frame fixes this bug.
+ *
+ * This function MUST be called once after ImGui has been initialised.
+ */
+void UnTechEditor::fixMissingBgWindow()
+{
+    constexpr auto windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+
+    // Required to prevent the Project List Sidebar from shrinking to the minimum width.
+    ImGui::SetNextWindowSize(ImVec2(800, 400));
+
+    ImGui::Begin("##BgWindow", nullptr, windowFlags);
+    ImGui::End();
+}
+
+void UnTechEditor::fullscreenBackgroundWindow()
+{
+    constexpr auto windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar
+                                 | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoSavedSettings;
+
+    const auto* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+
+    if (ImGui::Begin("##BgWindow", nullptr, windowFlags)) {
+        auto s = splitterSidebarLeft("plSplitter", &_projectListSidebar);
+
+        ImGui::BeginChild("ProjectList", s.first, false);
+        _projectListWindow.processGui(_projectData);
+        ImGui::EndChild();
+
+        if (_currentEditorGui) {
+            assert(_currentEditor);
+
+            ImGui::SameLine();
+            ImGui::BeginChild(_currentEditorGui->childWindowStrId, s.second, false);
+            _projectFile.read([&](const auto& pf) {
+                _currentEditorGui->processGui(pf, _projectData);
+            });
+            ImGui::EndChild();
+        }
+    }
+    ImGui::End();
+}
+
 void UnTechEditor::processGui()
 {
-    if (_currentEditorGui) {
-        assert(_currentEditor);
+    fullscreenBackgroundWindow();
+
+    if (_currentEditor) {
+        processErrorListWindow(_projectData, _currentEditor);
 
         _projectFile.read([&](const auto& pf) {
-            _currentEditorGui->processGui(pf, _projectData);
+            _currentEditorGui->processExtraWindows(pf, _projectData);
         });
-
-        processErrorListWindow(_projectData, _currentEditor);
     }
-
-    _projectListWindow.processGui(_projectData);
 
     processMenu();
     processKeyboardShortcuts();

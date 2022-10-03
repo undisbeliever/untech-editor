@@ -96,7 +96,7 @@ void GameStateEditorData::updateSelection()
 }
 
 GameStateEditorGui::GameStateEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##Game state editor")
     , _data(nullptr)
 {
 }
@@ -114,73 +114,70 @@ void GameStateEditorGui::editorClosed()
 {
 }
 
-void GameStateEditorGui::gameStateWindow(const Project::ProjectFile& projectFile)
+void GameStateEditorGui::gameStateGui(const Project::ProjectFile& projectFile)
 {
     assert(_data);
     auto& gameState = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Game State")) {
-        const auto& style = ImGui::GetStyle();
+    const auto& style = ImGui::GetStyle();
 
-        const ImVec2 childSize = ImVec2((ImGui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2, 0);
+    const ImVec2 childSize = ImVec2((ImGui::GetContentRegionAvail().x - style.ItemSpacing.x) / 2, 0);
 
-        if (Cell("Starting Room", &gameState.startingRoom, projectFile.rooms)) {
-            EditorActions<AP::GameState>::fieldEdited<
-                &Scripting::GameState::startingRoom>(_data);
-        }
+    ImGui::TextUnformatted(u8"Game State:");
 
-        if (ImGui::BeginCombo("Starting Entrance", u8Cast(gameState.startingEntrance))) {
-            if (const auto room = projectFile.rooms.find(gameState.startingRoom)) {
-                const bool changed = ImGui::IdStringComboSelection(&gameState.startingEntrance, room->entrances, true);
-                if (changed) {
-                    EditorActions<AP::GameState>::fieldEdited<
-                        &Scripting::GameState::startingEntrance>(_data);
-                }
-            }
-            ImGui::EndCombo();
-        }
-
-        if (Cell("Starting Player", &gameState.startingPlayer, projectFile.entityRomData.players)) {
-            EditorActions<AP::GameState>::fieldEdited<
-                &Scripting::GameState::startingPlayer>(_data);
-        }
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        ImGui::BeginChild("FlagsChild", childSize, true);
-        {
-            ImGui::TextUnformatted(u8"Game State Flags:\n\n");
-
-            apTable<AP::Flags>(
-                "Flags", _data,
-                std::to_array({ "Name", "Room" }),
-
-                [&](auto& f) { return Cell("##name", &f.name); },
-                [&](auto& f) { return Cell("##room", &f.room); });
-        }
-        ImGui::EndChild();
-
-        ImGui::SameLine();
-
-        ImGui::BeginChild("WordsChild", childSize, true);
-        {
-            ImGui::TextUnformatted(u8"Game State Words:\n\n");
-
-            apTable<AP::Words>(
-                "Words", _data,
-                std::to_array({ "Name", "Room", "Initial Value" }),
-
-                [&](auto& w) { return Cell("##name", &w.name); },
-                [&](auto& w) { return Cell("##room", &w.room); },
-                [&](auto& w) { return Cell("##value", &w.initialValue); });
-        }
-        ImGui::EndChild();
+    if (Cell("Starting Room", &gameState.startingRoom, projectFile.rooms)) {
+        EditorActions<AP::GameState>::fieldEdited<
+            &Scripting::GameState::startingRoom>(_data);
     }
 
-    ImGui::End();
+    if (ImGui::BeginCombo("Starting Entrance", u8Cast(gameState.startingEntrance))) {
+        if (const auto room = projectFile.rooms.find(gameState.startingRoom)) {
+            const bool changed = ImGui::IdStringComboSelection(&gameState.startingEntrance, room->entrances, true);
+            if (changed) {
+                EditorActions<AP::GameState>::fieldEdited<
+                    &Scripting::GameState::startingEntrance>(_data);
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    if (Cell("Starting Player", &gameState.startingPlayer, projectFile.entityRomData.players)) {
+        EditorActions<AP::GameState>::fieldEdited<
+            &Scripting::GameState::startingPlayer>(_data);
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    ImGui::BeginChild("FlagsChild", childSize, true);
+    {
+        ImGui::TextUnformatted(u8"Game State Flags:\n\n");
+
+        apTable<AP::Flags>(
+            "Flags", _data,
+            std::to_array({ "Name", "Room" }),
+
+            [&](auto& f) { return Cell("##name", &f.name); },
+            [&](auto& f) { return Cell("##room", &f.room); });
+    }
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+
+    ImGui::BeginChild("WordsChild", childSize, true);
+    {
+        ImGui::TextUnformatted(u8"Game State Words:\n\n");
+
+        apTable<AP::Words>(
+            "Words", _data,
+            std::to_array({ "Name", "Room", "Initial Value" }),
+
+            [&](auto& w) { return Cell("##name", &w.name); },
+            [&](auto& w) { return Cell("##room", &w.room); },
+            [&](auto& w) { return Cell("##value", &w.initialValue); });
+    }
+    ImGui::EndChild();
 }
 
 void GameStateEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
@@ -189,7 +186,7 @@ void GameStateEditorGui::processGui(const Project::ProjectFile& projectFile, con
         return;
     }
 
-    gameStateWindow(projectFile);
+    gameStateGui(projectFile);
 }
 
 }

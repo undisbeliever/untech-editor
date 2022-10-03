@@ -10,6 +10,7 @@
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui.h"
+#include "gui/splitter.hpp"
 #include "gui/style.h"
 #include "models/common/bit.h"
 #include "models/metasprite/metasprite-error.h"
@@ -410,7 +411,7 @@ void MetaSpriteEditorData::updateTileSelection()
 }
 
 MetaSpriteEditorGui::MetaSpriteEditorGui()
-    : AbstractMetaSpriteEditorGui()
+    : AbstractMetaSpriteEditorGui("##MS Editor")
     , _data(nullptr)
     , _colorSel(INT_MAX)
     , _paletteState(PaletteState::EDIT_COLOR)
@@ -426,6 +427,8 @@ MetaSpriteEditorGui::MetaSpriteEditorGui()
     , _largeTilesetUvSize()
     , _smallTilesetUVmax()
     , _largeTilesetUVmax()
+    , _sidebar{ 550, 300, 300 }
+    , _bottombar{ 300, 200, 300 }
     , _paletteValid(false)
     , _tilesetValid(false)
 {
@@ -474,39 +477,34 @@ void MetaSpriteEditorGui::addAnimation(const idstring& name)
     ListActions<AP::Animations_EditName>::addItemToSelectedList(_data, animation);
 }
 
-void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
+void MetaSpriteEditorGui::frameSetPropertiesGui(const Project::ProjectFile& projectFile)
 {
     assert(_data);
     auto& fs = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("FrameSet##MS")) {
+    ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
-        ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
+    {
+        ImGui::TextUnformatted(u8"Properties:");
+        ImGui::Indent();
 
-        {
-            ImGui::TextUnformatted(u8"Properties:");
-            ImGui::Indent();
-
-            if (Cell("Name", &fs.name)) {
-                EditorActions<AP::FrameSet>::fieldEdited<
-                    &MS::FrameSet::name>(_data);
-            }
-
-            if (Cell("Tileset Type", &fs.tilesetType)) {
-                EditorActions<AP::FrameSet>::fieldEdited<
-                    &MS::FrameSet::tilesetType>(_data);
-            }
-
-            if (Cell("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
-                EditorFieldActions<AP::ExportOrder>::fieldEdited(_data);
-            }
-
-            ImGui::Unindent();
+        if (Cell("Name", &fs.name)) {
+            EditorActions<AP::FrameSet>::fieldEdited<
+                &MS::FrameSet::name>(_data);
         }
-        ImGui::Spacing();
+
+        if (Cell("Tileset Type", &fs.tilesetType)) {
+            EditorActions<AP::FrameSet>::fieldEdited<
+                &MS::FrameSet::tilesetType>(_data);
+        }
+
+        if (Cell("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
+            EditorFieldActions<AP::ExportOrder>::fieldEdited(_data);
+        }
+
+        ImGui::Unindent();
     }
-    ImGui::End();
+    ImGui::Spacing();
 }
 
 template <auto FieldPtr>
@@ -535,86 +533,82 @@ void MetaSpriteEditorGui::collisionBox(const char* label, MS::Frame& frame, Togg
     }
 }
 
-void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& projectFile)
+void MetaSpriteEditorGui::framePropertiesGui(const Project::ProjectFile& projectFile)
 {
     assert(_data);
     auto& fs = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(550, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Frames##MS")) {
-        NamedListSidebar<AP::Frames_EditName>(_data);
+    NamedListSidebar<AP::Frames_EditName>(_data);
 
-        ImGui::SameLine();
-        ImGui::BeginChild("Scroll");
+    ImGui::SameLine();
+    ImGui::BeginChild("Scroll");
 
-        if (_data->framesSel.selectedIndex() < fs.frames.size()) {
-            MS::Frame& frame = fs.frames.at(_data->framesSel.selectedIndex());
+    if (_data->framesSel.selectedIndex() < fs.frames.size()) {
+        MS::Frame& frame = fs.frames.at(_data->framesSel.selectedIndex());
 
-            {
-                if (Cell("Name", &frame.name)) {
-                    ListActions<AP::Frames_EditName>::selectedFieldEdited<
-                        &MS::Frame::name>(_data);
-                }
-
-                if (Cell("Sprite Order", &frame.spriteOrder)) {
-                    ListActions<AP::Frames>::selectedFieldEdited<
-                        &MS::Frame::spriteOrder>(_data);
-                }
-            }
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            collisionBox<&MS::Frame::tileHitbox>("Tile Hitbox", frame, &_data->tileHitboxSel);
-            collisionBox<&MS::Frame::shield>("Shield", frame, &_data->shieldSel);
-            collisionBox<&MS::Frame::hitbox>("Entity Hitbox", frame, &_data->hitboxSel);
-            collisionBox<&MS::Frame::hurtbox>("Entity Hurtbox", frame, &_data->hurtboxSel);
-
-            ImGui::Spacing();
-            {
-                ImGui::TextUnformatted(u8"Objects:");
-                ImGui::Indent();
-
-                const unsigned maxSmallTileId = std::max<size_t>(1, fs.smallTileset.size()) - 1;
-                const unsigned maxLargeTileId = std::max<size_t>(1, fs.largeTileset.size()) - 1;
-
-                apTable_noScrolling<AP::FrameObjects>(
-                    "Objects", _data,
-                    std::to_array({ "Location", "Size", "Tile ID", "Flip" }),
-
-                    [&](auto& obj) { return Cell("##location", &obj.location); },
-                    [&](auto& obj) { return Cell("##size", &obj.size); },
-                    [&](auto& obj) {
-                        const unsigned maxTileId = (obj.size == ObjectSize::SMALL) ? maxSmallTileId : maxLargeTileId;
-                        return Cell("##tileId", &obj.tileId, maxTileId);
-                    },
-                    [&](auto& obj) { return Cell_FlipCombo("##flip", &obj.hFlip, &obj.vFlip); });
-
-                ImGui::Unindent();
+        {
+            if (Cell("Name", &frame.name)) {
+                ListActions<AP::Frames_EditName>::selectedFieldEdited<
+                    &MS::Frame::name>(_data);
             }
 
-            ImGui::Spacing();
-            {
-                ImGui::TextUnformatted(u8"Action Points:");
-                ImGui::Indent();
-
-                apTable_noScrolling<AP::ActionPoints>(
-                    "AP", _data,
-                    std::to_array({ "Location", "Type" }),
-
-                    [&](auto& ap) { return Cell("##location", &ap.location); },
-                    [&](auto& ap) { return Cell("##type", &ap.type, projectFile.actionPointFunctions); });
-
-                ImGui::Unindent();
+            if (Cell("Sprite Order", &frame.spriteOrder)) {
+                ListActions<AP::Frames>::selectedFieldEdited<
+                    &MS::Frame::spriteOrder>(_data);
             }
         }
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
 
-        ImGui::EndChild();
+        collisionBox<&MS::Frame::tileHitbox>("Tile Hitbox", frame, &_data->tileHitboxSel);
+        collisionBox<&MS::Frame::shield>("Shield", frame, &_data->shieldSel);
+        collisionBox<&MS::Frame::hitbox>("Entity Hitbox", frame, &_data->hitboxSel);
+        collisionBox<&MS::Frame::hurtbox>("Entity Hurtbox", frame, &_data->hurtboxSel);
+
+        ImGui::Spacing();
+        {
+            ImGui::TextUnformatted(u8"Objects:");
+            ImGui::Indent();
+
+            const unsigned maxSmallTileId = std::max<size_t>(1, fs.smallTileset.size()) - 1;
+            const unsigned maxLargeTileId = std::max<size_t>(1, fs.largeTileset.size()) - 1;
+
+            apTable_noScrolling<AP::FrameObjects>(
+                "Objects", _data,
+                std::to_array({ "Location", "Size", "Tile ID", "Flip" }),
+
+                [&](auto& obj) { return Cell("##location", &obj.location); },
+                [&](auto& obj) { return Cell("##size", &obj.size); },
+                [&](auto& obj) {
+                    const unsigned maxTileId = (obj.size == ObjectSize::SMALL) ? maxSmallTileId : maxLargeTileId;
+                    return Cell("##tileId", &obj.tileId, maxTileId);
+                },
+                [&](auto& obj) { return Cell_FlipCombo("##flip", &obj.hFlip, &obj.vFlip); });
+
+            ImGui::Unindent();
+        }
+
+        ImGui::Spacing();
+        {
+            ImGui::TextUnformatted(u8"Action Points:");
+            ImGui::Indent();
+
+            apTable_noScrolling<AP::ActionPoints>(
+                "AP", _data,
+                std::to_array({ "Location", "Type" }),
+
+                [&](auto& ap) { return Cell("##location", &ap.location); },
+                [&](auto& ap) { return Cell("##type", &ap.type, projectFile.actionPointFunctions); });
+
+            ImGui::Unindent();
+        }
     }
-    ImGui::End();
+
+    ImGui::EndChild();
 }
 
-void MetaSpriteEditorGui::palettesWindow()
+void MetaSpriteEditorGui::palettesGui()
 {
     assert(_data);
     auto& fs = _data->data;
@@ -629,89 +623,86 @@ void MetaSpriteEditorGui::palettesWindow()
 
     bool colorSelected = false;
 
-    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Palettes##MS")) {
+    ImGui::TextUnformatted("Palettes:");
 
-        ListButtons<AP::Palettes>(_data);
+    ListButtons<AP::Palettes>(_data);
 
-        const float scrollHeight = ImGui::GetWindowHeight() - ImGui::GetCursorPosY() - style.WindowPadding.y - colorButtonsHeight;
-        constexpr auto tableFlags = ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollY;
+    const float scrollHeight = ImGui::GetWindowHeight() - ImGui::GetCursorPosY() - style.WindowPadding.y - colorButtonsHeight;
+    constexpr auto tableFlags = ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollY;
 
-        if (ImGui::BeginTable("Palettes", 2, tableFlags, ImVec2(0, scrollHeight))) {
-            const int palColorSize = ImGui::GetFontSize();
-            const ImVec2 palSize(palColorSize * PALETTE_TEXTURE_WIDTH, palColorSize);
-            ImVec2 palUv0(0, 0);
-            ImVec2 palUv1 = _paletteUvSize;
+    if (ImGui::BeginTable("Palettes", 2, tableFlags, ImVec2(0, scrollHeight))) {
+        const int palColorSize = ImGui::GetFontSize();
+        const ImVec2 palSize(palColorSize * PALETTE_TEXTURE_WIDTH, palColorSize);
+        ImVec2 palUv0(0, 0);
+        ImVec2 palUv1 = _paletteUvSize;
 
-            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 30.0f);
-            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, palSize.x + 8.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, palSize.x + 8.0f);
 
-            for (const auto i : range(fs.palettes.size())) {
-                ImGui::TableNextRow();
+        for (const auto i : range(fs.palettes.size())) {
+            ImGui::TableNextRow();
 
-                ImGui::TableNextColumn();
-                ImGui::Selectable(&_data->palettesSel, i, ImGuiSelectableFlags_SpanAllColumns);
+            ImGui::TableNextColumn();
+            ImGui::Selectable(&_data->palettesSel, i, ImGuiSelectableFlags_SpanAllColumns);
 
-                ImGui::TableNextColumn();
-                if (i < PALETTE_TEXTURE_HEIGHT) {
-                    ImGui::Image(_paletteTexture.imguiTextureId(), palSize, palUv0, palUv1);
-                }
-
-                palUv0.y += _paletteUvSize.y;
-                palUv1.y += _paletteUvSize.y;
+            ImGui::TableNextColumn();
+            if (i < PALETTE_TEXTURE_HEIGHT) {
+                ImGui::Image(_paletteTexture.imguiTextureId(), palSize, palUv0, palUv1);
             }
 
-            ImGui::EndTable();
+            palUv0.y += _paletteUvSize.y;
+            palUv1.y += _paletteUvSize.y;
         }
-        ImGui::Spacing();
 
-        if (palIndex < fs.palettes.size()
-            && palIndex < PALETTE_TEXTURE_HEIGHT) {
+        ImGui::EndTable();
+    }
+    ImGui::Spacing();
 
-            assert(_paletteImage.size().width == N_PALETTE_COLORS);
+    if (palIndex < fs.palettes.size()
+        && palIndex < PALETTE_TEXTURE_HEIGHT) {
 
-            const auto colors = _paletteImage.scanline(palIndex);
+        assert(_paletteImage.size().width == N_PALETTE_COLORS);
 
-            const ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha;
+        const auto colors = _paletteImage.scanline(palIndex);
 
-            if (ImGui::ToggledButton("Edit", _paletteState == PaletteState::EDIT_COLOR, editButtonSize)) {
-                _paletteState = PaletteState::EDIT_COLOR;
+        const ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoAlpha;
+
+        if (ImGui::ToggledButton("Edit", _paletteState == PaletteState::EDIT_COLOR, editButtonSize)) {
+            _paletteState = PaletteState::EDIT_COLOR;
+        }
+        ImGui::SameLine();
+
+        if (ImGui::ToggledButton("Select", _paletteState == PaletteState::DRAW_TILES, editButtonSize)) {
+            _paletteState = PaletteState::DRAW_TILES;
+        }
+
+        for (const auto i : range(N_PALETTE_COLORS)) {
+            ImGui::PushID(i);
+
+            bool buttonClicked = false;
+            const ImColor c(colors[i].rgb());
+
+            if (i != _colorSel) {
+                buttonClicked = ImGui::ColorButton("##color", c, flags, buttonSize);
             }
-            ImGui::SameLine();
-
-            if (ImGui::ToggledButton("Select", _paletteState == PaletteState::DRAW_TILES, editButtonSize)) {
-                _paletteState = PaletteState::DRAW_TILES;
+            else {
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 6);
+                buttonClicked = ImGui::ColorButton("##color", c, flags, buttonSize);
+                ImGui::PopStyleVar();
             }
 
-            for (const auto i : range(N_PALETTE_COLORS)) {
-                ImGui::PushID(i);
+            if (buttonClicked) {
+                _colorSel = i;
+                colorSelected = true;
+            }
 
-                bool buttonClicked = false;
-                const ImColor c(colors[i].rgb());
+            ImGui::PopID();
 
-                if (i != _colorSel) {
-                    buttonClicked = ImGui::ColorButton("##color", c, flags, buttonSize);
-                }
-                else {
-                    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 6);
-                    buttonClicked = ImGui::ColorButton("##color", c, flags, buttonSize);
-                    ImGui::PopStyleVar();
-                }
-
-                if (buttonClicked) {
-                    _colorSel = i;
-                    colorSelected = true;
-                }
-
-                ImGui::PopID();
-
-                if (i != 7) {
-                    ImGui::SameLine();
-                }
+            if (i != 7) {
+                ImGui::SameLine();
             }
         }
     }
-    ImGui::End();
 
     if (colorSelected && _paletteState == PaletteState::EDIT_COLOR) {
         ImGui::OpenPopup(colorPopupStrId);
@@ -1027,37 +1018,34 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
     }
 };
 
-void MetaSpriteEditorGui::tilesetWindow()
+void MetaSpriteEditorGui::tilesetGui()
 {
     assert(_data);
     auto& fs = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 300), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Tileset##MS")) {
+    ImGui::TextUnformatted("Tileset:");
 
-        tilesetButtons();
+    tilesetButtons();
 
-        // AlwaysVerticalScrollbar fixes a graphical glitch where the tileset zoom changes every display frame.
-        ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    // AlwaysVerticalScrollbar fixes a graphical glitch where the tileset zoom changes every display frame.
+    ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
-        const int z = std::max<int>(1, ImGui::GetContentRegionAvail().x / _tilesetTexture.width());
+    const int z = std::max<int>(1, ImGui::GetContentRegionAvail().x / _tilesetTexture.width());
 
-        auto* drawList = ImGui::GetWindowDrawList();
+    auto* drawList = ImGui::GetWindowDrawList();
 
-        // Needed to draw the top line of the selected tile
-        ImGui::Spacing();
+    // Needed to draw the top line of the selected tile
+    ImGui::Spacing();
 
-        drawTileset<AP::SmallTileset>("Small", &fs.smallTileset, drawList,
-                                      z, ImVec2(0.0f, 0.0f), _smallTilesetUVmax);
+    drawTileset<AP::SmallTileset>("Small", &fs.smallTileset, drawList,
+                                  z, ImVec2(0.0f, 0.0f), _smallTilesetUVmax);
 
-        ImGui::Separator();
+    ImGui::Separator();
 
-        drawTileset<AP::LargeTileset>("Large", &fs.largeTileset, drawList,
-                                      z, ImVec2(0.0f, _smallTilesetUVmax.y), _largeTilesetUVmax);
+    drawTileset<AP::LargeTileset>("Large", &fs.largeTileset, drawList,
+                                  z, ImVec2(0.0f, _smallTilesetUVmax.y), _largeTilesetUVmax);
 
-        ImGui::EndChild();
-    }
-    ImGui::End();
+    ImGui::EndChild();
 }
 
 // NOTE: zoom will be negative if the frame is flipped
@@ -1130,7 +1118,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
     }
 }
 
-void MetaSpriteEditorGui::frameEditorWindow()
+void MetaSpriteEditorGui::frameEditorGui()
 {
     using namespace std::string_literals;
     using namespace std::string_view_literals;
@@ -1138,158 +1126,149 @@ void MetaSpriteEditorGui::frameEditorWindow()
     assert(_data);
     auto& fs = _data->data;
 
-    static const std::u8string windowSuffix = u8"###MetaSprite_Frame"s;
-
     static const rect ms8RectBounds(int_ms8_t::MIN, int_ms8_t::MIN, int_ms8_t::MAX - int_ms8_t::MIN, int_ms8_t::MAX - int_ms8_t::MIN);
 
     MS::Frame* const frame = _data->framesSel.selectedIndex() < fs.frames.size()
                                  ? &fs.frames.at(_data->framesSel.selectedIndex())
                                  : nullptr;
-
-    const std::u8string windowTitle = frame ? frame->name + windowSuffix : windowSuffix;
-
-    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(u8Cast(windowTitle))) {
-
-        if (frame == nullptr) {
-            ImGui::End();
-            return;
-        }
-
-        {
-            undoStackButtons();
-            ImGui::SameLine(0.0f, 12.0f);
-
-            showLayerButtons();
-            ImGui::SameLine();
-
-            Style::metaSpriteZoom.zoomCombo("##zoom");
-        }
-
-        static_assert(backgroundColorNames.size() == backgroundColors.size());
-        ImGui::Combo("Background Color", &_selectedEditorBgColor, backgroundColorNames.data(), backgroundColorNames.size());
-        const unsigned bgIndex = clamp<int>(_selectedEditorBgColor, 0, backgroundColors.size() - 1);
-        const ImU32 bgColor = backgroundColors.at(bgIndex);
-
-        ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-        auto* drawList = ImGui::GetWindowDrawList();
-
-        _graphics.startLoop("##Editor", ms8RectBounds, Style::metaSpriteZoom.zoom(),
-                            &_data->frameObjectsSel, &_data->actionPointsSel,
-                            &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
-
-        _graphics.drawBackgroundColor(drawList, bgColor);
-        _graphics.drawBoundedCrosshair(drawList, 0, 0, Style::metaSpriteCrosshairColor);
-
-        const ImTextureID textureId = _tilesetTexture.imguiTextureId();
-
-        if (showFrameObjects) {
-            for (auto [i, obj] : reverse_enumerate(frame->objects)) {
-                bool valid = false;
-                ImVec2 uv0, uv1;
-                if (obj.size == ObjectSize::SMALL) {
-                    valid = obj.tileId < fs.smallTileset.size();
-                    uv0.x = unsigned(obj.tileId % SMALL_TILES_PER_ROW) * _smallTilesetUvSize.x;
-                    uv0.y = unsigned(obj.tileId / SMALL_TILES_PER_ROW) * _smallTilesetUvSize.y;
-                    uv1 = uv0 + _smallTilesetUvSize;
-                }
-                else {
-                    valid = obj.tileId < fs.largeTileset.size();
-                    uv0.x = unsigned(obj.tileId % LARGE_TILES_PER_ROW) * _largeTilesetUvSize.x;
-                    uv0.y = unsigned(obj.tileId / LARGE_TILES_PER_ROW) * _largeTilesetUvSize.y + _smallTilesetUVmax.y;
-                    uv1 = uv0 + _largeTilesetUvSize;
-                }
-
-                if (valid) {
-                    if (obj.hFlip) {
-                        std::swap(uv0.x, uv1.x);
-                    }
-                    if (obj.vFlip) {
-                        std::swap(uv0.y, uv1.y);
-                    }
-                }
-                else {
-                    // ::TODO add semitransparent invalid image with a checkbox pattern::
-                    uv0 = ImVec2(0, 0);
-                    uv1 = ImVec2(1, 1);
-                }
-
-                _graphics.addSquareImage(drawList, &obj.location, obj.sizePx(), textureId, uv0, uv1, Style::frameObjectOutlineColor, &_data->frameObjectsSel, i);
-
-                if (_graphics.isHoveredAndNotEditing()) {
-                    ImGui::BeginTooltip();
-                    ImGui::Text("Object %u", unsigned(i));
-                    ImGui::EndTooltip();
-                }
-            }
-        }
-
-        auto drawCollisionBox = [&](MS::CollisionBox* box, ToggleSelection* sel, const bool showFlag, const ImU32 outlineColor, std::u8string_view toolTip) {
-            if (showFlag && box->exists) {
-                _graphics.addRect(drawList, &box->aabb, outlineColor, sel, 1);
-                if (_graphics.isHoveredAndNotEditing()) {
-                    ImGui::BeginTooltip();
-                    ImGui::TextUnformatted(toolTip);
-                    ImGui::EndTooltip();
-                }
-            }
-        };
-        drawCollisionBox(&frame->tileHitbox, &_data->tileHitboxSel, showTileHitbox, Style::tileHitboxOutlineColor, u8"Tile Hitbox"sv);
-        drawCollisionBox(&frame->shield, &_data->shieldSel, showShield, Style::shieldOutlineColor, u8"Shield Box"sv);
-        drawCollisionBox(&frame->hitbox, &_data->hitboxSel, showHitbox, Style::hitboxOutlineColor, u8"Hitbox"sv);
-        drawCollisionBox(&frame->hurtbox, &_data->hurtboxSel, showHurtbox, Style::hurtboxOutlineColor, u8"Hurtbox"sv);
-
-        if (showActionPoints) {
-            for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
-                _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_data->actionPointsSel, i);
-
-                if (_graphics.isHoveredAndNotEditing()) {
-                    ImGui::BeginTooltip();
-                    if (ap.type.isValid()) {
-                        ImGui::Text("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
-                    }
-                    else {
-                        ImGui::Text("Action Point %u", unsigned(i));
-                    }
-                    ImGui::EndTooltip();
-                }
-            }
-        }
-
-        _graphics.endLoop(drawList,
-                          &_data->frameObjectsSel, &_data->actionPointsSel,
-                          &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
-
-        if (_graphics.isEditingFinished()) {
-            _data->startMacro();
-
-            if (_data->tileHitboxSel.isSelected()) {
-                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
-            }
-            ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
-            ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
-            if (_data->tileHitboxSel.isSelected()) {
-                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
-            }
-            if (_data->shieldSel.isSelected()) {
-                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::shield>(_data);
-            }
-            if (_data->hitboxSel.isSelected()) {
-                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hitbox>(_data);
-            }
-            if (_data->hurtboxSel.isSelected()) {
-                ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hurtbox>(_data);
-            }
-
-            _data->endMacro();
-        }
-
-        Style::metaSpriteZoom.processMouseWheel();
-
-        ImGui::EndChild();
+    if (frame == nullptr) {
+        return;
     }
-    ImGui::End();
+
+    {
+        undoStackButtons();
+        ImGui::SameLine(0.0f, 12.0f);
+
+        showLayerButtons();
+        ImGui::SameLine();
+
+        Style::metaSpriteZoom.zoomCombo("##zoom");
+    }
+
+    static_assert(backgroundColorNames.size() == backgroundColors.size());
+    ImGui::Combo("Background Color", &_selectedEditorBgColor, backgroundColorNames.data(), backgroundColorNames.size());
+    const unsigned bgIndex = clamp<int>(_selectedEditorBgColor, 0, backgroundColors.size() - 1);
+    const ImU32 bgColor = backgroundColors.at(bgIndex);
+
+    ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+    auto* drawList = ImGui::GetWindowDrawList();
+
+    _graphics.startLoop("##Editor", ms8RectBounds, Style::metaSpriteZoom.zoom(),
+                        &_data->frameObjectsSel, &_data->actionPointsSel,
+                        &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
+
+    _graphics.drawBackgroundColor(drawList, bgColor);
+    _graphics.drawBoundedCrosshair(drawList, 0, 0, Style::metaSpriteCrosshairColor);
+
+    const ImTextureID textureId = _tilesetTexture.imguiTextureId();
+
+    if (showFrameObjects) {
+        for (auto [i, obj] : reverse_enumerate(frame->objects)) {
+            bool valid = false;
+            ImVec2 uv0, uv1;
+            if (obj.size == ObjectSize::SMALL) {
+                valid = obj.tileId < fs.smallTileset.size();
+                uv0.x = unsigned(obj.tileId % SMALL_TILES_PER_ROW) * _smallTilesetUvSize.x;
+                uv0.y = unsigned(obj.tileId / SMALL_TILES_PER_ROW) * _smallTilesetUvSize.y;
+                uv1 = uv0 + _smallTilesetUvSize;
+            }
+            else {
+                valid = obj.tileId < fs.largeTileset.size();
+                uv0.x = unsigned(obj.tileId % LARGE_TILES_PER_ROW) * _largeTilesetUvSize.x;
+                uv0.y = unsigned(obj.tileId / LARGE_TILES_PER_ROW) * _largeTilesetUvSize.y + _smallTilesetUVmax.y;
+                uv1 = uv0 + _largeTilesetUvSize;
+            }
+
+            if (valid) {
+                if (obj.hFlip) {
+                    std::swap(uv0.x, uv1.x);
+                }
+                if (obj.vFlip) {
+                    std::swap(uv0.y, uv1.y);
+                }
+            }
+            else {
+                // ::TODO add semitransparent invalid image with a checkbox pattern::
+                uv0 = ImVec2(0, 0);
+                uv1 = ImVec2(1, 1);
+            }
+
+            _graphics.addSquareImage(drawList, &obj.location, obj.sizePx(), textureId, uv0, uv1, Style::frameObjectOutlineColor, &_data->frameObjectsSel, i);
+
+            if (_graphics.isHoveredAndNotEditing()) {
+                ImGui::BeginTooltip();
+                ImGui::Text("Object %u", unsigned(i));
+                ImGui::EndTooltip();
+            }
+        }
+    }
+
+    auto drawCollisionBox = [&](MS::CollisionBox* box, ToggleSelection* sel, const bool showFlag, const ImU32 outlineColor, std::u8string_view toolTip) {
+        if (showFlag && box->exists) {
+            _graphics.addRect(drawList, &box->aabb, outlineColor, sel, 1);
+            if (_graphics.isHoveredAndNotEditing()) {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(toolTip);
+                ImGui::EndTooltip();
+            }
+        }
+    };
+    drawCollisionBox(&frame->tileHitbox, &_data->tileHitboxSel, showTileHitbox, Style::tileHitboxOutlineColor, u8"Tile Hitbox"sv);
+    drawCollisionBox(&frame->shield, &_data->shieldSel, showShield, Style::shieldOutlineColor, u8"Shield Box"sv);
+    drawCollisionBox(&frame->hitbox, &_data->hitboxSel, showHitbox, Style::hitboxOutlineColor, u8"Hitbox"sv);
+    drawCollisionBox(&frame->hurtbox, &_data->hurtboxSel, showHurtbox, Style::hurtboxOutlineColor, u8"Hurtbox"sv);
+
+    if (showActionPoints) {
+        for (auto [i, ap] : reverse_enumerate(frame->actionPoints)) {
+            _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_data->actionPointsSel, i);
+
+            if (_graphics.isHoveredAndNotEditing()) {
+                ImGui::BeginTooltip();
+                if (ap.type.isValid()) {
+                    ImGui::Text("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
+                }
+                else {
+                    ImGui::Text("Action Point %u", unsigned(i));
+                }
+                ImGui::EndTooltip();
+            }
+        }
+    }
+
+    _graphics.endLoop(drawList,
+                      &_data->frameObjectsSel, &_data->actionPointsSel,
+                      &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
+
+    if (_graphics.isEditingFinished()) {
+        _data->startMacro();
+
+        if (_data->tileHitboxSel.isSelected()) {
+            ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
+        }
+        ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
+        ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
+        if (_data->tileHitboxSel.isSelected()) {
+            ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
+        }
+        if (_data->shieldSel.isSelected()) {
+            ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::shield>(_data);
+        }
+        if (_data->hitboxSel.isSelected()) {
+            ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hitbox>(_data);
+        }
+        if (_data->hurtboxSel.isSelected()) {
+            ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hurtbox>(_data);
+        }
+
+        _data->endMacro();
+    }
+
+    Style::metaSpriteZoom.processMouseWheel();
+
+    ImGui::EndChild();
+
+    ImGui::Unindent();
 }
 
 void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
@@ -1303,21 +1282,57 @@ void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile, co
     updatePaletteTexture();
     updateTilesetTexture();
 
-    frameSetPropertiesWindow(projectFile);
-    framePropertiesWindow(projectFile);
+    splitterSidebarRight(
+        "##splitter", &_sidebar,
+        "##Content",
+        [&] {
+            splitterBottombar(
+                "##splitter", &_bottombar,
+                "##FrameEditor",
+                [&] {
+                    frameEditorGui();
+                },
+                "##Bottombar",
+                [&] {
+                    ImGui::BeginChild("Palattes", ImVec2(260, 0), false);
+                    palettesGui();
+                    ImGui::EndChild();
 
-    frameEditorWindow();
+                    ImGui::SameLine();
 
-    palettesWindow();
-    tilesetWindow();
+                    ImGui::BeginChild("Tileset", ImVec2(0, 0), false);
+                    tilesetGui();
+                    ImGui::EndChild();
+                });
+        },
+        "##Sidebar",
+        [&] {
+            if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
+                if (ImGui::BeginTabItem("FrameSet")) {
+                    frameSetPropertiesGui(projectFile);
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("Frames")) {
+                    framePropertiesGui(projectFile);
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("Animations")) {
+                    animationPropertiesGui<AP>(_data, &fs);
+                    ImGui::EndTabItem();
+                }
+                ImGui::EndTabBar();
+            }
+        });
 
-    animationPropertiesWindow<AP>("Animations##MS", _data, &fs);
+    updateSelection();
+}
+
+void MetaSpriteEditorGui::processExtraWindows(const Project::ProjectFile&, const Project::ProjectData&)
+{
     animationPreviewWindow("Animation Preview##MS", _data, [this](auto... args) { drawAnimationFrame(args...); });
     exportOrderWindow("Export Order##MS");
 
     colorPopup();
-
-    updateSelection();
 }
 
 void MetaSpriteEditorGui::viewMenu()

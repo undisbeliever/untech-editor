@@ -11,6 +11,7 @@
 #include "gui/graphics/entity-graphics.h"
 #include "gui/grid-actions.h"
 #include "gui/list-actions-variant.h"
+#include "gui/splitter.hpp"
 #include "gui/style.h"
 #include "models/common/iterators.h"
 #include "models/project/project-data.h"
@@ -480,7 +481,7 @@ void RoomEditorData::clearSelectedTiles()
 }
 
 RoomEditorGui::RoomEditorGui()
-    : AbstractMetaTileEditorGui()
+    : AbstractMetaTileEditorGui("##Room editor")
     , _data(nullptr)
     , _scratchpadTilemap()
     , _tileFunctionTables()
@@ -490,6 +491,9 @@ RoomEditorGui::RoomEditorGui()
     , _entityGraphics(nullptr)
     , _scenesData(nullptr)
     , _invalidTilesCompileId(0)
+    , _sidebar{ 360, 300, 300 }
+    , _minimapSidebar{ 350, 280, 400 }
+    , _minimapBottombar{ 350, 100, 100 }
     , _entityTextureWindowOpen(false)
     , _mtTilesetValid(false)
 {
@@ -533,146 +537,141 @@ constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGro
     u8"Entity Group OUT OF BOUNDS:",
 };
 
-void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
+void RoomEditorGui::propertiesGui(const Project::ProjectFile& projectFile)
 {
     assert(_data);
     auto& room = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Room Properties")) {
-        const usize mapSize(room.map.size());
-        const usize mapSizePx(room.mapRight(), room.mapBottom());
-        const rect entityArea = room.validEntityArea();
+    const usize mapSize(room.map.size());
+    const usize mapSizePx(room.mapRight(), room.mapBottom());
+    const rect entityArea = room.validEntityArea();
 
-        const ImVec2 fixedTableSize(0, std::round(ImGui::GetFrameHeightWithSpacing() * 4.125f));
+    const ImVec2 fixedTableSize(0, std::round(ImGui::GetFrameHeightWithSpacing() * 4.125f));
 
-        {
-            ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
+    {
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
 
-            if (Cell("Name", &room.name)) {
-                EditorActions<AP::Room>::fieldEdited<
-                    &RM::RoomInput::name>(_data);
-            }
-
-            if (Cell("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
-                EditorFieldActions<AP::Scene>::fieldEdited(_data);
-            }
-
-            if (Cell("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
-                _mapSize.width = std::max(_mapSize.width, AP::Map::MIN_SIZE.width);
-                _mapSize.height = std::max(_mapSize.height, AP::Map::MIN_SIZE.height);
-
-                GridActions<AP::Map>::resizeGrid(_data, _mapSize);
-            }
+        if (Cell("Name", &room.name)) {
+            EditorActions<AP::Room>::fieldEdited<
+                &RM::RoomInput::name>(_data);
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::TextUnformatted(u8"Entrances:");
+        if (Cell("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
+            EditorFieldActions<AP::Scene>::fieldEdited(_data);
+        }
 
-        apTable<AP::Entrances>(
-            "Entrances", _data,
-            std::to_array({ "Name", "Position", "Orientation" }),
-            fixedTableSize,
+        if (Cell("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
+            _mapSize.width = std::max(_mapSize.width, AP::Map::MIN_SIZE.width);
+            _mapSize.height = std::max(_mapSize.height, AP::Map::MIN_SIZE.height);
 
-            [&](auto& en) { return Cell("##name", &en.name); },
-            [&](auto& en) { return Cell("##pos", &en.position, mapSizePx); },
-            [&](auto& en) { return Cell("##orientation", &en.orientation); });
-
-        ImGui::Separator();
-        ImGui::TextUnformatted(u8"Script Triggers:");
-
-        apTable<AP::ScriptTriggers>(
-            "Table", _data,
-            std::to_array({ "Script", "AABB", "Once" }),
-            fixedTableSize,
-
-            [&](auto& st) { return Cell("##script", &st.script, room.roomScripts.scripts); },
-            [&](auto& st) { return Cell("##aabb", &st.aabb, mapSize); },
-            [&](auto& st) { return Cell("Once", &st.once); });
-
-        ImGui::Separator();
-        ImGui::TextUnformatted(u8"Entities:");
-
-        ImGui::PushID("Entity Groups");
-        ListButtons<AP::EntityGroups>(_data);
-        ImGui::PopID();
-        ImGui::PushID("Entity Entries");
-        ListButtons<AP::EntityEntries>(_data);
-        ImGui::PopID();
-
-        constexpr auto columnNames = std::to_array({ "Name\nPosition", "Entity Id\nParameter" });
-
-        if (beginApTable("Entities", columnNames)) {
-            unsigned entityId = 0;
-
-            const unsigned nGroups = std::min(room.entityGroups.size(), entityGroupText.size());
-            for (const auto groupIndex : range(nGroups)) {
-                auto& group = room.entityGroups.at(groupIndex);
-
-                ImGui::PushID(groupIndex);
-
-                {
-                    bool edited = false;
-
-                    ImGui::TableNextRow();
-
-                    ImGui::TableNextColumn();
-                    ImGui::Separator();
-                    ImGui::Selectable(&_data->entityGroupsSel, groupIndex);
-
-                    ImGui::TableNextColumn();
-                    ImGui::Separator();
-                    ImGui::TextUnformatted(entityGroupText.at(groupIndex));
-                    ImGui::NewLine();
-
-                    ImGui::TableNextColumn();
-                    ImGui::Separator();
-                    ImGui::SetNextItemWidth(-1);
-                    edited |= Cell("##name", &group.name);
-
-                    if (edited) {
-                        ListActions<AP::EntityGroups>::itemEdited(_data, groupIndex);
-                    }
-                }
-
-                ImGui::Indent();
-
-                apTable_data_custom<AP::EntityEntries>(
-                    _data,
-                    std::make_tuple(groupIndex),
-                    [&](auto* sel, auto index) {
-                        const std::u8string selLabel = stringBuilder(entityId);
-                        entityId++;
-                        ImGui::Selectable(u8Cast(selLabel), sel, groupIndex, index);
-                    },
-
-                    [&](auto& ee) {
-                        bool edited = false;
-                        edited |= Cell("##name", &ee.name);
-                        ImGui::SetNextItemWidth(-1);
-                        edited |= Cell("##position", &ee.position, entityArea);
-                        return edited;
-                    },
-                    [&](auto& ee) {
-                        bool edited = false;
-                        edited |= Cell("##entityId", &ee.entityId, projectFile.entityRomData.entities);
-                        ImGui::SetNextItemWidth(-1);
-                        edited |= Cell("##parameter", &ee.parameter);
-                        return edited;
-                    });
-
-                ImGui::Unindent();
-                ImGui::Spacing();
-
-                ImGui::PopID();
-            }
-
-            endApTable();
+            GridActions<AP::Map>::resizeGrid(_data, _mapSize);
         }
     }
 
-    ImGui::End();
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::TextUnformatted(u8"Entrances:");
+
+    apTable<AP::Entrances>(
+        "Entrances", _data,
+        std::to_array({ "Name", "Position", "Orientation" }),
+        fixedTableSize,
+
+        [&](auto& en) { return Cell("##name", &en.name); },
+        [&](auto& en) { return Cell("##pos", &en.position, mapSizePx); },
+        [&](auto& en) { return Cell("##orientation", &en.orientation); });
+
+    ImGui::Separator();
+    ImGui::TextUnformatted(u8"Script Triggers:");
+
+    apTable<AP::ScriptTriggers>(
+        "Table", _data,
+        std::to_array({ "Script", "AABB", "Once" }),
+        fixedTableSize,
+
+        [&](auto& st) { return Cell("##script", &st.script, room.roomScripts.scripts); },
+        [&](auto& st) { return Cell("##aabb", &st.aabb, mapSize); },
+        [&](auto& st) { return Cell("Once", &st.once); });
+
+    ImGui::Separator();
+    ImGui::TextUnformatted(u8"Entities:");
+
+    ImGui::PushID("Entity Groups");
+    ListButtons<AP::EntityGroups>(_data);
+    ImGui::PopID();
+    ImGui::PushID("Entity Entries");
+    ListButtons<AP::EntityEntries>(_data);
+    ImGui::PopID();
+
+    constexpr auto columnNames = std::to_array({ "Name\nPosition", "Entity Id\nParameter" });
+
+    if (beginApTable("Entities", columnNames)) {
+        unsigned entityId = 0;
+
+        const unsigned nGroups = std::min(room.entityGroups.size(), entityGroupText.size());
+        for (const auto groupIndex : range(nGroups)) {
+            auto& group = room.entityGroups.at(groupIndex);
+
+            ImGui::PushID(groupIndex);
+
+            {
+                bool edited = false;
+
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
+                ImGui::Separator();
+                ImGui::Selectable(&_data->entityGroupsSel, groupIndex);
+
+                ImGui::TableNextColumn();
+                ImGui::Separator();
+                ImGui::TextUnformatted(entityGroupText.at(groupIndex));
+                ImGui::NewLine();
+
+                ImGui::TableNextColumn();
+                ImGui::Separator();
+                ImGui::SetNextItemWidth(-1);
+                edited |= Cell("##name", &group.name);
+
+                if (edited) {
+                    ListActions<AP::EntityGroups>::itemEdited(_data, groupIndex);
+                }
+            }
+
+            ImGui::Indent();
+
+            apTable_data_custom<AP::EntityEntries>(
+                _data,
+                std::make_tuple(groupIndex),
+                [&](auto* sel, auto index) {
+                    const std::u8string selLabel = stringBuilder(entityId);
+                    entityId++;
+                    ImGui::Selectable(u8Cast(selLabel), sel, groupIndex, index);
+                },
+
+                [&](auto& ee) {
+                    bool edited = false;
+                    edited |= Cell("##name", &ee.name);
+                    ImGui::SetNextItemWidth(-1);
+                    edited |= Cell("##position", &ee.position, entityArea);
+                    return edited;
+                },
+                [&](auto& ee) {
+                    bool edited = false;
+                    edited |= Cell("##entityId", &ee.entityId, projectFile.entityRomData.entities);
+                    ImGui::SetNextItemWidth(-1);
+                    edited |= Cell("##parameter", &ee.parameter);
+                    return edited;
+                });
+
+            ImGui::Unindent();
+            ImGui::Spacing();
+
+            ImGui::PopID();
+        }
+
+        endApTable();
+    }
 }
 
 void RoomEditorGui::entityTextureWindow()
@@ -934,23 +933,13 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
     }
 }
 
-void RoomEditorGui::editorWindow()
+void RoomEditorGui::editorGui()
 {
-    static constexpr const char* windowTitle = "Room###Room_Editor";
-
     assert(_entityGraphics);
     assert(_data);
     auto& room = _data->data;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-
-    if (room.map.empty()) {
-        ImGui::Begin(windowTitle);
-        ImGui::End();
-        return;
-    }
-
-    if (ImGui::Begin(windowTitle)) {
+    if (!room.map.empty()) {
         animationButtons();
         ImGui::SameLine(0.0f, 12.0f);
 
@@ -1038,7 +1027,16 @@ void RoomEditorGui::editorWindow()
 
         ImGui::EndChild();
     }
-    ImGui::End();
+}
+
+void RoomEditorGui::scratchpadGui()
+{
+    assert(_data);
+
+    if (scratchpadMinimapGui("Scratchpad", _scratchpadTilemap, _scratchpad, &_data->selectedScratchpadTiles)) {
+        _data->selectedScratchpadTilesChanged();
+        selectionChanged();
+    }
 }
 
 void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
@@ -1057,22 +1055,55 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
     updateTilesetData(projectFile, projectData);
     updateInvalidTileList(projectData);
 
-    propertiesWindow(projectFile);
+    splitterSidebarRight(
+        "##splitter", &_sidebar,
+        "##Content",
+        [&] {
+            if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
+                if (ImGui::BeginTabItem("Room")) {
+                    splitterSidebarRight(
+                        "##mmsp", &_minimapSidebar,
+                        "##Editor",
+                        [&] {
+                            editorGui();
+                        },
+                        "##Tiles",
+                        [&] {
+                            ImGui::BeginChild("##tileset", ImVec2(0, 270), false);
+                            drawTileset("##TS", ImVec2(1, 1));
+                            ImGui::EndChild();
+
+                            ImGui::Separator();
+
+                            splitterBottombar(
+                                "##minimap splitter", &_minimapBottombar,
+                                "##scratchpad",
+                                [&]() {
+                                    scratchpadGui();
+                                },
+                                "##minimap",
+                                [&]() {
+                                    minimapGui("minimap");
+                                });
+                        });
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("Script Editor")) {
+                    scriptsGui(projectFile, projectData);
+                    ImGui::EndTabItem();
+                }
+                ImGui::EndTabBar();
+            }
+        },
+        "##Sidebar",
+        [&] {
+            propertiesGui(projectFile);
+        });
+}
+
+void RoomEditorGui::processExtraWindows(const Project::ProjectFile&, const Project::ProjectData&)
+{
     entitiesWindow();
-
-    editorWindow();
-
-    tilesetMinimapWindow("Tileset##Room");
-
-    minimapWindow("Minimap##Room");
-
-    scriptsWindow(projectFile, projectData);
-
-    if (scratchpadMinimapWindow("Scratchpad##Room", _scratchpadTilemap, _scratchpad, &_data->selectedScratchpadTiles)) {
-        _data->selectedScratchpadTilesChanged();
-        selectionChanged();
-    }
-
     entityTextureWindow();
 }
 
@@ -1764,108 +1795,103 @@ static void tempVariableList(const char* strId, RoomEditorData* data, const floa
         [&](auto& var) { return Cell("##name", &var); });
 }
 
-void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
+void RoomEditorGui::scriptsGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
 {
     assert(_data);
     auto& roomScripts = _data->data.roomScripts;
 
-    ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Room Scripts", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+    ImGui::BeginChild("Temp-Vars", ImVec2(200, 0), true);
+    {
+        const float tableHeight = (ImGui::GetContentRegionAvail().y - 125) / 2;
 
-        ImGui::BeginChild("Temp-Vars", ImVec2(200, 0), true);
-        {
-            const float tableHeight = (ImGui::GetContentRegionAvail().y - 125) / 2;
+        ImGui::TextUnformatted(u8"Temporary Flags:\n"
+                               "(cleared on room load)");
 
-            ImGui::TextUnformatted(u8"Temporary Flags:\n"
-                                   "(cleared on room load)");
+        tempVariableList<AP::TempScriptFlags>("Flags", _data, tableHeight);
 
-            tempVariableList<AP::TempScriptFlags>("Flags", _data, tableHeight);
+        ImGui::Spacing();
+        ImGui::Spacing();
 
-            ImGui::Spacing();
-            ImGui::Spacing();
+        ImGui::TextUnformatted(u8"Temporary Words:\n"
+                               "(reset to 0 on room load)");
 
-            ImGui::TextUnformatted(u8"Temporary Words:\n"
-                                   "(reset to 0 on room load)");
+        tempVariableList<AP::TempScriptWords>("Words", _data, tableHeight);
+    }
+    ImGui::EndChild();
+    ImGui::SameLine();
 
-            tempVariableList<AP::TempScriptWords>("Words", _data, tableHeight);
+    ImGui::BeginChild("Sidebar", ImVec2(200, 0), true);
+    {
+        auto& sel = _data->scriptsSel;
+
+        ListButtons<AP::Scripts>(_data);
+
+        ImGui::BeginChild("struct-list");
+
+        if (ImGui::Selectable("##Startup_Script", !sel.hasSelection(), ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
+            sel.clearSelection();
         }
-        ImGui::EndChild();
         ImGui::SameLine();
+        ImGui::TextUnformatted(u8"Startup Script");
 
-        ImGui::BeginChild("Sidebar", ImVec2(200, 0), true);
-        {
-            auto& sel = _data->scriptsSel;
+        for (auto [i, script] : enumerate(roomScripts.scripts)) {
+            ImGui::PushID(i);
 
-            ListButtons<AP::Scripts>(_data);
-
-            ImGui::BeginChild("struct-list");
-
-            if (ImGui::Selectable("##Startup_Script", !sel.hasSelection(), ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
-                sel.clearSelection();
-            }
+            ImGui::Selectable("##sel", &sel, i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);
             ImGui::SameLine();
-            ImGui::TextUnformatted(u8"Startup Script");
+            ImGui::TextUnformatted(script.name);
 
-            for (auto [i, script] : enumerate(roomScripts.scripts)) {
-                ImGui::PushID(i);
-
-                ImGui::Selectable("##sel", &sel, i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);
-                ImGui::SameLine();
-                ImGui::TextUnformatted(script.name);
-
-                ImGui::PopID();
-            }
-            ImGui::EndChild();
+            ImGui::PopID();
         }
         ImGui::EndChild();
+    }
+    ImGui::EndChild();
 
-        ImGui::SameLine();
+    ImGui::SameLine();
 
-        ImGui::BeginGroup();
-        ImGui::BeginChild("Script");
+    ImGui::BeginGroup();
+    ImGui::BeginChild("Script");
 
-        const auto bcMapping = projectData.bytecodeData();
-        if (bcMapping) {
-            const bool isStartupScript = _data->scriptsSel.selectedIndex() >= roomScripts.scripts.size();
-            const unsigned scriptId = !isStartupScript ? _data->scriptsSel.selectedIndex() : NodeSelection::NO_SELECTION;
-            Scripting::Script& script = !isStartupScript ? roomScripts.scripts.at(scriptId) : roomScripts.startupScript;
+    const auto bcMapping = projectData.bytecodeData();
+    if (bcMapping) {
+        const bool isStartupScript = _data->scriptsSel.selectedIndex() >= roomScripts.scripts.size();
+        const unsigned scriptId = !isStartupScript ? _data->scriptsSel.selectedIndex() : NodeSelection::NO_SELECTION;
+        Scripting::Script& script = !isStartupScript ? roomScripts.scripts.at(scriptId) : roomScripts.startupScript;
 
-            if (!isStartupScript) {
-                if (Cell("Name", &script.name)) {
-                    // NOTE: Cannot edit the startup script using the AP::Scripts Action Policy.
-                    ListActions<AP::Scripts>::selectedFieldEdited<
-                        &Scripting::Script::name>(_data);
-                }
+        if (!isStartupScript) {
+            if (Cell("Name", &script.name)) {
+                // NOTE: Cannot edit the startup script using the AP::Scripts Action Policy.
+                ListActions<AP::Scripts>::selectedFieldEdited<
+                    &Scripting::Script::name>(_data);
             }
-            else {
-                ImGui::TextUnformatted(u8"Startup Script.\n"
-                                       "This script will be started automatically on room load.\n"
-                                       "The gameloop will not start until this script has finished execution.\n"
-                                       "Start_Script will not activate a script until after the startup script ends.");
-            }
-
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            ListButtons<AP::ScriptStatements>(_data);
-            ImGui::Spacing();
-
-            ImGui::BeginChild("Scroll");
-
-            RoomScriptGuiVisitor sgVisitor(_data, *bcMapping, projectFile);
-            sgVisitor.processGui(script, scriptId);
-
-            ImGui::EndChild();
         }
         else {
-            ImGui::TextUnformatted(u8"\n\n"
-                                   "ERROR: Cannot view script: Missing bytecode data.");
+            ImGui::TextUnformatted(u8"Startup Script.\n"
+                                   "This script will be started automatically on room load.\n"
+                                   "The gameloop will not start until this script has finished execution.\n"
+                                   "Start_Script will not activate a script until after the startup script ends.");
         }
 
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ListButtons<AP::ScriptStatements>(_data);
+        ImGui::Spacing();
+
+        ImGui::BeginChild("Scroll");
+
+        RoomScriptGuiVisitor sgVisitor(_data, *bcMapping, projectFile);
+        sgVisitor.processGui(script, scriptId);
+
         ImGui::EndChild();
-        ImGui::EndGroup();
     }
-    ImGui::End();
+    else {
+        ImGui::TextUnformatted(u8"\n\n"
+                               "ERROR: Cannot view script: Missing bytecode data.");
+    }
+
+    ImGui::EndChild();
+    ImGui::EndGroup();
 }
 }

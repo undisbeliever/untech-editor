@@ -43,7 +43,7 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void projectSettingsWindow();
+    void projectSettingsGui();
 };
 
 }

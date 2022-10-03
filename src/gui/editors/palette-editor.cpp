@@ -62,7 +62,7 @@ void PaletteEditorData::updateSelection()
 }
 
 PaletteEditorGui::PaletteEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##Palette editor")
     , _data(nullptr)
     , _animationTimer()
     , _imageTexture()
@@ -87,7 +87,7 @@ void PaletteEditorGui::editorClosed()
 {
 }
 
-void PaletteEditorGui::paletteWindow()
+void PaletteEditorGui::paletteGui()
 {
     using namespace std::string_literals;
     using PaletteInput = UnTech::Resources::PaletteInput;
@@ -97,124 +97,119 @@ void PaletteEditorGui::paletteWindow()
 
     const std::u8string windowName = palette.name + u8" Palette###Palette"s;
 
-    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(u8Cast(windowName))) {
-
-        {
-            if (Cell("Name", &palette.name)) {
-                EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::name>(_data);
-            }
-
-            if (ImGui::InputPngImageFilename("Image", &palette.paletteImageFilename)) {
-                EditorFieldActions<AP::ImageFilename>::fieldEdited(_data);
-            }
-
-            if (Cell("Rows Per Frame", &palette.rowsPerFrame)) {
-                EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::rowsPerFrame>(_data);
-            }
-
-            if (Cell("Animation Delay", &palette.animationDelay)) {
-                EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::animationDelay>(_data);
-            }
-
-            if (Cell("Skip First Frame", &palette.skipFirstFrame)) {
-                EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::skipFirstFrame>(_data);
-            }
+    {
+        if (Cell("Name", &palette.name)) {
+            EditorActions<AP::Palette>::fieldEdited<
+                &PaletteInput::name>(_data);
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        const unsigned rowsPerFrame = clamp<unsigned>(palette.rowsPerFrame, 1, _imageTexture.height());
-        const unsigned firstFrame = palette.skipFirstFrame ? 1 : 0;
-        const unsigned nFrames = std::max<unsigned>(1, _imageTexture.height() / rowsPerFrame - firstFrame);
-
-        {
-            if (ImGui::ToggledButton("Play", _animationTimer.isActive())) {
-                _animationTimer.playPause();
-                if (_frameId < 0) {
-                    _frameId = 0;
-                }
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("Reset")) {
-                _animationTimer.reset();
-                _frameId = -1;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Next Frame")) {
-                _animationTimer.stop();
-                _frameId++;
-            }
-
-            _animationTimer.process(palette.animationDelay, [&]() { _frameId++; });
-
-            if (_frameId >= 0 && unsigned(_frameId) >= nFrames) {
-                _frameId = 0;
-            }
-            ImGui::SameLine();
-            if (_frameId >= 0) {
-                ImGui::Text("Frame %d / %d", int(_frameId + 1), nFrames);
-            }
+        if (ImGui::InputPngImageFilename("Image", &palette.paletteImageFilename)) {
+            EditorFieldActions<AP::ImageFilename>::fieldEdited(_data);
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        if (Cell("Rows Per Frame", &palette.rowsPerFrame)) {
+            EditorActions<AP::Palette>::fieldEdited<
+                &PaletteInput::rowsPerFrame>(_data);
+        }
 
-        {
-            ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+        if (Cell("Animation Delay", &palette.animationDelay)) {
+            EditorActions<AP::Palette>::fieldEdited<
+                &PaletteInput::animationDelay>(_data);
+        }
 
-            if (_frameId < 0) {
-                constexpr float lineWidth = 2.0f;
-                constexpr float zoom = 24;
-
-                const ImVec2 imageSize(_imageTexture.width() * zoom, _imageTexture.height() * zoom);
-                const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("Image", imageSize);
-
-                auto* drawList = ImGui::GetWindowDrawList();
-
-                drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
-
-                const float x1 = screenOffset.x - zoom;
-                const float x2 = x1 + imageSize.x + 2 * zoom;
-                float y = screenOffset.y;
-                const float yStep = rowsPerFrame * zoom;
-
-                for ([[maybe_unused]] const auto i : range(nFrames)) {
-                    drawList->AddLine(ImVec2(x1, y), ImVec2(x2, y), Style::paletteRowLineColor, lineWidth);
-                    y += yStep;
-                }
-                drawList->AddLine(ImVec2(x1, y), ImVec2(x2, y), Style::paletteRowLineColor, lineWidth);
-
-                if ((firstFrame + nFrames) * rowsPerFrame != _imageTexture.height()) {
-                    drawList->AddRectFilled(ImVec2(x1, y + lineWidth / 2), ImVec2(x2, screenOffset.y + imageSize.y), Style::invalidFillColor);
-                }
-            }
-            else {
-                constexpr float zoom = 48;
-
-                const ImVec2 imageSize(_imageTexture.width() * zoom, rowsPerFrame * zoom);
-                const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("FrameImage", imageSize);
-
-                auto* drawList = ImGui::GetWindowDrawList();
-
-                const ImVec2 uvMin(0.0f, float((_frameId + firstFrame) * rowsPerFrame) / _imageTexture.height());
-                const ImVec2 uvMax(1.0f, float((_frameId + firstFrame + 1) * rowsPerFrame) / _imageTexture.height());
-
-                drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize, uvMin, uvMax);
-            }
-
-            ImGui::EndChild();
+        if (Cell("Skip First Frame", &palette.skipFirstFrame)) {
+            EditorActions<AP::Palette>::fieldEdited<
+                &PaletteInput::skipFirstFrame>(_data);
         }
     }
-    ImGui::End();
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    const unsigned rowsPerFrame = clamp<unsigned>(palette.rowsPerFrame, 1, _imageTexture.height());
+    const unsigned firstFrame = palette.skipFirstFrame ? 1 : 0;
+    const unsigned nFrames = std::max<unsigned>(1, _imageTexture.height() / rowsPerFrame - firstFrame);
+
+    {
+        if (ImGui::ToggledButton("Play", _animationTimer.isActive())) {
+            _animationTimer.playPause();
+            if (_frameId < 0) {
+                _frameId = 0;
+            }
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            _animationTimer.reset();
+            _frameId = -1;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Next Frame")) {
+            _animationTimer.stop();
+            _frameId++;
+        }
+
+        _animationTimer.process(palette.animationDelay, [&]() { _frameId++; });
+
+        if (_frameId >= 0 && unsigned(_frameId) >= nFrames) {
+            _frameId = 0;
+        }
+        ImGui::SameLine();
+        if (_frameId >= 0) {
+            ImGui::Text("Frame %d / %d", int(_frameId + 1), nFrames);
+        }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    {
+        ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+
+        if (_frameId < 0) {
+            constexpr float lineWidth = 2.0f;
+            constexpr float zoom = 24;
+
+            const ImVec2 imageSize(_imageTexture.width() * zoom, _imageTexture.height() * zoom);
+            const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("Image", imageSize);
+
+            auto* drawList = ImGui::GetWindowDrawList();
+
+            drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
+
+            const float x1 = screenOffset.x - zoom;
+            const float x2 = x1 + imageSize.x + 2 * zoom;
+            float y = screenOffset.y;
+            const float yStep = rowsPerFrame * zoom;
+
+            for ([[maybe_unused]] const auto i : range(nFrames)) {
+                drawList->AddLine(ImVec2(x1, y), ImVec2(x2, y), Style::paletteRowLineColor, lineWidth);
+                y += yStep;
+            }
+            drawList->AddLine(ImVec2(x1, y), ImVec2(x2, y), Style::paletteRowLineColor, lineWidth);
+
+            if ((firstFrame + nFrames) * rowsPerFrame != _imageTexture.height()) {
+                drawList->AddRectFilled(ImVec2(x1, y + lineWidth / 2), ImVec2(x2, screenOffset.y + imageSize.y), Style::invalidFillColor);
+            }
+        }
+        else {
+            constexpr float zoom = 48;
+
+            const ImVec2 imageSize(_imageTexture.width() * zoom, rowsPerFrame * zoom);
+            const ImVec2 screenOffset = captureMouseExpandCanvasAndCalcScreenPos("FrameImage", imageSize);
+
+            auto* drawList = ImGui::GetWindowDrawList();
+
+            const ImVec2 uvMin(0.0f, float((_frameId + firstFrame) * rowsPerFrame) / _imageTexture.height());
+            const ImVec2 uvMax(1.0f, float((_frameId + firstFrame + 1) * rowsPerFrame) / _imageTexture.height());
+
+            drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize, uvMin, uvMax);
+        }
+
+        ImGui::EndChild();
+    }
 }
 
 void PaletteEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
@@ -225,7 +220,7 @@ void PaletteEditorGui::processGui(const Project::ProjectFile&, const Project::Pr
 
     updateImageTexture();
 
-    paletteWindow();
+    paletteGui();
 }
 
 void PaletteEditorGui::updateImageTexture()

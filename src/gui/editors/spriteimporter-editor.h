@@ -11,6 +11,7 @@
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/imgui.h"
 #include "gui/selection.h"
+#include "gui/splitter.h"
 #include "gui/texture.h"
 #include "models/common/vectorset.h"
 #include "models/project/project.h"
@@ -57,6 +58,8 @@ private:
 
     std::vector<std::pair<ImU32, std::u8string>> _transparentColorCombo;
 
+    SplitterBarState _sidebar;
+
 public:
     bool _imageValid;
     bool _transparentColorComboValid;
@@ -71,15 +74,18 @@ public:
     virtual void processGui(const Project::ProjectFile& projectFile,
                             const Project::ProjectData& projectData) final;
 
+    virtual void processExtraWindows(const Project::ProjectFile& projectFile,
+                                     const Project::ProjectData& projectData) final;
+
 protected:
     virtual void addFrame(const idstring& name) final;
     virtual void addAnimation(const idstring& name) final;
 
 private:
-    void frameSetPropertiesWindow(const Project::ProjectFile& projectFile);
-    void framePropertiesWindow(const Project::ProjectFile& projectFile);
+    void frameSetPropertiesGui(const Project::ProjectFile& projectFile);
+    void framePropertiesGui(const Project::ProjectFile& projectFile);
     void frameContentsWindow(const Project::ProjectFile& projectFile);
-    void frameEditorWindow();
+    void frameEditorGui();
 
     void drawAnimationFrame(const ImVec2& drawPos, ImVec2 zoom, const UnTech::MetaSprite::SpriteImporter::Frame& frame) const;
     void drawFrame(ImDrawList* drawList, const UnTech::MetaSprite::SpriteImporter::Frame* frame);

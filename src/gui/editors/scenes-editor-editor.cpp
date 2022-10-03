@@ -6,6 +6,7 @@
 
 #include "scenes-editor-editor.h"
 #include "gui/aptable.h"
+#include "gui/splitter.hpp"
 #include "models/common/iterators.h"
 #include "models/resources/scene-bgmode.hpp"
 #include "models/resources/scene-error.h"
@@ -99,8 +100,9 @@ void ScenesEditorData::updateSelection()
 }
 
 ScenesEditorGui::ScenesEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##Scene editor")
     , _data(nullptr)
+    , _topbar{ 300, 200, 200 }
 {
 }
 
@@ -115,27 +117,6 @@ void ScenesEditorGui::resetState()
 
 void ScenesEditorGui::editorClosed()
 {
-}
-
-void ScenesEditorGui::settingsWindow()
-{
-    assert(_data);
-
-    ImGui::SetNextWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Scene Settings")) {
-
-        apTable<AP::SceneSettings>(
-            "Table", _data,
-            std::to_array({ "Name", "BG Mode", "Layer 0 Type", "Layer 1 Type", "Layer 2 Type", "Layer 3 Type" }),
-
-            [&](auto& ss) { return Cell("##name", &ss.name); },
-            [&](auto& ss) { return Cell("##bgMode", &ss.bgMode); },
-            [&](auto& ss) { return Cell("##lt0", &ss.layerTypes.at(0)); },
-            [&](auto& ss) { return Cell("##lt1", &ss.layerTypes.at(1)); },
-            [&](auto& ss) { return Cell("##lt2", &ss.layerTypes.at(2)); },
-            [&](auto& ss) { return Cell("##lt3", &ss.layerTypes.at(3)); });
-    }
-    ImGui::End();
 }
 
 static bool sceneLayerCombo(const char* label, idstring* value,
@@ -193,27 +174,42 @@ static bool sceneLayerCombo(const char* label, idstring* value,
     return false;
 }
 
-void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
+void ScenesEditorGui::settingsGui()
+{
+    assert(_data);
+
+    ImGui::TextUnformatted(u8"Scene Settings:");
+
+    apTable<AP::SceneSettings>(
+        "Table", _data,
+        std::to_array({ "Name", "BG Mode", "Layer 0 Type", "Layer 1 Type", "Layer 2 Type", "Layer 3 Type" }),
+
+        [&](auto& ss) { return Cell("##name", &ss.name); },
+        [&](auto& ss) { return Cell("##bgMode", &ss.bgMode); },
+        [&](auto& ss) { return Cell("##lt0", &ss.layerTypes.at(0)); },
+        [&](auto& ss) { return Cell("##lt1", &ss.layerTypes.at(1)); },
+        [&](auto& ss) { return Cell("##lt2", &ss.layerTypes.at(2)); },
+        [&](auto& ss) { return Cell("##lt3", &ss.layerTypes.at(3)); });
+}
+
+void ScenesEditorGui::scenesGui(const Project::ProjectFile& projectFile)
 {
     assert(_data);
     const auto& settings = _data->scenes.settings;
 
-    ImGui::SetNextWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Scenes")) {
+    ImGui::TextUnformatted(u8"Scenes:");
 
-        apTable<AP::Scenes>(
-            "Table", _data,
-            std::to_array({ "Name", "Scene Settings", "Palette", "Layer 0", "Layer 1", "Layer 2", "Layer 3" }),
+    apTable<AP::Scenes>(
+        "Table", _data,
+        std::to_array({ "Name", "Scene Settings", "Palette", "Layer 0", "Layer 1", "Layer 2", "Layer 3" }),
 
-            [&](auto& s) { return Cell("##name", &s.name); },
-            [&](auto& s) { return Cell("##scenesettings", &s.sceneSettings); },
-            [&](auto& s) { return Cell("##palette", &s.palette, projectFile.palettes); },
-            [&](auto& s) { return sceneLayerCombo("##layer0", &s.layers.at(0), projectFile, settings.find(s.sceneSettings), 0); },
-            [&](auto& s) { return sceneLayerCombo("##layer1", &s.layers.at(1), projectFile, settings.find(s.sceneSettings), 1); },
-            [&](auto& s) { return sceneLayerCombo("##layer2", &s.layers.at(2), projectFile, settings.find(s.sceneSettings), 2); },
-            [&](auto& s) { return sceneLayerCombo("##layer3", &s.layers.at(3), projectFile, settings.find(s.sceneSettings), 3); });
-    }
-    ImGui::End();
+        [&](auto& s) { return Cell("##name", &s.name); },
+        [&](auto& s) { return Cell("##scenesettings", &s.sceneSettings); },
+        [&](auto& s) { return Cell("##palette", &s.palette, projectFile.palettes); },
+        [&](auto& s) { return sceneLayerCombo("##layer0", &s.layers.at(0), projectFile, settings.find(s.sceneSettings), 0); },
+        [&](auto& s) { return sceneLayerCombo("##layer1", &s.layers.at(1), projectFile, settings.find(s.sceneSettings), 1); },
+        [&](auto& s) { return sceneLayerCombo("##layer2", &s.layers.at(2), projectFile, settings.find(s.sceneSettings), 2); },
+        [&](auto& s) { return sceneLayerCombo("##layer3", &s.layers.at(3), projectFile, settings.find(s.sceneSettings), 3); });
 }
 
 void ScenesEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
@@ -222,8 +218,16 @@ void ScenesEditorGui::processGui(const Project::ProjectFile& projectFile, const 
         return;
     }
 
-    settingsWindow();
-    scenesWindow(projectFile);
+    splitterTopbar(
+        "##Splitter", &_topbar,
+        "##Settings",
+        [&]() {
+            settingsGui();
+        },
+        "##Scenes",
+        [&]() {
+            scenesGui(projectFile);
+        });
 }
 
 }

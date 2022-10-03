@@ -292,6 +292,10 @@ void AbstractExternalFileEditorData::setFilename(const std::filesystem::path& fn
     _basename = _filename.filename().u8string();
 }
 
+void AbstractEditorGui::processExtraWindows(const Project::ProjectFile&, const Project::ProjectData&)
+{
+}
+
 void AbstractEditorGui::viewMenu()
 {
 }

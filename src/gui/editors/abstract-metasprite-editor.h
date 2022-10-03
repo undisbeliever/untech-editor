@@ -63,7 +63,10 @@ public:
     virtual void viewMenu() override;
 
 protected:
-    AbstractMetaSpriteEditorGui() = default;
+    AbstractMetaSpriteEditorGui(const char* strId)
+        : AbstractEditorGui(strId)
+    {
+    }
 
     void showLayerButtons() const;
 
@@ -71,7 +74,7 @@ protected:
     void setMetaSpriteData(AbstractMetaSpriteEditorData* data);
 
     template <typename AP, typename EditorT, typename FrameSetT>
-    void animationPropertiesWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);
+    void animationPropertiesGui(EditorT* editor, FrameSetT* frameSet);
 
     template <typename EditorDataT, typename DrawFunction>
     void animationPreviewWindow(const char* windowLabel, EditorDataT* data, DrawFunction drawFunction);

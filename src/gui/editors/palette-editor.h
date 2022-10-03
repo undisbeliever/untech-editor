@@ -53,7 +53,7 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void paletteWindow();
+    void paletteGui();
 
     void updateImageTexture();
 };

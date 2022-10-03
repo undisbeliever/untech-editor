@@ -11,6 +11,7 @@
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/imgui.h"
 #include "gui/selection.h"
+#include "gui/splitter.h"
 #include "gui/texture.h"
 #include "models/common/vectorset.h"
 #include "models/project/project.h"
@@ -86,6 +87,9 @@ private:
     ImVec2 _smallTilesetUVmax;
     ImVec2 _largeTilesetUVmax;
 
+    SplitterBarState _sidebar;
+    SplitterBarState _bottombar;
+
 public:
     bool _paletteValid;
     bool _tilesetValid;
@@ -104,6 +108,9 @@ public:
     virtual void processGui(const Project::ProjectFile& projectFile,
                             const Project::ProjectData& projectData) final;
 
+    virtual void processExtraWindows(const Project::ProjectFile& projectFile,
+                                     const Project::ProjectData& projectData) final;
+
     virtual void viewMenu() final;
 
 protected:
@@ -111,13 +118,13 @@ protected:
     virtual void addAnimation(const idstring& name) final;
 
 private:
-    void frameSetPropertiesWindow(const Project::ProjectFile& projectFile);
-    void framePropertiesWindow(const Project::ProjectFile& projectFile);
-    void frameContentsWindow(const Project::ProjectFile& projectFile);
-    void palettesWindow();
+    void frameSetPropertiesGui(const Project::ProjectFile& projectFile);
+    void framePropertiesGui(const Project::ProjectFile& projectFile);
+    void frameContentsGui(const Project::ProjectFile& projectFile);
+    void palettesGui();
     void colorPopup();
-    void tilesetWindow();
-    void frameEditorWindow();
+    void tilesetGui();
+    void frameEditorGui();
 
     void drawAnimationFrame(const ImVec2& pos, const ImVec2& zoom, const UnTech::MetaSprite::MetaSprite::Frame& frame) const;
 

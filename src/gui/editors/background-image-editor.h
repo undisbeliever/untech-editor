@@ -53,7 +53,7 @@ public:
                             const Project::ProjectData& projectData) final;
 
 private:
-    void backgroundImageWindow(const Project::ProjectFile& projectFile);
+    void backgroundImageGui(const Project::ProjectFile& projectFile);
 
     void updateImageTexture();
 

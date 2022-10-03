@@ -76,7 +76,7 @@ void InteractiveTilesEditorData::updateSelection()
 }
 
 InteractiveTilesEditorGui::InteractiveTilesEditorGui()
-    : AbstractEditorGui()
+    : AbstractEditorGui("##Interactive Tiles editor")
     , _data(nullptr)
 {
 }
@@ -94,49 +94,45 @@ void InteractiveTilesEditorGui::editorClosed()
 {
 }
 
-void InteractiveTilesEditorGui::interactiveTilesWindow()
+void InteractiveTilesEditorGui::interactiveTilesGui()
 {
     assert(_data);
     auto& interactiveTiles = _data->interactiveTiles;
 
-    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Interactive Tiles")) {
-        ListButtons<AP::FunctionTables>(_data);
+    ImGui::TextUnformatted(u8"Interactive Tiles:");
 
-        constexpr auto columnNames = std::to_array({ "Name", "Tint" });
+    constexpr auto columnNames = std::to_array({ "Name", "Tint" });
 
-        if (beginApTable("Table", columnNames)) {
-            for (auto [i, ft] : enumerate(interactiveTiles.FIXED_FUNCTION_TABLES)) {
-                const int engineId = i;
+    if (beginApTable("Table", columnNames)) {
+        for (auto [i, ft] : enumerate(interactiveTiles.FIXED_FUNCTION_TABLES)) {
+            const int engineId = i;
 
-                ImGui::TableNextColumn();
-                ImGui::Text("%d", engineId);
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", engineId);
 
-                ImGui::TableNextColumn();
-                ImGui::TextUnformatted(ft.name);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(ft.name);
 
-                ImGui::TableNextColumn();
-                ImGui::Text("%06X", ft.tint.rgbHex());
-                // ::TODO add color square::
-            }
-
-            const auto nFixedFunctions = interactiveTiles.FIXED_FUNCTION_TABLES.size();
-
-            apTable_data_custom<AP::FunctionTables>(
-                _data,
-                _data->sel.listArgs(),
-                [&](auto* sel, const auto index) {
-                    const std::u8string selLabel = stringBuilder(index + nFixedFunctions);
-                    ImGui::Selectable(u8Cast(selLabel), sel, index);
-                },
-
-                [&](auto& ft) { return Cell("##name", &ft.name); },
-                [&](auto& ft) { return Cell("##tint", &ft.tint); });
-
-            endApTable();
+            ImGui::TableNextColumn();
+            ImGui::Text("%06X", ft.tint.rgbHex());
+            // ::TODO add color square::
         }
+
+        const auto nFixedFunctions = interactiveTiles.FIXED_FUNCTION_TABLES.size();
+
+        apTable_data_custom<AP::FunctionTables>(
+            _data,
+            _data->sel.listArgs(),
+            [&](auto* sel, const auto index) {
+                const std::u8string selLabel = stringBuilder(index + nFixedFunctions);
+                ImGui::Selectable(u8Cast(selLabel), sel, index);
+            },
+
+            [&](auto& ft) { return Cell("##name", &ft.name); },
+            [&](auto& ft) { return Cell("##tint", &ft.tint); });
+
+        endApTable();
     }
-    ImGui::End();
 }
 
 void InteractiveTilesEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
@@ -145,7 +141,7 @@ void InteractiveTilesEditorGui::processGui(const Project::ProjectFile&, const Pr
         return;
     }
 
-    interactiveTilesWindow();
+    interactiveTilesGui();
 }
 
 }
