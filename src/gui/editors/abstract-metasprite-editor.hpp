@@ -81,7 +81,7 @@ void AbstractMetaSpriteEditorGui::animationPropertiesGui(EditorT* editor, FrameS
 }
 
 template <typename EditorDataT, typename DrawFunction>
-void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel, EditorDataT* data, DrawFunction drawFunction)
+void AbstractMetaSpriteEditorGui::animationPreviewWindow(EditorDataT* data, DrawFunction drawFunction)
 {
     assert(data);
     const auto& fs = data->data;
@@ -94,8 +94,7 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
     }
 
     ImGui::SetNextWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(windowLabel)) {
-
+    if (ImGui::Begin("Animation Preview##AMS")) {
         {
             ImGui::ToggledButtonWithTooltip("P##Play", &_animationTimer.active, "Play");
             ImGui::SameLine();

@@ -905,8 +905,8 @@ void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile
 
 void SpriteImporterEditorGui::processExtraWindows(const Project::ProjectFile&, const Project::ProjectData&)
 {
-    animationPreviewWindow("Animation Preview##SI", _data, [this](auto... args) { drawAnimationFrame(args...); });
-    exportOrderWindow("Export Order##SI");
+    animationPreviewWindow(_data, [this](auto... args) { drawAnimationFrame(args...); });
+    exportOrderWindow();
 }
 
 void SpriteImporterEditorGui::updateImageTexture()

@@ -77,9 +77,9 @@ protected:
     void animationPropertiesGui(EditorT* editor, FrameSetT* frameSet);
 
     template <typename EditorDataT, typename DrawFunction>
-    void animationPreviewWindow(const char* windowLabel, EditorDataT* data, DrawFunction drawFunction);
+    void animationPreviewWindow(EditorDataT* data, DrawFunction drawFunction);
 
-    void exportOrderWindow(const char* windowLabel);
+    void exportOrderWindow();
 
     template <typename FrameSetT>
     void updateExportOderTree(const FrameSetT& frameSet, const Project::ProjectFile& projectFile);

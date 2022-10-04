@@ -105,12 +105,12 @@ static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::Expor
     }
 }
 
-void AbstractMetaSpriteEditorGui::exportOrderWindow(const char* windowLabel)
+void AbstractMetaSpriteEditorGui::exportOrderWindow()
 {
     using namespace std::string_literals;
 
-    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(windowLabel)) {
+    ImGui::SetNextWindowSize(ImVec2(250, 650), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Export Order##AMS")) {
 
         if (!_eoStillFrames.empty() || !_eoAnimations.empty()) {
             if (ImGui::TreeNodeEx("Still Frames", ImGuiTreeNodeFlags_DefaultOpen)) {

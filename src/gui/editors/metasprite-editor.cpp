@@ -1329,8 +1329,8 @@ void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile, co
 
 void MetaSpriteEditorGui::processExtraWindows(const Project::ProjectFile&, const Project::ProjectData&)
 {
-    animationPreviewWindow("Animation Preview##MS", _data, [this](auto... args) { drawAnimationFrame(args...); });
-    exportOrderWindow("Export Order##MS");
+    animationPreviewWindow(_data, [this](auto... args) { drawAnimationFrame(args...); });
+    exportOrderWindow();
 
     colorPopup();
 }
