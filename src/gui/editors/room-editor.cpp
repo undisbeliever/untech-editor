@@ -700,7 +700,9 @@ void RoomEditorGui::entitiesWindow()
 
     constexpr float buttonSize = 64.0f;
 
-    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(315, 115), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_Once);
+
     if (ImGui::Begin("Entities##Room")) {
 
         const auto& style = ImGui::GetStyle();

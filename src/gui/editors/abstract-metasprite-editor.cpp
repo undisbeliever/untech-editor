@@ -118,7 +118,9 @@ void AbstractMetaSpriteEditorGui::exportOrderWindow()
         return;
     }
 
-    ImGui::SetNextWindowSize(ImVec2(250, 650), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(310, 85), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(250, 620), ImGuiCond_Once);
+
     if (ImGui::Begin("Export Order##AMS", &showExportOrderWindow)) {
 
         if (!_eoStillFrames.empty() || !_eoAnimations.empty()) {
