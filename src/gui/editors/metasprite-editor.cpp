@@ -1143,10 +1143,18 @@ void MetaSpriteEditorGui::frameEditorGui()
         ImGui::SameLine();
 
         Style::metaSpriteZoom.zoomCombo("##zoom");
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(100);
+        static_assert(backgroundColorNames.size() == backgroundColors.size());
+        ImGui::Combo("##BgColor", &_selectedEditorBgColor, backgroundColorNames.data(), backgroundColorNames.size());
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::TextUnformatted(u8"Background Color");
+            ImGui::EndTooltip();
+        }
     }
 
-    static_assert(backgroundColorNames.size() == backgroundColors.size());
-    ImGui::Combo("Background Color", &_selectedEditorBgColor, backgroundColorNames.data(), backgroundColorNames.size());
     const unsigned bgIndex = clamp<int>(_selectedEditorBgColor, 0, backgroundColors.size() - 1);
     const ImU32 bgColor = backgroundColors.at(bgIndex);
 
