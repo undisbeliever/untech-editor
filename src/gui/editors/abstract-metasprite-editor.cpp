@@ -65,6 +65,13 @@ void AbstractMetaSpriteEditorGui::showLayerButtons() const
     ImGui::SameLine();
 }
 
+void AbstractMetaSpriteEditorGui::showExtraWindowButtons()
+{
+    ImGui::ToggledButton("Animation Preview", &showAnimationPreviewWindow);
+    ImGui::SameLine();
+    ImGui::ToggledButton("Export Order", &showExportOrderWindow);
+}
+
 static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::ExportOrderTree>& tree,
                             AbstractMetaSpriteEditorGui* gui,
                             std::function<void(AbstractMetaSpriteEditorGui*, const idstring&)> addFunction,

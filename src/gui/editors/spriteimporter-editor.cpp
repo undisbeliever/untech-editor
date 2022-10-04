@@ -752,6 +752,9 @@ void SpriteImporterEditorGui::frameEditorGui()
         ImGui::SameLine();
 
         Style::spriteImporterZoom.zoomCombo("##zoom");
+
+        ImGui::SameLine(0.0f, 12.0f);
+        showExtraWindowButtons();
     }
 
     ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);

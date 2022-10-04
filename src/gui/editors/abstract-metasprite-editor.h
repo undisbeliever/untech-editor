@@ -49,8 +49,8 @@ public:
     bool _animationHFlip = false;
     bool _animationVFlip = false;
 
-    bool showAnimationPreviewWindow = true;
-    bool showExportOrderWindow = true;
+    bool showAnimationPreviewWindow = false;
+    bool showExportOrderWindow = false;
 
     static bool showTileHitbox;
     static bool showShield;
@@ -72,6 +72,7 @@ protected:
     }
 
     void showLayerButtons() const;
+    void showExtraWindowButtons();
 
     // Must be called in `setEditorData`
     void setMetaSpriteData(AbstractMetaSpriteEditorData* data);

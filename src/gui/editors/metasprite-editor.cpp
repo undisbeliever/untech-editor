@@ -1153,6 +1153,9 @@ void MetaSpriteEditorGui::frameEditorGui()
             ImGui::TextUnformatted(u8"Background Color");
             ImGui::EndTooltip();
         }
+
+        ImGui::SameLine(0.0f, 12.0f);
+        showExtraWindowButtons();
     }
 
     const unsigned bgIndex = clamp<int>(_selectedEditorBgColor, 0, backgroundColors.size() - 1);
