@@ -494,6 +494,8 @@ RoomEditorGui::RoomEditorGui()
     , _sidebar{ 360, 300, 300 }
     , _minimapSidebar{ 350, 280, 400 }
     , _minimapBottombar{ 350, 100, 100 }
+    , _entitiesDropdownWindowPos{}
+    , _showEntitiesDropdownWindow(false)
     , _entityTextureWindowOpen(false)
     , _mtTilesetValid(false)
 {
@@ -515,6 +517,8 @@ void RoomEditorGui::resetState()
 
     _mtTilesetValid = false;
     _scenesData = nullptr;
+
+    _showEntitiesDropdownWindow = false;
 }
 
 void RoomEditorGui::editorClosed()
@@ -691,7 +695,7 @@ void RoomEditorGui::entityTextureWindow()
     ImGui::End();
 }
 
-void RoomEditorGui::entitiesWindow()
+void RoomEditorGui::entitiesDropdownWindow()
 {
     assert(_entityGraphics);
     assert(_data);
@@ -700,11 +704,17 @@ void RoomEditorGui::entitiesWindow()
 
     constexpr float buttonSize = 64.0f;
 
-    ImGui::SetNextWindowPos(ImVec2(315, 115), ImGuiCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_Once);
+    constexpr auto windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar
+                                 | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings;
 
-    if (ImGui::Begin("Entities##Room")) {
+    if (!_showEntitiesDropdownWindow) {
+        return;
+    }
 
+    ImGui::SetNextWindowSize(ImVec2(350, 350), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(_entitiesDropdownWindowPos, ImGuiCond_Always);
+
+    if (ImGui::Begin("Entities##Room", &_showEntitiesDropdownWindow, windowFlags)) {
         const auto& style = ImGui::GetStyle();
 
         const auto textureId = _entityTexture.imguiTextureId();
@@ -963,7 +973,12 @@ void RoomEditorGui::editorGui()
         }
 
         undoStackButtons();
-        ImGui::SameLine(0.0f, 12.0f);
+        ImGui::SameLine(0.0f, 18.0f);
+
+        // Update the position of the entities dropdown window
+        _entitiesDropdownWindowPos = ImGui::GetCursorScreenPos() + ImVec2(0, ImGui::GetFrameHeightWithSpacing());
+        ImGui::ToggledButton("Entities", &_showEntitiesDropdownWindow);
+        ImGui::SameLine(0.0f, 18.0f);
 
         if (selectObjectsButton()) {
             _data->clearSelectedTiles();
@@ -971,7 +986,7 @@ void RoomEditorGui::editorGui()
         }
         ImGui::SameLine();
         editModeButtons();
-        ImGui::SameLine(0.0f, 12.0f);
+        ImGui::SameLine(0.0f, 18.0f);
 
         showLayerButtons();
         ImGui::SameLine();
@@ -1105,7 +1120,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
 void RoomEditorGui::processExtraWindows(const Project::ProjectFile&, const Project::ProjectData&)
 {
-    entitiesWindow();
+    entitiesDropdownWindow();
     entityTextureWindow();
 }
 
@@ -1116,6 +1131,9 @@ void RoomEditorGui::viewMenu()
     ImGui::MenuItem("Show Entities", nullptr, &showEntities);
     ImGui::MenuItem("Show Player Entrances", nullptr, &showEntrances);
     ImGui::MenuItem("Show Script Triggers", nullptr, &showScriptTriggers);
+
+    ImGui::Separator();
+    ImGui::MenuItem("Show Entities Window", nullptr, &_showEntitiesDropdownWindow);
 
     ImGui::Separator();
 

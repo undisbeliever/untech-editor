@@ -88,6 +88,9 @@ private:
     SplitterBarState _minimapSidebar;
     SplitterBarState _minimapBottombar;
 
+    ImVec2 _entitiesDropdownWindowPos;
+    bool _showEntitiesDropdownWindow;
+
     bool _entityTextureWindowOpen;
 
 public:
@@ -128,7 +131,7 @@ private:
 
     void entityTextureWindow();
 
-    void entitiesWindow();
+    void entitiesDropdownWindow();
     void entityDropTarget(ImDrawList* drawList);
 
     void drawObjects(ImDrawList* drawList);
