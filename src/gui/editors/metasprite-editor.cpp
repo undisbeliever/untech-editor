@@ -707,6 +707,7 @@ void MetaSpriteEditorGui::palettesGui()
     if (colorSelected && _paletteState == PaletteState::EDIT_COLOR) {
         ImGui::OpenPopup(colorPopupStrId);
     }
+    colorPopup();
 }
 
 void MetaSpriteEditorGui::colorPopup()
@@ -1342,8 +1343,6 @@ void MetaSpriteEditorGui::processExtraWindows(const Project::ProjectFile&, const
 {
     animationPreviewWindow(_data, [this](auto... args) { drawAnimationFrame(args...); });
     exportOrderWindow();
-
-    colorPopup();
 }
 
 void MetaSpriteEditorGui::viewMenu()
