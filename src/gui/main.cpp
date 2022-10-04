@@ -10,81 +10,24 @@
 #include "gui/windows/about-popup.h"
 #include "gui/windows/fps-window.h"
 #include "gui/windows/message-box.h"
-#include "models/common/string.h"
 #include <iostream>
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
 #include "opengl/imgui_sdl_opengl3.hpp"
 #endif
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#define PLATFORM_WINDOWS
-#endif
-
-#ifdef PLATFORM_WINDOWS
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
-
-static std::filesystem::path executablePath()
-{
-#if defined(PLATFORM_WINDOWS)
-    wchar_t path[MAX_PATH] = L"";
-    const auto s = GetModuleFileNameW(nullptr, path, MAX_PATH);
-    if (s == 0) {
-        return {};
-    }
-
-    std::filesystem::path p(path);
-#else
-    Dl_info info;
-    const auto r = dladdr((void*)&executablePath, &info);
-    if (r == 0) {
-        return {};
-    }
-
-    std::filesystem::path p(info.dli_fname);
-#endif
-
-    std::error_code ec;
-    p = std::filesystem::canonical(p, ec);
-
-    if (ec) {
-        return {};
-    }
-    return p;
-}
-
-static void setIniFilename(ImGuiIO& io)
-{
-    static std::u8string iniFilename;
-
-    io.IniFilename = nullptr;
-
-    const auto p = executablePath();
-
-    // Confirm we have the correct path
-    if (p.filename().stem() == "untech-editor-gui") {
-        const auto dir = p.parent_path();
-
-        iniFilename = (dir / "untech-editor-gui.ini").u8string();
-
-        io.IniFilename = u8Cast(iniFilename);
-    }
-}
-
 static void setupGui(ImGuiIO& io)
 {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+    // Disable .ini settings file
+    io.IniFilename = nullptr;
+
     // This causes issues on my system - disabled for now
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     ImGui::StyleColorsDark();
-
-    setIniFilename(io);
 
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         // Tweak window style so platform and regular windows looks the same

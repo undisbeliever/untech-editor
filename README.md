@@ -34,13 +34,6 @@ unexpectedly.
 I **seriously recommend** that you use version control and save
 regularly if you use this program.
 
-<br/>
-<br/>
-
-The UnTech Editor suite is not intended to be installed on your PATH.
-It will create an `untech-editor-gui.ini` file in the same directory
-as the `untech-editor-gui` executable.
-
 
 
 Build Requirements
