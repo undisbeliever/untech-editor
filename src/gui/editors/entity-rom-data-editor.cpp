@@ -254,7 +254,6 @@ void EntityRomDataEditorGui::structsGui()
 
     ImGui::SameLine();
 
-    ImGui::BeginGroup();
     ImGui::BeginChild("Item");
     {
         if (_data->structsSel.selectedIndex() < entityRomData.structs.size()) {
@@ -317,7 +316,6 @@ void EntityRomDataEditorGui::structsGui()
         }
     }
     ImGui::EndChild();
-    ImGui::EndGroup();
 }
 
 void EntityRomDataEditorGui::functionTablesGui(const UnTech::Project::ProjectFile& projectFile)
@@ -358,7 +356,6 @@ void EntityRomDataEditorGui::entityEntriesGui(const char8_t* text, const Project
 
     ImGui::SameLine();
 
-    ImGui::BeginGroup();
     ImGui::BeginChild("Item");
     {
         if (list && sel.selectedIndex() < list->size()) {
@@ -438,7 +435,6 @@ void EntityRomDataEditorGui::entityEntriesGui(const char8_t* text, const Project
         }
     }
     ImGui::EndChild();
-    ImGui::EndGroup();
 }
 
 void EntityRomDataEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)

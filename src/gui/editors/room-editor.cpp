@@ -1849,7 +1849,6 @@ void RoomEditorGui::scriptsGui(const Project::ProjectFile& projectFile, const Pr
 
     ImGui::SameLine();
 
-    ImGui::BeginGroup();
     ImGui::BeginChild("Script");
 
     const auto bcMapping = projectData.bytecodeData();
@@ -1892,6 +1891,6 @@ void RoomEditorGui::scriptsGui(const Project::ProjectFile& projectFile, const Pr
     }
 
     ImGui::EndChild();
-    ImGui::EndGroup();
 }
+
 }

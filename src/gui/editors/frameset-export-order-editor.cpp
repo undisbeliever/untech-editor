@@ -281,15 +281,11 @@ void FrameSetExportOrderEditorGui::exportOrderGui()
 
     ImGui::Spacing();
 
-    ImGui::BeginGroup();
-
     const ImVec2 childSize(ImGui::GetContentRegionAvail().x / 2, 0);
 
     exportNameTree<AP::Frames>("Still Frames:", childSize);
     ImGui::SameLine();
     exportNameTree<AP::Animations>("Animations:", childSize);
-
-    ImGui::EndGroup();
 }
 
 void FrameSetExportOrderEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
