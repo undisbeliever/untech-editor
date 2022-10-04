@@ -93,8 +93,13 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(EditorDataT* data, Draw
         _animationState.resetAnimation();
     }
 
+    if (!showAnimationPreviewWindow) {
+        _animationTimer.stop();
+        return;
+    }
+
     ImGui::SetNextWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Animation Preview##AMS")) {
+    if (ImGui::Begin("Animation Preview##AMS", &showAnimationPreviewWindow)) {
         {
             ImGui::ToggledButtonWithTooltip("P##Play", &_animationTimer.active, "Play");
             ImGui::SameLine();

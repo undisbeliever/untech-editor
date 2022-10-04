@@ -42,6 +42,11 @@ void AbstractMetaSpriteEditorGui::viewMenu()
     ImGui::MenuItem("Show Hurtbox", nullptr, &showHurtbox);
     ImGui::MenuItem("Show Frame Objects", nullptr, &showFrameObjects);
     ImGui::MenuItem("Show Action Points", nullptr, &showActionPoints);
+
+    ImGui::Separator();
+
+    ImGui::MenuItem("Animation Preview Window", nullptr, &showAnimationPreviewWindow);
+    ImGui::MenuItem("Export Order Window", nullptr, &showExportOrderWindow);
 }
 
 void AbstractMetaSpriteEditorGui::showLayerButtons() const
@@ -109,8 +114,12 @@ void AbstractMetaSpriteEditorGui::exportOrderWindow()
 {
     using namespace std::string_literals;
 
+    if (!showExportOrderWindow) {
+        return;
+    }
+
     ImGui::SetNextWindowSize(ImVec2(250, 650), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Export Order##AMS")) {
+    if (ImGui::Begin("Export Order##AMS", &showExportOrderWindow)) {
 
         if (!_eoStillFrames.empty() || !_eoAnimations.empty()) {
             if (ImGui::TreeNodeEx("Still Frames", ImGuiTreeNodeFlags_DefaultOpen)) {

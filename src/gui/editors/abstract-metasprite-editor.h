@@ -49,6 +49,9 @@ public:
     bool _animationHFlip = false;
     bool _animationVFlip = false;
 
+    bool showAnimationPreviewWindow = true;
+    bool showExportOrderWindow = true;
+
     static bool showTileHitbox;
     static bool showShield;
     static bool showHitbox;
