@@ -81,8 +81,10 @@ private:
 
     SplitterBarState _projectListSidebar;
 
+    bool _showProjectListSidebar;
     bool _openUnsavedChangesOnExitPopup;
     bool _editorExited;
+
     std::vector<std::u8string> _unsavedFilesList;
 
 private:

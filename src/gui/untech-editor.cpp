@@ -34,6 +34,7 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     , _currentEditorGui(nullptr)
     , _projectListWindow()
     , _projectListSidebar{ 280, 150, 500 }
+    , _showProjectListSidebar(true)
     , _openUnsavedChangesOnExitPopup(false)
     , _editorExited(false)
     , _unsavedFilesList()
@@ -361,6 +362,8 @@ void UnTechEditor::processMenu()
             ImGui::EndMenu();
         }
 
+        ImGui::MenuItem("Project List Sidebar", "`", &_showProjectListSidebar);
+
         ImGui::Separator();
 
         if (_currentEditorGui) {
@@ -377,7 +380,7 @@ void UnTechEditor::processKeyboardShortcuts()
 {
     const auto& io = ImGui::GetIO();
 
-    if (io.KeyCtrl) {
+    if (io.KeyMods == ImGuiModFlags_Ctrl) {
         if (ImGui::IsKeyPressed(KeyId_S, false)) {
             if (io.KeyShift) {
                 saveAll();
@@ -403,6 +406,12 @@ void UnTechEditor::processKeyboardShortcuts()
 
         if (ImGui::IsKeyPressed(KeyId_Grave, false)) {
             invalidateImageCache();
+        }
+    }
+
+    if (io.KeyMods == ImGuiModFlags_None) {
+        if (ImGui::IsKeyPressed(KeyId_Grave, false)) {
+            _showProjectListSidebar = !_showProjectListSidebar;
         }
     }
 }
@@ -541,17 +550,23 @@ void UnTechEditor::fullscreenBackgroundWindow()
     ImGui::SetNextWindowSize(viewport->WorkSize);
 
     if (ImGui::Begin("##BgWindow", nullptr, windowFlags)) {
-        auto s = splitterSidebarLeft("plSplitter", &_projectListSidebar);
+        ImVec2 editorSize{ 0, 0 };
 
-        ImGui::BeginChild("ProjectList", s.first, false);
-        _projectListWindow.processGui(_projectData);
-        ImGui::EndChild();
+        if (_showProjectListSidebar) {
+            auto s = splitterSidebarLeft("plSplitter", &_projectListSidebar);
+
+            ImGui::BeginChild("ProjectList", s.first, false);
+            _projectListWindow.processGui(_projectData);
+            ImGui::EndChild();
+
+            editorSize = s.second;
+        }
 
         if (_currentEditorGui) {
             assert(_currentEditor);
 
             ImGui::SameLine();
-            ImGui::BeginChild(_currentEditorGui->childWindowStrId, s.second, false);
+            ImGui::BeginChild(_currentEditorGui->childWindowStrId, editorSize, false);
             _projectFile.read([&](const auto& pf) {
                 _currentEditorGui->processGui(pf, _projectData);
             });
