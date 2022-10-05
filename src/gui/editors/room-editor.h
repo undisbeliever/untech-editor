@@ -85,11 +85,16 @@ private:
     unsigned _invalidTilesCompileId;
 
     SplitterBarState _sidebar;
-    SplitterBarState _minimapSidebar;
-    SplitterBarState _minimapBottombar;
+    SplitterBarState _minimapRight_sidebar;
+    SplitterBarState _minimapRight_bottombar;
+    SplitterBarState _minimapBottom_sidebar;
+    SplitterBarState _minimapBottom_rightbar;
 
     ImVec2 _entitiesDropdownWindowPos;
     bool _showEntitiesDropdownWindow;
+
+    // If false, the minimap is on the bottom
+    bool _minimapOnRight;
 
     bool _entityTextureWindowOpen;
 

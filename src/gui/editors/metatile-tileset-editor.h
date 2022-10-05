@@ -70,7 +70,11 @@ private:
     unsigned _invalidTilesCompileId;
 
     SplitterBarState _sidebar;
-    SplitterBarState _minimapSidebar;
+    SplitterBarState _minimapRight_sidebar;
+    SplitterBarState _minimapBottom_sidebar;
+
+    // If false, the minimap is on the bottom
+    bool _minimapOnRight;
 
 public:
     bool _tilesetShaderImageFilenamesValid;
@@ -86,6 +90,8 @@ public:
 
     virtual void processGui(const Project::ProjectFile& projectFile,
                             const Project::ProjectData& projectData) final;
+
+    virtual void viewMenu() final;
 
 protected:
     virtual void selectionChanged() final;

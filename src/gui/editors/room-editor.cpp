@@ -492,10 +492,13 @@ RoomEditorGui::RoomEditorGui()
     , _scenesData(nullptr)
     , _invalidTilesCompileId(0)
     , _sidebar{ 360, 300, 300 }
-    , _minimapSidebar{ 350, 280, 400 }
-    , _minimapBottombar{ 350, 100, 100 }
+    , _minimapRight_sidebar{ 350, 280, 400 }
+    , _minimapRight_bottombar{ 350, 100, 100 }
+    , _minimapBottom_sidebar{ 350, 280, 400 }
+    , _minimapBottom_rightbar{ 350, 100, 100 }
     , _entitiesDropdownWindowPos{}
     , _showEntitiesDropdownWindow(false)
+    , _minimapOnRight(true)
     , _entityTextureWindowOpen(false)
     , _mtTilesetValid(false)
 {
@@ -998,6 +1001,9 @@ void RoomEditorGui::editorGui()
         ImGui::SameLine();
 
         Style::roomEditorZoom.zoomCombo("##zoom");
+        ImGui::SameLine();
+
+        ImGui::ToggledButtonWithTooltip("MR", &_minimapOnRight, "Minimap on Right");
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
@@ -1078,31 +1084,59 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
         [&] {
             if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
                 if (ImGui::BeginTabItem("Room")) {
-                    splitterSidebarRight(
-                        "##mmsp", &_minimapSidebar,
-                        "##Editor",
-                        [&] {
-                            editorGui();
-                        },
-                        "##Tiles",
-                        [&] {
-                            ImGui::BeginChild("##tileset", ImVec2(0, 270), false);
-                            drawTileset("##TS", ImVec2(1, 1));
-                            ImGui::EndChild();
+                    if (_minimapOnRight) {
+                        splitterSidebarRight(
+                            "##mmspRight", &_minimapRight_sidebar,
+                            "##Editor",
+                            [&] {
+                                editorGui();
+                            },
+                            "##Tiles",
+                            [&] {
+                                ImGui::BeginChild("##tileset", ImVec2(0, 270), false);
+                                drawTileset("##TS", ImVec2(1, 1));
+                                ImGui::EndChild();
 
-                            ImGui::Separator();
+                                ImGui::Separator();
 
-                            splitterBottombar(
-                                "##minimap splitter", &_minimapBottombar,
-                                "##scratchpad",
-                                [&]() {
-                                    scratchpadGui();
-                                },
-                                "##minimap",
-                                [&]() {
-                                    minimapGui("minimap");
-                                });
-                        });
+                                splitterBottombar(
+                                    "##minimap splitter R", &_minimapRight_bottombar,
+                                    "##scratchpad",
+                                    [&]() {
+                                        scratchpadGui();
+                                    },
+                                    "##minimap",
+                                    [&]() {
+                                        minimapGui("minimap");
+                                    });
+                            });
+                    }
+                    else {
+                        splitterBottombar(
+                            "##mmspBottom", &_minimapBottom_sidebar,
+                            "##Editor",
+                            [&] {
+                                editorGui();
+                            },
+                            "##Tiles",
+                            [&] {
+                                ImGui::BeginChild("##tileset", ImVec2(270, 0), false);
+                                drawTileset("##TS", ImVec2(1, 1));
+                                ImGui::EndChild();
+                                ImGui::SameLine();
+
+                                splitterSidebarRight(
+                                    "##minimap splitter B", &_minimapBottom_rightbar,
+                                    "##scratchpad",
+                                    [&]() {
+                                        scratchpadGui();
+                                    },
+                                    "##minimap",
+                                    [&]() {
+                                        minimapGui("minimap");
+                                    });
+                            });
+                    }
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Script Editor")) {
@@ -1133,10 +1167,12 @@ void RoomEditorGui::viewMenu()
     ImGui::MenuItem("Show Script Triggers", nullptr, &showScriptTriggers);
 
     ImGui::Separator();
+    ImGui::MenuItem("Minimap on Right", nullptr, &_minimapOnRight);
+
+    ImGui::Separator();
     ImGui::MenuItem("Show Entities Window", nullptr, &_showEntitiesDropdownWindow);
 
     ImGui::Separator();
-
     ImGui::MenuItem("Show Entity Texture", nullptr, &_entityTextureWindowOpen);
 }
 

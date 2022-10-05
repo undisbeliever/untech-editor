@@ -195,7 +195,9 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
     , _tileProperties(std::nullopt)
     , _invalidTilesCompileId(0)
     , _sidebar{ 300, 200, 400 }
-    , _minimapSidebar{ 320, 280, 400 }
+    , _minimapRight_sidebar{ 320, 280, 400 }
+    , _minimapBottom_sidebar{ 320, 280, 400 }
+    , _minimapOnRight(true)
     , _tilesetShaderImageFilenamesValid(false)
     , _tileCollisionsValid(false)
     , _interactiveTilesValid(false)
@@ -635,6 +637,9 @@ void MetaTileTilesetEditorGui::tilesetGui()
         ImGui::SameLine();
 
         Style::metaTileTilesetZoom.zoomCombo("##zoom");
+        ImGui::SameLine();
+
+        ImGui::ToggledButtonWithTooltip("MR", &_minimapOnRight, "Minimap on Right");
     }
 
     ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -675,6 +680,9 @@ void MetaTileTilesetEditorGui::scratchpadGui()
         ImGui::SameLine();
 
         Style::metaTileScratchpadZoom.zoomCombo("##zoom");
+        ImGui::SameLine();
+
+        ImGui::ToggledButtonWithTooltip("MR", &_minimapOnRight, "Minimap on Right");
     }
 
     ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -703,45 +711,68 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
     updateMapAndProcessAnimations();
     updateInvalidTileList(projectData);
 
+    auto editorTabs = [&] {
+        if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
+            if (ImGui::BeginTabItem("Tileset")) {
+                tilesetGui();
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Scratchpad")) {
+                scratchpadGui();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+    };
+
     splitterSidebarRight(
-        "##splitter", &_sidebar,
-        "##Content",
-        [&] {
-            splitterSidebarRight(
-                "##mmapsp", &_minimapSidebar,
-                "##Editor",
-                [&] {
-                    if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
-                        if (ImGui::BeginTabItem("Tileset")) {
-                            tilesetGui();
-                            ImGui::EndTabItem();
-                        }
-                        if (ImGui::BeginTabItem("Scratchpad")) {
-                            scratchpadGui();
-                            ImGui::EndTabItem();
-                        }
-                        ImGui::EndTabBar();
-                    }
-                },
-                "##minimaps",
-                [&] {
-                    ImGui::BeginChild("##tileProperties", ImVec2(0, 300), false);
-                    tilePropertiesGui(projectFile);
-                    ImGui::EndChild();
+        "##splitter", &_sidebar, "##Content", [&] {
+                if (_minimapOnRight) {
+                    splitterSidebarRight(
+                        "##mmapsp Right", &_minimapRight_sidebar,
+                        "##Editor", editorTabs,
+                        "##minimaps",
+                        [&] {
+                            ImGui::BeginChild("##tileProperties", ImVec2(0, 300), false);
+                            tilePropertiesGui(projectFile);
+                            ImGui::EndChild();
 
-                    ImGui::Separator();
+                            ImGui::Separator();
 
-                    ImGui::BeginChild("##tsMinimap", ImVec2(0, 270), false);
-                    tilesetMinimapGui("##ts minimap");
-                    ImGui::EndChild();
+                            ImGui::BeginChild("##tsMinimap", ImVec2(0, 270), false);
+                            tilesetMinimapGui("##ts minimap");
+                            ImGui::EndChild();
 
-                    ImGui::Separator();
+                            ImGui::Separator();
 
-                    ImGui::BeginChild("##Minimap", ImVec2(0, 0), false);
-                    minimapGui("##sp minimap");
-                    ImGui::EndChild();
-                });
-        },
+                            ImGui::BeginChild("##Minimap", ImVec2(0, 0), false);
+                            minimapGui("##sp minimap");
+                            ImGui::EndChild();
+                        });
+                }
+                else {
+                    splitterBottombar(
+                        "##mmapsp Bottom", &_minimapBottom_sidebar,
+                        "##Editor", editorTabs,
+                        "##minimaps",
+                        [&] {
+                            ImGui::BeginChild("##tileProperties", ImVec2(300, 0), false);
+                            tilePropertiesGui(projectFile);
+                            ImGui::EndChild();
+
+                            ImGui::SameLine();
+
+                            ImGui::BeginChild("##tsMinimap", ImVec2(270, 0), false);
+                            tilesetMinimapGui("##ts minimap");
+                            ImGui::EndChild();
+
+                            ImGui::SameLine();
+
+                            ImGui::BeginChild("##Minimap", ImVec2(0, 0), false);
+                            minimapGui("##sp minimap");
+                            ImGui::EndChild();
+                        });
+                    } },
         "Sidebar",
         [&] {
             propertiesGui(projectFile);
@@ -753,6 +784,14 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
             _data->tilesetFrameSel.setSelected(_tilesetShader.tilesetFrame());
         }
     }
+}
+
+void MetaTileTilesetEditorGui::viewMenu()
+{
+    AbstractMetaTileEditorGui::viewMenu();
+
+    ImGui::Separator();
+    ImGui::MenuItem("Minimap on Right", nullptr, &_minimapOnRight);
 }
 
 void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile& projectFile,
