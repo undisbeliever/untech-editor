@@ -203,7 +203,7 @@ public:
         _mousePos = _mouseScenePos;
 
         if (ImGui::IsItemActive() || ImGui::IsItemHovered()) {
-            if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 _currentState = State::NONE;
             }
 

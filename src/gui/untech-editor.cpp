@@ -8,7 +8,6 @@
 #include "abstract-editor.h"
 #include "imgui-filebrowser.h"
 #include "imgui.h"
-#include "key-id.h"
 #include "gui/style.h"
 #include "gui/windows/about-popup.h"
 #include "gui/windows/error-list-window.h"
@@ -381,7 +380,7 @@ void UnTechEditor::processKeyboardShortcuts()
     const auto& io = ImGui::GetIO();
 
     if (io.KeyMods == ImGuiModFlags_Ctrl) {
-        if (ImGui::IsKeyPressed(KeyId_S, false)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_S, false)) {
             if (io.KeyShift) {
                 saveAll();
             }
@@ -391,7 +390,7 @@ void UnTechEditor::processKeyboardShortcuts()
         }
 
         if (_currentEditorGui && ImGui::IsAnyItemActive() == false) {
-            if (ImGui::IsKeyPressed(KeyId_Z, false)) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
                 if (io.KeyShift) {
                     _currentEditorGui->redoClicked = true;
                 }
@@ -399,18 +398,18 @@ void UnTechEditor::processKeyboardShortcuts()
                     _currentEditorGui->undoClicked = true;
                 }
             }
-            if (ImGui::IsKeyPressed(KeyId_Y, false)) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
                 _currentEditorGui->redoClicked = true;
             }
         }
 
-        if (ImGui::IsKeyPressed(KeyId_Grave, false)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent, false)) {
             invalidateImageCache();
         }
     }
 
     if (io.KeyMods == ImGuiModFlags_None) {
-        if (ImGui::IsKeyPressed(KeyId_Grave, false)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent, false)) {
             _showProjectListSidebar = !_showProjectListSidebar;
         }
     }
