@@ -18,7 +18,6 @@
 static void setupGui(ImGuiIO& io)
 {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // Disable .ini settings file
     io.IniFilename = nullptr;
