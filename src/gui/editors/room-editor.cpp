@@ -1123,7 +1123,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
                                 ImGui::BeginChild("##tileset", ImVec2(270, 0), false);
                                 drawTileset("##TS", ImVec2(1, 1));
                                 ImGui::EndChild();
-                                ImGui::SameLine();
+                                ImGui::SameLineWithSeparator();
 
                                 splitterSidebarRight(
                                     "##minimap splitter B", &_minimapBottom_rightbar,

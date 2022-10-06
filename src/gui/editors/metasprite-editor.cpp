@@ -1310,7 +1310,7 @@ void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile, co
                     palettesGui();
                     ImGui::EndChild();
 
-                    ImGui::SameLine();
+                    ImGui::SameLineWithSeparator();
 
                     ImGui::BeginChild("Tileset", ImVec2(0, 0), false);
                     tilesetGui();

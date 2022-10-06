@@ -457,4 +457,24 @@ bool Button(const char8_t* label, const ImVec2& size_arg)
     return Button(reinterpret_cast<const char*>(label), size_arg);
 }
 
+void SameLineWithSeparator()
+{
+    constexpr float thickness = 1.0f;
+
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    if (window->SkipItems)
+        return;
+
+    const float spacing = g.Style.ItemSpacing.x;
+
+    ImGui::SameLine(0, spacing * 2 + thickness);
+
+    const float x = window->DC.CursorPos.x - spacing - thickness;
+    const float y1 = window->DC.CursorPos.y;
+    const float y2 = window->DC.CursorPos.y + window->DC.CurrLineSize.y;
+
+    window->DrawList->AddLine(ImVec2(x, y1), ImVec2(x, y2), GetColorU32(ImGuiCol_Separator));
+}
+
 }

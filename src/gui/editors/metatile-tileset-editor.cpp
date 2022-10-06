@@ -760,13 +760,13 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
                             tilePropertiesGui(projectFile);
                             ImGui::EndChild();
 
-                            ImGui::SameLine();
+                            ImGui::SameLineWithSeparator();
 
                             ImGui::BeginChild("##tsMinimap", ImVec2(270, 0), false);
                             tilesetMinimapGui("##ts minimap");
                             ImGui::EndChild();
 
-                            ImGui::SameLine();
+                            ImGui::SameLineWithSeparator();
 
                             ImGui::BeginChild("##Minimap", ImVec2(0, 0), false);
                             minimapGui("##sp minimap");

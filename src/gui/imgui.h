@@ -134,4 +134,6 @@ void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, cons
     }
 }
 
+void SameLineWithSeparator();
+
 }
