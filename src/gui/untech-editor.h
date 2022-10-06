@@ -108,8 +108,6 @@ public:
     // called after ImGUI render
     void updateProjectFile();
 
-    static void fixMissingBgWindow();
-
 private:
     void openEditor(const ItemIndex itemIndex);
     void closeEditor();

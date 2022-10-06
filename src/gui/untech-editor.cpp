@@ -521,24 +521,6 @@ void UnTechEditor::unsavedChangesOnExitPopup()
     }
 }
 
-/**
- * This function fixes a bug where the `##BgWindow` is not visible.
- * The bug appears to be caused by `ImGuiWindowFlags_NoBringToFrontOnFocus` flag.
- * Creating a `##BgWindow` without the flag for a single frame fixes this bug.
- *
- * This function MUST be called once after ImGui has been initialised.
- */
-void UnTechEditor::fixMissingBgWindow()
-{
-    constexpr auto windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-
-    // Required to prevent the Project List Sidebar from shrinking to the minimum width.
-    ImGui::SetNextWindowSize(ImVec2(800, 400));
-
-    ImGui::Begin("##BgWindow", nullptr, windowFlags);
-    ImGui::End();
-}
-
 void UnTechEditor::fullscreenBackgroundWindow()
 {
     constexpr auto windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar

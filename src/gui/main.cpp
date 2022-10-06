@@ -36,32 +36,6 @@ static void setupGui(ImGuiIO& io)
     }
 }
 
-static void centralDockSpace()
-{
-    const ImGuiWindowFlags windowFlags
-        = ImGuiWindowFlags_NoDocking
-          | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
-          | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-    ImGui::SetNextWindowViewport(viewport->ID);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-    ImGui::Begin("UnTech Editor", nullptr, windowFlags);
-
-    ImGui::PopStyleVar(3);
-
-    const ImGuiID dockspaceID = ImGui::GetID("CentralDock");
-    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f));
-
-    ImGui::End();
-}
-
 #ifndef IMGUI_DISABLE_DEBUG_TOOLS
 void metricsWindow()
 {
@@ -106,14 +80,6 @@ int main(int argc, char* argv[])
 
     Shaders::initialize();
 
-    // Fix Missing BG window
-    // (Done in a hidden, non-visible frame to prevent a visible glitched window)
-    {
-        imgui.newFrame();
-        UnTechEditor::fixMissingBgWindow();
-        ImGui::EndFrame();
-    }
-
     processProgramArguments(argc, argv);
 
     if (UnTechEditor::instance() == nullptr) {
@@ -125,8 +91,6 @@ int main(int argc, char* argv[])
 
         Shaders::newFrame();
         imgui.newFrame();
-
-        centralDockSpace();
 
         if (editor) {
             editor->processGui();
