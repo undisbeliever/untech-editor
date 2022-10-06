@@ -8,7 +8,6 @@
 #include "shaders.h"
 #include "untech-editor.h"
 #include "gui/windows/about-popup.h"
-#include "gui/windows/fps-window.h"
 #include "gui/windows/message-box.h"
 #include <iostream>
 
@@ -62,6 +61,24 @@ static void centralDockSpace()
 
     ImGui::End();
 }
+
+#ifndef IMGUI_DISABLE_DEBUG_TOOLS
+void metricsWindow()
+{
+    static bool showMetrics = true;
+
+    const auto& io = ImGui::GetIO();
+
+    if (ImGui::IsKeyPressed(ImGuiKey_F12)) {
+        if (io.KeyMods == ImGuiModFlags_None) {
+            showMetrics = !showMetrics;
+        }
+    }
+    if (showMetrics) {
+        ImGui::ShowMetricsWindow(&showMetrics);
+    }
+}
+#endif
 
 static void processProgramArguments(int argc, const char* const argv[])
 {
@@ -117,7 +134,10 @@ int main(int argc, char* argv[])
 
         AboutPopup::processGui();
         MsgBox::processGui();
-        FpsWindow::processGui();
+
+#ifndef IMGUI_DISABLE_DEBUG_TOOLS
+        metricsWindow();
+#endif
 
         Shaders::processOffscreenRendering();
         imgui.render();

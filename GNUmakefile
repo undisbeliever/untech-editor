@@ -274,6 +274,13 @@ IMGUI_LDFLAGS               := -pthread
 # Disable to-be-obsoleted Dear ImGui symbols
 IMGUI_CXXFLAGS += -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
+# Only show the Dear ImGui Metrics/Debugger window on debug builds
+ifeq ($(PROFILE),release)
+    IMGUI_CXXFLAGS += -DIMGUI_DISABLE_DEBUG_TOOLS
+else ifeq ($(PROFILE),mingw)
+    IMGUI_CXXFLAGS += -DIMGUI_DISABLE_DEBUG_TOOLS
+endif
+
 
 $(OBJ_DIR)/gui/main.o: IMGUI_CXXFLAGS += -Isrc/vendor/imgui
 
