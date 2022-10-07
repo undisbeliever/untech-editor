@@ -35,9 +35,9 @@ ifeq ($(PROFILE),release)
   OBJ_DIR       := obj/release
   BIN_DIR       := bin
 
-  CXXFLAGS      += -O2 -flto -fdata-sections -ffunction-sections -Isrc
-  CFLAGS        += -O2 -flto -fdata-sections -ffunction-sections -Isrc
-  LDFLAGS       += -O2 -flto -Wl,-gc-sections
+  CXXFLAGS      += -O2 -fdata-sections -ffunction-sections -Isrc
+  CFLAGS        += -O2 -fdata-sections -ffunction-sections -Isrc
+  LDFLAGS       += -O2 -Wl,-gc-sections
 
   # Do not use split DWARF on release profile as it increases the build time
   NO_SPLIT_DWARF := 1
@@ -122,9 +122,9 @@ else ifeq ($(PROFILE),mingw)
 
   CXX           := $(CXX_MINGW)
   CC            := $(CC_MINGW)
-  CXXFLAGS      += -O2 -flto -Isrc
-  CFLAGS        += -O2 -flto -Isrc
-  LDFLAGS       += -O2 -flto
+  CXXFLAGS      += -O2 -Isrc
+  CFLAGS        += -O2 -Isrc
+  LDFLAGS       += -O2
   LIBS          += -lshlwapi
 
   # Split drawf causes a 'not supported on this system' error when running the binaries in wine
@@ -203,14 +203,6 @@ ifndef NO_PROTECTIONS
   CXXFLAGS  += $(PROTECTIONS)
   CFLAGS    += $(PROTECTIONS)
   LDFLAGS   += $(PROTECTIONS)
-endif
-
-
-ifneq ($(findstring clang,$(CXX) $(CC)),)
-  # LTO on clang causes 'signal not found' errors in Qt
-  CXXFLAGS := $(filter-out -flto,$(CXXFLAGS))
-  CFLAGS   := $(filter-out -flto,$(CFLAGS))
-  LDFLAGS  := $(filter-out -flto,$(LDFLAGS))
 endif
 
 
