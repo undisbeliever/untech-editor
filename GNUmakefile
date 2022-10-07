@@ -1,13 +1,20 @@
+# UnTech Editor Makefile
 
-PROFILE     ?= release
-CXX         ?= g++
-CC          ?= gcc
+PROFILE ?= release
 
-CXXFLAGS    += -std=c++20
-LDFLAGS     += -std=c++20
+
+CXXFLAGS      := -std=c++20
+CFLAGS        := -std=c11
+LDFLAGS       := -std=c++20
+
+# Used with C and C++ compilers
+COMPILE_FLAGS := -Isrc
+
+
 
 ifeq ($(OS),Windows_NT)
   BIN_EXT         := .exe
+
   RM_COMMAND       = -del /f $(subst /,\,$1)
   # Prevents text spam
   _MISSING_DIRS    = $(foreach p,$1,$(if $(wildcard $p),,$p))
@@ -15,39 +22,30 @@ ifeq ($(OS),Windows_NT)
 
   LIBS := -lshlwapi
 
-  VENDOR_CXXFLAGS := -Wno-deprecated
-
 else
   # Linux/BSD
 
   BIN_EXT         :=
+
   RM_COMMAND       = rm -f $1
   MKDIR_P_COMMAND  = mkdir -p $1
 
   LIBS :=
-
-  VENDOR_CXXFLAGS := -Wno-deprecated
 endif
 
 
 
 ifeq ($(PROFILE),release)
-  OBJ_DIR       := obj/release
-  BIN_DIR       := bin
-
-  CXXFLAGS      += -O2 -fdata-sections -ffunction-sections -Isrc
-  CFLAGS        += -O2 -fdata-sections -ffunction-sections -Isrc
+  # Release build
+  COMPILE_FLAGS += -O2 -fdata-sections -ffunction-sections
   LDFLAGS       += -O2 -Wl,-gc-sections
 
   # Do not use split DWARF on release profile as it increases the build time
   NO_SPLIT_DWARF := 1
 
 else ifeq ($(PROFILE),debug)
-  OBJ_DIR       := obj/debug-$(firstword $(CXX))
-  BIN_DIR       := bin/debug-$(firstword $(CXX))
-
-  CXXFLAGS      += -g -Og -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-  CFLAGS        += -g -Og -Isrc -Werror
+  # Debug build
+  COMPILE_FLAGS += -g -Og -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
   LDFLAGS       += -g -Og -Werror
 
 else ifeq ($(PROFILE),asan)
@@ -56,13 +54,9 @@ else ifeq ($(PROFILE),asan)
   # Reccomended environment to run asan binaries with
   #  ASAN_OPTIONS=detect_leaks=1:check_initialization_order=1:detect_leaks=1:atexit=1
 
-  OBJ_DIR       := obj/asan-$(firstword $(CXX))
-  BIN_DIR       := bin/asan-$(firstword $(CXX))
-
   ASAN_FLAGS    := -fsanitize=address,undefined -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(ASAN_FLAGS) -O1 -Isrc
-  CFLAGS        += $(ASAN_FLAGS) -O1 -Isrc
+  COMPILE_FLAGS += $(ASAN_FLAGS) -O1
   LDFLAGS       += $(ASAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),msan)
@@ -72,67 +66,129 @@ else ifeq ($(PROFILE),msan)
   #  MSAN_OPTIONS=poison_in_dtor=1:detect_leaks=1:atexit=1
 
   # only available on clang
-  CXX           := clang++
-  CC            := clang
-
-  OBJ_DIR       := obj/msan
-  BIN_DIR       := bin/msan
+  COMPILER := clang
 
   MSAN_FLAGS    := -fsanitize=memory,undefined -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(MSAN_FLAGS) -O1 -Isrc
-  CFLAGS        += $(MSAN_FLAGS) -O1 -Isrc
+  COMPILE_FLAGS += $(MSAN_FLAGS) -O1
   LDFLAGS       += $(MSAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),ubsan)
   # Undefined Behaviour Sanitizer
 
   # only available on clang
-  CXX           := clang++
-  CC            := clang
-
-  OBJ_DIR       := obj/ubsan
-  BIN_DIR       := bin/ubsan
+  COMPILER := clang
 
   UBSAN_FLAGS    := -fsanitize=undefined,integer,nullability -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(UBSAN_FLAGS) -O1 -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-  CFLAGS        += $(UBSAN_FLAGS) -O1 -Isrc
+  COMPILE_FLAGS += $(UBSAN_FLAGS) -O1 -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
   LDFLAGS       += $(UBSAN_FLAGS) -O1 -Wl,-gc-sections
 
-else ifeq ($(PROFILE),mingw)
-  # MinGW cross platform compiling
-  CXX_MINGW     ?= x86_64-w64-mingw32-g++
-  CC_MINGW      ?= x86_64-w64-mingw32-gcc
+else
+  $(error unknown profile)
+endif
+
+
+
+# Compiler Warnings (not used when compiling `src/vendor/` files)
+WARNING_FLAGS += -Wall -Wextra -Wdeprecated -Wimplicit-fallthrough -Wvla -pedantic
+WARNING_FLAGS += -Wnull-dereference -Wdouble-promotion -Wformat=2
+# Disable variable-length arrays
+WARNING_FLAGS += -Werror=vla
+
+
+# Redhat recommended compiler and linker flags for GCC
+# https://developers.redhat.com/blog/2018/03/21/compiler-and-linker-flags-gcc/
+# Run-time buffer overflow detection and std bound checking
+COMPILE_FLAGS	+= -D_FORTIFY_SOURCE=2
+# Run-time bounds checking for C++ strings and containers
+COMPILE_FLAGS += -D_GLIBCXX_ASSERTIONS
+# Increased reliability of backtraces
+COMPILE_FLAGS += -fasynchronous-unwind-tables
+# Enable table-based thread cancellation
+COMPILE_FLAGS += -fexceptions
+# Full ASLR for executables
+COMPILE_FLAGS += -fpic -fpie
+# Stack smashing protector
+COMPILE_FLAGS += -fstack-protector-strong
+# Avoid temporary files, speeding up builds
+COMPILE_FLAGS	+= -pipe
+# Control flow integrity protection
+COMPILE_FLAGS += -fcf-protection
+# Increased reliability of stack overflow detection
+COMPILE_FLAGS += -fstack-clash-protection
+
+LDFLAGS += -fstack-protector
+
+
+# Disable deprecated warnings on vendor code
+VENDOR_CXXFLAGS := -Wno-deprecated
+
+
+
+ifdef COMPILER
+  # Ensure CXX/CC variables are overridden
+  undefine CXX
+  undefine CC
+else
+  ifdef CXX
+    ifneq ($(findstring mingw,$(CXX) $(CC)),)
+      COMPILER    := mingw
+    else ifneq ($(findstring clang,$(CXX) $(CC)),)
+      COMPILER  := clang
+    else ifneq ($(findstring g++,$(CXX) $(CC)),)
+      COMPILER    := gcc
+    else
+      $(error unknown CXX compiler)
+    endif
+  else
+     $(error missing CXX variable)
+  endif
+endif
+
+
+
+ifeq ($(COMPILER), gcc)
+  CXX   ?= g++
+  CC    ?= gcc
+
+  # Extra compiler warnings
+  WARNING_FLAGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict
+
+else ifeq ($(COMPILER), clang)
+  CXX   ?= clang++
+  CC    ?= clang
+
+else ifeq ($(COMPILER), mingw)
+  CXX   ?= x86_64-w64-mingw32-g++
+  CC	?= x86_64-w64-mingw32-gcc
+
+  # Split drawf causes a 'not supported on this system' error when running the binaries in wine
+  NO_SPLIT_DWARF  := 1
+
+  OS	          := Windows_NT
+  BIN_EXT	  := .exe
+
+  LIBS            += -lshlwapi
 
   # Location of the `x86_64-w64-mingw32` directory inside the SDL 2 (MinGW 32/64-bit) folder
   # This variable cannot contain spaces
-  SDL_DIR       ?= $(HOME)/.local/x86_64-w64-mingw32
+  SDL_DIR         ?= $(HOME)/.local/x86_64-w64-mingw32
 
   ifneq (1, $(words $(SDL_DIR)))
     $(error 'SDL_DIR cannot contain a space')
   endif
 
+  # `-fstack-clash-protection` causes an "internal compiler error" on my system
+  COMPILE_FLAGS := $(filter-out -fstack-clash-protection,$(COMPILE_FLAGS))
 
-  OS            := Windows_NT
-
-  OBJ_DIR       := obj/mingw
-  BIN_DIR       := bin/mingw
-  BIN_EXT	:= .exe
-
-  CXX           := $(CXX_MINGW)
-  CC            := $(CC_MINGW)
-  CXXFLAGS      += -O2 -Isrc
-  CFLAGS        += -O2 -Isrc
-  LDFLAGS       += -O2
-  LIBS          += -lshlwapi
-
-  # Split drawf causes a 'not supported on this system' error when running the binaries in wine
-  NO_SPLIT_DWARF  := 1
+  # `-Wnull-dereference` causes lots of "potential null pointer dereference" warnings in `stl_vector.h`
+  WARNING_FLAGS := $(filter-out -Wnull-dereference,$(WARNING_FLAGS))
 
 else
-  $(error unknown profile)
+  $(error unknown compiler)
 endif
+
 
 
 ifndef NO_SPLIT_DWARF
@@ -142,93 +198,39 @@ ifndef NO_SPLIT_DWARF
 endif
 
 
-ifndef NO_PROTECTIONS
-  PROTECTIONS :=
 
-  # Disable variable-length arrays
-  PROTECTIONS   += -Werror=vla
+ifeq ($(OS),Windows_NT)
+  # Enable DEP and ASLR
+  LDFLAGS     += -Wl,--nxcompat -Wl,--dynamicbase
+else
+  # Linux/BSD
 
+  # Enable ASLR for executables
+  LDFLAGS     += -Wl,-pie
 
-  # Redhat recommended compiler and linker flags for GCC
-  # https://developers.redhat.com/blog/2018/03/21/compiler-and-linker-flags-gcc/
-
-  ifneq ($(or $(findstring -O2,$(CXXFLAGS)), $(findstring -O3,$(CXXFLAGS))),)
-    # Run-time buffer overflow detection and std bound checking
-    PROTECTIONS += -D_FORTIFY_SOURCE=2
-  endif
-
-  # Run-time bounds checking for C++ strings and containers
-  PROTECTIONS   += -D_GLIBCXX_ASSERTIONS
-
-  # Increased reliability of backtraces
-  PROTECTIONS   += -fasynchronous-unwind-tables
-  # Enable table-based thread cancellation
-  PROTECTIONS   += -fexceptions
-  # Full ASLR for executables
-  PROTECTIONS   += -fpic -fpie
-  # Stack smashing protector
-  PROTECTIONS   += -fstack-protector-strong
-
-  # Avoid temporary files, speeding up builds
-  PROTECTIONS   += -pipe
-
-  ifeq ($(OS),Windows_NT)
-    # Enable DEP and ASLR
-    LDFLAGS     += -Wl,--nxcompat -Wl,--dynamicbase
-  else
-    # Linux/BSD
-
-    # Enable ASLR for executables
-    LDFLAGS       += -Wl,-pie
-
-    # Detect and reject underlinking
-    # Disable lazy binding
-    # Read-only segments after relocation
-    LDFLAGS     += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
-  endif
-
-  ifneq ($(findstring g++,$(CXX)),)
-    GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
-    ifeq ($(GCC_MAJOR),8)
-      # Increased reliability of stack overflow detection
-      PROTECTIONS += -fstack-clash-protection
-
-      ## Control flow integrity protection
-      #PROTECTIONS += -mcet -fcf-protection
-      #
-      # Skipped: My build of gcc 8.1.0 does not support this yet (-mcet is unrecognized)
-    endif
-  endif
-
-  CXXFLAGS  += $(PROTECTIONS)
-  CFLAGS    += $(PROTECTIONS)
-  LDFLAGS   += $(PROTECTIONS)
+  # Detect and reject underlinking
+  # Disable lazy binding
+  # Read-only segments after relocation
+  LDFLAGS     += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
 endif
 
 
-ifeq ($(CXXWARNINGS),)
-  CXXWARNINGS := -Wall -Wextra -Wdeprecated -Wimplicit-fallthrough -Wvla -pedantic
 
-  ifneq ($(findstring g++,$(CXX)),)
-    GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
+CXXFLAGS += $(COMPILE_FLAGS)
+CFLAGS   += $(COMPILE_FLAGS)
 
-    ifeq ($(GCC_MAJOR),4)
-        CXXWARNINGS += -Wno-missing-field-initializers
-    else ifeq ($(GCC_MAJOR),5)
-       CXXWARNINGS += -Wlogical-op -Wdouble-promotion -Wformat=2
-    else ifeq ($(GCC_MAJOR),6)
-       CXXWARNINGS += -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wformat=2
-    else ifeq ($(GCC_MAJOR),7)
-       CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
-    else ifeq ($(GCC_MAJOR),8)
-       CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
-    endif
+
+
+
+OBJ_DIR := obj/$(PROFILE)-$(COMPILER)
+ifeq ($(PROFILE), release)
+  ifneq ($(COMPILER), mingw)
+    BIN_DIR := bin
+  else
+    BIN_DIR := bin/$(PROFILE)-$(COMPILER)
   endif
-
-  ifneq ($(findstring clang,$(CXX) $(CC)),)
-    # Using -Wshadow on g++ is too aggressive
-    CXXWARNINGS += -Wshadow
-  endif
+else
+  BIN_DIR := bin/$(PROFILE)-$(COMPILER)
 endif
 
 
@@ -266,11 +268,9 @@ IMGUI_LDFLAGS               := -pthread
 # Disable to-be-obsoleted Dear ImGui symbols
 IMGUI_CXXFLAGS += -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
-# Only show the Dear ImGui Metrics/Debugger window on debug builds
+# Only show the Dear ImGui Metrics/Debugger window on debug (non-release) builds
 ifeq ($(PROFILE),release)
-    IMGUI_CXXFLAGS += -DIMGUI_DISABLE_DEBUG_TOOLS
-else ifeq ($(PROFILE),mingw)
-    IMGUI_CXXFLAGS += -DIMGUI_DISABLE_DEBUG_TOOLS
+  IMGUI_CXXFLAGS += -DIMGUI_DISABLE_DEBUG_TOOLS
 endif
 
 
@@ -279,7 +279,7 @@ $(OBJ_DIR)/gui/main.o: IMGUI_CXXFLAGS += -Isrc/vendor/imgui
 
 UNAME_S := $(shell uname -s)
 
-ifeq ($(PROFILE), mingw) # Cross compiling windows
+ifeq ($(COMPILER), mingw) # Cross compiling windows
   IMGUI_LDFLAGS   += -lgdi32 -lopengl32 -limm32
   IMGUI_LDFLAGS   += $(shell PKG_CONFIG_LIBDIR='$(SDL_DIR)/lib/pkgconfig' pkg-config --define-prefix --libs sdl2)
   IMGUI_CXXFLAGS  += $(shell PKG_CONFIG_LIBDIR='$(SDL_DIR)/lib/pkgconfig' pkg-config --define-prefix --cflags sdl2)
@@ -365,42 +365,42 @@ DEPS += $(THIRD_PARTY_OBJS:.o=.d)
 
 
 $(TEST_UTILS): $(BIN_DIR)/test-utils/%$(BIN_EXT): $(OBJ_DIR)/test-utils/%.o
-	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
+	$(CXX) $(LDFLAGS) $(WARNING_FLAGS) -o $@ $^ $(LIBS)
 
 $(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
-	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
+	$(CXX) $(LDFLAGS) $(WARNING_FLAGS) -o $@ $^ $(LIBS)
 
 $(GUI_APP):
-	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(GUI_LIBS) $(LIBS) $(IMGUI_LDFLAGS)
+	$(CXX) $(LDFLAGS) $(WARNING_FLAGS) -o $@ $^ $(GUI_LIBS) $(LIBS) $(IMGUI_LDFLAGS)
 
 
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VENDOR_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(VENDOR_CXXFLAGS) $(WARNING_FLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.c
-	$(CC) $(CFLAGS) $(CXXWARNINGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(WARNING_FLAGS) -c -o $@ $<
 
 
 
 $(OBJ_DIR)/gui/%.o: src/gui/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(IMGUI_CXXFLAGS) $(WARNING_FLAGS) -c -o $@ $<
 
 
 $(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/backends/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/misc/cpp/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/vendor/imgui/gl3w.o: src/vendor/gl3w/src/gl3w.c
-	$(CC) $(CFLAGS) $(CXXWARNINGS) -Isrc/vendor/gl3w/include -c -o $@ $<
+	$(CC) $(CFLAGS) -Isrc/vendor/gl3w/include -c -o $@ $<
 
 
 $(OBJ_DIR)/%.o: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(WARNING_FLAGS) -c -o $@ $<
 
 
 
