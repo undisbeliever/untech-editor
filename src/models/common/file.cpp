@@ -187,7 +187,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
 
         if (ret == FALSE || written != toWrite) {
             CloseHandle(hFile);
-            throw runtime_error(u8"Error writing file");
+            throw runtime_error(u8"Error writing file: ", tmpFilename.u8string());
         }
 
         ptr += toWrite;
@@ -199,7 +199,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
     bool s = MoveFileExW(tmpFilename.c_str(), filePath.c_str(),
                          MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
     if (!s) {
-        throw runtime_error(u8"MoveFileEx failed");
+        throw runtime_error(u8"MoveFileEx failed.  Cannot rename '", tmpFilename.u8string(), u8"' to '", filePath.u8string(), u8"'");
     }
 }
 #else
@@ -222,7 +222,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
     struct stat statbuf;
     if (::lstat(filePath.c_str(), &statbuf) == 0) {
         if (S_ISLNK(statbuf.st_mode)) {
-            throw runtime_error(u8"Cannot write to a symbolic link");
+            throw runtime_error(u8"Cannot write to a symbolic link: ", filePath.u8string());
         }
 
         // check if we can write to file
@@ -238,7 +238,8 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
 
     const auto fd = ::open(tmpFilename.c_str(), O_EXCL | O_CREAT | O_WRONLY | O_NOFOLLOW, mode);
     if (fd < 0) {
-        throw std::system_error(errno, std::system_category());
+        throw std::system_error(errno, std::system_category(),
+                                "Cannot open file: " + tmpFilename.string());
     }
 
     const uint8_t* ptr = static_cast<const uint8_t*>(data);
@@ -250,7 +251,8 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
         if (done < 0) {
             auto err = errno;
             ::close(fd);
-            throw std::system_error(err, std::system_category());
+            throw std::system_error(err, std::system_category(),
+                                    "Cannot write to file: " + tmpFilename.string());
         }
 
         ptr += done;
@@ -260,12 +262,14 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
     int r;
     r = ::close(fd);
     if (r != 0) {
-        throw std::system_error(errno, std::system_category());
+        throw std::system_error(errno, std::system_category(),
+                                "Cannot close file: " + tmpFilename.string());
     }
 
     r = ::rename(tmpFilename.c_str(), filePath.c_str());
     if (r != 0) {
-        throw std::system_error(errno, std::system_category());
+        throw std::system_error(errno, std::system_category(),
+                                "Cannot rename '" + tmpFilename.string() + "' to '" + filePath.string() + "'");
     }
 }
 
