@@ -134,7 +134,7 @@ constexpr size_t MAX_ATOMIC_WRITE_SIZE = 256 * 1024 * 1024;
 #ifdef PLATFORM_WINDOWS
 void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byte> data)
 {
-    const size_t BLOCK_SIZE = 4096;
+    const size_t BLOCK_SIZE = 64 * 1024;
 
     if (data.size() > MAX_ATOMIC_WRITE_SIZE) {
         throw runtime_error(u8"Cannot save file: data is too large");
@@ -191,7 +191,7 @@ void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byt
 {
     using namespace std::string_literals;
 
-    const size_t BLOCK_SIZE = 4096;
+    const size_t BLOCK_SIZE = 8 * 1024 * 1024;
 
     if (data.size() > MAX_ATOMIC_WRITE_SIZE) {
         throw runtime_error(u8"Cannot save file: data is too large");
