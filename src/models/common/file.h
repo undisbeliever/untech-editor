@@ -7,6 +7,7 @@
 #pragma once
 
 #include <filesystem>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -41,7 +42,7 @@ std::u8string readUtf8TextFile(const std::filesystem::path& filePath);
  * This function will leave a tempfile on the disk (not modifying the
  * original) if an error occurred while writing it.
  */
-void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size);
+void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byte> data);
 void atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data);
 void atomicWrite(const std::filesystem::path& filePath, const std::u8string& data);
 void atomicWrite(const std::filesystem::path& filePath, const std::u8string_view data);

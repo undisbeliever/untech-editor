@@ -129,30 +129,14 @@ std::u8string readUtf8TextFile(const std::filesystem::path& filePath)
     return (ret);
 }
 
-void atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
-{
-    atomicWrite(filePath, data.data(), data.size());
-}
-
-void atomicWrite(const std::filesystem::path& filePath, const std::u8string& data)
-{
-    atomicWrite(filePath, data.data(), data.size());
-}
-
-void atomicWrite(const std::filesystem::path& filePath, const std::u8string_view data)
-{
-    atomicWrite(filePath, data.data(), data.size());
-}
-
 constexpr size_t MAX_ATOMIC_WRITE_SIZE = 256 * 1024 * 1024;
 
-// ::TODO replace with std::span when upgrading to c++20::
 #ifdef PLATFORM_WINDOWS
-void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
+void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byte> data)
 {
     const size_t BLOCK_SIZE = 4096;
 
-    if (size > MAX_ATOMIC_WRITE_SIZE) {
+    if (data.size() > MAX_ATOMIC_WRITE_SIZE) {
         throw runtime_error(u8"Cannot save file: data is too large");
     }
 
@@ -176,22 +160,22 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
         }
     }
 
-    const uint8_t* ptr = static_cast<const uint8_t*>(data);
-    size_t todo = size;
+    std::span<const std::byte> remaining = data;
 
-    while (todo > 0) {
-        DWORD toWrite = std::min(BLOCK_SIZE, todo);
+    while (!remaining.empty()) {
+        const DWORD toWrite = std::min(BLOCK_SIZE, remaining.size());
         DWORD written = 0;
 
-        auto ret = WriteFile(hFile, ptr, toWrite, &written, NULL);
+        auto ret = WriteFile(hFile, remaining.data(), toWrite, &written, NULL);
 
         if (ret == FALSE || written != toWrite) {
             CloseHandle(hFile);
             throw runtime_error(u8"Error writing file: ", tmpFilename.u8string());
         }
+        static_assert(std::is_unsigned_v<decltype(written)>);
+        assert(written <= remaining.size());
 
-        ptr += toWrite;
-        todo -= toWrite;
+        remaining = remaining.subspan(written);
     }
 
     CloseHandle(hFile);
@@ -203,13 +187,13 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
     }
 }
 #else
-void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
+void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byte> data)
 {
     using namespace std::string_literals;
 
     const size_t BLOCK_SIZE = 4096;
 
-    if (size > MAX_ATOMIC_WRITE_SIZE) {
+    if (data.size() > MAX_ATOMIC_WRITE_SIZE) {
         throw runtime_error(u8"Cannot save file: data is too large");
     }
 
@@ -242,21 +226,22 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
                                 "Cannot open file: " + tmpFilename.string());
     }
 
-    const uint8_t* ptr = static_cast<const uint8_t*>(data);
-    size_t todo = size;
-    ssize_t done;
+    std::span<const std::byte> remaining = data;
 
-    while (todo > 0) {
-        done = ::write(fd, ptr, std::min(BLOCK_SIZE, todo));
+    while (!remaining.empty()) {
+        const auto bytesToWrite = std::min(BLOCK_SIZE, remaining.size());
+
+        const auto done = ::write(fd, remaining.data(), bytesToWrite);
         if (done < 0) {
             auto err = errno;
             ::close(fd);
             throw std::system_error(err, std::system_category(),
                                     "Cannot write to file: " + tmpFilename.string());
         }
+        assert(done >= 0);
+        assert(size_t(done) <= remaining.size());
 
-        ptr += done;
-        todo -= done;
+        remaining = remaining.subspan(done);
     }
 
     int r;
@@ -272,7 +257,21 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
                                 "Cannot rename '" + tmpFilename.string() + "' to '" + filePath.string() + "'");
     }
 }
-
 #endif
+
+void atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
+{
+    atomicWrite(filePath, std::as_bytes(std::span{ data }));
+}
+
+void atomicWrite(const std::filesystem::path& filePath, const std::u8string& data)
+{
+    atomicWrite(filePath, std::as_bytes(std::span{ data }));
+}
+
+void atomicWrite(const std::filesystem::path& filePath, const std::u8string_view data)
+{
+    atomicWrite(filePath, std::as_bytes(std::span{ data }));
+}
 
 }
