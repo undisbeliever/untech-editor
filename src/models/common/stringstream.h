@@ -22,12 +22,8 @@ class StringStream {
 public:
     constexpr static size_t default_initial_size = 16 * 1024;
 
-    // Limit maximum size of a StringStream to 1 MiB
-    constexpr static size_t max_buffer_size = 1024 * 1024;
-
 private:
     std::u8string buffer;
-    size_t bufferPos;
 
 private:
     // Disabling copying/moving
@@ -36,114 +32,79 @@ private:
     StringStream& operator=(const StringStream&) = delete;
     StringStream& operator=(StringStream&&) = delete;
 
-private:
-    // NOTE: Will always expand buffer
-    void expandBuffer(const size_t capacity);
+    // Suggested maximum size of the StringStream.
+    //
+    // NOTE: the buffer size is checked before the string is written.
+    //       This limit is intended to catch infinite write loops, not large writes.
+    constexpr static size_t max_buffer_size = 1024 * 1024;
 
-    template <typename... Args>
-    void writeImpl(const Args&... args)
+    // MUST be called at the start of any `write()` method.
+    void checkSize() const
     {
-        const size_t toAddEstimate = (... + UnTech::StringBuilder::stringSize(args)) + 1;
-        const size_t bufferPosEstimate = bufferPos + toAddEstimate;
-
-        if (bufferPosEstimate >= buffer.size()) {
-            expandBuffer(bufferPosEstimate);
+        if (buffer.size() > max_buffer_size) {
+            throw std::length_error("StringStream: buffer size > max_buffer_size");
         }
-
-        // Using `char*` here as `std::to_chars()` uses pointers.
-        char8_t* ptr = buffer.data() + bufferPos;
-        char8_t* const end = buffer.data() + buffer.size();
-
-        auto process = [&](const auto& a) {
-            ptr = UnTech::StringBuilder::concat(ptr, end, a);
-        };
-        (process(args), ...);
-
-        assert(ptr >= buffer.data() && ptr < end);
-
-        bufferPos = std::distance(buffer.data(), ptr);
-
-        assert(bufferPos < bufferPosEstimate);
     }
 
-    static size_t initialBufferSize(size_t startingSize)
+public:
+    explicit StringStream(size_t startingSize = default_initial_size)
+        : buffer()
     {
         if (startingSize < 1024) {
             throw std::invalid_argument("Invalid StringStream startingSize");
+        }
+
+        if (startingSize > max_buffer_size) {
+            throw std::invalid_argument("StringStream startingSize is too large");
         }
 
         if (not isPowerOfTwo(startingSize)) {
             throw std::invalid_argument("StringStream startingSize is not a power of two");
         }
 
-        // -1 to account for the null terminating character when allocating memory in std::u8string
-        return startingSize - 1;
-    }
-
-public:
-    explicit StringStream(size_t startingSize = default_initial_size)
-        : buffer(initialBufferSize(startingSize), '\0')
-        , bufferPos(0)
-    {
-    }
-
-    // Resizes the buffer if it cannot hold `toAddExtimage`
-    inline void addToBufferTest(const size_t toAddEstimate)
-    {
-        const size_t requiredCapacity = bufferPos + toAddEstimate;
-
-        if (requiredCapacity >= buffer.size()) {
-            expandBuffer(requiredCapacity);
-        }
+        buffer.reserve(startingSize);
     }
 
     template <size_t N>
     void writeCharacters(const std::array<char8_t, N>& array)
     {
-        addToBufferTest(array.size());
-
-        char8_t* ptr = buffer.data() + bufferPos;
-
-        std::copy(array.begin(), array.end(), ptr);
-
-        bufferPos += array.size();
+        checkSize();
+        buffer.append(array.begin(), array.end());
     }
 
     template <typename... Args>
     inline void write(const Args&... args)
     {
-        writeImpl(UnTech::StringBuilder::convert(args)...);
+        checkSize();
+        (UnTech::StringBuilder::concat(buffer, args), ...);
     }
 
-    void write(const std::u8string_view s);
+    void write(const std::u8string& s)
+    {
+        checkSize();
+        buffer.append(s);
+    }
 
-    void write(const std::u8string& s);
+    void write(const std::u8string_view s)
+    {
+        checkSize();
+        buffer.append(s);
+    }
 
-    inline void write(const char8_t* s) { write(std::u8string_view(s)); }
+    void write(const char8_t* s)
+    {
+        checkSize();
+        buffer.append(std::u8string_view(s));
+    }
 
-    inline size_t size() const { return bufferPos; }
+    inline size_t size() const { return buffer.size(); }
 
     // returned string_view is only valid until the next write call.
-    [[nodiscard]] std::u8string_view string_view() const
-    {
-        return std::u8string_view(buffer.data(), bufferPos);
-    }
+    [[nodiscard]] std::u8string_view string_view() const { return buffer; }
 
     // Takes the string out of the StringBuilder
-    [[nodiscard]] std::u8string takeString()
-    {
-        assert(bufferPos < buffer.size());
-
-        buffer.erase(buffer.begin() + bufferPos, buffer.end());
-
-        // Replace `buffer` with an empty string
-        std::u8string s;
-        std::swap(s, buffer);
-
-        bufferPos = 0;
-
-        return s;
-    }
+    // You MUST NOT call `write()` after the string has been taken.
+    [[nodiscard]] std::u8string&& takeString() { return std::move(buffer); }
 };
 
 }

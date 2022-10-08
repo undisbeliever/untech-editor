@@ -5,78 +5,74 @@
  */
 
 #include "stringbuilder.h"
+#include <array>
 #include <charconv>
 
 namespace UnTech::StringBuilder {
 
 template <typename T>
-static char8_t* concat_int(char8_t* ptr, char8_t* const end, const T value)
+static void concat_int(std::u8string& s, const T value)
 {
     static_assert(sizeof(char8_t) == sizeof(char));
 
-    auto r = std::to_chars(reinterpret_cast<char*>(ptr), reinterpret_cast<char*>(end), value);
-    assert(r.ec == std::errc());
+    std::array<char, 32> buffer{};
 
-    return reinterpret_cast<char8_t*>(r.ptr);
+    auto r = std::to_chars(buffer.data(), buffer.data() + buffer.size(), value);
+
+    if (r.ec == std::errc()) {
+        s.append(buffer.data(), r.ptr);
+    }
+    else {
+        abort();
+    }
 }
 
-char8_t* concat(char8_t* ptr, char8_t* const end, int32_t value)
-{
-    return concat_int(ptr, end, value);
-}
-
-char8_t* concat(char8_t* ptr, char8_t* const end, int64_t value)
-{
-    return concat_int(ptr, end, value);
-}
-
-char8_t* concat(char8_t* ptr, char8_t* const end, uint32_t value)
-{
-    return concat_int(ptr, end, value);
-}
-
-char8_t* concat(char8_t* ptr, char8_t* const end, uint64_t value)
-{
-    return concat_int(ptr, end, value);
-}
+void concat(std::u8string& s, int32_t value) { concat_int(s, value); }
+void concat(std::u8string& s, int64_t value) { concat_int(s, value); }
+void concat(std::u8string& s, uint32_t value) { concat_int(s, value); }
+void concat(std::u8string& s, uint64_t value) { concat_int(s, value); }
 
 //  UnTech::StringBuilder::hex<0> has no padding
-char8_t* concat(char8_t* ptr, char8_t* const end, const hex<0> value)
+void concat(std::u8string& s, const hex<0> value)
 {
     static_assert(std::is_same_v<decltype(value.value), const uint32_t>);
+    static_assert(sizeof(char8_t) == sizeof(char));
 
-    const auto r = std::to_chars(reinterpret_cast<char*>(ptr), reinterpret_cast<char*>(end), value.value, 16);
-    assert(r.ec == std::errc());
+    std::array<char, 8> buffer{};
 
-    return reinterpret_cast<char8_t*>(r.ptr);
+    auto r = std::to_chars(buffer.data(), buffer.data() + buffer.size(),
+                           value.value, 16);
+
+    if (r.ec == std::errc()) {
+        s.append(buffer.data(), r.ptr);
+    }
+    else {
+        abort();
+    }
 }
 
 // UnTech::StringBuilder::hex<N> has padding
 template <unsigned N>
-char8_t* concat(char8_t* buffer, char8_t* const end, const hex<N> value)
+void concat(std::u8string& s, const hex<N> value)
 {
     static_assert(std::is_same_v<decltype(value.value), const uint32_t>);
+    static_assert(N == stringSize(hex<N>(uint32_t(0))));
 
-    constexpr size_t bSize = N;
-    static_assert(bSize == stringSize(hex<N>(uint32_t(0))));
+    std::array<char8_t, N> buffer{};
 
-    char8_t* ptr = buffer + bSize;
+    for (size_t i = 0; i < N; i++) {
+        const auto s = (N - i - 1) * 4;
+        const auto digit = (value.value >> s) % 16;
 
-    uint32_t v = value.value;
-
-    for (size_t i = 0; i < bSize; i++) {
-        const auto digit = v % 16;
-        v >>= 4;
-
-        *--ptr = digit < 10 ? digit + '0'
-                            : digit + 'a' - 10;
+        buffer.at(i) = digit < 10 ? digit + u8'0'
+                                  : digit + u8'a' - 10;
     }
-    assert(ptr <= end);
 
-    return buffer + bSize;
+    s.append(buffer.begin(), buffer.end());
 }
-template char8_t* concat(char8_t*, char8_t* const, const hex<4>);
-template char8_t* concat(char8_t*, char8_t* const, const hex<6>);
-template char8_t* concat(char8_t*, char8_t* const, const hex<8>);
+
+template void concat(std::u8string&, const hex<4>);
+template void concat(std::u8string&, const hex<6>);
+template void concat(std::u8string&, const hex<8>);
 
 }
