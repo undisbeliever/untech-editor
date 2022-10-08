@@ -201,17 +201,16 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
 {
     using namespace std::string_literals;
 
-    const std::string filename = filePath.native();
-
     const size_t BLOCK_SIZE = 4096;
 
-    std::string tmpFilename = filePath.native() + "-tmpXXXXXX"s;
+    // Temporary file will only be created if it does not exist.
+    const std::filesystem::path tmpFilename = std::filesystem::path(filePath).concat("~");
 
-    int fd;
-    struct stat statbuf;
+    int mode = 0666;
 
     // Using lstat to detect if the filename is a symbolic link
-    if (lstat(filename.c_str(), &statbuf) == 0) {
+    struct stat statbuf;
+    if (::lstat(filePath.c_str(), &statbuf) == 0) {
         if (S_ISLNK(statbuf.st_mode)) {
             throw runtime_error(u8"Cannot write to a symbolic link");
         }
@@ -224,31 +223,12 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
             throw runtime_error(u8"User can not write to ", filePath.u8string());
         }
 
-        fd = mkstemp(tmpFilename.data());
-        if (fd < 0) {
-            throw std::system_error(errno, std::system_category());
-        }
-
-        // mkstemp sets file permission to 0600
-        // Set the permissions to match filename
-        int s = 0;
-        s |= chmod(tmpFilename.c_str(), statbuf.st_mode);
-        s |= chown(tmpFilename.c_str(), statbuf.st_uid, statbuf.st_gid);
-        if (s != 0) {
-            std::cerr << "Warning: unable to change the file permissions of " << tmpFilename << std::endl;
-        }
+        mode = statbuf.st_mode & 0777;
     }
-    else {
-        fd = mkstemp(tmpFilename.data());
-        if (fd < 0) {
-            throw std::system_error(errno, std::system_category());
-        }
 
-        // mkostemp sets file permission to 0600
-        // Set the permissions what user would expect
-        mode_t mask = umask(0);
-        umask(mask);
-        chmod(tmpFilename.c_str(), 0666 & ~mask);
+    const auto fd = ::open(tmpFilename.c_str(), O_EXCL | O_CREAT | O_WRONLY | O_NOFOLLOW, mode);
+    if (fd < 0) {
+        throw std::system_error(errno, std::system_category());
     }
 
     const uint8_t* ptr = static_cast<const uint8_t*>(data);
@@ -259,7 +239,7 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
         done = ::write(fd, ptr, std::min(BLOCK_SIZE, todo));
         if (done < 0) {
             auto err = errno;
-            close(fd);
+            ::close(fd);
             throw std::system_error(err, std::system_category());
         }
 
@@ -268,12 +248,12 @@ void atomicWrite(const std::filesystem::path& filePath, const void* data, size_t
     }
 
     int r;
-    r = close(fd);
+    r = ::close(fd);
     if (r != 0) {
         throw std::system_error(errno, std::system_category());
     }
 
-    r = rename(tmpFilename.c_str(), filename.c_str());
+    r = ::rename(tmpFilename.c_str(), filePath.c_str());
     if (r != 0) {
         throw std::system_error(errno, std::system_category());
     }
