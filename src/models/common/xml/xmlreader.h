@@ -112,7 +112,7 @@ public:
     template <size_t N>
     void parseBase64ToByteArray(std::array<uint8_t, N>& data)
     {
-        const size_t bytesDecoded = Base64::decodeToBuffer(data.data(), data.size(), parseText());
+        const size_t bytesDecoded = Base64::decodeToBuffer(data, parseText());
 
         if (bytesDecoded != data.size()) {
             throw xml_error(*this, stringBuilder(u8"Invalid data size. Got ", bytesDecoded, u8" bytes, expected ", data.size(), u8"."));

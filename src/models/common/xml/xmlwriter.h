@@ -13,10 +13,9 @@
 #include "../stringstream.h"
 #include <cstdint>
 #include <filesystem>
-
+#include <span>
 #include <stack>
 #include <string>
-#include <vector>
 
 namespace UnTech::Xml {
 
@@ -76,14 +75,7 @@ public:
 
     void writeText(const std::u8string_view text);
 
-    void writeBase64(const uint8_t* data, const size_t size);
-    void writeBase64(const std::vector<uint8_t>& data);
-
-    template <size_t N>
-    void writeBase64(const std::array<uint8_t, N>& data)
-    {
-        writeBase64(data.data(), data.size());
-    }
+    void writeBase64(std::span<const uint8_t> data);
 
     void writeCloseTag();
 

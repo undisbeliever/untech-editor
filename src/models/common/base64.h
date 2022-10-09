@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -21,14 +22,7 @@ namespace UnTech::Base64 {
  * Encodes the given data as base64 text in the given file.
  * Uses MIME base64 style, indented by `indent` spaces.
  */
-void encode(const uint8_t* ptr, const size_t size, StringStream& out, unsigned indent);
-void encode(const std::vector<uint8_t>& data, StringStream& out, unsigned indent = 0);
-
-template <size_t N>
-void encode(const std::array<uint8_t, N>& data, StringStream& out, unsigned indent)
-{
-    _encode(data.data(), data.size(), out, indent);
-}
+void encode(std::span<const uint8_t> data, StringStream& out, unsigned indent = 0);
 
 /**
  * Decodes the given text from base64 to binary.
@@ -39,6 +33,6 @@ std::vector<uint8_t> decode(const std::u8string& text);
 
 // Returns the number of bytes decoded.
 // DOES NOT the number of bytes written to buffer, may be larger than buffer.
-size_t decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::u8string& text);
+size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string& text);
 
 }
