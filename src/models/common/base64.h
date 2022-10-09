@@ -33,6 +33,6 @@ std::vector<uint8_t> decode(const std::u8string& text);
 
 // Returns the number of bytes decoded.
 // DOES NOT the number of bytes written to buffer, may be larger than buffer.
-size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string& text);
+size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string_view text);
 
 }

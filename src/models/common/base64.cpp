@@ -113,12 +113,9 @@ inline uint8_t get_val(const char& c)
     }
 }
 
-size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string& text)
+size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string_view text)
 {
     uint8_t token, tmp;
-
-    const char8_t* ptr = text.c_str();
-    const char8_t* ptrEnd = text.c_str() + text.size();
 
     // `bytesDecoded` can be larger then the size of the buffer
     size_t bytesDecoded = 0;
@@ -131,19 +128,17 @@ size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string& text)
         bytesDecoded++;
     };
 
-#define NEXT_TOKEN()                              \
-    if (ptr < ptrEnd) {                           \
-        while ((token = get_val(*ptr++)) >= 64) { \
-            if (ptr >= ptrEnd) {                  \
-                return bytesDecoded;              \
-            }                                     \
-        }                                         \
-    }                                             \
-    else {                                        \
-        return bytesDecoded;                      \
-    }
+    auto textIt = text.begin();
 
-    while (ptr < ptrEnd) {
+#define NEXT_TOKEN()                \
+    do {                            \
+        if (textIt == text.end()) { \
+            return bytesDecoded;    \
+        }                           \
+        token = get_val(*textIt++); \
+    } while (token >= 64);
+
+    while (true) {
         NEXT_TOKEN()
         tmp = token << 2;
 
