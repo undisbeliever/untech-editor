@@ -177,45 +177,45 @@ void XmlWriter::escapeAndWrite(const std::u8string_view text)
     // (`std::u8string_view::find_first_of` is calling `memchr`)
     // (Profiling has confirmed std::find_first_of is the faster option)
 
-    auto start = text.begin();
-    auto it = std::find_first_of(start, text.end(),
-                                 toMatch.begin(), toMatch.end());
+    auto it = text.begin();
 
     while (it != text.end()) {
-        _out.write(toStringView(start, it));
-
-        const char8_t c = *it;
-        switch (c) {
-        case u8'&':
-            _out.write(u8"&amp;");
-            break;
-
-        case u8'<':
-            _out.write(u8"&lt;");
-            break;
-
-        case u8'>':
-            _out.write(u8"&gt;");
-            break;
-
-        case u8'"':
-            _out.write(u8"&quot;");
-            break;
-
-        case u8'\'':
-            _out.write(u8"&apos;");
-            break;
-
-        default:
-            abort();
+        {
+            const auto end = std::find_first_of(it, text.end(),
+                                                toMatch.begin(), toMatch.end());
+            _out.write(toStringView(it, end));
+            it = end;
         }
 
-        start = it + 1;
-        it = std::find_first_of(start, text.end(),
-                                toMatch.begin(), toMatch.end());
-    }
+        if (it != text.end()) {
+            const char8_t c = *it;
+            switch (c) {
+            case u8'&':
+                _out.write(u8"&amp;");
+                break;
 
-    _out.write(toStringView(start, text.end()));
+            case u8'<':
+                _out.write(u8"&lt;");
+                break;
+
+            case u8'>':
+                _out.write(u8"&gt;");
+                break;
+
+            case u8'"':
+                _out.write(u8"&quot;");
+                break;
+
+            case u8'\'':
+                _out.write(u8"&apos;");
+                break;
+
+            default:
+                abort();
+            }
+            it++;
+        }
+    }
 }
 
 }
