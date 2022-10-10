@@ -83,8 +83,8 @@ public:
 
     void fill(const rgba& color);
 
-    std::span<rgba> data() { return std::span{ _imageData, _dataSize }; }
-    std::span<const rgba> data() const { return std::span{ _imageData, _dataSize }; }
+    inline std::span<rgba> data() { return std::span{ _imageData, _dataSize }; }
+    inline std::span<const rgba> data() const { return std::span{ _imageData, _dataSize }; }
 
     inline unsigned pixelsPerScanline() const { return _size.width; }
 
@@ -94,7 +94,7 @@ public:
             throw out_of_range(u8"Image::scanline out of range");
         }
         assert(_imageData);
-        return std::span(_imageData + (y * _size.width), _size.width);
+        return data().subspan(y * _size.width, _size.width);
     }
 
     std::span<const rgba> scanline(unsigned y) const
@@ -103,7 +103,7 @@ public:
             throw out_of_range(u8"Image::scanline out of range");
         }
         assert(_imageData);
-        return std::span(_imageData + (y * _size.width), _size.width);
+        return data().subspan(y * _size.width, _size.width);
     }
 
     inline rgba getPixel(unsigned x, unsigned y) const
@@ -112,7 +112,7 @@ public:
             throw out_of_range(u8"Image::getPixel out of range");
         }
         assert(_imageData);
-        return _imageData[x + y * pixelsPerScanline()];
+        return data()[x + y * _size.width];
     }
 
     inline void setPixel(unsigned x, unsigned y, const rgba& p)
@@ -121,7 +121,7 @@ public:
             throw out_of_range(u8"Image::setPixel out of range");
         }
         assert(_imageData);
-        _imageData[x + y * pixelsPerScanline()] = p;
+        data()[x + y * _size.width] = p;
     }
 };
 }

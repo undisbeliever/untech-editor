@@ -90,8 +90,8 @@ public:
     // Only sets pixels if `color < palette().size()`
     void fill(const uint8_t color);
 
-    std::span<uint8_t> data() { return std::span{ _imageData, _dataSize }; }
-    std::span<const uint8_t> data() const { return std::span{ _imageData, _dataSize }; }
+    inline std::span<uint8_t> data() { return std::span{ _imageData, _dataSize }; }
+    inline std::span<const uint8_t> data() const { return std::span{ _imageData, _dataSize }; }
 
     inline unsigned pixelsPerScanline() const { return _size.width; }
 
@@ -101,7 +101,7 @@ public:
             throw out_of_range(u8"Image::scanline out of range");
         }
         assert(_imageData);
-        return std::span(_imageData + (y * _size.width), _size.width);
+        return data().subspan(y * _size.width, _size.width);
     }
 
     std::span<const uint8_t> scanline(unsigned y) const
@@ -110,7 +110,7 @@ public:
             throw out_of_range(u8"Image::scanline out of range");
         }
         assert(_imageData);
-        return std::span(_imageData + (y * _size.width), _size.width);
+        return data().subspan(y * _size.width, _size.width);
     }
 
     inline uint8_t getPixel(unsigned x, unsigned y) const
@@ -119,7 +119,7 @@ public:
             throw out_of_range(u8"Image::getPixel out of range");
         }
         assert(_imageData);
-        return _imageData[x + y * pixelsPerScanline()];
+        return data()[x + y * _size.width];
     }
 
     inline void setPixel(unsigned x, unsigned y, const uint8_t p)
@@ -127,8 +127,7 @@ public:
         if (x >= _size.width || y >= _size.height) {
             throw out_of_range(u8"Image::setPixel out of range");
         }
-        assert(_imageData);
-        _imageData[x + y * pixelsPerScanline()] = p;
+        data()[x + y * _size.width] = p;
     }
 };
 }
