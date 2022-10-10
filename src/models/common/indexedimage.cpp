@@ -96,10 +96,11 @@ std::shared_ptr<IndexedImage> IndexedImage::loadPngImage_shared(const std::files
             if (state.info_png.color.colortype == LodePNGColorType::LCT_PALETTE) {
                 auto image = std::make_shared<IndexedImage>(size, std::move(pixels), PrivateToken{});
 
-                const rgba* pngPal = reinterpret_cast<rgba*>(state.info_png.color.palette);
-                const unsigned pngPalSize = state.info_png.color.palettesize;
+                const std::span<rgba> pngPal(
+                    reinterpret_cast<rgba*>(state.info_png.color.palette),
+                    state.info_png.color.palettesize);
 
-                image->_palette.insert(image->_palette.begin(), pngPal, pngPal + pngPalSize);
+                image->_palette.insert(image->_palette.begin(), pngPal.begin(), pngPal.end());
 
                 return image;
             }

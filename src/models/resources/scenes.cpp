@@ -242,12 +242,11 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         }
 
         for (unsigned b = 0; b < freeBlocks.size(); b += align) {
-            auto it = freeBlocks.begin() + b;
-            auto endIt = it + nBlocks;
+            auto span = std::span(freeBlocks).subspan(b, nBlocks);
 
-            unsigned count = std::count(it, endIt, true);
+            unsigned count = std::count(span.begin(), span.end(), true);
             if (count == nBlocks) {
-                std::fill(it, endIt, false);
+                std::fill(span.begin(), span.end(), false);
                 return b;
             }
         }
@@ -269,12 +268,11 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         }
 
         while (b > nBlocks) {
-            auto it = freeBlocks.begin() + b;
-            auto endIt = it + nBlocks;
+            auto span = std::span(freeBlocks).subspan(b, nBlocks);
 
-            unsigned count = std::count(it, endIt, true);
+            unsigned count = std::count(span.begin(), span.end(), true);
             if (count == nBlocks) {
-                std::fill(it, endIt, false);
+                std::fill(span.begin(), span.end(), false);
                 return b;
             }
 

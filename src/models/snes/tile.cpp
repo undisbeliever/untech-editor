@@ -108,14 +108,11 @@ Tile16px combineSmallTiles(const std::array<Tile8px, 4>& tiles)
 
     auto transform = [&ret](const Tile8px& tile8,
                             unsigned xPos, unsigned yPos) {
-        auto retIt = ret.data().begin() + yPos * ret.TILE_SIZE + xPos;
-
         for (const auto y : range(8)) {
             const auto sliver = tile8.sliver(y);
+            auto retSpan = std::span(ret.data()).subspan((yPos + y) * ret.TILE_SIZE + xPos, 8);
 
-            std::copy(sliver.begin(), sliver.end(), retIt);
-
-            retIt += ret.TILE_SIZE;
+            std::copy(sliver.begin(), sliver.end(), retSpan.begin());
         }
     };
 

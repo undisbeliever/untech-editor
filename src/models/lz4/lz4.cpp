@@ -12,6 +12,7 @@
 #include "models/common/exceptions.h"
 #include "models/common/stringbuilder.h"
 #include "vendor/lz4/lib/lz4hc.h"
+#include <span>
 
 namespace UnTech {
 
@@ -35,11 +36,13 @@ lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
     out[0] = source.size() & 0xff;
     out[1] = (source.size() >> 8) & 0xff;
 
-    int cSize = LZ4_compress_HC(
+    const auto dest = std::span(out).subspan(HEADER_SIZE);
+
+    const int cSize = LZ4_compress_HC(
         reinterpret_cast<const char*>(source.data()),
-        reinterpret_cast<char*>(out.data() + HEADER_SIZE),
+        reinterpret_cast<char*>(dest.data()),
         source.size(),
-        out.size() - HEADER_SIZE,
+        dest.size(),
         LZ4HC_CLEVEL_MAX);
 
     if (cSize <= 0) {
