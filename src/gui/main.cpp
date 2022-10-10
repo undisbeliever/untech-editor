@@ -53,21 +53,34 @@ void metricsWindow()
 }
 #endif
 
-static void processProgramArguments(int argc, const char* const argv[])
+static void processProgramArguments(const std::span<const char*> arguments)
 {
     using namespace UnTech::Gui;
 
-    const std::string_view argument = argc > 1 ? argv[1] : "";
-    if (argc > 2 || argument == "--help") {
-        std::cout << "Usage " << argv[0] << " <filename>";
+    assert(!arguments.empty());
+
+    const std::string_view arg = arguments.size() > 1 ? arguments[1] : std::string_view();
+
+    if (arguments.size() > 2 || arg == "--help") {
+        std::cout << "Usage " << arguments.front() << " <filename>";
         exit(EXIT_SUCCESS);
     }
-    else if (!argument.empty()) {
-        UnTechEditor::loadProject(argument);
+    else if (!arg.empty()) {
+        UnTechEditor::loadProject(arg);
     }
 }
 
-int main(int argc, char* argv[])
+static void processProgramArguments(int argc, const char* argv[])
+{
+    if (argc < 1 || argv == nullptr) {
+        std::cerr << "Invalid program arguments";
+        abort();
+    }
+
+    processProgramArguments(std::span(argv, argc));
+}
+
+int main(int argc, const char* argv[])
 {
     using namespace UnTech::Gui;
 
