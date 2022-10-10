@@ -14,10 +14,9 @@
 namespace UnTech::String {
 
 /**
- * @return true if str is a NULL terminated utf8 well formed string.
+ * @return true if str is a UTF-8 well formed string.
  */
-// Cannot use std::u8string_view, code expects a null terminated string
-bool checkUtf8WellFormed(const std::u8string& str);
+bool checkUtf8WellFormed(const std::u8string_view str);
 
 // returns true if str ends in cmp
 static inline bool endsWith(const std::u8string_view str, const std::u8string_view cmp)

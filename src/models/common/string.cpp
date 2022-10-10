@@ -6,92 +6,99 @@
 
 #include "string.h"
 #include <cassert>
-#include <charconv>
 #include <fstream>
+#include <span>
 #include <string>
 
 namespace UnTech::String {
 
-// Cannot use std::u8string_view, code expects a null terminated string
-bool checkUtf8WellFormed(const std::u8string& str)
+// Returns number of bytes in the code point
+// Return std::nullopt if `c` is not well formed.
+static __attribute__((always_inline)) inline std::optional<unsigned> checkUtf8Codepoint(std::span<const char8_t, 4> c)
 {
-    // ::TODO change code to accept std::u8string_view
-    // ::TODO test this code works with a std::u8string_view substring
-
     static_assert(sizeof(char8_t) == 1);
     static_assert(sizeof(char8_t) == sizeof(char));
 
-    const char8_t* c = reinterpret_cast<const char8_t*>(str.c_str());
-    size_t length = 0;
+    // Code based off The Unicode 7.0 Standard
+    // Table 3-7. *Well-Formed UTF-8 Byte Sequences*
 
-    if (str.empty()) {
-        return true;
+    if (c[0] <= 0x7F) {
+        return 1;
     }
+    else if ((c[0] >= 0xC2 && c[0] <= 0xDF)
+             && (c[1] >= 0x80 && c[1] <= 0xBF)) {
+        return 2;
+    }
+    else if (c[0] == 0xE0
+             && (c[1] >= 0xA0 && c[1] <= 0xBF)
+             && (c[2] >= 0x80 && c[2] <= 0xBF)) {
+        return 3;
+    }
+    else if ((c[0] >= 0xE1 && c[0] <= 0xEC)
+             && (c[1] >= 0x80 && c[1] <= 0xBF)
+             && (c[2] >= 0x80 && c[2] <= 0xBF)) {
+        return 3;
+    }
+    else if (c[0] == 0xED
+             && (c[1] >= 0x80 && c[1] <= 0x9F)
+             && (c[2] >= 0x80 && c[2] <= 0xBF)) {
+        return 3;
+    }
+    else if ((c[0] >= 0xEE && c[0] <= 0xEF)
+             && (c[1] >= 0x80 && c[1] <= 0xBF)
+             && (c[2] >= 0x80 && c[2] <= 0xBF)) {
+        return 3;
+    }
+    else if (c[0] == 0xF0
+             && (c[1] >= 0x90 && c[1] <= 0xBF)
+             && (c[2] >= 0x80 && c[2] <= 0xBF)
+             && (c[3] >= 0x80 && c[3] <= 0xBF)) {
+        return 4;
+    }
+    else if ((c[0] >= 0xF1 && c[0] <= 0xF3)
+             && (c[1] >= 0x80 && c[1] <= 0xBF)
+             && (c[2] >= 0x80 && c[2] <= 0xBF)
+             && (c[3] >= 0x80 && c[3] <= 0xBF)) {
+        return 4;
+    }
+    else if (c[0] == 0xF4
+             && (c[1] >= 0x80 && c[1] <= 0x8F)
+             && (c[2] >= 0x80 && c[2] <= 0xBF)
+             && (c[3] >= 0x80 && c[3] <= 0xBF)) {
+        return 4;
+    }
+    else {
+        return std::nullopt;
+    }
+}
 
-    while (*c) {
-        // Code based off The Unicode 7.0 Standard
-        // Table 3-7. *Well-Formed UTF-8 Byte Sequences*
+bool checkUtf8WellFormed(const std::u8string_view str)
+{
+    std::span<const char8_t> span = str;
 
-        if (c[0] <= 0x7F) {
-            c++;
-            length++;
-        }
-        else if ((c[0] >= 0xC2 && c[0] <= 0xDF)
-                 && (c[1] >= 0x80 && c[1] <= 0xBF)) {
-            c += 2;
-            length += 2;
-        }
-        else if (c[0] == 0xE0
-                 && (c[1] >= 0xA0 && c[1] <= 0xBF)
-                 && (c[2] >= 0x80 && c[2] <= 0xBF)) {
-            c += 3;
-            length += 3;
-        }
-        else if ((c[0] >= 0xE1 && c[0] <= 0xEC)
-                 && (c[1] >= 0x80 && c[1] <= 0xBF)
-                 && (c[2] >= 0x80 && c[2] <= 0xBF)) {
-            c += 3;
-            length += 3;
-        }
-        else if (c[0] == 0xED
-                 && (c[1] >= 0x80 && c[1] <= 0x9F)
-                 && (c[2] >= 0x80 && c[2] <= 0xBF)) {
-            c += 3;
-            length += 3;
-        }
-        else if ((c[0] >= 0xEE && c[0] <= 0xEF)
-                 && (c[1] >= 0x80 && c[1] <= 0xBF)
-                 && (c[2] >= 0x80 && c[2] <= 0xBF)) {
-            c += 3;
-            length += 3;
-        }
-        else if (c[0] == 0xF0
-                 && (c[1] >= 0x90 && c[1] <= 0xBF)
-                 && (c[2] >= 0x80 && c[2] <= 0xBF)
-                 && (c[3] >= 0x80 && c[3] <= 0xBF)) {
-            c += 4;
-            length += 4;
-        }
-        else if ((c[0] >= 0xF1 && c[0] <= 0xF3)
-                 && (c[1] >= 0x80 && c[1] <= 0xBF)
-                 && (c[2] >= 0x80 && c[2] <= 0xBF)
-                 && (c[3] >= 0x80 && c[3] <= 0xBF)) {
-            c += 4;
-            length += 4;
-        }
-        else if (c[0] == 0xF4
-                 && (c[1] >= 0x80 && c[1] <= 0x8F)
-                 && (c[2] >= 0x80 && c[2] <= 0xBF)
-                 && (c[3] >= 0x80 && c[3] <= 0xBF)) {
-            c += 4;
-            length += 4;
-        }
-        else {
+    while (span.size() >= 4) {
+        const auto l = checkUtf8Codepoint(span.first<4>());
+        if (l == std::nullopt) {
             return false;
         }
+        span = span.subspan(l.value());
     }
 
-    return length == str.size();
+    while (!span.empty()) {
+        std::array<char8_t, 4> array{};
+        array.fill(0);
+
+        assert(span.size() < array.size());
+        std::copy(span.begin(), span.end(), array.begin());
+
+        const auto l = checkUtf8Codepoint(array);
+        if (l == std::nullopt || l > span.size()) {
+            return false;
+        }
+        span = span.subspan(l.value());
+    }
+
+    return true;
 }
 
 static inline std::optional<uint32_t> toUint32_limited(const std::u8string_view s, const uint32_t max)
