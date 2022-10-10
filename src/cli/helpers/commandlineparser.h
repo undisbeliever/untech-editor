@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <list>
 #include <map>
-
+#include <span>
 #include <string>
 #include <vector>
 
@@ -91,10 +91,12 @@ public:
     const auto& options() const { return _options; }
 
 private:
+    void parse(const std::span<const char*> arguments);
+
     // all three return true if nextArg was used.
-    bool parseShortSwitches(const char* argument, const char* nextArg);
-    bool parseLongSwitch(const char* argument, const char* nextArg);
-    bool parseSwitch(const Argument& argument, bool isShort, const char* nextArg);
+    bool parseShortSwitches(const std::string_view arg, const std::string_view nextArg);
+    bool parseLongSwitch(const std::string_view arg, const std::string_view nextArg);
+    bool parseSwitch(const Argument& argument, bool isShort, const std::string_view nextArg);
 
     template <typename... Args>
     void error(const Args... message) const;

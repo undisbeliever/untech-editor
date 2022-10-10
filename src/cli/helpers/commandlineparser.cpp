@@ -68,7 +68,30 @@ Parser::Parser(const Config& config)
 
 void Parser::parse(int argc, const char* argv[])
 {
-    _programExec = argv[0];
+    if (argc < 1 || argv == nullptr) {
+        error("Invalid program arguments");
+    }
+
+    parse(std::span(argv, argc));
+}
+
+void Parser::parse(const std::span<const char*> arguments)
+{
+    using namespace std::literals;
+
+    if (arguments.empty()) {
+        error("Invalid program arguments");
+    }
+    for (auto a : arguments) {
+        if (a == nullptr) {
+            error("Invalid program argument");
+        }
+        if (std::string_view(a).empty()) {
+            error("Invalid program argument");
+        }
+    }
+
+    _programExec = arguments[0];
 
     for (const auto& a : _config.arguments) {
         _options[a.longName] = a.defaultValue;
@@ -76,25 +99,25 @@ void Parser::parse(int argc, const char* argv[])
 
     bool inSwitches = true;
 
-    for (int i = 1; i < argc; i++) {
-        const char* arg = argv[i];
+    for (size_t i = 1; i < arguments.size(); i++) {
+        const std::string_view arg = arguments[i];
 
-        if (inSwitches && arg[0] == '-') {
+        if (inSwitches && arg.front() == '-') {
+            const std::string_view nextArg = (i + 1 < arguments.size()) ? arguments[i + 1] : std::string_view();
             bool useNextArg = false;
-            const char* nextArg = i + 1 < argc ? argv[i + 1] : nullptr;
 
-            if (arg[1] == '-') {
-                // long switch
-                if (arg[2] == 0) {
+            if (arg.starts_with("--"sv)) {
+                if (arg.size() == 2) {
+                    // arg == "--"
                     inSwitches = false;
                     continue;
                 }
                 else {
-                    useNextArg = parseLongSwitch(arg + 2, nextArg);
+                    useNextArg = parseLongSwitch(arg.substr(2), nextArg);
                 }
             }
             else {
-                useNextArg = parseShortSwitches(arg + 1, nextArg);
+                useNextArg = parseShortSwitches(arg.substr(1), nextArg);
             }
 
             if (useNextArg) {
@@ -126,28 +149,28 @@ void Parser::parse(int argc, const char* argv[])
     }
 }
 
-bool Parser::parseShortSwitches(const char* argument, const char* nextArg)
+bool Parser::parseShortSwitches(const std::string_view argument, const std::string_view nextArg)
 {
-    const char* arg = argument;
-
-    if (*arg == '\0') {
+    if (argument.empty()) {
         error("Expected argument after -");
     }
 
-    while (*arg != '\0') {
+    auto arg = argument;
+
+    while (!arg.empty()) {
         bool isValid = false;
 
         for (const auto& a : _config.arguments) {
-            if (*arg == a.shortName) {
-                if (arg[1] == 0) {
+            if (arg.front() == a.shortName) {
+                if (arg.size() == 1) {
                     return parseSwitch(a, true, nextArg);
                 }
-                if (arg[1] == '=' && arg[2] != 0) {
-                    parseSwitch(a, true, arg + 2);
+                else if (arg[1] == '=') {
+                    parseSwitch(a, true, arg.substr(2));
                     return false;
                 }
                 else {
-                    parseSwitch(a, true, nullptr);
+                    parseSwitch(a, true, {});
                     isValid = true;
                     break;
                 }
@@ -155,15 +178,16 @@ bool Parser::parseShortSwitches(const char* argument, const char* nextArg)
         }
 
         if (isValid == false) {
-            error("Unknown argument -", *arg);
+            error("Unknown argument -", arg.front());
         }
-        arg++;
+
+        arg.remove_prefix(1);
     }
 
     return false;
 }
 
-bool Parser::parseLongSwitch(const char* argument, const char* nextArg)
+bool Parser::parseLongSwitch(const std::string_view argument, const std::string_view nextArg)
 {
     const auto& cArgs = _config.arguments;
 
@@ -178,13 +202,13 @@ bool Parser::parseLongSwitch(const char* argument, const char* nextArg)
     }
 }
 
-bool Parser::parseSwitch(const Argument& argument, bool isShort, const char* nextArg)
+bool Parser::parseSwitch(const Argument& argument, bool isShort, const std::string_view nextArg)
 {
     if (argument.hasParameter()) {
-        if (nextArg == nullptr) {
+        if (nextArg.empty()) {
             error("Expected parameter", argument, isShort);
         }
-        else if (nextArg[0] == '-') {
+        else if (nextArg.front() == '-') {
             error("Expected parameter", argument, isShort);
         }
     }

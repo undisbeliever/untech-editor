@@ -12,6 +12,7 @@ namespace UnTech {
 
 // ASSUMES string is utf8
 std::u8string convert_old_string(const char* str);
+std::u8string convert_old_string(std::string_view sv);
 
 void stdout_write(std::u8string_view s);
 void stderr_write(std::u8string_view s);
