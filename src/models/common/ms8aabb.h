@@ -104,7 +104,7 @@ struct ms8rect {
     {
     }
 
-    constexpr ms8rect(int x, int y, uint8_t width, uint8_t height)
+    constexpr ms8rect(int_ms8_t x, int_ms8_t y, uint8_t width, uint8_t height)
         : x(x)
         , y(y)
         , width(width)
