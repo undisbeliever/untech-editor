@@ -271,9 +271,9 @@ bool InputIdstring(const char* label, UnTech::idstring* idstring)
 
 bool InputRgb(const char* label, UnTech::rgba* color, ImGuiColorEditFlags flags)
 {
-    float col[4] = { color->red / 255.0f, color->green / 255.0f, color->blue / 255.0f, 1.0f };
+    std::array<float, 4> col{ color->red / 255.0f, color->green / 255.0f, color->blue / 255.0f, 1.0f };
 
-    bool e = ColorEdit3(label, col, flags);
+    bool e = ColorEdit3(label, col.data(), flags);
     if (e) {
         color->red = col[0] * 255;
         color->green = col[1] * 255;

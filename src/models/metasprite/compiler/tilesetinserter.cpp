@@ -25,7 +25,7 @@ struct CharAttrPos {
     const static unsigned CHARATTR_BLOCK_TWO = 0x0020;
     const static unsigned CHARATTR_HFLIP = 0x4000;
     const static unsigned CHARATTR_VFLIP = 0x8000;
-    const static uint16_t SMALL_TILE_OFFSETS[4];
+    const static std::array<uint16_t, 4> SMALL_TILE_OFFSETS;
 
     CharAttrPos(unsigned tilesetSplitPoint, unsigned tileOffset)
         : value(tileOffset * 2)
@@ -37,7 +37,7 @@ struct CharAttrPos {
     }
 
     uint16_t largeCharAttr() const { return value | CHARATTR_SIZE_LARGE; }
-    uint16_t smallCharAttr(unsigned i) const { return value | SMALL_TILE_OFFSETS[i]; }
+    uint16_t smallCharAttr(unsigned i) const { return value | SMALL_TILE_OFFSETS.at(i); }
 
     void inc()
     {
@@ -52,7 +52,7 @@ struct CharAttrPos {
     const uint_fast8_t charSplitPoint;
 };
 
-const uint16_t CharAttrPos::SMALL_TILE_OFFSETS[4] = { 0x0000, 0x0001, 0x0010, 0x0011 };
+const std::array<uint16_t, 4> CharAttrPos::SMALL_TILE_OFFSETS = { 0x0000, 0x0001, 0x0010, 0x0011 };
 
 static FrameTilesetData
 insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,

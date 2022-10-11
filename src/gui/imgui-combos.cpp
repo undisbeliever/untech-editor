@@ -17,14 +17,14 @@ const std::array<const char*, 4> flipsComboItems = {
     "hvFlip"
 };
 
-template <typename EnumT>
-bool EnumCombo(const char* label, EnumT* value, const char* const items[], int items_count, int height_in_items = -1)
+template <typename EnumT, size_t N>
+bool EnumCombo(const char* label, EnumT* value, const std::array<const char*, N>& items, int height_in_items = -1)
 {
     static_assert(std::is_same_v<std::underlying_type_t<EnumT>, int>);
 
     int v = static_cast<int>(*value);
 
-    bool c = ImGui::Combo(label, &v, items, items_count, height_in_items);
+    bool c = ImGui::Combo(label, &v, items.data(), items.size(), height_in_items);
     if (c) {
         if (*value != static_cast<EnumT>(v)) {
             *value = static_cast<EnumT>(v);
@@ -36,18 +36,18 @@ bool EnumCombo(const char* label, EnumT* value, const char* const items[], int i
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::Animation::DurationFormat* v)
 {
-    static constexpr const char* items[] = {
+    static constexpr auto items = std::to_array({
         "FRAME",
         "TIME",
         "DISTANCE_VERTICAL",
         "DISTANCE_HORIZONTAL",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::TilesetType* v)
 {
-    static constexpr const char* items[] = {
+    static constexpr auto items = std::to_array({
         "ONE_TILE_FIXED",
         "TWO_TILES_FIXED",
         "ONE_ROW_FIXED",
@@ -56,42 +56,42 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::TilesetType* v)
         "TWO_TILES",
         "ONE_ROW",
         "TWO_ROWS",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::ObjectSize* v)
 {
-    static constexpr const char* items[] = {
+    static constexpr auto items = std::to_array({
         "Small",
         "Large",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::SpriteImporter::UserSuppliedPalette::Position* v)
 {
-    static constexpr const char* items[] = {
+    static constexpr auto items = std::to_array({
         "Top Left",
         "Top Right",
         "Bottom Left",
         "Bottom Right",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::Rooms::RoomEntranceOrientation* v)
 {
-    static constexpr const char* items[] = {
+    static constexpr auto items = std::to_array({
         "Down Right",
         "Down Left",
         "Up Right",
         "Up Left",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
-static const char* const dataTypeItems[] = {
+static constexpr auto dataTypeItems = std::to_array({
     "uint8",
     "uint16",
     "uint24",
@@ -100,21 +100,21 @@ static const char* const dataTypeItems[] = {
     "sint16",
     "sint24",
     "sint32",
-};
+});
 
 bool EnumCombo(const char* label, UnTech::Entity::DataType* v)
 {
-    return ImGui::EnumCombo(label, v, dataTypeItems, IM_ARRAYSIZE(dataTypeItems));
+    return ImGui::EnumCombo(label, v, dataTypeItems);
 }
 
 void TextEnum(const UnTech::Entity::DataType& type)
 {
     const unsigned i = static_cast<unsigned>(type);
-    const char* str = i < IM_ARRAYSIZE(dataTypeItems) ? dataTypeItems[i] : "";
+    const char* str = i < dataTypeItems.size() ? dataTypeItems.at(i) : "";
     TextUnformatted(str);
 }
 
-static const char* const argumentTypeItems[] = {
+static const auto argumentTypeItems = std::to_array({
     "",
     "Flag",
     "Word",
@@ -123,41 +123,39 @@ static const char* const argumentTypeItems[] = {
     "Entity Group",
     "Room",
     "Room Entrance",
-};
+});
 
 bool EnumCombo(const char* label, UnTech::Scripting::ArgumentType* v)
 {
-    return ImGui::EnumCombo(label, v, argumentTypeItems, IM_ARRAYSIZE(argumentTypeItems));
+    return ImGui::EnumCombo(label, v, argumentTypeItems);
 }
 
 void TextEnum(const UnTech::Scripting::ArgumentType& v)
 {
     const unsigned i = static_cast<unsigned>(v);
-    const char* str = i < IM_ARRAYSIZE(argumentTypeItems) ? argumentTypeItems[i] : "";
+    const char* str = i < argumentTypeItems.size() ? argumentTypeItems.at(i) : "";
     TextUnformatted(str);
 }
 
 bool EnumCombo(const char* label, UnTech::Scripting::ConditionalType* v)
 {
-    static const char* const items[] = {
+    static const auto items = std::to_array({
         "word",
         "flag",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::Scripting::ComparisonType* v, UnTech::Scripting::ConditionalType t)
 {
     using CT = UnTech::Scripting::ConditionalType;
 
-    static const char* const items[] = {
-        "==",
-        "!=",
-        "<",
-        ">=",
-        "set",
-        "clear"
-    };
+    static const auto items = std::to_array({ "==",
+                                              "!=",
+                                              "<",
+                                              ">=",
+                                              "set",
+                                              "clear" });
 
     bool edited = false;
 
@@ -165,17 +163,17 @@ bool EnumCombo(const char* label, UnTech::Scripting::ComparisonType* v, UnTech::
 
     auto sel = [&](const unsigned start, const unsigned end) {
         assert(start < end);
-        assert(end <= IM_ARRAYSIZE(items));
+        assert(end <= items.size());
 
         for (const auto i : range(start, end)) {
-            if (ImGui::Selectable(items[i], i == index)) {
+            if (ImGui::Selectable(items.at(i), i == index)) {
                 *v = UnTech::Scripting::ComparisonType(i);
                 edited = true;
             }
         }
     };
 
-    const char* text = index < IM_ARRAYSIZE(items) ? items[index] : "";
+    const char* text = index < items.size() ? items.at(index) : "";
 
     if (ImGui::BeginCombo(label, text)) {
         switch (t) {
@@ -232,54 +230,54 @@ bool EnumCombo(const char* label, UnTech::Snes::BitDepth* v)
 
 bool EnumCombo(const char* label, UnTech::Entity::EntityType* v)
 {
-    static const char* const items[] = {
+    static const auto items = std::to_array({
         "Entity",
         "Projectile",
         "Player",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::Entity::ParameterType* v)
 {
-    static const char* const items[] = {
+    static const auto items = std::to_array({
         "unused",
         "unsigned byte",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::Project::MappingMode* v)
 {
-    static const char* const items[] = {
+    static const auto items = std::to_array({
         "LoROM",
         "HiROM",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::Resources::BgMode* v)
 {
-    static const char* const items[] = {
+    static const auto items = std::to_array({
         "Mode 0",
         "Mode 1",
         "Mode 1 (bg3 priotity)",
         "Mode 2",
         "Mode 3",
         "Mode 4",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool EnumCombo(const char* label, UnTech::Resources::LayerType* v)
 {
-    static const char* const items[] = {
+    static const auto items = std::to_array({
         "None",
         "Background Image",
         "MetaTile Tileset",
         "Text Console",
-    };
-    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+    });
+    return ImGui::EnumCombo(label, v, items);
 }
 
 bool BeginCombo(const char* label, const std::u8string& current, ImGuiComboFlags flags)
