@@ -1014,7 +1014,7 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
     else if (ImGui::IsItemDeactivated()) {
         if (!_editedTiles.empty()) {
             ListActions<TilesetPolicy>::selectedListItemsEdited(_data, _editedTiles.vector());
-            _editedTiles.empty();
+            _editedTiles.clear();
         }
     }
 };
