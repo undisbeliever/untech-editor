@@ -353,10 +353,10 @@ public:
 
     inline point getAttributePoint(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
     {
-        unsigned x = getAttributeInteger(xName);
-        unsigned y = getAttributeInteger(yName);
+        int x = getAttributeInteger(xName);
+        int y = getAttributeInteger(yName);
 
-        return point(x, y);
+        return { x, y };
     }
 
     inline upoint getAttributeUpoint(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
