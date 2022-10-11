@@ -257,7 +257,7 @@ XmlTag XmlReader::parseTag()
 std::u8string XmlReader::parseText()
 {
     if (_inSelfClosingTag) {
-        return std::u8string();
+        return {};
     }
 
     std::u8string text;

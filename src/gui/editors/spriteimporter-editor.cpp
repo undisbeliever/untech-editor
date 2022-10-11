@@ -147,9 +147,10 @@ struct SpriteImporterEditorData::AP {
 
 static usize originRange(const usize& frameSize)
 {
-    return usize(
+    return {
         std::min(SI::MAX_ORIGIN, frameSize.width),
-        std::min(SI::MAX_ORIGIN, frameSize.height));
+        std::min(SI::MAX_ORIGIN, frameSize.height)
+    };
 }
 
 SpriteImporterEditorData::SpriteImporterEditorData(ItemIndex itemIndex)

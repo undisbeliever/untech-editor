@@ -82,16 +82,16 @@ static upoint palettePosition(const SI::UserSuppliedPalette& usp, const Image& i
 
     switch (usp.position) {
     case Position::TOP_LEFT:
-        return upoint(0, 0);
+        return { 0, 0 };
 
     case Position::TOP_RIGHT:
-        return upoint(imageSize.width - paletteSize.width, 0);
+        return { imageSize.width - paletteSize.width, 0 };
 
     case Position::BOTTOM_LEFT:
-        return upoint(0, imageSize.height - paletteSize.height);
+        return { 0, imageSize.height - paletteSize.height };
 
     case Position::BOTTOM_RIGHT:
-        return upoint(imageSize.width - paletteSize.width, imageSize.height - paletteSize.height);
+        return { imageSize.width - paletteSize.width, imageSize.height - paletteSize.height };
     }
 
     throw runtime_error(u8"Invalid UserSuppliedPalette::Position");

@@ -47,11 +47,12 @@ struct FrameSetGrid {
 
     inline urect cell(const upoint& gridLocation) const
     {
-        return urect(
+        return {
             gridLocation.x * (frameSize.width + padding.x) + offset.x,
             gridLocation.y * (frameSize.height + padding.y) + offset.y,
             frameSize.width,
-            frameSize.height);
+            frameSize.height
+        };
     }
 
     bool operator==(const FrameSetGrid&) const = default;
@@ -77,8 +78,10 @@ struct FrameObject {
 
     inline upoint bottomRight() const
     {
-        return upoint(location.x + sizePx(),
-                      location.y + sizePx());
+        return {
+            location.x + sizePx(),
+            location.y + sizePx()
+        };
     }
 
     bool operator==(const FrameObject&) const = default;
@@ -174,7 +177,7 @@ struct UserSuppliedPalette {
 
     usize paletteSize() const
     {
-        return usize(colorSize * PALETTE_COLORS, nPalettes * colorSize);
+        return { colorSize * PALETTE_COLORS, nPalettes * colorSize };
     }
 
     bool operator==(const UserSuppliedPalette&) const = default;

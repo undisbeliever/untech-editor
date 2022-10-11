@@ -29,9 +29,11 @@ inline rgba toRgb(const SnesColor& c)
     unsigned g = c.green();
     unsigned r = c.red();
 
-    return rgba((r << 3) | (r >> 2),
-                (g << 3) | (g >> 2),
-                (b << 3) | (b >> 2));
+    return {
+        uint8_t((r << 3) | (r >> 2)),
+        uint8_t((g << 3) | (g >> 2)),
+        uint8_t((b << 3) | (b >> 2))
+    };
 }
 
 }

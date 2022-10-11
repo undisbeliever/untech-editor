@@ -73,7 +73,7 @@ public:
 
     const container& gridData() const { return _grid; }
 
-    usize size() const { return usize(_width, _height); }
+    usize size() const { return { _width, _height }; }
 
     std::span<T> scanline(unsigned y)
     {

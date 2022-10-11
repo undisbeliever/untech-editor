@@ -220,7 +220,7 @@ static TwoPointRect frameBounds(const MetaSprite::MetaSprite::Frame& frame)
         }
     }
 
-    return TwoPointRect(minX, maxX, minY, maxY);
+    return { minX, maxX, minY, maxY };
 }
 
 // An extremely simple row-packing algorithm.

@@ -223,12 +223,12 @@ SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
                                  const std::vector<ExportIndex>& frameEntries)
 {
     if (frameSet.smallTileset.empty()) {
-        return SmallTileMap_t();
+        return {};
     }
 
     auto smallTileGraph = CombineSmallTiles::buildSmallTileGraph(frameSet, frameEntries);
     if (smallTileGraph.empty()) {
-        return SmallTileMap_t();
+        return {};
     }
     auto fp = CombineSmallTiles::firstPass(smallTileGraph);
     return CombineSmallTiles::secondPass(fp, frameSet.smallTileset.size());

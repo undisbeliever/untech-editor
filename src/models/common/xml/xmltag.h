@@ -131,7 +131,7 @@ public:
             return unescapeXmlString(attrRawValues.at(i));
         }
         else {
-            return std::u8string();
+            return {};
         }
     }
 
@@ -164,7 +164,7 @@ public:
             }
         }
         else {
-            return idstring();
+            return {};
         }
     }
 
@@ -364,7 +364,7 @@ public:
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
 
-        return upoint(x, y);
+        return { x, y };
     }
 
     inline usize getAttributeUsize(const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
@@ -372,7 +372,7 @@ public:
         unsigned width = getAttributeUnsigned(widthName);
         unsigned height = getAttributeUnsigned(heightName);
 
-        return usize(width, height);
+        return { width, height };
     }
 
     inline urect getAttributeUrect(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
@@ -383,7 +383,7 @@ public:
         unsigned width = getAttributeUnsigned(widthName, 1, UINT_MAX);
         unsigned height = getAttributeUnsigned(heightName, 1, UINT_MAX);
 
-        return urect(x, y, width, height);
+        return { x, y, width, height };
     }
 
     inline urect getAttributeUrect(const usize& minimumSize, const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
@@ -394,7 +394,7 @@ public:
         unsigned width = getAttributeUnsigned(widthName, minimumSize.width, UINT_MAX);
         unsigned height = getAttributeUnsigned(heightName, minimumSize.height, UINT_MAX);
 
-        return urect(x, y, width, height);
+        return { x, y, width, height };
     }
 
     inline ms8point getAttributeMs8point(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
@@ -402,17 +402,17 @@ public:
         int_ms8_t x = getAttributeIntMs8(xName);
         int_ms8_t y = getAttributeIntMs8(yName);
 
-        return ms8point(x, y);
+        return { x, y };
     }
 
     inline ms8rect getAttributeMs8rect(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
     {
         int_ms8_t x = getAttributeIntMs8(xName);
         int_ms8_t y = getAttributeIntMs8(yName);
-        unsigned width = getAttributeUint8(widthName);
-        unsigned height = getAttributeUint8(heightName);
+        uint8_t width = getAttributeUint8(widthName);
+        uint8_t height = getAttributeUint8(heightName);
 
-        return ms8rect(x, y, width, height);
+        return { x, y, width, height };
     }
 
     std::u8string generateErrorString(const std::u8string_view msg) const;

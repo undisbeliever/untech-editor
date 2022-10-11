@@ -58,19 +58,19 @@ struct usize {
 
     inline usize expand(const usize& s) const
     {
-        return usize(std::max(width, s.width), std::max(height, s.height));
+        return { std::max(width, s.width), std::max(height, s.height) };
     }
 
     inline usize expand(const upoint& p) const
     {
-        return usize(std::max(width, p.x), std::max(height, p.y));
+        return { std::max(width, p.x), std::max(height, p.y) };
     }
 
     inline usize expand(const urect& r) const;
 
     inline upoint clip(const upoint& p) const
     {
-        return upoint(std::min(width, p.x), std::min(height, p.y));
+        return { std::min(width, p.x), std::min(height, p.y) };
     }
 
     inline bool contains(const upoint& p) const
@@ -227,7 +227,7 @@ struct _rect {
 
 inline usize usize::expand(const urect& r) const
 {
-    return usize(std::max(width, r.right()), std::max(height, r.bottom()));
+    return { std::max(width, r.right()), std::max(height, r.bottom()) };
 }
 
 inline bool usize::contains(const urect& r) const

@@ -41,7 +41,7 @@ struct ms8point {
             throw out_of_range(u8"upoint.y");
         }
 
-        return ms8point(px, py);
+        return { px, py };
     }
 
     ms8point flip(bool hFlip, bool vFlip) const
@@ -138,7 +138,10 @@ struct ms8rect {
             throw out_of_range(u8"urect.height");
         }
 
-        return ms8rect(rx, ry, r.width, r.height);
+        static_assert(std::is_unsigned_v<decltype(r.width)>);
+        static_assert(std::is_unsigned_v<decltype(r.height)>);
+
+        return { rx, ry, uint8_t(r.width), uint8_t(r.height) };
     }
 
     inline int left() const { return x; }
@@ -146,7 +149,7 @@ struct ms8rect {
     inline int top() const { return y; }
     inline int bottom() const { return y + height; }
 
-    inline usize size() const { return usize(width, height); }
+    inline usize size() const { return { width, height }; }
 
     // extends this m8rect so the other ms8rect fits in it.
     void extend(const ms8rect& other)

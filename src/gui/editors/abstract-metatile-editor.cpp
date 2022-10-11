@@ -45,19 +45,19 @@ struct AbstractMetaTileEditorGui::Geometry {
     point toTilePos(const ImVec2 globalPos) const
     {
         const ImVec2 mousePos = ImVec2(globalPos.x - offset.x, globalPos.y - offset.y);
-        return point(std::floor(mousePos.x / tileSize.x), std::floor(mousePos.y / tileSize.y));
+        return { int(std::floor(mousePos.x / tileSize.x)), int(std::floor(mousePos.y / tileSize.y)) };
     }
 
     point toTilePos(const ImVec2 globalPos, const usize cursorSize) const
     {
         const point p = toTilePos(globalPos);
-        return point(p.x - int(cursorSize.width / 2), p.y - int(cursorSize.height / 2));
+        return { p.x - int(cursorSize.width / 2), p.y - int(cursorSize.height / 2) };
     }
 
     ImVec2 tilePosToVec2(const unsigned x, const unsigned y) const
     {
-        return ImVec2(offset.x + tileSize.x * x,
-                      offset.y + tileSize.y * y);
+        return { offset.x + tileSize.x * x,
+                 offset.y + tileSize.y * y };
     }
 
     ImVec2 tilePosToVec2(const upoint pos) const
@@ -67,8 +67,8 @@ struct AbstractMetaTileEditorGui::Geometry {
 
     ImVec2 tilePosToVec2(const point pos) const
     {
-        return ImVec2(offset.x + tileSize.x * pos.x,
-                      offset.y + tileSize.y * pos.y);
+        return { offset.x + tileSize.x * pos.x,
+                 offset.y + tileSize.y * pos.y };
     }
 };
 

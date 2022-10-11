@@ -110,12 +110,12 @@ public:
     point toPoint(const ImVec2& globalPos) const
     {
         const ImVec2 pos = ImVec2(globalPos.x - _offset.x, globalPos.y - _offset.y);
-        return point(std::floor(pos.x / _zoom.x), std::floor(pos.y / _zoom.y));
+        return { int(std::floor(pos.x / _zoom.x)), int(std::floor(pos.y / _zoom.y)) };
     }
 
     ImVec2 toVec2(const int x, const int y) const
     {
-        return ImVec2((x * _zoom.x) + _offset.x, (y * _zoom.y) + _offset.y);
+        return { (x * _zoom.x) + _offset.x, (y * _zoom.y) + _offset.y };
     }
 
     bool inClickState() const { return _currentState == State::CLICK; }
@@ -129,10 +129,10 @@ public:
     upoint mousePosUpoint() const
     {
         if (_mousePos.x >= 0 && _mousePos.y >= 0) {
-            return upoint(_mousePos.x, _mousePos.y);
+            return { unsigned(_mousePos.x), unsigned(_mousePos.y) };
         }
         else {
-            return upoint(INT_MAX, INT_MAX);
+            return { INT_MAX, INT_MAX };
         }
     }
 
