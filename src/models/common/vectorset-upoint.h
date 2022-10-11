@@ -8,6 +8,7 @@
 
 #include "aabb.h"
 #include "vectorset.h"
+#include <tuple>
 
 namespace UnTech {
 

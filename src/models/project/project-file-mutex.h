@@ -6,12 +6,12 @@
 
 #pragma once
 
+#include "project.h"
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 
 namespace UnTech::Project {
-
-struct ProjectFile;
 
 class ProjectFileMutex {
     mutable std::shared_mutex _mutex;
