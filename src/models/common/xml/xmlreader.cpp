@@ -244,9 +244,15 @@ XmlTag XmlReader::parseTag()
             return tag;
         }
         else {
-            // stringBuilder does not accept char types, have to convert to a c_string manually.
-            const char8_t charStr[] = { u8'`', c, u8'`', u8'\0' };
-            throw xml_error(*this, stringBuilder(u8"Unknown character ", charStr));
+            if (c >= 0x20 && c < 0x80) {
+                // c is printable.
+                // `stringBuilder()` does not accept char types.  Have to manually covert `c` to a u8string_view.
+                throw xml_error(*this, stringBuilder(u8"Unknown character `", std::u8string_view(&c, 1), u8"`"));
+            }
+            else {
+                // c is not printable.
+                throw xml_error(*this, stringBuilder(u8"Unknown character 0x", hex(uint32_t(c))));
+            }
         }
     }
 
