@@ -148,8 +148,8 @@ public:
     {
     }
 
-    const It& begin() const { return beginIt; }
-    const It& end() const { return endIt; }
+    [[nodiscard]] const It& begin() const { return beginIt; }
+    [[nodiscard]] const It& end() const { return endIt; }
 };
 
 template <typename C>

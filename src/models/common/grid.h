@@ -65,15 +65,15 @@ public:
     grid& operator=(const grid&) = default;
     grid& operator=(grid&&) = default;
 
-    bool empty() const { return _width == 0 || _height == 0; }
+    [[nodiscard]] bool empty() const { return _width == 0 || _height == 0; }
 
-    unsigned width() const { return _width; }
-    unsigned height() const { return _height; }
-    unsigned cellCount() const { return _grid.size(); }
+    [[nodiscard]] unsigned width() const { return _width; }
+    [[nodiscard]] unsigned height() const { return _height; }
+    [[nodiscard]] unsigned cellCount() const { return _grid.size(); }
 
     const container& gridData() const { return _grid; }
 
-    usize size() const { return { _width, _height }; }
+    [[nodiscard]] usize size() const { return { _width, _height }; }
 
     std::span<T> scanline(unsigned y)
     {
@@ -105,12 +105,12 @@ public:
     }
     const T& at(const upoint& p) const { return at(p.x, p.y); }
 
-    size_t cellPos(unsigned x, unsigned y) const
+    [[nodiscard]] size_t cellPos(unsigned x, unsigned y) const
     {
         _rangeCheck(x, y);
         return y * _width + x;
     }
-    size_t cellPos(const upoint& p) const { return at(p.x, p.y); }
+    [[nodiscard]] size_t cellPos(const upoint& p) const { return at(p.x, p.y); }
 
     inline void set(unsigned x, unsigned y, const T& value)
     {

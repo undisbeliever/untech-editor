@@ -51,7 +51,7 @@ public:
     // returned string_view is only valid until the next write call.
     [[nodiscard]] std::u8string_view string_view() const { return _out.string_view(); }
 
-    const std::filesystem::path& filePath() const { return _filePath; }
+    [[nodiscard]] const std::filesystem::path& filePath() const { return _filePath; }
 
     void forceFullFilePaths() { _useRelativePaths = false; }
 

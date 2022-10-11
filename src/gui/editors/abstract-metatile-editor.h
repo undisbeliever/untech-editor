@@ -103,7 +103,7 @@ public:
 
 protected:
     virtual void selectionChanged() = 0;
-    virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
+    [[nodiscard]] virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
 
     void showLayerButtons();
 
@@ -128,11 +128,11 @@ protected:
     bool selectObjectsButton();
     void editModeButtons();
 
-    EditMode editMode() const { return _currentEditMode; }
+    [[nodiscard]] EditMode editMode() const { return _currentEditMode; }
     void setEditMode(EditMode mode);
 
     void setTileCursor(grid<uint16_t>&& tileCursor);
-    const grid<uint16_t>& tileCursor() const;
+    [[nodiscard]] const grid<uint16_t>& tileCursor() const;
 
     void commitPlacedTiles();
     void abandonPlacedTiles();

@@ -91,7 +91,7 @@ struct SceneLayerData {
     bool mapHorizontalMirroring;
     bool mapVerticalMirroring;
 
-    unsigned tilemapSize() const { return nMaps * 32 * 32 * 2; }
+    [[nodiscard]] unsigned tilemapSize() const { return nMaps * 32 * 32 * 2; }
 };
 
 struct SceneData {
@@ -144,10 +144,10 @@ private:
 public:
     SceneLayoutsData() = default;
 
-    const std::vector<uint8_t>& sceneLayoutData() const { return _sceneLayoutData; }
-    const std::array<LayerLayout, N_LAYERS>& layoutForLayer(unsigned index) const { return _sceneLayouts.at(index); }
+    [[nodiscard]] const std::vector<uint8_t>& sceneLayoutData() const { return _sceneLayoutData; }
+    [[nodiscard]] const std::array<LayerLayout, N_LAYERS>& layoutForLayer(unsigned index) const { return _sceneLayouts.at(index); }
 
-    unsigned nLayouts() const { return _sceneLayouts.size(); }
+    [[nodiscard]] unsigned nLayouts() const { return _sceneLayouts.size(); }
 
     std::optional<uint8_t> findOrAdd(const std::array<LayerInput, N_LAYERS>& input);
 

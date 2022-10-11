@@ -40,7 +40,7 @@ public:
     NamedList& operator=(const NamedList& other) = default;
     NamedList& operator=(NamedList&& other) = default;
 
-    bool empty() const { return _list.empty(); }
+    [[nodiscard]] bool empty() const { return _list.empty(); }
     size_type size() const { return _list.size(); }
 
     // returns INT_MAX if name is not found

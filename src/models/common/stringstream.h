@@ -97,7 +97,7 @@ public:
         buffer.append(std::u8string_view(s));
     }
 
-    inline size_t size() const { return buffer.size(); }
+    [[nodiscard]] inline size_t size() const { return buffer.size(); }
 
     // returned string_view is only valid until the next write call.
     [[nodiscard]] std::u8string_view string_view() const { return buffer; }

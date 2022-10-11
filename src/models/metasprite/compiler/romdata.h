@@ -49,7 +49,7 @@ public:
 
     RomAddrTable(const RomAddrTable&) = delete;
 
-    inline const std::u8string& label() const { return _label; }
+    [[nodiscard]] inline const std::u8string& label() const { return _label; }
 
     // Searches for a duplicate table before inserting.
     // a value > 0xFFFF in the table is a NULL
@@ -114,9 +114,9 @@ public:
         addWord(data.index);
     }
 
-    bool atEnd() const { return _pos == _data.size(); }
+    [[nodiscard]] bool atEnd() const { return _pos == _data.size(); }
 
-    const std::vector<uint8_t>& data() const { return _data; }
+    [[nodiscard]] const std::vector<uint8_t>& data() const { return _data; }
 };
 
 class RomBinData {
@@ -135,9 +135,9 @@ public:
     }
     RomBinData(const RomBinData&) = delete;
 
-    const std::u8string& label() const { return _label; }
-    bool nullableType() const { return _nullableType; }
-    const std::vector<uint8_t>& data() const { return _data; }
+    [[nodiscard]] const std::u8string& label() const { return _label; }
+    [[nodiscard]] bool nullableType() const { return _nullableType; }
+    [[nodiscard]] const std::vector<uint8_t>& data() const { return _data; }
 
     // Does not check for duplicates
     void addData_NoIndex(const std::vector<uint8_t>& sData)

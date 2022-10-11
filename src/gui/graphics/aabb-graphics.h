@@ -102,31 +102,31 @@ public:
     }
     ~AabbGraphics() = default;
 
-    bool isNonInteractiveState() const
+    [[nodiscard]] bool isNonInteractiveState() const
     {
         return _currentState == State::NONE || _currentState == State::DISABLED;
     }
 
-    point toPoint(const ImVec2& globalPos) const
+    [[nodiscard]] point toPoint(const ImVec2& globalPos) const
     {
         const ImVec2 pos = ImVec2(globalPos.x - _offset.x, globalPos.y - _offset.y);
         return { int(std::floor(pos.x / _zoom.x)), int(std::floor(pos.y / _zoom.y)) };
     }
 
-    ImVec2 toVec2(const int x, const int y) const
+    [[nodiscard]] ImVec2 toVec2(const int x, const int y) const
     {
         return { (x * _zoom.x) + _offset.x, (y * _zoom.y) + _offset.y };
     }
 
-    bool inClickState() const { return _currentState == State::CLICK; }
+    [[nodiscard]] bool inClickState() const { return _currentState == State::CLICK; }
 
-    bool isHoveredAndNotEditing() const { return _isHovered && isNonInteractiveState(); }
+    [[nodiscard]] bool isHoveredAndNotEditing() const { return _isHovered && isNonInteractiveState(); }
 
-    const point& mousePos() const { return _mousePos; }
+    [[nodiscard]] const point& mousePos() const { return _mousePos; }
 
-    const ImVec2& zoom() const { return _zoom; }
+    [[nodiscard]] const ImVec2& zoom() const { return _zoom; }
 
-    upoint mousePosUpoint() const
+    [[nodiscard]] upoint mousePosUpoint() const
     {
         if (_mousePos.x >= 0 && _mousePos.y >= 0) {
             return { unsigned(_mousePos.x), unsigned(_mousePos.y) };
@@ -553,7 +553,7 @@ public:
                            ds.uvMin, ds.uvMax, tintColor);
     }
 
-    ResizeNodes setResizeMouseCursor(const TwoPointRect& r) const
+    [[nodiscard]] ResizeNodes setResizeMouseCursor(const TwoPointRect& r) const
     {
         // Using + 1 for top/left so user can resize 1 pixel wide/tall rects
 

@@ -62,7 +62,7 @@ public:
         positionFP.x = p.x << FP_SHIFT;
         positionFP.y = p.y << FP_SHIFT;
     }
-    point positionInt() const { return { positionFP.x >> FP_SHIFT, positionFP.y >> FP_SHIFT }; }
+    [[nodiscard]] point positionInt() const { return { positionFP.x >> FP_SHIFT, positionFP.y >> FP_SHIFT }; }
 
 private:
     void nextAnimationFrame(const Animation& ani, const NamedList<Animation>& animations);

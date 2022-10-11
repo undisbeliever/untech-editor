@@ -46,7 +46,7 @@ public:
         }
     }
 
-    unsigned nFrames() const { return _tilesets.size(); }
+    [[nodiscard]] unsigned nFrames() const { return _tilesets.size(); }
 
     const TilesetInserterOutput getOrInsert(const std::vector<TileT>& tiles)
     {

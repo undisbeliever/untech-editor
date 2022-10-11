@@ -42,8 +42,8 @@ struct AnimationFrame {
     NameReference frame;
     uint8_t duration;
 
-    bool testFrameValid(const MetaSprite::FrameSet&) const;
-    bool testFrameValid(const SpriteImporter::FrameSet&) const;
+    [[nodiscard]] bool testFrameValid(const MetaSprite::FrameSet&) const;
+    [[nodiscard]] bool testFrameValid(const SpriteImporter::FrameSet&) const;
 
     bool operator==(const AnimationFrame&) const = default;
 };
@@ -55,12 +55,12 @@ struct Animation {
     idstring nextAnimation;
     bool oneShot = false;
 
-    bool loopsItself() const
+    [[nodiscard]] bool loopsItself() const
     {
         return !oneShot && !nextAnimation.isValid();
     }
 
-    const idstring& nextAnimationText() const
+    [[nodiscard]] const idstring& nextAnimationText() const
     {
         if (loopsItself()) {
             return name;

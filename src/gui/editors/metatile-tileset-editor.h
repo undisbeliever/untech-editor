@@ -95,7 +95,7 @@ public:
 
 protected:
     virtual void selectionChanged() final;
-    virtual const std::array<idstring, 256>& tileFunctionTables() const final;
+    [[nodiscard]] virtual const std::array<idstring, 256>& tileFunctionTables() const final;
 
 private:
     void resetTileProperties();

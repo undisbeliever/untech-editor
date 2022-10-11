@@ -36,7 +36,7 @@ struct InteractiveTiles {
     NamedList<InteractiveTileFunctionTable> functionTables;
 
     // Gets the function table used by the interactive tile with the id of `i`.
-    const InteractiveTileFunctionTable& getFunctionTable(const unsigned i) const
+    [[nodiscard]] const InteractiveTileFunctionTable& getFunctionTable(const unsigned i) const
     {
         if (i < FIXED_FUNCTION_TABLES.size()) {
             return FIXED_FUNCTION_TABLES.at(i);

@@ -272,7 +272,7 @@ private:
             }
         }
 
-        unsigned countMatchingColors(const TileColors& cmp) const
+        [[nodiscard]] unsigned countMatchingColors(const TileColors& cmp) const
         {
             unsigned nMatches = 0;
 

@@ -51,15 +51,15 @@ private:
 public:
     ProjectListWindow() = default;
 
-    const std::optional<ItemIndex>& selectedIndex() const { return _selectedIndex; }
+    [[nodiscard]] const std::optional<ItemIndex>& selectedIndex() const { return _selectedIndex; }
 
-    bool isClean() const { return _clean; }
+    [[nodiscard]] bool isClean() const { return _clean; }
     void markClean() { _clean = true; }
 
     void processMenu();
     void processGui(const Project::ProjectData& projectData);
 
-    bool hasPendingActions() const
+    [[nodiscard]] bool hasPendingActions() const
     {
         return _state == State::ADD_RESOURCE_CONFIRMED || _state == State::REMOVE_RESOURCE_CONFIRMED;
     }
@@ -73,7 +73,7 @@ private:
 
     void addResource(UnTech::Project::ProjectFile& projectFile);
 
-    bool canRemoveSelectedIndex() const;
+    [[nodiscard]] bool canRemoveSelectedIndex() const;
     void removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
 };
 

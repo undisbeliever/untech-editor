@@ -42,19 +42,19 @@ struct TilemapEntry {
                | ((vFlip << VFLIP_SHIFT));
     }
 
-    unsigned character() const { return data & CHAR_MASK; }
+    [[nodiscard]] unsigned character() const { return data & CHAR_MASK; }
     void setCharacter(unsigned c) { data = (data & ~CHAR_MASK) | (c & CHAR_MASK); }
 
-    unsigned palette() const { return (data & PALETTE_MASK) >> PALETTE_SHIFT; }
+    [[nodiscard]] unsigned palette() const { return (data & PALETTE_MASK) >> PALETTE_SHIFT; }
     void setPalette(unsigned c) { data = (data & ~PALETTE_MASK) | ((c << PALETTE_SHIFT) & PALETTE_MASK); }
 
-    bool order() const { return data & ORDER_BIT; }
+    [[nodiscard]] bool order() const { return data & ORDER_BIT; }
     void setOrder(bool o) { data = (data & ~ORDER_BIT) | (o << ORDER_SHIFT); }
 
-    bool hFlip() const { return data & HFLIP_BIT; }
+    [[nodiscard]] bool hFlip() const { return data & HFLIP_BIT; }
     void setHFlip(bool o) { data = (data & ~HFLIP_BIT) | (o << HFLIP_SHIFT); }
 
-    bool vFlip() const { return data & VFLIP_BIT; }
+    [[nodiscard]] bool vFlip() const { return data & VFLIP_BIT; }
     void setVFlip(bool o) { data = (data & ~VFLIP_BIT) | (o << VFLIP_SHIFT); }
 };
 
@@ -77,16 +77,16 @@ public:
     Tilemap& operator=(Tilemap&&) = default;
 
     map_t& map(unsigned i = 0) { return _maps.at(i); }
-    const map_t& map(unsigned i = 0) const { return _maps.at(i); }
+    [[nodiscard]] const map_t& map(unsigned i = 0) const { return _maps.at(i); }
 
     map_t& map(unsigned x, unsigned y) { return _maps.at(y * _width + x); }
-    const map_t& map(unsigned x, unsigned y) const { return _maps.at(y * _width + x); }
+    [[nodiscard]] const map_t& map(unsigned x, unsigned y) const { return _maps.at(y * _width + x); }
 
-    unsigned nMaps() const { return _width * _height; }
-    unsigned width() const { return _width; }
-    unsigned height() const { return _height; }
+    [[nodiscard]] unsigned nMaps() const { return _width * _height; }
+    [[nodiscard]] unsigned width() const { return _width; }
+    [[nodiscard]] unsigned height() const { return _height; }
 
-    std::vector<uint8_t> snesData() const;
+    [[nodiscard]] std::vector<uint8_t> snesData() const;
 };
 
 }

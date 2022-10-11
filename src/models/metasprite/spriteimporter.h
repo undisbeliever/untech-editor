@@ -45,7 +45,7 @@ struct FrameSetGrid {
     {
     }
 
-    inline urect cell(const upoint& gridLocation) const
+    [[nodiscard]] inline urect cell(const upoint& gridLocation) const
     {
         return {
             gridLocation.x * (frameSize.width + padding.x) + offset.x,
@@ -74,9 +74,9 @@ struct FrameObject {
     {
     }
 
-    inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
+    [[nodiscard]] inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
 
-    inline upoint bottomRight() const
+    [[nodiscard]] inline upoint bottomRight() const
     {
         return {
             location.x + sizePx(),
@@ -130,9 +130,9 @@ struct Frame {
     CollisionBox hitbox;
     CollisionBox hurtbox;
 
-    usize minimumViableSize(const FrameSetGrid& grid) const;
+    [[nodiscard]] usize minimumViableSize(const FrameSetGrid& grid) const;
 
-    urect frameLocation(const FrameSetGrid& grid) const
+    [[nodiscard]] urect frameLocation(const FrameSetGrid& grid) const
     {
         if (!locationOverride) {
             return grid.cell(gridLocation);
@@ -142,7 +142,7 @@ struct Frame {
         }
     }
 
-    upoint origin(const FrameSetGrid& grid) const
+    [[nodiscard]] upoint origin(const FrameSetGrid& grid) const
     {
         return originOverride.value_or(grid.origin);
     }
@@ -170,12 +170,12 @@ struct UserSuppliedPalette {
     {
     }
 
-    bool usesUserSuppliedPalette() const
+    [[nodiscard]] bool usesUserSuppliedPalette() const
     {
         return nPalettes > 0 && colorSize > 0;
     }
 
-    usize paletteSize() const
+    [[nodiscard]] usize paletteSize() const
     {
         return { colorSize * PALETTE_COLORS, nPalettes * colorSize };
     }

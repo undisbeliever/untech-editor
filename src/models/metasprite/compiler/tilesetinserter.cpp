@@ -36,8 +36,8 @@ struct CharAttrPos {
         }
     }
 
-    uint16_t largeCharAttr() const { return value | CHARATTR_SIZE_LARGE; }
-    uint16_t smallCharAttr(unsigned i) const { return value | SMALL_TILE_OFFSETS.at(i); }
+    [[nodiscard]] uint16_t largeCharAttr() const { return value | CHARATTR_SIZE_LARGE; }
+    [[nodiscard]] uint16_t smallCharAttr(unsigned i) const { return value | SMALL_TILE_OFFSETS.at(i); }
 
     void inc()
     {

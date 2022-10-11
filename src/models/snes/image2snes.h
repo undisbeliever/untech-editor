@@ -40,13 +40,13 @@ public:
     void setMaxPalettes(unsigned m) { _maxPalettes = m; }
     void setOrder(bool o) { _order = o; }
 
-    BitDepthSpecial bitDepth() const { return _bitDepth; }
-    const auto& tileset() const { return _tileset; }
-    const auto& palette() const { return _palette; }
-    const auto& tilemap() const { return _tilemap; }
+    [[nodiscard]] BitDepthSpecial bitDepth() const { return _bitDepth; }
+    [[nodiscard]] const auto& tileset() const { return _tileset; }
+    [[nodiscard]] const auto& palette() const { return _palette; }
+    [[nodiscard]] const auto& tilemap() const { return _tilemap; }
 
-    std::vector<uint8_t> tilesetSnesData() const { return Snes::snesTileData(_tileset, _bitDepth); };
-    std::vector<uint8_t> paletteSnesData() const;
+    [[nodiscard]] std::vector<uint8_t> tilesetSnesData() const { return Snes::snesTileData(_tileset, _bitDepth); };
+    [[nodiscard]] std::vector<uint8_t> paletteSnesData() const;
 
     void process(const IndexedImage& image);
 };

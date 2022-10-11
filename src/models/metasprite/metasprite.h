@@ -49,7 +49,7 @@ struct FrameObject {
     {
     }
 
-    inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
+    [[nodiscard]] inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
 
     bool operator==(const FrameObject&) const = default;
 };
@@ -97,7 +97,7 @@ struct Frame {
     {
     }
 
-    Frame flip(bool hFlip, bool vFlip) const;
+    [[nodiscard]] Frame flip(bool hFlip, bool vFlip) const;
 
     bool operator==(const Frame&) const = default;
 };

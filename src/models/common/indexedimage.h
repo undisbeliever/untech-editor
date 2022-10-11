@@ -79,21 +79,21 @@ public:
     /**
      * Returns true if the image is empty.
      */
-    bool empty() const { return _imageData == nullptr; }
+    [[nodiscard]] bool empty() const { return _imageData == nullptr; }
 
-    inline usize size() const { return _size; }
-    inline const std::u8string& errorString() const { return _errorString; }
+    [[nodiscard]] inline usize size() const { return _size; }
+    [[nodiscard]] inline const std::u8string& errorString() const { return _errorString; }
 
     inline auto& palette() { return _palette; }
-    inline const auto& palette() const { return _palette; }
+    [[nodiscard]] inline const auto& palette() const { return _palette; }
 
     // Only sets pixels if `color < palette().size()`
     void fill(const uint8_t color);
 
     inline std::span<uint8_t> data() { return std::span{ _imageData, _dataSize }; }
-    inline std::span<const uint8_t> data() const { return std::span{ _imageData, _dataSize }; }
+    [[nodiscard]] inline std::span<const uint8_t> data() const { return std::span{ _imageData, _dataSize }; }
 
-    inline unsigned pixelsPerScanline() const { return _size.width; }
+    [[nodiscard]] inline unsigned pixelsPerScanline() const { return _size.width; }
 
     std::span<uint8_t> scanline(unsigned y)
     {
@@ -104,7 +104,7 @@ public:
         return data().subspan(y * _size.width, _size.width);
     }
 
-    std::span<const uint8_t> scanline(unsigned y) const
+    [[nodiscard]] std::span<const uint8_t> scanline(unsigned y) const
     {
         if (y >= _size.height) {
             throw out_of_range(u8"Image::scanline out of range");
@@ -113,7 +113,7 @@ public:
         return data().subspan(y * _size.width, _size.width);
     }
 
-    inline uint8_t getPixel(unsigned x, unsigned y) const
+    [[nodiscard]] inline uint8_t getPixel(unsigned x, unsigned y) const
     {
         if (x >= _size.width || y >= _size.height) {
             throw out_of_range(u8"Image::getPixel out of range");

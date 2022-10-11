@@ -59,18 +59,18 @@ struct AnimatedTilesetData {
 
     grid<Snes::TilemapEntry> tileMap;
 
-    unsigned nAnimatedFrames() const;
+    [[nodiscard]] unsigned nAnimatedFrames() const;
 
-    unsigned nAnimatedTiles() const;
-    unsigned animatedTilesFrameSize() const;
-    unsigned animatedTilesBlockSize() const;
+    [[nodiscard]] unsigned nAnimatedTiles() const;
+    [[nodiscard]] unsigned animatedTilesFrameSize() const;
+    [[nodiscard]] unsigned animatedTilesBlockSize() const;
 
     // number of bytes of VRAM required to hold the tile data
-    unsigned vramTileSize() const;
+    [[nodiscard]] unsigned vramTileSize() const;
 
     // Does not export tileMap.
     // Expects this AnimatedTilesetData to be valid.
-    std::vector<uint8_t> exportAnimatedTileset() const;
+    [[nodiscard]] std::vector<uint8_t> exportAnimatedTileset() const;
 };
 
 std::optional<AnimatedTilesetData>

@@ -23,9 +23,9 @@ public:
     {
     }
 
-    const std::u8string& msg() const noexcept { return message; }
+    [[nodiscard]] const std::u8string& msg() const noexcept { return message; }
 
-    virtual const char* what() const noexcept final
+    [[nodiscard]] virtual const char* what() const noexcept final
     {
         return reinterpret_cast<const char*>(message.c_str());
     }

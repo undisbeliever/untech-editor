@@ -55,16 +55,16 @@ struct BackgroundImageData {
     std::vector<Snes::Tile8px> tiles;
     grid<Snes::TilemapEntry> tileMap;
 
-    unsigned nTilemaps() const;
+    [[nodiscard]] unsigned nTilemaps() const;
 
-    unsigned uncompressedDataSize() const;
-    unsigned tilesetDataSize() const;
-    unsigned tilemapDataSize() const;
+    [[nodiscard]] unsigned uncompressedDataSize() const;
+    [[nodiscard]] unsigned tilesetDataSize() const;
+    [[nodiscard]] unsigned tilemapDataSize() const;
 
-    bool tilemapHorizontalMirroring() const { return tileMap.width() > 32; }
-    bool tilemapVerticalMirroring() const { return tileMap.height() > 32; }
+    [[nodiscard]] bool tilemapHorizontalMirroring() const { return tileMap.width() > 32; }
+    [[nodiscard]] bool tilemapVerticalMirroring() const { return tileMap.height() > 32; }
 
-    std::vector<uint8_t> exportSnesData() const;
+    [[nodiscard]] std::vector<uint8_t> exportSnesData() const;
 };
 
 std::shared_ptr<const BackgroundImageData>

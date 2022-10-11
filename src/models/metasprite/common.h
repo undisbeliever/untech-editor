@@ -56,7 +56,7 @@ struct NameReference {
 
     NameReference() = default;
 
-    std::u8string_view flipStringSuffix() const;
+    [[nodiscard]] std::u8string_view flipStringSuffix() const;
 
     bool operator==(const NameReference&) const = default;
 };

@@ -123,12 +123,12 @@ struct RoomInput {
     Scripting::RoomScripts roomScripts;
     std::vector<ScriptTrigger> scriptTriggers;
 
-    rect validEntityArea() const;
+    [[nodiscard]] rect validEntityArea() const;
 
-    unsigned mapRight() const { return map.width() * MAP_TILE_SIZE; }
-    unsigned mapBottom() const { return map.height() * MAP_TILE_SIZE; }
+    [[nodiscard]] unsigned mapRight() const { return map.width() * MAP_TILE_SIZE; }
+    [[nodiscard]] unsigned mapBottom() const { return map.height() * MAP_TILE_SIZE; }
 
-    unsigned tileIndex(const upoint& p) const;
+    [[nodiscard]] unsigned tileIndex(const upoint& p) const;
 
     bool operator==(const RoomInput&) const = default;
 };
@@ -138,7 +138,7 @@ struct RoomData {
 
     std::vector<uint8_t> data;
 
-    std::vector<uint8_t> exportSnesData() const;
+    [[nodiscard]] std::vector<uint8_t> exportSnesData() const;
 };
 
 std::shared_ptr<const RoomData>

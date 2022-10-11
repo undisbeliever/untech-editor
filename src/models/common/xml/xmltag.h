@@ -74,7 +74,7 @@ private:
     }
 
     // Returns a value > MAX_ATTRUBUTES if aName not found
-    inline unsigned findAttributeIndex(const std::u8string_view aName) const
+    [[nodiscard]] inline unsigned findAttributeIndex(const std::u8string_view aName) const
     {
         assert(nAttributes <= MAX_ATTRIBUTES);
 
@@ -89,7 +89,7 @@ private:
     }
 
     // NOTE: Does not unescape any `&` characters in the attribute value.
-    inline std::u8string_view getAttribute_rawValue(const std::u8string_view aName) const
+    [[nodiscard]] inline std::u8string_view getAttribute_rawValue(const std::u8string_view aName) const
     {
         assert(nAttributes <= MAX_ATTRIBUTES);
 
@@ -105,7 +105,7 @@ private:
 public:
     operator bool() const { return !name.empty(); }
 
-    bool hasAttribute(const std::u8string_view aName) const
+    [[nodiscard]] bool hasAttribute(const std::u8string_view aName) const
     {
         assert(nAttributes <= MAX_ATTRIBUTES);
 
@@ -118,12 +118,12 @@ public:
         return false;
     }
 
-    inline std::u8string getAttribute(const std::u8string_view aName) const
+    [[nodiscard]] inline std::u8string getAttribute(const std::u8string_view aName) const
     {
         return unescapeXmlString(getAttribute_rawValue(aName));
     }
 
-    inline std::u8string getAttributeOrEmpty(const std::u8string_view aName) const
+    [[nodiscard]] inline std::u8string getAttributeOrEmpty(const std::u8string_view aName) const
     {
         const auto i = findAttributeIndex(aName);
 
@@ -135,7 +135,7 @@ public:
         }
     }
 
-    inline idstring getAttributeId(const std::u8string_view aName) const
+    [[nodiscard]] inline idstring getAttributeId(const std::u8string_view aName) const
     {
         // No need to escape value - only alnum and underscore characters are valid
         const auto id = idstring::fromString(getAttribute_rawValue(aName));
@@ -148,7 +148,7 @@ public:
         }
     }
 
-    inline idstring getAttributeOptionalId(const std::u8string_view aName) const
+    [[nodiscard]] inline idstring getAttributeOptionalId(const std::u8string_view aName) const
     {
         const auto i = findAttributeIndex(aName);
 
@@ -181,7 +181,7 @@ public:
         return id;
     }
 
-    inline std::optional<std::u8string> getOptionalAttribute(const std::u8string_view aName) const
+    [[nodiscard]] inline std::optional<std::u8string> getOptionalAttribute(const std::u8string_view aName) const
     {
         const auto i = findAttributeIndex(aName);
 
@@ -193,7 +193,7 @@ public:
         }
     }
 
-    inline int getAttributeInteger(const std::u8string_view aName) const
+    [[nodiscard]] inline int getAttributeInteger(const std::u8string_view aName) const
     {
         static_assert(std::is_same_v<int, int32_t>);
 
@@ -206,7 +206,7 @@ public:
         return v.value();
     }
 
-    inline int getAttributeInteger(const std::u8string_view aName, int min, int max) const
+    [[nodiscard]] inline int getAttributeInteger(const std::u8string_view aName, int min, int max) const
     {
         const int i = getAttributeInteger(aName);
 
@@ -219,7 +219,7 @@ public:
         return i;
     }
 
-    inline unsigned getAttributeUnsigned(const std::u8string_view aName) const
+    [[nodiscard]] inline unsigned getAttributeUnsigned(const std::u8string_view aName) const
     {
         static_assert(std::is_same_v<unsigned, uint32_t>);
 
@@ -232,7 +232,7 @@ public:
         return v.value();
     }
 
-    inline unsigned getAttributeUnsigned(const std::u8string_view aName, unsigned min, unsigned max = UINT_MAX) const
+    [[nodiscard]] inline unsigned getAttributeUnsigned(const std::u8string_view aName, unsigned min, unsigned max = UINT_MAX) const
     {
         const unsigned v = getAttributeUnsigned(aName);
 
@@ -245,7 +245,7 @@ public:
         return v;
     }
 
-    inline uint8_t getAttributeUint8(const std::u8string_view aName) const
+    [[nodiscard]] inline uint8_t getAttributeUint8(const std::u8string_view aName) const
     {
         const std::optional<uint8_t> v = String::toUint8(getAttribute_rawValue(aName));
 
@@ -255,7 +255,7 @@ public:
         return *v;
     }
 
-    inline uint16_t getAttributeUint16(const std::u8string_view aName) const
+    [[nodiscard]] inline uint16_t getAttributeUint16(const std::u8string_view aName) const
     {
         const std::optional<uint16_t> v = String::toUint16(getAttribute_rawValue(aName));
 
@@ -265,12 +265,12 @@ public:
         return *v;
     }
 
-    inline int_ms8_t getAttributeIntMs8(const std::u8string_view aName) const
+    [[nodiscard]] inline int_ms8_t getAttributeIntMs8(const std::u8string_view aName) const
     {
         return int_ms8_t(getAttributeInteger(aName, int_ms8_t::MIN, int_ms8_t::MAX));
     }
 
-    inline bool getAttributeBoolean(const std::u8string_view aName, bool def = false) const
+    [[nodiscard]] inline bool getAttributeBoolean(const std::u8string_view aName, bool def = false) const
     {
         const auto i = findAttributeIndex(aName);
 
@@ -293,7 +293,7 @@ public:
         }
     }
 
-    inline std::filesystem::path getAttributeFilename(const std::u8string_view aName) const
+    [[nodiscard]] inline std::filesystem::path getAttributeFilename(const std::u8string_view aName) const
     {
         const auto xmlPath = xml->filePath();
 
@@ -340,7 +340,7 @@ public:
         return default_value;
     }
 
-    inline unsigned getAttributeUnsignedHex(const std::u8string_view aName) const
+    [[nodiscard]] inline unsigned getAttributeUnsignedHex(const std::u8string_view aName) const
     {
         // No need to escape value, only 0-9 and a-f characters are valid
         auto v = String::hexToUint32(getAttribute_rawValue(aName));
@@ -351,7 +351,7 @@ public:
         return v.value();
     }
 
-    inline point getAttributePoint(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
+    [[nodiscard]] inline point getAttributePoint(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
     {
         int x = getAttributeInteger(xName);
         int y = getAttributeInteger(yName);
@@ -359,7 +359,7 @@ public:
         return { x, y };
     }
 
-    inline upoint getAttributeUpoint(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
+    [[nodiscard]] inline upoint getAttributeUpoint(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
     {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
@@ -367,7 +367,7 @@ public:
         return { x, y };
     }
 
-    inline usize getAttributeUsize(const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
+    [[nodiscard]] inline usize getAttributeUsize(const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
     {
         unsigned width = getAttributeUnsigned(widthName);
         unsigned height = getAttributeUnsigned(heightName);
@@ -375,7 +375,7 @@ public:
         return { width, height };
     }
 
-    inline urect getAttributeUrect(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
+    [[nodiscard]] inline urect getAttributeUrect(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
     {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
@@ -386,7 +386,7 @@ public:
         return { x, y, width, height };
     }
 
-    inline urect getAttributeUrect(const usize& minimumSize, const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
+    [[nodiscard]] inline urect getAttributeUrect(const usize& minimumSize, const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
     {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
@@ -397,7 +397,7 @@ public:
         return { x, y, width, height };
     }
 
-    inline ms8point getAttributeMs8point(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
+    [[nodiscard]] inline ms8point getAttributeMs8point(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y") const
     {
         int_ms8_t x = getAttributeIntMs8(xName);
         int_ms8_t y = getAttributeIntMs8(yName);
@@ -405,7 +405,7 @@ public:
         return { x, y };
     }
 
-    inline ms8rect getAttributeMs8rect(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
+    [[nodiscard]] inline ms8rect getAttributeMs8rect(const std::u8string_view xName = u8"x", const std::u8string_view yName = u8"y", const std::u8string_view widthName = u8"width", const std::u8string_view heightName = u8"height") const
     {
         int_ms8_t x = getAttributeIntMs8(xName);
         int_ms8_t y = getAttributeIntMs8(yName);
@@ -415,8 +415,8 @@ public:
         return { x, y, width, height };
     }
 
-    std::u8string generateErrorString(const std::u8string_view msg) const;
-    std::u8string generateErrorString(const std::u8string_view aName, const std::u8string_view msg) const;
+    [[nodiscard]] std::u8string generateErrorString(const std::u8string_view msg) const;
+    [[nodiscard]] std::u8string generateErrorString(const std::u8string_view aName, const std::u8string_view msg) const;
 };
 
 }

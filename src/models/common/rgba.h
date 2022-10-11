@@ -63,27 +63,27 @@ struct alignas(4) rgba {
     {
     }
 
-    inline uint32_t rgb() const
+    [[nodiscard]] inline uint32_t rgb() const
     {
         return (blue << 16) | (green << 8) | red;
     }
 
-    inline uint32_t rgbaValue() const
+    [[nodiscard]] inline uint32_t rgbaValue() const
     {
         return (alpha << 24) | (blue << 16) | (green << 8) | red;
     }
 
-    inline uint32_t rgbHex() const
+    [[nodiscard]] inline uint32_t rgbHex() const
     {
         return (red << 16) | (green << 8) | blue;
     }
 
-    inline uint32_t rgbaHex() const
+    [[nodiscard]] inline uint32_t rgbaHex() const
     {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    std::u8string rgbHexString() const;
+    [[nodiscard]] std::u8string rgbHexString() const;
 
     bool operator==(const rgba&) const = default;
 

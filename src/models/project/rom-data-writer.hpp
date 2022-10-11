@@ -203,7 +203,7 @@ public:
         incData.write(u8"\n\n");
     }
 
-    std::vector<uint8_t> writeBinaryData() const
+    [[nodiscard]] std::vector<uint8_t> writeBinaryData() const
     {
         std::vector<uint8_t> binData;
         binData.reserve(_bankSize * _romBanks.size());

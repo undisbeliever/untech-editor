@@ -23,20 +23,20 @@ public:
 
     void reset();
 
-    std::u8string::const_iterator pos() const { return _pos; }
-    std::u8string::const_iterator end() const { return _inputString.end(); }
-    unsigned lineNo() const { return _lineNo; }
+    [[nodiscard]] std::u8string::const_iterator pos() const { return _pos; }
+    [[nodiscard]] std::u8string::const_iterator end() const { return _inputString.end(); }
+    [[nodiscard]] unsigned lineNo() const { return _lineNo; }
 
-    bool atEnd() const;
+    [[nodiscard]] bool atEnd() const;
 
     // returns true if the current char is a whitespace character
-    bool isWhitespace() const;
+    [[nodiscard]] bool isWhitespace() const;
 
     // returns char 0 if we cannot peek at the next char
-    std::u8string::value_type cur() const;
+    [[nodiscard]] std::u8string::value_type cur() const;
 
     // returns char 0 if cannot peek at next char
-    std::u8string::value_type peek() const;
+    [[nodiscard]] std::u8string::value_type peek() const;
 
     // advances to the next char and returns it
     void advance();

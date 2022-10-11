@@ -93,11 +93,11 @@ public:
         return fromString(std::u8string_view(s));
     }
 
-    inline bool isValid() const { return !data.empty(); }
+    [[nodiscard]] inline bool isValid() const { return !data.empty(); }
 
     // clang-format off
-    inline const std::u8string& str() const { return data; }
-    inline const char8_t* c_str() const { return data.c_str(); }
+    [[nodiscard]] inline const std::u8string& str() const { return data; }
+    [[nodiscard]] inline const char8_t* c_str() const { return data.c_str(); }
     // clang-format on
 
     void clear() { data.clear(); }

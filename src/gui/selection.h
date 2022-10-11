@@ -32,12 +32,12 @@ private:
 public:
     static std::tuple<> listArgs() { return std::make_tuple(); }
 
-    bool hasSelection() const { return _selected != NO_SELECTION; }
-    bool hasSingleSelection() const { return _selected != NO_SELECTION; }
+    [[nodiscard]] bool hasSelection() const { return _selected != NO_SELECTION; }
+    [[nodiscard]] bool hasSingleSelection() const { return _selected != NO_SELECTION; }
 
-    bool isSelected(unsigned index) const { return index == _selected; }
+    [[nodiscard]] bool isSelected(unsigned index) const { return index == _selected; }
 
-    unsigned selectedIndex() const { return _selected; }
+    [[nodiscard]] unsigned selectedIndex() const { return _selected; }
 
     void clearSelection() { _pending = NO_SELECTION; }
 
@@ -54,7 +54,7 @@ public:
         }
     }
 
-    bool isSelectionChanging() const { return _selected != _pending; }
+    [[nodiscard]] bool isSelectionChanging() const { return _selected != _pending; }
 
     // Must be called after the GUI has been processed.
     void update()
@@ -79,10 +79,10 @@ private:
 public:
     static std::tuple<> listArgs() { return std::make_tuple(); }
 
-    bool hasSelection() const { return _selected != NO_SELECTION; }
-    bool hasSingleSelection() const { return isPowerOfTwo(_selected); }
+    [[nodiscard]] bool hasSelection() const { return _selected != NO_SELECTION; }
+    [[nodiscard]] bool hasSingleSelection() const { return isPowerOfTwo(_selected); }
 
-    bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
+    [[nodiscard]] bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
 
     void clearSelection() { _pending = NO_SELECTION; }
 
@@ -127,15 +127,15 @@ private:
     uint64_t _pending = NO_SELECTION;
 
 public:
-    std::tuple<unsigned> listArgs() const { return { _parent }; }
+    [[nodiscard]] std::tuple<unsigned> listArgs() const { return { _parent }; }
 
-    unsigned parentIndex() const { return _parent; }
+    [[nodiscard]] unsigned parentIndex() const { return _parent; }
 
-    bool hasSelection() const { return _selected != NO_SELECTION; }
-    bool hasSingleSelection() const { return isPowerOfTwo(_selected); }
+    [[nodiscard]] bool hasSelection() const { return _selected != NO_SELECTION; }
+    [[nodiscard]] bool hasSingleSelection() const { return isPowerOfTwo(_selected); }
 
-    bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
-    bool isSelected(unsigned parent, unsigned index) const { return parent == _parent && isSelected(index); }
+    [[nodiscard]] bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
+    [[nodiscard]] bool isSelected(unsigned parent, unsigned index) const { return parent == _parent && isSelected(index); }
 
     void clearSelection() { _pending = NO_SELECTION; }
 
@@ -185,7 +185,7 @@ public:
         }
     }
 
-    bool isSelectionChanging(const SingleSelection& parentSel) const
+    [[nodiscard]] bool isSelectionChanging(const SingleSelection& parentSel) const
     {
         return _pendingParent != _parent
                || _parent != parentSel.selectedIndex()
@@ -224,11 +224,11 @@ public:
 
 public:
     MultipleSelection& childSel(unsigned groupIndex) { return childSelections.at(groupIndex); }
-    const MultipleSelection& childSel(unsigned groupIndex) const { return childSelections.at(groupIndex); }
+    [[nodiscard]] const MultipleSelection& childSel(unsigned groupIndex) const { return childSelections.at(groupIndex); }
 
-    bool isSelected(unsigned groupIndex, unsigned index) const { return groupIndex < MAX_GROUP_SIZE && childSelections.at(groupIndex).isSelected(index); }
+    [[nodiscard]] bool isSelected(unsigned groupIndex, unsigned index) const { return groupIndex < MAX_GROUP_SIZE && childSelections.at(groupIndex).isSelected(index); }
 
-    bool hasSingleSelection() const
+    [[nodiscard]] bool hasSingleSelection() const
     {
         int s = 0;
         for (const MultipleSelection& g : childSelections) {
@@ -298,11 +298,11 @@ private:
     bool _pending = NO_SELECTION;
 
 public:
-    bool hasSingleSelection() const { return _selected; }
+    [[nodiscard]] bool hasSingleSelection() const { return _selected; }
 
-    bool isSelected() const { return _selected; }
+    [[nodiscard]] bool isSelected() const { return _selected; }
 
-    bool isSelected(bool s) const { return s && _selected; }
+    [[nodiscard]] bool isSelected(bool s) const { return s && _selected; }
 
     void clearSelection() { _pending = NO_SELECTION; }
 
@@ -360,14 +360,14 @@ public:
         _pending = NO_SELECTION;
     }
 
-    const std::tuple<ParentIndexT>& listArgs() const { return _parentIndex; }
+    [[nodiscard]] const std::tuple<ParentIndexT>& listArgs() const { return _parentIndex; }
 
-    bool hasSelection() const { return _selected != NO_SELECTION; }
-    bool hasSingleSelection() const { return _selected != NO_SELECTION; }
+    [[nodiscard]] bool hasSelection() const { return _selected != NO_SELECTION; }
+    [[nodiscard]] bool hasSingleSelection() const { return _selected != NO_SELECTION; }
 
-    unsigned selectedIndex() const { return _selected; }
-    const ParentIndexT& parentIndex() const { return std::get<0>(_parentIndex); }
-    const ParentIndexT& pendingParentIndex() const { return _pendingParent; }
+    [[nodiscard]] unsigned selectedIndex() const { return _selected; }
+    [[nodiscard]] const ParentIndexT& parentIndex() const { return std::get<0>(_parentIndex); }
+    [[nodiscard]] const ParentIndexT& pendingParentIndex() const { return _pendingParent; }
 
     void clearSelection()
     {

@@ -86,7 +86,7 @@ public:
     {
     }
 
-    bool isActive() const { return _frameTimer.active; }
+    [[nodiscard]] bool isActive() const { return _frameTimer.active; }
 
     void reset()
     {
@@ -142,7 +142,7 @@ public:
     {
     }
 
-    bool isActive() const { return _frameTimer.active; }
+    [[nodiscard]] bool isActive() const { return _frameTimer.active; }
 
     void reset()
     {

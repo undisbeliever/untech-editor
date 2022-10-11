@@ -73,7 +73,7 @@ private:
     template <typename ActionPolicy>
     void entityEntriesGui(const char8_t* text, const Project::ProjectFile& projectFile);
 
-    std::vector<unsigned> generateStructChain(const idstring& name) const;
+    [[nodiscard]] std::vector<unsigned> generateStructChain(const idstring& name) const;
 };
 
 }

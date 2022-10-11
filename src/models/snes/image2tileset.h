@@ -39,13 +39,13 @@ public:
     void writeTileset(const std::filesystem::path& filename) const;
     void writePalette(const std::filesystem::path& filename) const;
 
-    BitDepthSpecial bitDepth() const { return _bitDepth; }
+    [[nodiscard]] BitDepthSpecial bitDepth() const { return _bitDepth; }
 
     auto& tileset() { return _tileset; }
-    const auto& tileset() const { return _tileset; }
+    [[nodiscard]] const auto& tileset() const { return _tileset; }
 
     auto& palette() { return _palette; }
-    const auto& palette() const { return _palette; }
+    [[nodiscard]] const auto& palette() const { return _palette; }
 
     void process(const IndexedImage& image);
 

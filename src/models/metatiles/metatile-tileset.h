@@ -71,7 +71,7 @@ struct TilePriorities {
         return y + x;
     }
 
-    bool getTilePriority(unsigned metaTile, unsigned subTile) const
+    [[nodiscard]] bool getTilePriority(unsigned metaTile, unsigned subTile) const
     {
         const unsigned bi = bitIndex(metaTile, subTile);
         const unsigned byteIndex = bi / 8;
@@ -89,7 +89,7 @@ struct TilePriorities {
         data.at(byteIndex) = (data.at(byteIndex) & ~(1 << shift)) | (v << shift);
     }
 
-    std::pair<unsigned, uint8_t> indexDataPairToSetTilePriority(unsigned metaTile, unsigned subTile, bool v) const
+    [[nodiscard]] std::pair<unsigned, uint8_t> indexDataPairToSetTilePriority(unsigned metaTile, unsigned subTile, bool v) const
     {
         const unsigned bi = bitIndex(metaTile, subTile);
         const unsigned byteIndex = bi / 8;
@@ -113,7 +113,7 @@ struct CrumblingTileChain {
     // If this value is NO_THIRD_TRANSITION then there will not be a third transition
     uint16_t secondDelay = 900;
 
-    bool hasThirdTransition() const
+    [[nodiscard]] bool hasThirdTransition() const
     {
         return secondDelay != NO_THIRD_TRANSITION;
     }
@@ -157,10 +157,10 @@ struct MetaTileTilesetData {
 
     explicit MetaTileTilesetData(Resources::AnimatedTilesetData&&);
 
-    std::vector<uint8_t> exportSnesData() const;
+    [[nodiscard]] std::vector<uint8_t> exportSnesData() const;
 
 private:
-    std::vector<uint8_t> convertTileset() const;
+    [[nodiscard]] std::vector<uint8_t> convertTileset() const;
 };
 
 std::shared_ptr<const MetaTileTilesetData>

@@ -58,7 +58,7 @@ public:
 
     ~optional_ref() = default;
 
-    bool exists() const { return _ptr != nullptr; }
+    [[nodiscard]] bool exists() const { return _ptr != nullptr; }
     explicit operator bool() const { return _ptr != nullptr; }
 
     inline const value_type& value() const

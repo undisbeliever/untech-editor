@@ -48,7 +48,7 @@ struct FirstPassOutput {
     {
     }
 
-    size_t nFrames() const { return firstTile.frames.size() + secondTile.frames.size(); }
+    [[nodiscard]] size_t nFrames() const { return firstTile.frames.size() + secondTile.frames.size(); }
 };
 
 static int scoreTilesVec(const std::vector<unsigned>& a, const std::vector<unsigned>& b)

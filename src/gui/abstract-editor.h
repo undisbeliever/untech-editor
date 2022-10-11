@@ -99,10 +99,10 @@ public:
     AbstractEditorData(const ItemIndex itemIndex);
     virtual ~AbstractEditorData() = default;
 
-    ItemIndex itemIndex() const { return _itemIndex; }
+    [[nodiscard]] ItemIndex itemIndex() const { return _itemIndex; }
 
     // The returned string is empty on internal projectFile resources.
-    const std::u8string& basename() const { return _basename; }
+    [[nodiscard]] const std::u8string& basename() const { return _basename; }
 
     // Return false if itemIndex is invalid.
     // If this editor is an `AbstractExternalFileEditor`, then you MUST call `setFilename` in this function.
@@ -131,12 +131,12 @@ public:
     bool undo(UnTech::Project::ProjectFile&, AbstractEditorGui*);
     bool redo(UnTech::Project::ProjectFile&, AbstractEditorGui*);
 
-    bool canUndo() const { return !_undoStack.empty(); }
-    bool canRedo() const { return !_redoStack.empty(); }
+    [[nodiscard]] bool canUndo() const { return !_undoStack.empty(); }
+    [[nodiscard]] bool canRedo() const { return !_redoStack.empty(); }
 
-    bool hasPendingActions() const { return (!_pendingEditorActions.empty()) || (!_pendingProjectFileActions.empty()); }
+    [[nodiscard]] bool hasPendingActions() const { return (!_pendingEditorActions.empty()) || (!_pendingProjectFileActions.empty()); }
 
-    bool isClean() const { return _clean; }
+    [[nodiscard]] bool isClean() const { return _clean; }
     void markClean() { _clean = true; }
 
 private:
@@ -155,7 +155,7 @@ public:
     {
     }
 
-    const std::filesystem::path& filename() const { return _filename; }
+    [[nodiscard]] const std::filesystem::path& filename() const { return _filename; }
 
     // May throw an exception
     virtual void saveFile() const = 0;
