@@ -40,7 +40,7 @@ inline uint8_t engineValue(const DurationFormat df)
 
 struct AnimationFrame {
     NameReference frame;
-    uint8_t duration;
+    uint8_t duration{};
 
     [[nodiscard]] bool testFrameValid(const MetaSprite::FrameSet&) const;
     [[nodiscard]] bool testFrameValid(const SpriteImporter::FrameSet&) const;

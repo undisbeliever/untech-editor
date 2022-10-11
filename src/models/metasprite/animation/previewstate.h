@@ -23,14 +23,14 @@ public:
 public:
     // NOTE: Indexes may be out of bounds.
 
-    unsigned animationIndex;
+    unsigned animationIndex{};
 
-    unsigned overrideNextAnimationIndex;
+    unsigned overrideNextAnimationIndex{};
 
-    unsigned aFrameIndex;
-    unsigned frameTime;
+    unsigned aFrameIndex{};
+    unsigned frameTime{};
 
-    unsigned displayFrameCount;
+    unsigned displayFrameCount{};
 
     Region region;
 
@@ -38,7 +38,7 @@ public:
     point velocityFP;
     point positionFP;
 
-    bool running;
+    bool running{};
 
 public:
     PreviewState()

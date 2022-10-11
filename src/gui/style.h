@@ -18,7 +18,7 @@ enum class ZoomAspectRatio {
 
 class Zoom {
 private:
-    unsigned _zoomInt;
+    unsigned _zoomInt{};
     ImVec2 _zoom;
     std::u8string _zoomString;
 

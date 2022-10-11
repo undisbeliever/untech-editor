@@ -93,7 +93,7 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
 
     unsigned currentOpcode = 0;
     auto addInstruction = [&](const Instruction& inst, const unsigned index) {
-        InstructionData iData;
+        InstructionData iData{};
 
         iData.opcode = currentOpcode;
         iData.arguments = inst.arguments;

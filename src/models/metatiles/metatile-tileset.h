@@ -132,7 +132,7 @@ struct MetaTileTilesetInput {
     std::vector<idstring> palettes;
 
     Resources::AnimationFramesInput animationFrames;
-    std::array<TileCollisionType, N_METATILES> tileCollisions;
+    std::array<TileCollisionType, N_METATILES> tileCollisions{};
     std::array<idstring, N_METATILES> tileFunctionTables;
     TilePriorities tilePriorities;
 
@@ -149,8 +149,8 @@ struct MetaTileTilesetData {
     static const int TILESET_FORMAT_VERSION;
 
     std::vector<idstring> palettes;
-    std::array<uint8_t, N_METATILES> tileFunctionTables;
-    std::array<TileCollisionType, N_METATILES> tileCollisions;
+    std::array<uint8_t, N_METATILES> tileFunctionTables{};
+    std::array<TileCollisionType, N_METATILES> tileCollisions{};
     std::array<CrumblingTileChain, N_CRUMBLING_TILE_CHAINS> crumblingTiles;
 
     Resources::AnimatedTilesetData animatedTileset;

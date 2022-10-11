@@ -203,7 +203,7 @@ void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byt
     int mode = 0666;
 
     // Using lstat to detect if the filename is a symbolic link
-    struct stat statbuf;
+    struct stat statbuf {};
     if (::lstat(filePath.c_str(), &statbuf) == 0) {
         if (S_ISLNK(statbuf.st_mode)) {
             throw runtime_error(u8"Cannot write to a symbolic link: ", filePath.u8string());

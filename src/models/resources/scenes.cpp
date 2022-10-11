@@ -67,7 +67,7 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
         }
     }
 
-    std::array<unsigned, N_LAYER_TYPES> layerTypeCount;
+    std::array<unsigned, N_LAYER_TYPES> layerTypeCount{};
     layerTypeCount.fill(0);
 
     for (const LayerType& lt : input.layerTypes) {
@@ -186,7 +186,7 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
 // thows `logic_error` if layout is not valid
 static void confirmLayoutIsValid(const std::array<SceneLayoutsData::LayerLayout, N_LAYERS>& layers)
 {
-    std::array<bool, SceneLayoutsData::N_VRAM_BLOCKS> usedBlocks;
+    std::array<bool, SceneLayoutsData::N_VRAM_BLOCKS> usedBlocks{};
     usedBlocks.fill(false);
 
     auto testBlock = [&](const unsigned start, const unsigned size) {
@@ -227,9 +227,9 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
         unsigned map;
         unsigned tiles;
     };
-    std::array<Base, N_LAYERS> layerBases;
+    std::array<Base, N_LAYERS> layerBases{};
 
-    std::array<bool, N_VRAM_BLOCKS> freeBlocks;
+    std::array<bool, N_VRAM_BLOCKS> freeBlocks{};
     freeBlocks.fill(true);
 
     auto findFreeSpaceForwards = [&](const unsigned nBlocks, const unsigned align) -> std::optional<unsigned> {
@@ -301,8 +301,8 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
     }
 
     // Create LayerLayout and Scene Layout Data for the calculated bases
-    std::array<LayerLayout, N_LAYERS> layout;
-    std::array<uint8_t, SCENE_LAYOUT_DATA_ENTRY_SIZE> layoutData;
+    std::array<LayerLayout, N_LAYERS> layout{};
+    std::array<uint8_t, SCENE_LAYOUT_DATA_ENTRY_SIZE> layoutData{};
     layoutData.fill(0);
 
     // Must update CompiledScenesData::SCENE_FORMAT_VERSION if data format changes

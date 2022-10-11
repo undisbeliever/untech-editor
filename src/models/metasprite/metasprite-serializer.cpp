@@ -211,7 +211,7 @@ private:
     {
         assert(tag.name == u8"palette");
 
-        std::array<uint8_t, 32> data;
+        std::array<uint8_t, 32> data{};
 
         xml.parseBase64ToByteArray(data);
 

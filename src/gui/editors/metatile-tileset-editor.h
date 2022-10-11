@@ -26,7 +26,7 @@ private:
 
     // This allows `errorDoubleClicked` to invalidate MetaTileTilesetEditorGui::_tileProperties
     // without adding AbstractMetaTileEditorGui to `errorDoubleClicked`.
-    bool tilePropertiesWindowValid;
+    bool tilePropertiesWindowValid{};
 
 public:
     explicit MetaTileTilesetEditorData(ItemIndex itemIndex);

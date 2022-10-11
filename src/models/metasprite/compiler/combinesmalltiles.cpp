@@ -195,7 +195,7 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
 
         assert(bestMatch != input.end());
 
-        std::array<uint16_t, 4> combined;
+        std::array<uint16_t, 4> combined{};
 
         combined[0] = mostPopular->firstTile.tileId;
         combined[1] = mostPopular->secondTile.tileId;

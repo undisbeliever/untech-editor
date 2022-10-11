@@ -98,14 +98,14 @@ struct SceneData {
     std::optional<unsigned> sceneSettings;
     std::optional<unsigned> vramLayout;
     std::optional<unsigned> palette;
-    std::array<SceneLayerData, N_LAYERS> layers;
+    std::array<SceneLayerData, N_LAYERS> layers{};
 
     // Only set if scene has a metatile tileset layer
     std::optional<unsigned> mtTileset;
 
-    unsigned vramUsed;
+    unsigned vramUsed{};
 
-    bool valid;
+    bool valid{};
 };
 
 struct SceneLayoutsData {

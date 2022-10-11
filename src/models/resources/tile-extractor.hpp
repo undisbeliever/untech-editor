@@ -16,7 +16,7 @@ namespace UnTech::Resources {
 
 struct TileAndPalette {
     Snes::Tile8px tile;
-    unsigned palette;
+    unsigned palette{};
 };
 
 inline bool extractTile8px(Snes::Tile8px& tile,

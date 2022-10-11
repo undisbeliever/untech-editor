@@ -69,7 +69,7 @@ private:
 
     std::stack<std::u8string_view> _tagStack;
     std::u8string_view _currentTag;
-    bool _inSelfClosingTag;
+    bool _inSelfClosingTag{};
 
 public:
     XmlReader() = delete;

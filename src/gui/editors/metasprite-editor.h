@@ -43,7 +43,7 @@ private:
 
     SingleSelection palettesSel;
 
-    bool _tileSelectionValid;
+    bool _tileSelectionValid{};
 
 public:
     explicit MetaSpriteEditorData(ItemIndex itemIndex);

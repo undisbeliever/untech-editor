@@ -88,12 +88,12 @@ private:
     point _tileDragMove;
     point _previousTileMouseScenePos;
 
-    const void* _lastClickedSelector;
-    unsigned _selectedIndex;
+    const void* _lastClickedSelector{};
+    unsigned _selectedIndex{};
 
-    bool _isHovered;
-    bool _hasSingleSelection;
-    bool _previouslySelectedItemClicked;
+    bool _isHovered{};
+    bool _hasSingleSelection{};
+    bool _previouslySelectedItemClicked{};
 
 public:
     AabbGraphics()

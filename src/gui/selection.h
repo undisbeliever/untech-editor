@@ -349,7 +349,7 @@ private:
     std::tuple<ParentIndexT> _parentIndex;
     index_type _selected;
 
-    ParentIndexT _pendingParent;
+    ParentIndexT _pendingParent{};
     index_type _pending;
 
 public:

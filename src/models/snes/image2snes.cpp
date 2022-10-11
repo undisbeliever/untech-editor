@@ -181,7 +181,7 @@ private:
 
     inline void loadTile(const IndexedImage& image, unsigned x, unsigned y)
     {
-        std::array<uint8_t, TILE_DATA_SIZE> tile;
+        std::array<uint8_t, TILE_DATA_SIZE> tile{};
         auto tData = tile.begin();
 
         assert(x + TILE_SIZE < image.size().width && y + TILE_SIZE < image.size().height);

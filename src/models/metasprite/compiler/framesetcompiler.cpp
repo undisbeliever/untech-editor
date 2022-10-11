@@ -127,7 +127,7 @@ static auto processTileHitbox(const MS::Frame& frame, std::array<uint8_t, 16>::i
 
 static std::array<uint8_t, 16> processCollisionBoxes(const MS::Frame& frame)
 {
-    std::array<uint8_t, 16> romData;
+    std::array<uint8_t, 16> romData{};
 
     auto it = romData.begin();
 

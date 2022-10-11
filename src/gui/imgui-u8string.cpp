@@ -58,7 +58,7 @@ bool ImGui::InputText(const char* label, std::u8string* str, ImGuiInputTextFlags
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    InputTextCallback_UserData_u8string cb_user_data;
+    InputTextCallback_UserData_u8string cb_user_data{};
     cb_user_data.Str = str;
     cb_user_data.ChainCallback = callback;
     cb_user_data.ChainCallbackUserData = user_data;
@@ -70,7 +70,7 @@ bool ImGui::InputTextMultiline(const char* label, std::u8string* str, const ImVe
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    InputTextCallback_UserData_u8string cb_user_data;
+    InputTextCallback_UserData_u8string cb_user_data{};
     cb_user_data.Str = str;
     cb_user_data.ChainCallback = callback;
     cb_user_data.ChainCallbackUserData = user_data;
@@ -82,7 +82,7 @@ bool ImGui::InputTextWithHint(const char* label, const char* hint, std::u8string
     IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
     flags |= ImGuiInputTextFlags_CallbackResize;
 
-    InputTextCallback_UserData_u8string cb_user_data;
+    InputTextCallback_UserData_u8string cb_user_data{};
     cb_user_data.Str = str;
     cb_user_data.ChainCallback = callback;
     cb_user_data.ChainCallbackUserData = user_data;
