@@ -70,7 +70,7 @@ static void processProgramArguments(const std::span<const char*> arguments)
     }
 }
 
-static void processProgramArguments(int argc, const char* argv[])
+static void processProgramArguments(int argc, const char** const argv)
 {
     if (argc < 1 || argv == nullptr) {
         std::cerr << "Invalid program arguments";

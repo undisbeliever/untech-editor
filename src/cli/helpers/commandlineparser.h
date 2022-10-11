@@ -82,7 +82,7 @@ public:
     explicit Parser(const Config& config);
 
     // may exit application on help/version/error
-    void parse(int argc, const char* argv[]);
+    void parse(int argc, const char** const argv);
 
     void printHelpText() const;
     void printVersion() const;

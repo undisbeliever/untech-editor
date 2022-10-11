@@ -66,7 +66,7 @@ Parser::Parser(const Config& config)
 {
 }
 
-void Parser::parse(int argc, const char* argv[])
+void Parser::parse(int argc, const char** const argv)
 {
     if (argc < 1 || argv == nullptr) {
         error("Invalid program arguments");
