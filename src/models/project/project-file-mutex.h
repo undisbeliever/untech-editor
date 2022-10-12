@@ -17,7 +17,7 @@ class ProjectFileMutex {
     mutable std::shared_mutex _mutex;
     std::unique_ptr<ProjectFile> const _project;
 
-private:
+public:
     ProjectFileMutex(const ProjectFileMutex&) = delete;
     ProjectFileMutex(ProjectFileMutex&&) = delete;
     ProjectFileMutex& operator=(const ProjectFileMutex&) = delete;

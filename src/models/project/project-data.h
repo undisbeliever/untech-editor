@@ -90,7 +90,7 @@ protected:
     ResourceState _state;
     std::vector<ResourceStatus> _resources;
 
-private:
+public:
     ResourceListStatus(const ResourceListStatus&) = delete;
     ResourceListStatus(ResourceListStatus&&) = delete;
     ResourceListStatus& operator=(const ResourceListStatus&) = delete;
@@ -324,7 +324,7 @@ private:
 
     std::array<std::reference_wrapper<ResourceListStatus>, N_RESOURCE_TYPES> _resourceListStatuses;
 
-private:
+public:
     ProjectData(const ProjectData&) = delete;
     ProjectData(ProjectData&&) = delete;
     ProjectData& operator=(const ProjectData&) = delete;

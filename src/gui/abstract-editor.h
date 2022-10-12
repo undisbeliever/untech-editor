@@ -89,7 +89,7 @@ private:
     bool _clean = true;
     bool _inMacro;
 
-private:
+public:
     AbstractEditorData(const AbstractEditorData&) = delete;
     AbstractEditorData(AbstractEditorData&&) = delete;
     AbstractEditorData& operator=(const AbstractEditorData&) = delete;
@@ -167,18 +167,18 @@ protected:
 };
 
 class AbstractEditorGui {
-private:
-    AbstractEditorGui(const AbstractEditorGui&) = delete;
-    AbstractEditorGui(AbstractEditorGui&&) = delete;
-    AbstractEditorGui& operator=(const AbstractEditorGui&) = delete;
-    AbstractEditorGui& operator=(AbstractEditorGui&&) = delete;
-
 public:
     // str_id of the child window inside the BG window
     const char* const childWindowStrId;
 
     bool undoClicked = false;
     bool redoClicked = false;
+
+public:
+    AbstractEditorGui(const AbstractEditorGui&) = delete;
+    AbstractEditorGui(AbstractEditorGui&&) = delete;
+    AbstractEditorGui& operator=(const AbstractEditorGui&) = delete;
+    AbstractEditorGui& operator=(AbstractEditorGui&&) = delete;
 
 public:
     AbstractEditorGui(const char* strId)

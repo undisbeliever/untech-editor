@@ -440,7 +440,7 @@ void main()
 
 // Memory safety: This struct MUST exist when draw data is being rendered.
 struct RenderData {
-private:
+public:
     RenderData(const RenderData&) = delete;
     RenderData(RenderData&&) = delete;
     RenderData& operator=(const RenderData&) = delete;

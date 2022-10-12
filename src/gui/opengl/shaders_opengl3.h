@@ -70,7 +70,7 @@ private:
     bool _showInteractiveTiles;
     bool _showTileCollisions;
 
-private:
+public:
     MtTileset(const MtTileset&) = delete;
     MtTileset(MtTileset&&) = delete;
     MtTileset& operator=(const MtTileset&) = delete;
