@@ -15,7 +15,7 @@
 using namespace UnTech;
 using namespace UnTech::Project;
 
-typedef CommandLine::OptionType OT;
+using OT = CommandLine::OptionType;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech Compiler",
     "utproject file",

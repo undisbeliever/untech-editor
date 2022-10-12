@@ -15,10 +15,10 @@ struct _point;
 template <typename T>
 struct _rect;
 
-typedef _point<int> point;
-typedef _point<unsigned> upoint;
-typedef _rect<int> rect;
-typedef _rect<unsigned> urect;
+using point = _point<int>;
+using upoint = _point<unsigned int>;
+using rect = _rect<int>;
+using urect = _rect<unsigned int>;
 
 template <typename T>
 struct _point {

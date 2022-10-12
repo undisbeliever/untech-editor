@@ -131,7 +131,6 @@ private:
     }
 };
 
-typedef TilesetInserter<8> TilesetInserter8px;
-typedef TilesetInserter<16> TilesetInserter16px;
-
+using TilesetInserter8px = TilesetInserter<8>;
+using TilesetInserter16px = TilesetInserter<16>;
 }

@@ -21,7 +21,7 @@ public:
     constexpr static unsigned TILE_SIZE = TS;
     constexpr static unsigned TILE_ARRAY_SIZE = TILE_SIZE * TILE_SIZE;
 
-    typedef std::array<uint8_t, TILE_ARRAY_SIZE> tileArray_t;
+    using tileArray_t = std::array<uint8_t, TILE_ARRAY_SIZE>;
 
 protected:
     std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};

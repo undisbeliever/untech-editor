@@ -16,7 +16,7 @@
 using namespace UnTech;
 using namespace UnTech::Snes::Cartridge;
 
-typedef CommandLine::OptionType OT;
+using OT = CommandLine::OptionType;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech Write Sfc Header Utility",
     "sfc file",

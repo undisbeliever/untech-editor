@@ -40,7 +40,7 @@ static std::vector<OverlappingObject> buildOverlappingObjects(const SI::Frame& s
 {
     std::vector<OverlappingObject> ret;
 
-    typedef std::vector<SI::FrameObject>::const_iterator f_iterator;
+    using f_iterator = std::vector<SI::FrameObject>::const_iterator;
 
     const auto& fobjs = siFrame.objects;
 
