@@ -163,10 +163,7 @@ struct UserSuppliedPalette {
     unsigned nPalettes{ 0 };
     unsigned colorSize{ 4 };
 
-    UserSuppliedPalette()
-
-    {
-    }
+    UserSuppliedPalette() = default;
 
     [[nodiscard]] bool usesUserSuppliedPalette() const
     {

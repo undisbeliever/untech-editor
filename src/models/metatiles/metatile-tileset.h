@@ -53,10 +53,7 @@ struct TilePriorities {
     // Bit order matches `MetaTileTilesetData::tileMap` order.
     std::array<uint8_t, N_METATILES * PRIORITIES_PER_TILE / 8> data{};
 
-    TilePriorities()
-
-    {
-    }
+    TilePriorities() = default;
 
     static unsigned bitIndex(unsigned metaTile, unsigned subTile)
     {

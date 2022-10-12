@@ -21,10 +21,7 @@ public:
     bool ntscRegion{ true };
 
 public:
-    AnimationTimer()
-
-    {
-    }
+    AnimationTimer() = default;
 
     void reset()
     {
