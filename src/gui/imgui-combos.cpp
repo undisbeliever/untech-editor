@@ -109,7 +109,7 @@ bool EnumCombo(const char* label, UnTech::Entity::DataType* v)
 
 void TextEnum(const UnTech::Entity::DataType& type)
 {
-    const unsigned i = static_cast<unsigned>(type);
+    const auto i = static_cast<unsigned>(type);
     const char* str = i < dataTypeItems.size() ? dataTypeItems.at(i) : "";
     TextUnformatted(str);
 }
@@ -132,7 +132,7 @@ bool EnumCombo(const char* label, UnTech::Scripting::ArgumentType* v)
 
 void TextEnum(const UnTech::Scripting::ArgumentType& v)
 {
-    const unsigned i = static_cast<unsigned>(v);
+    const auto i = static_cast<unsigned>(v);
     const char* str = i < argumentTypeItems.size() ? argumentTypeItems.at(i) : "";
     TextUnformatted(str);
 }
@@ -159,7 +159,7 @@ bool EnumCombo(const char* label, UnTech::Scripting::ComparisonType* v, UnTech::
 
     bool edited = false;
 
-    const unsigned index = unsigned(*v);
+    const auto index = unsigned(*v);
 
     auto sel = [&](const unsigned start, const unsigned end) {
         assert(start < end);

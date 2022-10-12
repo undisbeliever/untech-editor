@@ -655,7 +655,7 @@ template <typename DataT, typename ConvertFunction, class InputT, typename... Pr
 bool ProjectData::compilePs(const ProjectSettingsIndex indexEnum, ConvertFunction convertFunction,
                             const InputT& input, const PreresquitesT&... prerequisites)
 {
-    const unsigned index = static_cast<unsigned>(indexEnum);
+    const auto index = static_cast<unsigned>(indexEnum);
 
     if (_projectSettingsStatus.state(index) != ResourceState::Unchecked) {
         return true;
@@ -676,7 +676,7 @@ bool ProjectData::compilePs(const ProjectSettingsIndex indexEnum, ConvertFunctio
 template <typename ValidateFunction, class InputT>
 bool ProjectData::validatePs(const ProjectSettingsIndex indexEnum, const ValidateFunction validateFunction, const InputT& input)
 {
-    const unsigned index = static_cast<unsigned>(indexEnum);
+    const auto index = static_cast<unsigned>(indexEnum);
 
     if (_projectSettingsStatus.state(index) != ResourceState::Unchecked) {
         return true;

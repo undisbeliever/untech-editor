@@ -68,7 +68,7 @@ static constexpr TileCollisionImageData generateTileCollisionImageData()
     TileCollisionImageData imgData{};
 
     for (unsigned tci = 0; tci < N_TILE_COLLISIONS; tci++) {
-        const TileCollisionType tc = TileCollisionType(tci);
+        const auto tc = TileCollisionType(tci);
         const unsigned tileYoffset = tci * METATILE_SIZE_PX;
 
         auto top = [&](const unsigned x) -> unsigned { return topHeightTable.at(tileYoffset + x) < METATILE_SIZE_PX ? topHeightTable.at(tileYoffset + x) : 0; };

@@ -71,7 +71,7 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
     layerTypeCount.fill(0);
 
     for (const LayerType& lt : input.layerTypes) {
-        unsigned i = unsigned(lt);
+        auto i = unsigned(lt);
         layerTypeCount.at(i)++;
     }
 

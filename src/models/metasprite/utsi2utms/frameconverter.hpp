@@ -40,18 +40,16 @@ static std::vector<OverlappingObject> buildOverlappingObjects(const SI::Frame& s
 {
     std::vector<OverlappingObject> ret;
 
-    using f_iterator = std::vector<SI::FrameObject>::const_iterator;
-
     const auto& fobjs = siFrame.objects;
 
-    for (f_iterator iIt = fobjs.begin(); iIt != fobjs.end(); ++iIt) {
+    for (auto iIt = fobjs.begin(); iIt != fobjs.end(); ++iIt) {
         const SI::FrameObject& iObj = *iIt;
 
         std::vector<unsigned> underObjectIds;
 
         const urect iRect(iObj.location, iObj.sizePx());
 
-        for (f_iterator jIt = iIt + 1; jIt != fobjs.end(); ++jIt) {
+        for (auto jIt = iIt + 1; jIt != fobjs.end(); ++jIt) {
             const SI::FrameObject& jObj = *jIt;
 
             if (iRect.overlaps(jObj.location, jObj.sizePx())) {
