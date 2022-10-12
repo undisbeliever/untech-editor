@@ -55,7 +55,7 @@ public:
     {
     }
 
-    virtual ~GenericListError() = default;
+    ~GenericListError() override = default;
 };
 
 class ErrorList {

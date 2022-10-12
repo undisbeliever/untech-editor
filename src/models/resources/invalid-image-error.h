@@ -58,13 +58,13 @@ public:
 
 public:
     explicit InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, unsigned frameId_ = UINT_MAX);
-    virtual ~InvalidImageError();
+    ~InvalidImageError() override;
 
     [[nodiscard]] bool hasFrameId() const { return frameId <= INT_MAX; }
     [[nodiscard]] bool hasError() const { return !invalidTiles.empty(); }
     [[nodiscard]] size_t errorCount() const { return invalidTiles.size(); }
 
-    virtual void printIndented(StringStream& out) const final;
+    void printIndented(StringStream& out) const final;
 };
 
 }

@@ -26,7 +26,7 @@ protected:
     {
     }
 
-    virtual void updateSelection() override;
+    void updateSelection() override;
 };
 
 class AbstractMetaSpriteEditorGui : public AbstractEditorGui {
@@ -61,9 +61,9 @@ public:
     static bool showActionPoints;
 
 public:
-    virtual void resetState() override;
+    void resetState() override;
 
-    virtual void viewMenu() override;
+    void viewMenu() override;
 
 protected:
     AbstractMetaSpriteEditorGui(const char* strId)

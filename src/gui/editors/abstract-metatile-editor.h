@@ -95,11 +95,11 @@ public:
 public:
     AbstractMetaTileEditorGui(const char* strId);
 
-    virtual bool setEditorData(AbstractEditorData* data) override;
-    virtual void resetState() override;
-    virtual void editorClosed() override;
+    bool setEditorData(AbstractEditorData* data) override;
+    void resetState() override;
+    void editorClosed() override;
 
-    virtual void viewMenu() override;
+    void viewMenu() override;
 
 protected:
     virtual void selectionChanged() = 0;

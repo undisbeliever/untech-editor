@@ -86,7 +86,7 @@ struct EditorActions {
         {
             assert(editor != nullptr);
         }
-        virtual ~BaseAction() = default;
+        ~BaseAction() override = default;
 
         EditorDataT& getProjectData(Project::ProjectFile& projectFile) const
         {
@@ -103,7 +103,7 @@ struct EditorActions {
         }
 
     public:
-        virtual void notifyGui(AbstractEditorGui* gui) const final
+        void notifyGui(AbstractEditorGui* gui) const final
         {
             editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
@@ -264,18 +264,18 @@ struct EditorFieldActions {
         {
             assert(editor != nullptr);
         }
-        virtual ~EditFieldAction() = default;
+        ~EditFieldAction() override = default;
 
-        virtual void notifyGui(AbstractEditorGui* gui) const final
+        void notifyGui(AbstractEditorGui* gui) const final
         {
             editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
 
-        virtual void firstDo_editorData() const final
+        void firstDo_editorData() const final
         {
         }
 
-        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             FieldT& projectData = this->getProjectField(projectFile);
 
@@ -287,7 +287,7 @@ struct EditorFieldActions {
             return !(oldValue == newValue);
         }
 
-        virtual void undo(Project::ProjectFile& projectFile) const final
+        void undo(Project::ProjectFile& projectFile) const final
         {
             FieldT& projectData = this->getProjectField(projectFile);
             FieldT& editorData = this->getEditorField();
@@ -296,7 +296,7 @@ struct EditorFieldActions {
             editorData = oldValue;
         }
 
-        virtual void redo(Project::ProjectFile& projectFile) const final
+        void redo(Project::ProjectFile& projectFile) const final
         {
             FieldT& projectData = this->getProjectField(projectFile);
             FieldT& editorData = this->getEditorField();
