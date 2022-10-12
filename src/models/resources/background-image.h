@@ -37,7 +37,7 @@ struct BackgroundImageInput {
     unsigned firstPalette = 0;
     unsigned nPalettes = 8;
 
-    bool defaultOrder = 0;
+    bool defaultOrder = false;
 
     bool operator==(const BackgroundImageInput&) const = default;
 };

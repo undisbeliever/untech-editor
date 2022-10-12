@@ -138,7 +138,7 @@ static std::optional<EntityFrame> entityFrame(const Entity::EntityRomEntry& entr
         std::min<unsigned>(entry.defaultPalette, frameSet.palettes.size()),
         entry.name,
         0,
-        0,
+        false,
     };
 }
 

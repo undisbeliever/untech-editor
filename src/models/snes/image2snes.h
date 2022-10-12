@@ -24,7 +24,7 @@ private:
     unsigned _maxTiles = 1024;
     unsigned _paletteOffset = 0;
     unsigned _maxPalettes = 8;
-    bool _order = 0;
+    bool _order = false;
 
     const Snes::BitDepthSpecial _bitDepth;
     std::vector<Tile8px> _tileset;
