@@ -4,7 +4,9 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+// NOLINTNEXTLINE(modernize-deprecated-headers)
 #include "string.h"
+
 #include <cassert>
 #include <fstream>
 #include <span>

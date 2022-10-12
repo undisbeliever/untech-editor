@@ -5,8 +5,8 @@
  */
 
 #include "file.h"
-#include "string.h"
 #include "models/common/exceptions.h"
+#include "models/common/string.h"
 #include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <array>
@@ -25,8 +25,8 @@
 #include <shlwapi.h>
 #include <windows.h>
 #else
+#include <cstdlib>
 #include <fcntl.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
