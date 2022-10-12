@@ -204,24 +204,24 @@ bool InputMs8rect(const char* label, UnTech::ms8rect* rect)
 
 bool InputUnsignedFormat(const char* label, uint32_t* v, const char* format, ImGuiInputTextFlags flags)
 {
-    return InputScalar(label, ImGuiDataType_U32, (void*)v, NULL, NULL, format, flags);
+    return InputScalar(label, ImGuiDataType_U32, (void*)v, nullptr, nullptr, format, flags);
 }
 
 bool InputUnsigned(const char* label, uint32_t* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)
 {
     const char* format = (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%08X" : "%d";
-    return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+    return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : nullptr), (void*)(step_fast > 0 ? &step_fast : nullptr), format, flags);
 }
 
 bool InputUnsigned(const char* label, uint32_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags)
 {
-    return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+    return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : nullptr), (void*)(step_fast > 0 ? &step_fast : nullptr), format, flags);
 }
 
 bool InputIntMs8(const char* label, UnTech::int_ms8_t* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)
 {
     int32_t i = *v;
-    bool edited = InputScalar(label, ImGuiDataType_S32, &i, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), NULL, flags);
+    bool edited = InputScalar(label, ImGuiDataType_S32, &i, (void*)(step > 0 ? &step : nullptr), (void*)(step_fast > 0 ? &step_fast : nullptr), nullptr, flags);
 
     if (edited) {
         *v = i;
@@ -232,23 +232,23 @@ bool InputIntMs8(const char* label, UnTech::int_ms8_t* v, unsigned step, unsigne
 bool InputUint8(const char* label, uint8_t* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)
 {
     const char* format = (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%02X" : "%d";
-    return InputScalar(label, ImGuiDataType_U8, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+    return InputScalar(label, ImGuiDataType_U8, (void*)v, (void*)(step > 0 ? &step : nullptr), (void*)(step_fast > 0 ? &step_fast : nullptr), format, flags);
 }
 
 bool InputUint8(const char* label, uint8_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags)
 {
-    return InputScalar(label, ImGuiDataType_U8, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+    return InputScalar(label, ImGuiDataType_U8, (void*)v, (void*)(step > 0 ? &step : nullptr), (void*)(step_fast > 0 ? &step_fast : nullptr), format, flags);
 }
 
 bool InputUint16(const char* label, uint16_t* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)
 {
     const char* format = (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%04X" : "%d";
-    return InputScalar(label, ImGuiDataType_U16, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+    return InputScalar(label, ImGuiDataType_U16, (void*)v, (void*)(step > 0 ? &step : nullptr), (void*)(step_fast > 0 ? &step_fast : nullptr), format, flags);
 }
 
 bool InputUint16(const char* label, uint16_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags)
 {
-    return InputScalar(label, ImGuiDataType_U16, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+    return InputScalar(label, ImGuiDataType_U16, (void*)v, (void*)(step > 0 ? &step : nullptr), (void*)(step_fast > 0 ? &step_fast : nullptr), format, flags);
 }
 
 static int IdstringFilter(ImGuiInputTextCallbackData* data)
