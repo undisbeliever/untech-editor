@@ -13,6 +13,7 @@
 #include "models/common/u8strings.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include <cassert>
+#include <utility>
 
 namespace UnTech::Project {
 
@@ -111,8 +112,8 @@ static inline const T& expandPresquite(const T& p)
 // All "write" methods MUST be implemented in the .cpp file and protected with a `std::unqiue_lock` or `std::lock_guard`
 
 ResourceListStatus::ResourceListStatus(std::u8string typeNameSingle, std::u8string typeNamePlural)
-    : _typeNameSingle(typeNameSingle)
-    , _typeNamePlural(typeNamePlural)
+    : _typeNameSingle(std::move(typeNameSingle))
+    , _typeNamePlural(std::move(typeNamePlural))
     , _currentCompileId(1)
     , _state(ResourceState::Unchecked)
     , _resources()

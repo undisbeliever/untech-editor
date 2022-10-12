@@ -11,6 +11,7 @@
 #include "../stringparser.hpp"
 #include "../u8strings.h"
 #include <cassert>
+#include <utility>
 
 namespace UnTech::Xml {
 
@@ -104,8 +105,8 @@ std::u8string XmlReader::filename() const
     }
 }
 
-XmlReader::XmlReader(std::u8string&& xml, const std::filesystem::path& filePath)
-    : _filePath(filePath)
+XmlReader::XmlReader(std::u8string&& xml, std::filesystem::path filePath)
+    : _filePath(std::move(filePath))
     , _input(std::move(xml))
 {
     if (_input.atEnd()) {

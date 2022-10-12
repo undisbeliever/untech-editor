@@ -15,6 +15,7 @@
 #include "models/snes/tile.h"
 #include <filesystem>
 #include <string>
+#include <utility>
 
 namespace UnTech {
 class ErrorList;
@@ -59,9 +60,9 @@ struct ActionPoint {
     idstring type;
 
     ActionPoint() = default;
-    ActionPoint(const ms8point& location, const idstring& type)
+    ActionPoint(const ms8point& location, idstring type)
         : location(location)
-        , type(type)
+        , type(std::move(type))
     {
     }
 

@@ -13,6 +13,7 @@
 #include <climits>
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 // uses std::u8string instead of idstring as
@@ -40,9 +41,9 @@ private:
     std::vector<uint32_t> _offsets;
 
 public:
-    RomAddrTable(const std::u8string& label, const std::u8string& dataLabel)
-        : _label(label)
-        , _dataLabel(dataLabel)
+    RomAddrTable(std::u8string label, std::u8string dataLabel)
+        : _label(std::move(label))
+        , _dataLabel(std::move(dataLabel))
         , _offsets()
     {
     }
@@ -127,8 +128,8 @@ private:
     bool _nullableType;
 
 public:
-    explicit RomBinData(const std::u8string& label, bool nullableType = false)
-        : _label(label)
+    explicit RomBinData(std::u8string label, bool nullableType = false)
+        : _label(std::move(label))
         , _data()
         , _nullableType(nullableType)
     {
