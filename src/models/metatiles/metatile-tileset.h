@@ -51,10 +51,10 @@ struct TilePriorities {
     // Cannot use a std::array<bool, N> for tile priority it's not bit packed.
     // Cannot use a std::bitset<N> as it cannot be converted to a byte array/vector for serialization.
     // Bit order matches `MetaTileTilesetData::tileMap` order.
-    std::array<uint8_t, N_METATILES * PRIORITIES_PER_TILE / 8> data;
+    std::array<uint8_t, N_METATILES * PRIORITIES_PER_TILE / 8> data{};
 
     TilePriorities()
-        : data{}
+
     {
     }
 

@@ -87,12 +87,12 @@ class DataBlock {
 
 private:
     std::vector<uint8_t> _data;
-    unsigned _pos;
+    unsigned _pos{ 0 };
 
 public:
     explicit DataBlock(size_t size)
         : _data(size)
-        , _pos(0)
+
     {
     }
 

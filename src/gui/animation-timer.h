@@ -12,19 +12,17 @@ namespace UnTech::Gui {
 
 class AnimationTimer {
 private:
-    float _time;
+    float _time{ 0 };
 
     static_assert(std::is_same_v<decltype(_time), decltype(ImGuiIO::DeltaTime)>);
 
 public:
-    bool active;
-    bool ntscRegion;
+    bool active{ false };
+    bool ntscRegion{ true };
 
 public:
     AnimationTimer()
-        : _time(0)
-        , active(false)
-        , ntscRegion(true)
+
     {
     }
 
@@ -75,14 +73,13 @@ public:
 
 private:
     AnimationTimer _frameTimer;
-    unsigned _frameCounter;
-    unsigned _tickCounter;
+    unsigned _frameCounter{ 0 };
+    unsigned _tickCounter{ 0 };
 
 public:
     SingleAnimationTimer()
         : _frameTimer()
-        , _frameCounter(0)
-        , _tickCounter(0)
+
     {
     }
 
@@ -129,16 +126,14 @@ public:
 
 private:
     AnimationTimer _frameTimer;
-    unsigned _frameCounter;
-    unsigned _firstCounter;
-    unsigned _secondCounter;
+    unsigned _frameCounter{ 0 };
+    unsigned _firstCounter{ 0 };
+    unsigned _secondCounter{ 0 };
 
 public:
     DualAnimationTimer()
         : _frameTimer()
-        , _frameCounter(0)
-        , _firstCounter(0)
-        , _secondCounter(0)
+
     {
     }
 

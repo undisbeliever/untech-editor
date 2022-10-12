@@ -108,7 +108,6 @@ AbstractEditorData::AbstractEditorData(const ItemIndex itemIndex)
     , _pendingProjectFileActions()
     , _undoStack()
     , _redoStack()
-    , _clean(true)
     , _inMacro(false)
 {
 }

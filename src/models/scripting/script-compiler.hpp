@@ -80,13 +80,13 @@ private:
     std::vector<uint8_t>& data;
 
     idstring scriptName;
-    unsigned scriptIndex;
+    unsigned scriptIndex{ 0 };
 
-    unsigned lineNo;
-    unsigned depth;
+    unsigned lineNo{ 0 };
+    unsigned depth{ 0 };
 
     ErrorList& err;
-    bool valid;
+    bool valid{ true };
 
 public:
     ScriptCompiler(std::vector<uint8_t>& data, const Rooms::RoomInput& room,
@@ -100,11 +100,8 @@ public:
         , tempFlags(setupTempVariables(room.roomScripts.tempFlags, true, gameState.flags, gameState.nFlags, GameState::MAX_FLAGS, e))
         , tempWords(setupTempVariables(room.roomScripts.tempWords, false, gameState.words, gameState.nWords, GameState::MAX_WORDS, e))
         , data(data)
-        , scriptIndex(0)
-        , lineNo(0)
-        , depth(0)
         , err(e)
-        , valid(true)
+
     {
         valid &= tempFlags.size() == room.roomScripts.tempFlags.size();
         valid &= tempWords.size() == room.roomScripts.tempWords.size();

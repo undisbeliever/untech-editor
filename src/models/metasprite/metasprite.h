@@ -70,11 +70,11 @@ struct ActionPoint {
 
 struct CollisionBox {
     ms8rect aabb;
-    bool exists;
+    bool exists{ false };
 
     CollisionBox()
         : aabb(-8, -8, 16, 16)
-        , exists(false)
+
     {
     }
 
@@ -106,7 +106,7 @@ struct FrameSet {
     static const std::u8string FILE_EXTENSION;
 
     idstring name;
-    TilesetType tilesetType;
+    TilesetType tilesetType{ TilesetType::ONE_ROW };
     idstring exportOrder;
     NamedList<Frame> frames;
     NamedList<Animation::Animation> animations;
@@ -117,7 +117,6 @@ struct FrameSet {
 
     FrameSet()
         : name()
-        , tilesetType(TilesetType::ONE_ROW)
         , exportOrder()
         , frames()
         , animations()

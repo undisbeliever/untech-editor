@@ -33,8 +33,8 @@ private:
     const bool defaultOrder;
 
     // size of the image in tile maps.
-    unsigned mapWidth;
-    unsigned mapHeight;
+    unsigned mapWidth{ 0 };
+    unsigned mapHeight{ 0 };
 
     std::vector<uint16_t> palette;
 
@@ -55,8 +55,6 @@ public:
         , paletteOffset(paletteOffset)
         , maxPalettes(maxPalettes)
         , defaultOrder(defaultOrder)
-        , mapWidth(0)
-        , mapHeight(0)
         , palette()
         , tiles()
         , tilePaletteId()

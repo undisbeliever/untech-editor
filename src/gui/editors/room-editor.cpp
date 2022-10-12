@@ -1314,14 +1314,14 @@ private:
     const Scripting::BytecodeMapping& bcMapping;
     const Project::ProjectFile& projectFile;
 
-    unsigned depth;
+    unsigned depth{ 0 };
 
     std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> parentIndex;
-    unsigned index;
+    unsigned index{ 0 };
 
     constexpr static std::array<const char*, 2> argLabels = { "##Arg1", "##Arg2" };
 
-    bool openAddMenu;
+    bool openAddMenu{ false };
     static std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> addMenuParentIndex;
 
     const ImVec4 disabledColor;
@@ -1335,10 +1335,7 @@ public:
         : data(d)
         , bcMapping(mapping)
         , projectFile(projectFile)
-        , depth(0)
         , parentIndex()
-        , index(0)
-        , openAddMenu(false)
         , disabledColor(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled))
     {
         assert(data != nullptr);

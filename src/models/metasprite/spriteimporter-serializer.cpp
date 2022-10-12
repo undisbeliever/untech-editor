@@ -79,7 +79,7 @@ struct FrameSetReader {
     FrameSetReader(FrameSet& frameSet, XmlReader& xml)
         : frameSet(frameSet)
         , xml(xml)
-        , frameSetGridSet(false)
+
     {
     }
 
@@ -87,7 +87,7 @@ private:
     FrameSet& frameSet;
     XmlReader& xml;
 
-    bool frameSetGridSet;
+    bool frameSetGridSet{ false };
 
 public:
     inline void readFrameSet(const XmlTag& tag)

@@ -18,12 +18,12 @@ class StringStream;
 class AbstractError {
 public:
     const std::u8string message;
-    bool isWarning;
+    bool isWarning{ false };
 
 public:
     AbstractError(std::u8string&& msg)
         : message(std::move(msg))
-        , isWarning(false)
+
     {
     }
 

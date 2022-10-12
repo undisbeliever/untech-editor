@@ -183,8 +183,7 @@ public:
 public:
     AbstractEditorGui(const char* strId)
         : childWindowStrId(strId)
-        , undoClicked(false)
-        , redoClicked(false)
+
     {
     }
     virtual ~AbstractEditorGui() = default;

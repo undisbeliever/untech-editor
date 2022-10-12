@@ -103,11 +103,11 @@ struct ActionPoint {
 
 struct CollisionBox {
     urect aabb;
-    bool exists;
+    bool exists{ false };
 
     CollisionBox()
         : aabb(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
-        , exists(false)
+
     {
     }
 
@@ -159,14 +159,12 @@ struct UserSuppliedPalette {
     };
     static const EnumMap<Position> positionEnumMap;
 
-    Position position;
-    unsigned nPalettes;
-    unsigned colorSize;
+    Position position{ Position::TOP_LEFT };
+    unsigned nPalettes{ 0 };
+    unsigned colorSize{ 4 };
 
     UserSuppliedPalette()
-        : position(Position::TOP_LEFT)
-        , nPalettes(0)
-        , colorSize(4)
+
     {
     }
 
