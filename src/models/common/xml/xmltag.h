@@ -267,7 +267,7 @@ public:
 
     [[nodiscard]] inline int_ms8_t getAttributeIntMs8(const std::u8string_view aName) const
     {
-        return int_ms8_t(getAttributeInteger(aName, int_ms8_t::MIN, int_ms8_t::MAX));
+        return getAttributeInteger(aName, int_ms8_t::MIN, int_ms8_t::MAX);
     }
 
     [[nodiscard]] inline bool getAttributeBoolean(const std::u8string_view aName, bool def = false) const
