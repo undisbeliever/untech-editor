@@ -15,8 +15,8 @@ namespace UnTech::Gui {
 class InvalidImageErrorGraphics {
 private:
     struct Tile {
-        TwoPointRect rect;
-        Resources::InvalidTileReason reason;
+        TwoPointRect rect{};
+        Resources::InvalidTileReason reason{};
     };
     std::vector<Tile> invalidTiles;
 

@@ -70,7 +70,7 @@ private:
 private:
     std::vector<SelectedAabb> _selectedAabb;
 
-    State _currentState;
+    State _currentState{ State::NONE };
 
     ImVec2 _zoom;
     TwoPointRect _bounds;
@@ -83,7 +83,7 @@ private:
 
     TwoPointRect _dragSelect;
     point _dragMove;
-    ResizeNodes _resizeNodes;
+    ResizeNodes _resizeNodes{};
 
     point _tileDragMove;
     point _previousTileMouseScenePos;
@@ -96,10 +96,7 @@ private:
     bool _previouslySelectedItemClicked{};
 
 public:
-    AabbGraphics()
-    {
-        resetState();
-    }
+    AabbGraphics() = default;
     ~AabbGraphics() = default;
 
     [[nodiscard]] bool isNonInteractiveState() const
