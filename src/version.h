@@ -12,6 +12,5 @@ const unsigned UNTECH_VERSION_INT = 29;
 
 #define UNTECH_LICENSE "The MIT License"
 #define UNTECH_LICENSE_URL "https://opensource.org/licenses/MIT"
-#define UNTECH_DOMAIN "undisbeliever.net"
-#define UNTECH_URL "http://undisbeliever.net/untech"
-#define UNTECH_COPYRIGHT "Copyright (c) 2016 - 2021, Marcus Rowe <undisbeliever@gmail.com>"
+
+
