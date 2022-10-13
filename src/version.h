@@ -6,6 +6,8 @@
 
 #pragma once
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #define UNTECH_NAME "UnTech"
 #define UNTECH_VERSION "0.29"
 const unsigned UNTECH_VERSION_INT = 29;
@@ -13,4 +15,4 @@ const unsigned UNTECH_VERSION_INT = 29;
 #define UNTECH_LICENSE "The MIT License"
 #define UNTECH_LICENSE_URL "https://opensource.org/licenses/MIT"
 
-
+// NOLINTEND(cppcoreguidelines-macro-usage)

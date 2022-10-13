@@ -194,6 +194,7 @@ static bool testFilenameOfUnknownType(const std::filesystem::path& filePath)
         extWithoutDot.erase(0, 1);
     }
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define TEST(CLASS)                                   \
     {                                                 \
         if (extWithoutDot == CLASS::FILE_EXTENSION) { \

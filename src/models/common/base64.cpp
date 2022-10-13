@@ -131,6 +131,7 @@ size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string_view text)
 
     auto textIt = text.begin();
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define NEXT_TOKEN()                \
     do {                            \
         if (textIt == text.end()) { \
