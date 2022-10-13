@@ -265,7 +265,7 @@ private:
         void addColor(unsigned pixel)
         {
             if (nColors < MAX_PALETTE_COLORS) {
-                colors[nColors] = pixel;
+                colors.at(nColors) = pixel;
                 nColors++;
             }
         }
@@ -276,7 +276,7 @@ private:
 
             for (const auto i : range(this->nColors)) {
                 for (const auto j : range(cmp.nColors)) {
-                    if (this->colors[i] == cmp.colors[j]) {
+                    if (this->colors.at(i) == cmp.colors.at(j)) {
                         nMatches++;
                         break;
                     }
@@ -289,7 +289,7 @@ private:
         void addMissingColors(const TileColors& toAdd)
         {
             for (const auto i : range(toAdd.nColors)) {
-                const unsigned c = toAdd.colors[i];
+                const unsigned c = toAdd.colors.at(i);
 
                 if (this->containsColor(c) == false) {
                     this->addColor(c);
@@ -417,7 +417,7 @@ private:
             palette[startingColor] = oldPalette[0];
 
             for (const auto c : range(pal.nColors)) {
-                palette[startingColor + c + 1] = oldPalette.at(pal.colors[c]);
+                palette.at(startingColor + c + 1) = oldPalette.at(pal.colors.at(c));
             }
         }
     }
@@ -432,7 +432,7 @@ private:
             auto& map = *pIt++;
 
             for (const auto c : range(pal.nColors)) {
-                map[pal.colors[c]] = c + 1;
+                map.at(pal.colors.at(c)) = c + 1;
             }
         }
         assert(pIt == paletteMap.end());

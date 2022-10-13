@@ -106,15 +106,15 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             std::array<Snes::Tile8px, 4> smallTiles = {};
 
             for (const auto i : range(4)) {
-                unsigned tId = tile16.smallTileIds[i];
+                unsigned tId = tile16.smallTileIds.at(i);
                 if (tId < smallTileset.size()) {
-                    smallTiles[i] = smallTileset.at(tId);
+                    smallTiles.at(i) = smallTileset.at(tId);
                 }
             }
             const auto a = addTile(combineSmallTiles(smallTiles));
 
             for (const auto i : range(4)) {
-                auto tId = tile16.smallTileIds[i];
+                auto tId = tile16.smallTileIds.at(i);
 
                 if (tId >= INVALID_SMALL_TILE) {
                     continue;
