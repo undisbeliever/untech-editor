@@ -354,10 +354,10 @@ private:
 
 public:
     NodeSelection()
+        : _parentIndex{ { NO_SELECTION } }
+        , _selected{ NO_SELECTION }
+        , _pending{ NO_SELECTION }
     {
-        std::get<0>(_parentIndex).fill(NO_SELECTION);
-        _selected = NO_SELECTION;
-        _pending = NO_SELECTION;
     }
 
     [[nodiscard]] const std::tuple<ParentIndexT>& listArgs() const { return _parentIndex; }

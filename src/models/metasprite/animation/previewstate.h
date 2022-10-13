@@ -32,7 +32,7 @@ public:
 
     unsigned displayFrameCount{};
 
-    Region region;
+    Region region{ Region::NTSC };
 
     // fixed point
     point velocityFP;
@@ -43,7 +43,6 @@ public:
 public:
     PreviewState()
     {
-        region = Region::NTSC;
         resetState();
     }
 

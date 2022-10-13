@@ -34,12 +34,12 @@ struct TilemapEntry {
     TilemapEntry& operator=(TilemapEntry&&) = default;
 
     TilemapEntry(unsigned character, unsigned palette, bool order, bool hFlip, bool vFlip)
-    {
-        data = (character & CHAR_MASK)
+        : data((character & CHAR_MASK)
                | ((palette << PALETTE_SHIFT) & PALETTE_MASK)
                | ((order << ORDER_SHIFT))
                | ((hFlip << HFLIP_SHIFT))
-               | ((vFlip << VFLIP_SHIFT));
+               | ((vFlip << VFLIP_SHIFT)))
+    {
     }
 
     [[nodiscard]] unsigned character() const { return data & CHAR_MASK; }
