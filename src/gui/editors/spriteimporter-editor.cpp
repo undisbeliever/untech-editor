@@ -349,8 +349,6 @@ void SpriteImporterEditorGui::frameSetPropertiesGui(const Project::ProjectFile& 
         }
 
         {
-            bool edited;
-
             ImColor c(fs.transparentColor.rgb());
 
             const std::u8string tcString = fs.transparentColor.rgbHexString();
@@ -380,7 +378,7 @@ void SpriteImporterEditorGui::frameSetPropertiesGui(const Project::ProjectFile& 
                 fs.transparentColor = rgba::fromRgba(c);
                 fs.transparentColor.alpha = 0xff;
             }
-            edited = ImGui::IsItemDeactivatedAfterEdit();
+            const bool edited = ImGui::IsItemDeactivatedAfterEdit();
 
             if (edited) {
                 EditorActions<AP::FrameSet>::fieldEdited<

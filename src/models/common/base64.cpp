@@ -115,7 +115,8 @@ inline uint8_t get_val(const char& c)
 
 size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string_view text)
 {
-    uint8_t token, tmp;
+    uint8_t token{};
+    uint8_t tmp{};
 
     // `bytesDecoded` can be larger then the size of the buffer
     size_t bytesDecoded = 0;

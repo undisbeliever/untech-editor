@@ -28,6 +28,19 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
+static MemoryMap getMemoryMap(const CommandLine::Parser& args)
+{
+    if (args.options().at("lorom").boolean()) {
+        return MemoryMap::LOROM;
+    }
+    else if (args.options().at("hirom").boolean()) {
+        return MemoryMap::HIROM;
+    }
+    else {
+        throw runtime_error(u8"expected --lorom or --hirom");
+    }
+}
+
 int process(const CommandLine::Parser& args)
 {
     static const std::filesystem::path sfcExtension(".sfc");
@@ -40,16 +53,7 @@ int process(const CommandLine::Parser& args)
 
     bool verbose = args.options().at("verbose").boolean();
 
-    MemoryMap memoryMap;
-    if (args.options().at("lorom").boolean()) {
-        memoryMap = MemoryMap::LOROM;
-    }
-    else if (args.options().at("hirom").boolean()) {
-        memoryMap = MemoryMap::HIROM;
-    }
-    else {
-        throw runtime_error(u8"expected --lorom or --hirom");
-    }
+    const MemoryMap memoryMap = getMemoryMap(args);
 
     std::vector<uint8_t> rom = File::readBinaryFile(filename, 16 * 1024 * 1024);
 

@@ -244,7 +244,8 @@ void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byt
         remaining = remaining.subspan(done);
     }
 
-    int r;
+    int r{};
+
     r = ::close(fd);
     if (r != 0) {
         throw std::system_error(errno, std::system_category(),
