@@ -80,13 +80,15 @@ struct EditorActions {
     protected:
         EditorT* const editor;
 
+    public:
+        ~BaseAction() override = default;
+
     protected:
         BaseAction(EditorT* editor)
             : editor(editor)
         {
             assert(editor != nullptr);
         }
-        ~BaseAction() override = default;
 
         EditorDataT& getProjectData(Project::ProjectFile& projectFile) const
         {

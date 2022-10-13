@@ -137,6 +137,9 @@ protected:
             return editor->*ActionPolicy::SelectionPtr;
         }
 
+    public:
+        ~BaseAction() override = default;
+
     protected:
         BaseAction(EditorT* editor,
                    const ListArgsT& listArgs)
@@ -145,7 +148,6 @@ protected:
         {
             assert(editor != nullptr);
         }
-        ~BaseAction() override = default;
 
         ListT& getProjectList(Project::ProjectFile& projectFile) const
         {

@@ -33,6 +33,9 @@ struct GridActions {
         EditorT* const editor;
         const ListArgsT listArgs;
 
+    public:
+        ~BaseAction() override = default;
+
     protected:
         BaseAction(EditorT* editor, const ListArgsT& listArgs)
             : editor(editor)
@@ -40,7 +43,6 @@ struct GridActions {
         {
             assert(editor != nullptr);
         }
-        ~BaseAction() override = default;
 
         GridT& getProjectGrid(Project::ProjectFile& projectFile) const
         {
