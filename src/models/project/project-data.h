@@ -132,8 +132,11 @@ public:
     {
         std::shared_lock lock(_mutex);
 
-        f(const_cast<const ResourceState&>(_state),
-          const_cast<const std::vector<ResourceStatus>&>(_resources));
+        // Ensure `f` has read-only access to `_state` and `_resources`
+        const ResourceState& const_state = _state;
+        const std::vector<ResourceStatus>& const_resources = _resources;
+
+        f(const_state, const_resources);
     }
 
     template <typename Function>
@@ -142,7 +145,9 @@ public:
         std::shared_lock lock(_mutex);
 
         if (index < _resources.size()) {
-            f(const_cast<const ResourceStatus&>(_resources.at(index)));
+            // Ensure `f` has read-only access to `_resources`
+            const ResourceStatus& const_status = _resources.at(index);
+            f(const_status);
         }
     }
 };

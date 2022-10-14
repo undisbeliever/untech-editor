@@ -40,7 +40,9 @@ public:
     {
         std::shared_lock lock(_mutex);
 
-        f(const_cast<const ProjectFile&>(*_project));
+        // Ensure `f` has read-only access to `_project`
+        const ProjectFile& const_pf = *_project;
+        f(const_pf);
     }
 
     template <typename Function>
