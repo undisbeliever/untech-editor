@@ -679,6 +679,10 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
 
     valid &= err.errorCount() == oldErrorCount;
 
+    if (!valid) {
+        return nullptr;
+    }
+
     assert(out->scenes.size() * SCENE_DATA_ENTRY_SIZE == out->sceneSnesData.size());
 
     return out;
