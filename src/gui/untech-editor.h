@@ -48,6 +48,13 @@ private:
     std::vector<ItemIndex> markResourceInvalidQueue;
 
 public:
+    // Cannot copy or move BackgroundThread
+    BackgroundThread(const BackgroundThread&) = delete;
+    BackgroundThread& operator=(const BackgroundThread&) = delete;
+    BackgroundThread& operator=(BackgroundThread&&) = delete;
+    BackgroundThread(BackgroundThread&&) = delete;
+
+public:
     BackgroundThread(UnTech::Project::ProjectFileMutex& pf,
                      UnTech::Project::ProjectData& pd);
     ~BackgroundThread();

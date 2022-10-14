@@ -96,6 +96,8 @@ public:
     ResourceListStatus& operator=(const ResourceListStatus&) = delete;
     ResourceListStatus& operator=(ResourceListStatus&&) = delete;
 
+    ~ResourceListStatus() = default;
+
 public:
     ResourceListStatus(std::u8string typeNameSingle, std::u8string typeNamePlural);
 
@@ -329,6 +331,8 @@ public:
     ProjectData(ProjectData&&) = delete;
     ProjectData& operator=(const ProjectData&) = delete;
     ProjectData& operator=(ProjectData&&) = delete;
+
+    ~ProjectData() = default;
 
 public:
     ProjectData();

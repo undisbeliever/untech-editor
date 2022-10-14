@@ -23,6 +23,8 @@ public:
     ProjectFileMutex& operator=(const ProjectFileMutex&) = delete;
     ProjectFileMutex& operator=(ProjectFileMutex&&) = delete;
 
+    ~ProjectFileMutex() = default;
+
 public:
     ProjectFileMutex(std::unique_ptr<ProjectFile> project)
         : _mutex()

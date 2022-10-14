@@ -47,6 +47,8 @@ public:
     StringStream& operator=(const StringStream&) = delete;
     StringStream& operator=(StringStream&&) = delete;
 
+    ~StringStream() = default;
+
 public:
     explicit StringStream(size_t startingSize = default_initial_size)
         : buffer()

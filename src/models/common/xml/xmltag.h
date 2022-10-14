@@ -46,6 +46,8 @@ public:
     XmlTag& operator=(const XmlTag&) = delete;
     XmlTag& operator=(XmlTag&&) = delete;
 
+    ~XmlTag() = default;
+
     // Allow return from function
     XmlTag(XmlTag&&) = default;
 

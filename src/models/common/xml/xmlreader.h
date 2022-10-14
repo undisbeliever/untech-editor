@@ -78,6 +78,8 @@ public:
     XmlReader& operator=(const XmlReader&) = delete;
     XmlReader& operator=(XmlReader&&) = delete;
 
+    ~XmlReader() = default;
+
     XmlReader(std::u8string&& xml, std::filesystem::path filePath = std::filesystem::path());
 
     static std::unique_ptr<XmlReader> fromFile(const std::filesystem::path& filePath);

@@ -33,8 +33,16 @@ private:
     std::vector<SnesColor> _palette;
 
 public:
-    ImageToTileset(BitDepthSpecial bd);
+    // Disabling copying/moving
     ImageToTileset(const ImageToTileset&) = delete;
+    ImageToTileset(ImageToTileset&&) = delete;
+    ImageToTileset& operator=(const ImageToTileset&) = delete;
+    ImageToTileset& operator=(ImageToTileset&&) = delete;
+
+    ~ImageToTileset() = default;
+
+public:
+    ImageToTileset(BitDepthSpecial bd);
 
     void writeTileset(const std::filesystem::path& filename) const;
     void writePalette(const std::filesystem::path& filename) const;
