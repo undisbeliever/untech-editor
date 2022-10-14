@@ -41,6 +41,7 @@ struct AbstractMetaTileEditorGui::Geometry {
     ImVec2 mapSize;
     ImVec2 offset;
     ImVec2 zoom;
+    usize mapUsize;
 
     [[nodiscard]] point toTilePos(const ImVec2 globalPos) const
     {
@@ -79,7 +80,7 @@ static AbstractMetaTileEditorGui::Geometry invisibleButtonAndMapGeometry(const c
 
     const ImVec2 offset = captureMouseExpandCanvasAndCalcScreenPos(strId, mapRenderSize);
 
-    return { tileSize, mapRenderSize, offset, zoom };
+    return { tileSize, mapRenderSize, offset, zoom, size };
 }
 
 static AbstractMetaTileEditorGui::Geometry invisibleButtonAndMapGeometryAutoZoom(const char* strId, const usize size)
@@ -398,20 +399,23 @@ void AbstractMetaTileEditorGui::drawGrid(ImDrawList* drawList, const Geometry& g
     // ::TODO clip these to visible area::
     const float startX = geo.offset.x;
     const float startY = geo.offset.y;
-    const float endX = geo.offset.x + geo.mapSize.x;
-    const float endY = geo.offset.y + geo.mapSize.y;
-
-    const float maxX = endX + 1.0f;
-    const float maxY = endY + 1.0f;
+    const float maxX = geo.offset.x + geo.mapSize.x + 1.0f;
+    const float maxY = geo.offset.y + geo.mapSize.y + 1.0f;
 
     drawList->AddRect(ImVec2(startX, startY), ImVec2(maxX, maxY), Style::gridColor);
 
-    for (float x = startX + geo.tileSize.x; x < endX; x += geo.tileSize.x) {
-        drawList->AddLine(ImVec2(x, startY), ImVec2(x, maxY), Style::gridColor);
+    if (geo.mapUsize.width > 1) {
+        for (const auto i : range(1, geo.mapUsize.width)) {
+            const float x = startX + i * geo.tileSize.x;
+            drawList->AddLine(ImVec2(x, startY), ImVec2(x, maxY), Style::gridColor);
+        }
     }
 
-    for (float y = startY + geo.tileSize.y; y < endY; y += geo.tileSize.y) {
-        drawList->AddLine(ImVec2(startX, y), ImVec2(maxX, y), Style::gridColor);
+    if (geo.mapUsize.height > 1) {
+        for (const auto i : range(1, geo.mapUsize.height)) {
+            const float y = startY + i * geo.tileSize.y;
+            drawList->AddLine(ImVec2(startX, y), ImVec2(maxX, y), Style::gridColor);
+        }
     }
 }
 
@@ -628,7 +632,8 @@ ImVec2 AbstractMetaTileEditorGui::drawAndEditMap(const AabbGraphics& graphics)
         ImVec2(METATILE_SIZE_PX * graphics.zoom().x, METATILE_SIZE_PX * graphics.zoom().y),
         ImVec2(mapData.width() * METATILE_SIZE_PX * zoom.x, mapData.height() * METATILE_SIZE_PX * zoom.y),
         graphics.toVec2(0, 0),
-        zoom
+        zoom,
+        mapData.size()
     };
 
     drawAndEditMap(geo);
