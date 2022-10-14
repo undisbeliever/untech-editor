@@ -31,7 +31,7 @@ const EnumMap<UserSuppliedPalette::Position> UserSuppliedPalette::positionEnumMa
 static bool validate(const FrameSetGrid& input, ErrorList& errorList)
 {
     bool valid = true;
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         errorList.addErrorString(msg...);
         valid = false;
     };

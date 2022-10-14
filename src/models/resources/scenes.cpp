@@ -51,7 +51,7 @@ static constexpr uint8_t bgModeByte(BgMode mode)
 static bool validate(const SceneSettingsInput& input, const unsigned index, ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         err.addError(sceneSettingsError(input, index, msg...));
         valid = false;
     };
@@ -116,7 +116,7 @@ using NameIndexMap = std::unordered_map<idstring, unsigned>;
 static std::optional<NameIndexMap> sceneSettingsIndexMap(const NamedList<SceneSettingsInput>& settings, ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const SceneSettingsInput& ssi, const unsigned index, const auto&... msg) {
+    auto addError = [&](const SceneSettingsInput& ssi, const unsigned index, const auto... msg) {
         err.addError(sceneSettingsError(ssi, index, msg...));
         valid = false;
     };
@@ -142,7 +142,7 @@ static std::optional<NameIndexMap> sceneSettingsIndexMap(const NamedList<SceneSe
 static SceneSettingsData
 compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorList& err)
 {
-    auto addError = [&](const SceneSettingsInput& ssi, const unsigned index, const auto&... msg) {
+    auto addError = [&](const SceneSettingsInput& ssi, const unsigned index, const auto... msg) {
         err.addError(sceneSettingsError(ssi, index, msg...));
     };
 
@@ -436,7 +436,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
                                    const SceneSettingsInput& sceneSettings,
                                    const Project::ProjectData& projectData, ErrorList& err)
 {
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         err.addError(sceneLayerError(sceneInput, sceneIndex, layerIndex, msg...));
     };
 
@@ -531,7 +531,7 @@ static SceneData readSceneData(const SceneInput& scene, const unsigned sceneInde
     const unsigned oldErrorCount = err.errorCount();
 
     out.valid = true;
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         err.addError(sceneError(scene, sceneIndex, msg...));
         out.valid = false;
     };

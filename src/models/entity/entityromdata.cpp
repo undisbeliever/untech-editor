@@ -385,11 +385,11 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
 bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         err.addErrorString(msg...);
         valid = false;
     };
-    auto addListIdError = [&](unsigned index, const auto&... msg) {
+    auto addListIdError = [&](unsigned index, const auto... msg) {
         err.addError(listIdError(index, msg...));
         valid = false;
     };
@@ -507,7 +507,7 @@ static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunc
                                                       const StructFieldMap& structFieldMap,
                                                       const Project::ProjectFile& project, ErrorList& err)
 {
-    auto addError = [&](const EntityFunctionTable& ft, const unsigned ftIndex, const auto&... msg) {
+    auto addError = [&](const EntityFunctionTable& ft, const unsigned ftIndex, const auto... msg) {
         err.addError(entityFunctionTableError(ft, ftIndex, msg...));
     };
 

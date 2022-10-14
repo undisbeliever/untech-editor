@@ -560,7 +560,7 @@ static bool validate(const RoomInput& input,
                      ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         err.addErrorString(msg...);
         valid = false;
     };
@@ -873,7 +873,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
 
                     const auto parameterType = enIt->second.second;
                     parameter = processEntityParameter(ee.parameter, parameterType,
-                                                       [&](const auto&... msg) { addEntityError(eg, egIndex, eeIndex, msg...); });
+                                                       [&](const auto... msg) { addEntityError(eg, egIndex, eeIndex, msg...); });
                 }
                 else {
                     addEntityError(eg, egIndex, eeIndex, u8"Cannot find entity ", ee.entityId);
