@@ -62,13 +62,15 @@ template <typename T>
 const std::pair<const T*, const std::filesystem::path&>
 fileListItem(const ExternalFileList<T>* list, const typename ExternalFileList<T>::size_type index)
 {
+    const static std::filesystem::path BLANK_FILENAME{};
+
     if (list) {
         if (index < list->size()) {
             auto& item = list->item(index);
             return { item.value.get(), item.filename };
         }
     }
-    return { nullptr, {} };
+    return { nullptr, BLANK_FILENAME };
 }
 
 template <typename ActionPolicy>
