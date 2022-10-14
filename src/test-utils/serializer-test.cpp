@@ -215,17 +215,12 @@ static bool testFilenameOfUnknownType(const std::filesystem::path& filePath)
     return false;
 }
 
-int main(int argc, const char* argv[])
+static int process(const std::span<const char*> filenames)
 {
-    if (argc <= 1) {
-        std::cerr << "ERROR: expected argument" << std::endl;
-        return EXIT_FAILURE;
-    }
-
     bool success = true;
 
-    for (int i = 1; i < argc; i++) {
-        success &= testFilenameOfUnknownType(argv[i]);
+    for (const char* fn : filenames) {
+        success &= testFilenameOfUnknownType(fn);
     }
 
     if (nFilesPassed > 0) {
@@ -237,4 +232,17 @@ int main(int argc, const char* argv[])
     }
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+int main(int argc, const char* argv[])
+{
+    if (argc <= 1) {
+        std::cerr << "ERROR: expected argument" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    const auto arguments = std::span(argv, argc);
+
+    assert(arguments.size() > 1);
+    return process(arguments.subspan(1));
 }
