@@ -42,8 +42,6 @@ InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& invalidTile
 {
 }
 
-InvalidImageError::~InvalidImageError() = default;
-
 void InvalidImageError::printIndented(StringStream& out) const
 {
     if (!invalidTiles.empty()) {

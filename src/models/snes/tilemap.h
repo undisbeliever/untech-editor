@@ -28,10 +28,6 @@ struct TilemapEntry {
     uint16_t data = 0;
 
     TilemapEntry() = default;
-    TilemapEntry(const TilemapEntry&) = default;
-    TilemapEntry(TilemapEntry&&) = default;
-    TilemapEntry& operator=(const TilemapEntry&) = default;
-    TilemapEntry& operator=(TilemapEntry&&) = default;
 
     TilemapEntry(unsigned character, unsigned palette, bool order, bool hFlip, bool vFlip)
         : data((character & CHAR_MASK)
@@ -71,10 +67,6 @@ private:
 
 public:
     explicit Tilemap(unsigned width = 1, unsigned height = 1);
-    Tilemap(const Tilemap&) = default;
-    Tilemap(Tilemap&&) = default;
-    Tilemap& operator=(const Tilemap&) = default;
-    Tilemap& operator=(Tilemap&&) = default;
 
     map_t& map(unsigned i = 0) { return _maps.at(i); }
     [[nodiscard]] const map_t& map(unsigned i = 0) const { return _maps.at(i); }

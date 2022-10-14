@@ -48,8 +48,6 @@ public:
     {
     }
 
-    RomAddrTable(const RomAddrTable&) = delete;
-
     [[nodiscard]] inline const std::u8string& label() const { return _label; }
 
     // Searches for a duplicate table before inserting.
@@ -134,7 +132,6 @@ public:
         , _nullableType(nullableType)
     {
     }
-    RomBinData(const RomBinData&) = delete;
 
     [[nodiscard]] const std::u8string& label() const { return _label; }
     [[nodiscard]] bool nullableType() const { return _nullableType; }

@@ -58,7 +58,6 @@ public:
 
 public:
     explicit InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, unsigned frameId_ = UINT_MAX);
-    ~InvalidImageError() override;
 
     [[nodiscard]] bool hasFrameId() const { return frameId <= INT_MAX; }
     [[nodiscard]] bool hasError() const { return !invalidTiles.empty(); }
