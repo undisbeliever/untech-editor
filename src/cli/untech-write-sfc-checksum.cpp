@@ -8,6 +8,7 @@
 #include "models/common/exceptions.h"
 #include "models/common/file.h"
 #include "models/common/string.h"
+#include "models/common/u8strings.h"
 #include "models/snes/cartridge.h"
 #include <cstdlib>
 #include <iomanip>
@@ -72,7 +73,7 @@ int process(const CommandLine::Parser& args)
         if (verbose) {
             const auto msg = stringBuilder(u8"old checksum: 0x", hex_4(oldChecksum), u8" (complement 0x", hex_4(oldComplement), u8")\n",
                                            u8"new checksum: 0x", hex_4(newChecksum), u8" (complement 0x", hex_4(newComplement), u8")\n");
-            std::cout.write(reinterpret_cast<const char*>(msg.data()), msg.size());
+            stdout_write(msg);
         }
 
         writeChecksum(filename, newChecksum, memoryMap);
@@ -84,7 +85,7 @@ int process(const CommandLine::Parser& args)
     else {
         if (verbose) {
             const auto msg = stringBuilder(u8"checksum ok: 0x", hex_4(newChecksum), u8" (complement 0x", hex_4(newComplement), u8")\n");
-            std::cout.write(reinterpret_cast<const char*>(msg.data()), msg.size());
+            stdout_write(msg);
         }
     }
 
