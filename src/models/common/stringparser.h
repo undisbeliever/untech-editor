@@ -19,7 +19,7 @@ private:
 public:
     static bool isWhitespaceChar(const std::u8string::value_type c);
 
-    StringParser(const std::u8string&& str);
+    StringParser(std::u8string&& str);
 
     void reset();
 

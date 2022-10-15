@@ -171,7 +171,7 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
     const bool tilesetType_isFixed = isFixedTilesetType(tilesetType);
 
     const auto smallTileMap = buildSmallTileMap(frameSet, exportFrames);
-    const auto tiles = fixedTilesetData(exportFrames, frameSet, smallTileMap);
+    auto tiles = fixedTilesetData(exportFrames, frameSet, smallTileMap);
 
     TilesetLayout ret;
     ret.tilesetType = frameSet.tilesetType;

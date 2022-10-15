@@ -266,7 +266,7 @@ static void processFrames(NamedList<MS::Frame>& msFrames, TileExtractor& tileExt
         msFrames.insert_back();
         auto& msFrame = msFrames.back();
 
-        const auto overlappingObjects = buildOverlappingObjects(siFrame);
+        auto overlappingObjects = buildOverlappingObjects(siFrame);
         const auto sieve = buildOverlappingObjectsSieve(siFrame, frameIndex, overlappingObjects, errorList);
 
         if (errorList.errorCount() != frameOldErrorCount) {
