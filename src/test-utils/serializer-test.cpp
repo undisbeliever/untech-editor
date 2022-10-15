@@ -236,13 +236,19 @@ static int process(const std::span<const char*> filenames)
 
 int main(int argc, const char* argv[])
 {
-    if (argc <= 1) {
-        std::cerr << "ERROR: expected argument" << std::endl;
+    try {
+        if (argc <= 1) {
+            std::cerr << "ERROR: expected argument" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        const auto arguments = std::span(argv, argc);
+
+        assert(arguments.size() > 1);
+        return process(arguments.subspan(1));
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "ERROR: " << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
-
-    const auto arguments = std::span(argv, argc);
-
-    assert(arguments.size() > 1);
-    return process(arguments.subspan(1));
 }
