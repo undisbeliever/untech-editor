@@ -378,7 +378,7 @@ inline void ProjectDependencies::createDependencyGraph(const ProjectFile& projec
             const idstring name = f(item);
 
             mappings.dependants.emplace(name.str(), i);
-            mappings.preresquite.push_back(std::move(name));
+            mappings.preresquite.push_back(name);
         }
     };
 

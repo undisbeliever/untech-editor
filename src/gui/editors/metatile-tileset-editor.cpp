@@ -808,7 +808,7 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile&
 
     const auto mtData = projectData.metaTileTilesets().at(_data->itemIndex().index);
     if (mtData != _tilesetShader.tilesetData() || !_tilesetShaderImageFilenamesValid) {
-        _tilesetShader.setTilesetData(mtTileset, std::move(mtData));
+        _tilesetShader.setTilesetData(mtTileset, mtData);
         _tilesetShaderImageFilenamesValid = true;
     }
 

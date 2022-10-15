@@ -1269,7 +1269,7 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         _scratchpadTilemap.setMapData(_scratchpad);
 
         if (tileset) {
-            _tilesetShader.setTilesetData(*tileset, std::move(mtData));
+            _tilesetShader.setTilesetData(*tileset, mtData);
             _tilesetShader.setTileCollisions(tileset->tileCollisions);
             _tilesetShader.setInteractiveTilesData(*tileset, projectFile, projectData);
 

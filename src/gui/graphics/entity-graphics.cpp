@@ -154,7 +154,7 @@ static std::optional<EntityFrame> findMetaSprite(const Entity::EntityRomEntry& e
 
     if (const auto fs = projectData.frameSets().at(entry.frameSetId)) {
         if (fs->msFrameSet) {
-            return entityFrame(entry, *fs->msFrameSet, std::move(fs));
+            return entityFrame(entry, *fs->msFrameSet, fs);
         }
     }
 
