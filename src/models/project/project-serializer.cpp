@@ -114,6 +114,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
             readMemoryMapSettings(childTag, project->projectSettings.memoryMap);
             readMemoryMapTag = true;
         }
+        // NOLINTNEXTLINE(bugprone-branch-clone)
         else if (childTag.name == u8"block-settings") {
             // block-settings has been removed, skip
         }

@@ -415,6 +415,8 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
         }
     };
 
+    // NOLINTBEGIN(bugprone-branch-clone)
+
     switch (type) {
     case ResourceType::ProjectSettings: {
         break;
@@ -454,11 +456,15 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
         break;
     }
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index) const
 {
     std::shared_lock lock(_mutex);
+
+    // NOLINTBEGIN(bugprone-branch-clone)
 
     switch (index) {
     case ProjectSettingsIndex::ProjectSettings:
@@ -489,6 +495,8 @@ void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& pro
         projectData._rooms.markAllUnchecked();
         break;
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, const ResourceType type,
@@ -513,6 +521,8 @@ void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, cons
             markNameUnchecked(mappings, rls, oldName);
         }
     };
+
+    // NOLINTBEGIN(bugprone-branch-clone)
 
     switch (type) {
     case ResourceType::ProjectSettings: {
@@ -550,6 +560,8 @@ void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, cons
         break;
     }
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 // Compiling Functions
