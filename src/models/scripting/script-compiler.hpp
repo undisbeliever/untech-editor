@@ -20,7 +20,7 @@ namespace UnTech::Scripting {
 using GameStateDataValueMap = std::unordered_map<std::u8string, const GameStateData::Value>;
 
 static inline std::unordered_map<std::u8string, unsigned>
-setupTempVariables(const std::vector<idstring> tempVars, const bool isFlag,
+setupTempVariables(const std::vector<idstring>& tempVars, const bool isFlag,
                    const GameStateDataValueMap& gameStateVars, const unsigned nGameStateVars, const unsigned maxVars,
                    ErrorList& err)
 {
