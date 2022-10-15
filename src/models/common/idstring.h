@@ -108,7 +108,7 @@ public:
 
 inline idstring operator"" _id(const char8_t* str, const size_t size)
 {
-    const auto id = idstring::fromString(std::u8string_view(str, size));
+    auto id = idstring::fromString(std::u8string_view(str, size));
     assert(id.isValid());
     return id;
 }
