@@ -1,0 +1,64 @@
+---
+
+## Disabled checks
+##
+##  -cppcoreguidelines-avoid-non-const-global-variables
+##      `*EditorGui` classes hold state in static variables
+##
+##  -cppcoreguidelines-non-private-member-variables-in-classes
+##      I have a few classes with public and private variable
+##
+##  -cppcoreguidelines-narrowing-conversions
+##  -bugprone-narrowing-conversions
+##      Lots of narrowing conversions (float-to-int and int-to-float) in the GUI code
+##
+##  -cppcoreguidelines-pro-type-vararg
+##      ImGui::Text(), ImGui::LabelText(), open()
+##
+##  -bugprone-implicit-widening-of-multiplication-result
+##      Too many warnings
+##
+##  -bugprone-easily-swappable-parameters
+##  -cppcoreguidelines-avoid-magic-numbers
+##  -readability-magic-numbers
+##  -modernize-use-trailing-return-type
+##  -clang-diagnostic-unused-function
+##      Code style
+
+Checks: >
+    clang-diagnostic-*,
+    clang-analyzer-*,
+    cppcoreguidelines-*,
+    modernize-*,
+    bugprone-*,
+    portability-*,
+    performance-*,
+
+    -cppcoreguidelines-avoid-non-const-global-variables,
+    -cppcoreguidelines-non-private-member-variables-in-classes,
+
+    -bugprone-narrowing-conversions,
+    -cppcoreguidelines-narrowing-conversions,
+
+    -cppcoreguidelines-pro-type-vararg,
+
+    -bugprone-implicit-widening-of-multiplication-result,
+
+    -bugprone-easily-swappable-parameters,
+    -clang-diagnostic-unused-function,
+    -cppcoreguidelines-avoid-magic-numbers,
+    -modernize-use-trailing-return-type,
+    -readability-magic-numbers,
+
+
+WarningsAsErrors:       true
+HeaderFilterRegex:      ''
+FormatStyle:            file
+
+CheckOptions:
+  # `EditorUndoAction` requires a virtual (default) destructor and does not have a constructor.
+  # (This setting also effects `EditorUndoAction` subclasses, which do not have copy/move constructors)
+  - key:             cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+    value:           true
+...
+
