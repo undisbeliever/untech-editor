@@ -61,9 +61,9 @@ public:
 
     ~grid() = default;
     grid(const grid&) = default;
-    grid(grid&&) = default;
+    grid(grid&&) noexcept = default;
     grid& operator=(const grid&) = default;
-    grid& operator=(grid&&) = default;
+    grid& operator=(grid&&) noexcept = default;
 
     [[nodiscard]] bool empty() const { return _width == 0 || _height == 0; }
 

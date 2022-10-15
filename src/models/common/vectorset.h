@@ -29,9 +29,9 @@ public:
     explicit vectorset() = default;
     ~vectorset() = default;
     vectorset(const vectorset&) = default;
-    vectorset(vectorset&&) = default;
+    vectorset(vectorset&&) noexcept = default;
     vectorset& operator=(const vectorset&) = default;
-    vectorset& operator=(vectorset&&) = default;
+    vectorset& operator=(vectorset&&) noexcept = default;
 
     vectorset(const std::vector<T>& v)
         : _vector(v)
@@ -146,9 +146,9 @@ public:
     explicit vectorset() = default;
     ~vectorset() = default;
     vectorset(const vectorset&) = default;
-    vectorset(vectorset&&) = default;
+    vectorset(vectorset&&) noexcept = default;
     vectorset& operator=(const vectorset&) = default;
-    vectorset& operator=(vectorset&&) = default;
+    vectorset& operator=(vectorset&&) noexcept = default;
 
     vectorset(const std::vector<T*>& v)
         : _vector(v)

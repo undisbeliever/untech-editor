@@ -36,9 +36,9 @@ public:
     ~NamedList() = default;
 
     NamedList(const NamedList&) = default;
-    NamedList(NamedList&&) = default;
+    NamedList(NamedList&&) noexcept = default;
     NamedList& operator=(const NamedList& other) = default;
-    NamedList& operator=(NamedList&& other) = default;
+    NamedList& operator=(NamedList&& other) noexcept = default;
 
     [[nodiscard]] bool empty() const { return _list.empty(); }
     size_type size() const { return _list.size(); }
