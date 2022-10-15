@@ -177,12 +177,12 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     return out;
 }
 
-static std::array<std::u8string, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
+static constexpr std::array<std::u8string_view, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
     u8"_Flag0",
     u8"_Flag1",
 };
 
-static std::array<std::u8string, 8> ARGUMENT_SUFFIXES{
+static constexpr std::array<std::u8string_view, 8> ARGUMENT_SUFFIXES{
     u8"",
     u8"_ ERROR _", // Flag
     u8"_Word",

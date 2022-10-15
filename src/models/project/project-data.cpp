@@ -19,7 +19,7 @@ namespace UnTech::Project {
 
 static const idstring BLANK_ID{};
 
-static std::array<std::u8string, 7> projectSettingNames{
+static constexpr std::array<std::u8string_view, 7> projectSettingNames{
     u8"Project Settings",
     u8"Game State",
     u8"Bytecode",
@@ -59,7 +59,7 @@ static std::u8string itemNameString(const ExternalFileList<T>& list, unsigned in
     }
 }
 template <size_t N>
-static const std::u8string& itemNameString(const std::array<std::u8string, N>& list, unsigned index)
+static std::u8string_view itemNameString(const std::array<std::u8string_view, N>& list, unsigned index)
 {
     return list.at(index);
 }
