@@ -76,7 +76,7 @@ public:
     {
         std::lock_guard lock(_mutex);
 
-        _data = d;
+        _data = std::move(d);
         _entityRomDataCompileId = erdCompileId;
     }
 
