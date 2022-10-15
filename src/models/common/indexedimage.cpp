@@ -16,47 +16,44 @@
 
 namespace UnTech {
 
-IndexedImage::IndexedImage(const usize size)
-    : _size(size)
-    , _errorString()
-    , _imageData(reinterpret_cast<uint8_t*>(malloc(size.width * size.height)))
-    , _dataSize(size.width * size.height)
-{
-    assert(_size.width > 0 && _size.height > 0);
+static_assert(sizeof(rgba) == 4, u8"rgba is the wrong size");
 
-    if (_imageData == nullptr) {
-        throw std::bad_alloc();
+static constexpr size_t MAX_IMAGE_PIXELS = 1024 * 1024;
+
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+static std::unique_ptr<uint8_t[]> allocateIndexedImageData(usize size)
+{
+    if (size.width <= 0 || size.height <= 0) {
+        throw std::invalid_argument("IndexedImage size");
     }
+
+    const size_t nPixels = size.width * size.height;
+    if (nPixels > MAX_IMAGE_PIXELS) {
+        throw std::invalid_argument("IndexedImage size too large");
+    }
+
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+    return std::make_unique<uint8_t[]>(nPixels);
 }
 
-IndexedImage::IndexedImage(const usize size, uint8_t*&& data, IndexedImage::PrivateToken)
-    : _size(size)
-    , _errorString()
-    , _imageData(data)
-    , _dataSize(size.width * size.height)
+IndexedImage::IndexedImage(const usize size)
+    : _imageData{ allocateIndexedImageData(size) }
+    , _dataSize{ size.width * size.height }
+    , _size{ size }
+    , _palette{}
+    , _errorString{}
 {
+    assert(_imageData);
     assert(_size.width > 0 && _size.height > 0);
-
-    if (_imageData == nullptr) {
-        throw std::bad_alloc();
-    }
 }
 
 IndexedImage::IndexedImage(std::u8string&& errorString, IndexedImage::PrivateToken)
-    : _size(0, 0)
-    , _errorString(std::move(errorString))
-    , _imageData(nullptr)
-    , _dataSize(0)
-    , _palette()
+    : _imageData{ nullptr }
+    , _dataSize{ 0 }
+    , _size{ 0, 0 }
+    , _palette{}
+    , _errorString{ std::move(errorString) }
 {
-}
-
-IndexedImage::~IndexedImage()
-{
-    if (_imageData) {
-        // Cannot use delete[] here, `lodepng_decode` allocates memory using `malloc`.
-        free(_imageData);
-    }
 }
 
 void IndexedImage::fill(uint8_t color)
@@ -70,56 +67,65 @@ void IndexedImage::fill(uint8_t color)
 std::shared_ptr<IndexedImage> IndexedImage::loadPngImage_shared(const std::filesystem::path& filename)
 {
     static constexpr size_t IMAGE_FILE_LIMIT = 2 * 1024 * 1024;
-    static constexpr size_t MAX_IMAGE_PIXELS = 1024 * 1024;
 
-    usize size;
-    uint8_t* pixels = nullptr;
-
+    std::vector<uint8_t> fileData;
     try {
-        const auto fileData = File::readBinaryFile(filename, IMAGE_FILE_LIMIT);
-
-        lodepng::State state;
-        state.decoder.zlibsettings.max_output_size = MAX_IMAGE_PIXELS;
-
-        state.decoder.color_convert = true;
-        state.info_raw.colortype = LodePNGColorType::LCT_PALETTE;
-        state.info_raw.bitdepth = 8;
-
-        const auto error = lodepng_decode(&pixels, &size.width, &size.height,
-                                          &state,
-                                          fileData.data(), fileData.size());
-
-        if (!error) {
-            const size_t buffersize = lodepng_get_raw_size(size.width, size.height, &state.info_raw);
-            assert(buffersize == size.width * size.height);
-
-            if (state.info_png.color.colortype == LodePNGColorType::LCT_PALETTE) {
-                auto image = std::make_shared<IndexedImage>(size, std::move(pixels), PrivateToken{});
-
-                const std::span<rgba> pngPal(
-                    reinterpret_cast<rgba*>(state.info_png.color.palette),
-                    state.info_png.color.palettesize);
-
-                image->_palette.insert(image->_palette.begin(), pngPal.begin(), pngPal.end());
-
-                return image;
-            }
-            else {
-                return invalidImageWithErrorMessage(stringBuilder(filename.u8string(), u8": Not a indexed png file"));
-            }
-        }
-        else {
-            if (pixels) {
-                free(pixels);
-            }
-
-            return invalidImageWithErrorMessage(stringBuilder(filename.u8string(), u8": ",
-                                                              convert_old_string(lodepng_error_text(error))));
-        }
+        fileData = File::readBinaryFile(filename, IMAGE_FILE_LIMIT);
     }
     catch (const std::exception& ex) {
         return invalidImageWithErrorMessage(convert_old_string(ex.what()));
     }
+
+    std::shared_ptr<IndexedImage> image = nullptr;
+
+    // Holds ownership of a C malloc buffer created by `lodepng_decode()`
+    uint8_t* buffer = nullptr;
+
+    usize size{};
+
+    lodepng::State state{};
+    state.decoder.zlibsettings.max_output_size = MAX_IMAGE_PIXELS;
+
+    state.decoder.color_convert = true;
+    state.info_raw.colortype = LodePNGColorType::LCT_PALETTE;
+    state.info_raw.bitdepth = 8;
+
+    const auto error = lodepng_decode(&buffer, &size.width, &size.height,
+                                      &state,
+                                      fileData.data(), fileData.size());
+
+    if (!error && state.info_png.color.colortype == LodePNGColorType::LCT_PALETTE) {
+        image = std::make_shared<IndexedImage>(size);
+
+        const size_t bufferSize = lodepng_get_raw_size(size.width, size.height, &state.info_raw);
+        assert(bufferSize == size.width * size.height);
+
+        assert(buffer);
+        const std::span bufferSpan(buffer, bufferSize / sizeof(uint8_t));
+        std::copy(bufferSpan.begin(), bufferSpan.end(), image->data().begin());
+
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        const std::span pngPal(reinterpret_cast<rgba*>(state.info_png.color.palette),
+                               state.info_png.color.palettesize);
+
+        image->_palette.insert(image->_palette.begin(), pngPal.begin(), pngPal.end());
+    }
+    else if (!error) {
+        image = invalidImageWithErrorMessage(stringBuilder(filename.u8string(), u8": Not a indexed png file"));
+    }
+    else {
+        image = invalidImageWithErrorMessage(stringBuilder(filename.u8string(), u8": ",
+                                                           convert_old_string(lodepng_error_text(error))));
+    }
+
+    if (buffer) {
+        // NOLINTNEXTLINE(cppcoreguidelines-no-malloc, cppcoreguidelines-owning-memory)
+        free(buffer);
+        buffer = nullptr;
+    }
+
+    assert(image);
+    return image;
 }
 
 std::shared_ptr<IndexedImage> IndexedImage::invalidImageWithErrorMessage(std::u8string&& error)

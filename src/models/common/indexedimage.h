@@ -24,16 +24,16 @@ namespace UnTech {
  * The image contains a maximum of 256 colors.
  */
 class IndexedImage {
-public:
-    using iterator = uint8_t*;
-    using const_iterator = const uint8_t*;
-
 private:
-    const usize _size;
-    const std::u8string _errorString;
-    uint8_t* const _imageData;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+    const std::unique_ptr<uint8_t[]> _imageData;
     const size_t _dataSize;
+
+    const usize _size;
+
     std::vector<rgba> _palette;
+
+    const std::u8string _errorString;
 
 private:
     // Used to "privatize" the constructors while still allowing `std::make_shared`.
@@ -63,6 +63,9 @@ public:
     IndexedImage& operator=(const IndexedImage&) = delete;
     IndexedImage& operator=(IndexedImage&&) = delete;
 
+    ~IndexedImage() = default;
+
+public:
     IndexedImage(const usize size);
     IndexedImage(unsigned width, unsigned height)
         : IndexedImage(usize(width, height))
@@ -70,11 +73,7 @@ public:
     }
 
     // "Private" constructors for use with `std::make_shared`.
-    // Takes ownership of `data`
-    IndexedImage(const usize size, uint8_t*&& data, PrivateToken);
     IndexedImage(std::u8string&& errorString, PrivateToken);
-
-    ~IndexedImage();
 
     /**
      * Returns true if the image is empty.
@@ -84,14 +83,14 @@ public:
     [[nodiscard]] inline usize size() const { return _size; }
     [[nodiscard]] inline const std::u8string& errorString() const { return _errorString; }
 
-    inline auto& palette() { return _palette; }
+    [[nodiscard]] inline auto& palette() { return _palette; }
     [[nodiscard]] inline const auto& palette() const { return _palette; }
 
     // Only sets pixels if `color < palette().size()`
     void fill(const uint8_t color);
 
-    inline std::span<uint8_t> data() { return std::span{ _imageData, _dataSize }; }
-    [[nodiscard]] inline std::span<const uint8_t> data() const { return std::span{ _imageData, _dataSize }; }
+    [[nodiscard]] inline std::span<uint8_t> data() { return std::span{ _imageData.get(), _dataSize }; }
+    [[nodiscard]] inline std::span<const uint8_t> data() const { return std::span{ _imageData.get(), _dataSize }; }
 
     [[nodiscard]] inline unsigned pixelsPerScanline() const { return _size.width; }
 

@@ -21,15 +21,14 @@ namespace UnTech {
  * A simple image container class that contains a 32bpp RGBA image.
  */
 class Image {
-public:
-    using iterator = rgba*;
-    using const_iterator = const rgba*;
-
 private:
-    const usize _size;
-    const std::u8string _errorString;
-    rgba* const _imageData;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+    const std::unique_ptr<rgba[]> _imageData;
     const size_t _dataSize;
+
+    const usize _size;
+
+    const std::u8string _errorString;
 
 public:
     /**
@@ -60,6 +59,9 @@ public:
     Image& operator=(const Image&) = delete;
     Image& operator=(Image&&) = delete;
 
+    ~Image() = default;
+
+public:
     Image(const usize size);
     Image(unsigned width, unsigned height)
         : Image(usize(width, height))
@@ -68,10 +70,7 @@ public:
 
     // "Private" constructors for use with `std::make_shared`.
     // Takes ownership of `data`
-    Image(const usize size, rgba*&& data, PrivateToken);
     Image(std::u8string&& errorString, PrivateToken);
-
-    ~Image();
 
     /**
      * Returns true if the image is empty.
@@ -83,8 +82,8 @@ public:
 
     void fill(const rgba& color);
 
-    inline std::span<rgba> data() { return std::span{ _imageData, _dataSize }; }
-    [[nodiscard]] inline std::span<const rgba> data() const { return std::span{ _imageData, _dataSize }; }
+    [[nodiscard]] inline std::span<rgba> data() { return std::span{ _imageData.get(), _dataSize }; }
+    [[nodiscard]] inline std::span<const rgba> data() const { return std::span{ _imageData.get(), _dataSize }; }
 
     [[nodiscard]] inline unsigned pixelsPerScanline() const { return _size.width; }
 
