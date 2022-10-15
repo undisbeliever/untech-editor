@@ -770,8 +770,8 @@ void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, con
                 const auto tileId = *it++;
 
                 if (tileId < N_METATILES) {
-                    ImVec2 uv((tileId % TILESET_WIDTH) / float(TILESET_WIDTH),
-                              (tileId / TILESET_WIDTH) / float(TILESET_HEIGHT));
+                    ImVec2 uv(int(tileId % TILESET_WIDTH) / float(TILESET_WIDTH),
+                              int(tileId / TILESET_WIDTH) / float(TILESET_HEIGHT));
 
                     const ImU32 tint = bounds.contains(point(x, y)) ? Style::tileCursorInBoundsTint : Style::tileCursorOutOfBoundsTint;
 

@@ -506,7 +506,7 @@ void MetaTileTilesetEditorGui::tilePropertiesGui(const Project::ProjectFile& pro
         const ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static_assert(TILE_COLLISION_IMAGE_WIDTH == METATILE_SIZE_PX);
-        const ImVec2 uvSize = ImVec2(1.0f, 1.0f / (TILE_COLLISION_IMAGE_HEIGHT / METATILE_SIZE_PX));
+        const ImVec2 uvSize = ImVec2(1.0f, 1.0f / int(TILE_COLLISION_IMAGE_HEIGHT / METATILE_SIZE_PX));
 
         auto button = [&](const char* toolTip, const TC tct) {
             const ImVec2 uv(0.0f, unsigned(tct) * uvSize.y);
