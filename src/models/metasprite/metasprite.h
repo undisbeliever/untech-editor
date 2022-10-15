@@ -15,6 +15,7 @@
 #include "models/snes/tile.h"
 #include <filesystem>
 #include <string>
+#include <utility>
 
 namespace UnTech {
 class ErrorList;
@@ -49,7 +50,7 @@ struct FrameObject {
     {
     }
 
-    inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
+    [[nodiscard]] inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
 
     bool operator==(const FrameObject&) const = default;
 };
@@ -59,9 +60,9 @@ struct ActionPoint {
     idstring type;
 
     ActionPoint() = default;
-    ActionPoint(const ms8point& location, const idstring& type)
+    ActionPoint(const ms8point& location, idstring type)
         : location(location)
-        , type(type)
+        , type(std::move(type))
     {
     }
 
@@ -70,11 +71,11 @@ struct ActionPoint {
 
 struct CollisionBox {
     ms8rect aabb;
-    bool exists;
+    bool exists{ false };
 
     CollisionBox()
         : aabb(-8, -8, 16, 16)
-        , exists(false)
+
     {
     }
 
@@ -97,7 +98,7 @@ struct Frame {
     {
     }
 
-    Frame flip(bool hFlip, bool vFlip) const;
+    [[nodiscard]] Frame flip(bool hFlip, bool vFlip) const;
 
     bool operator==(const Frame&) const = default;
 };
@@ -106,7 +107,7 @@ struct FrameSet {
     static const std::u8string FILE_EXTENSION;
 
     idstring name;
-    TilesetType tilesetType;
+    TilesetType tilesetType{ TilesetType::ONE_ROW };
     idstring exportOrder;
     NamedList<Frame> frames;
     NamedList<Animation::Animation> animations;
@@ -117,7 +118,6 @@ struct FrameSet {
 
     FrameSet()
         : name()
-        , tilesetType(TilesetType::ONE_ROW)
         , exportOrder()
         , frames()
         , animations()

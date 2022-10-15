@@ -12,7 +12,7 @@
 
 using namespace UnTech;
 
-typedef CommandLine::OptionType OT;
+using OT = CommandLine::OptionType;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech LZ4 HC block compressor."
     "\nWARNING: This compressor uses a modified block frame and is incompatible with the lz4 standard.",

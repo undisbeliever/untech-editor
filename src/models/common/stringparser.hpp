@@ -20,7 +20,7 @@ inline bool StringParser::isWhitespaceChar(const std::u8string::value_type c)
     return c == u8' ' || c == u8'\t' || c == u8'\r' || c == u8'\n';
 }
 
-inline StringParser::StringParser(const std::u8string&& str)
+inline StringParser::StringParser(std::u8string&& str)
     : _inputString(std::move(str))
     , _pos(_inputString.cbegin())
     , _lineNo(0)

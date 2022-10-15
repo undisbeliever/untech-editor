@@ -17,7 +17,7 @@
 using namespace UnTech;
 using namespace UnTech::Snes;
 
-typedef CommandLine::OptionType OT;
+using OT = CommandLine::OptionType;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech png2snes",
     "png file",

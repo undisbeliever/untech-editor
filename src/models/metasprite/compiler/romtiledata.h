@@ -88,8 +88,6 @@ public:
         createTileBank();
     }
 
-    RomTileData(const RomTileData&) = delete;
-
     const std::vector<TileBank>& tileBanks() const { return _tileBanks; }
 
     uint16_t addLargeTile(const Snes::Tile16px& tile)

@@ -138,7 +138,7 @@ static std::optional<EntityFrame> entityFrame(const Entity::EntityRomEntry& entr
         std::min<unsigned>(entry.defaultPalette, frameSet.palettes.size()),
         entry.name,
         0,
-        0,
+        false,
     };
 }
 
@@ -154,7 +154,7 @@ static std::optional<EntityFrame> findMetaSprite(const Entity::EntityRomEntry& e
 
     if (const auto fs = projectData.frameSets().at(entry.frameSetId)) {
         if (fs->msFrameSet) {
-            return entityFrame(entry, *fs->msFrameSet, std::move(fs));
+            return entityFrame(entry, *fs->msFrameSet, fs);
         }
     }
 
@@ -220,7 +220,7 @@ static TwoPointRect frameBounds(const MetaSprite::MetaSprite::Frame& frame)
         }
     }
 
-    return TwoPointRect(minX, maxX, minY, maxY);
+    return { minX, maxX, minY, maxY };
 }
 
 // An extremely simple row-packing algorithm.

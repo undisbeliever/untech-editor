@@ -31,19 +31,19 @@ public:
         _data.reserve(_bankSize);
     }
 
-    bool valid() const { return _data.size() <= _bankSize; }
+    [[nodiscard]] bool valid() const { return _data.size() <= _bankSize; }
 
-    const std::vector<uint8_t>& data() const { return _data; }
-    bool empty() const { return _data.empty(); }
+    [[nodiscard]] const std::vector<uint8_t>& data() const { return _data; }
+    [[nodiscard]] bool empty() const { return _data.empty(); }
 
-    unsigned startingAddress() const { return _startingAddress; }
-    unsigned currentAddress() const { return _data.size() + _startingAddress; }
+    [[nodiscard]] unsigned startingAddress() const { return _startingAddress; }
+    [[nodiscard]] unsigned currentAddress() const { return _data.size() + _startingAddress; }
 
-    bool canAddData(const size_t s) const
+    [[nodiscard]] bool canAddData(const size_t s) const
     {
         return _data.size() + s <= _bankSize;
     }
-    bool canAddData(const std::vector<uint8_t>& d) const
+    [[nodiscard]] bool canAddData(const std::vector<uint8_t>& d) const
     {
         return canAddData(d.size());
     }

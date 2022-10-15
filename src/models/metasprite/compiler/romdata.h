@@ -13,6 +13,7 @@
 #include <climits>
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 // uses std::u8string instead of idstring as
@@ -40,16 +41,14 @@ private:
     std::vector<uint32_t> _offsets;
 
 public:
-    RomAddrTable(const std::u8string& label, const std::u8string& dataLabel)
-        : _label(label)
-        , _dataLabel(dataLabel)
+    RomAddrTable(std::u8string label, std::u8string dataLabel)
+        : _label(std::move(label))
+        , _dataLabel(std::move(dataLabel))
         , _offsets()
     {
     }
 
-    RomAddrTable(const RomAddrTable&) = delete;
-
-    inline const std::u8string& label() const { return _label; }
+    [[nodiscard]] inline const std::u8string& label() const { return _label; }
 
     // Searches for a duplicate table before inserting.
     // a value > 0xFFFF in the table is a NULL
@@ -87,12 +86,12 @@ class DataBlock {
 
 private:
     std::vector<uint8_t> _data;
-    unsigned _pos;
+    unsigned _pos{ 0 };
 
 public:
     explicit DataBlock(size_t size)
         : _data(size)
-        , _pos(0)
+
     {
     }
 
@@ -114,9 +113,9 @@ public:
         addWord(data.index);
     }
 
-    bool atEnd() const { return _pos == _data.size(); }
+    [[nodiscard]] bool atEnd() const { return _pos == _data.size(); }
 
-    const std::vector<uint8_t>& data() const { return _data; }
+    [[nodiscard]] const std::vector<uint8_t>& data() const { return _data; }
 };
 
 class RomBinData {
@@ -127,17 +126,16 @@ private:
     bool _nullableType;
 
 public:
-    explicit RomBinData(const std::u8string& label, bool nullableType = false)
-        : _label(label)
+    explicit RomBinData(std::u8string label, bool nullableType = false)
+        : _label(std::move(label))
         , _data()
         , _nullableType(nullableType)
     {
     }
-    RomBinData(const RomBinData&) = delete;
 
-    const std::u8string& label() const { return _label; }
-    bool nullableType() const { return _nullableType; }
-    const std::vector<uint8_t>& data() const { return _data; }
+    [[nodiscard]] const std::u8string& label() const { return _label; }
+    [[nodiscard]] bool nullableType() const { return _nullableType; }
+    [[nodiscard]] const std::vector<uint8_t>& data() const { return _data; }
 
     // Does not check for duplicates
     void addData_NoIndex(const std::vector<uint8_t>& sData)

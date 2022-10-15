@@ -25,7 +25,7 @@ namespace UnTech {
  * ImageCache is c++11 thread safe.
  */
 class ImageCache {
-private:
+public:
     ImageCache() = delete;
 
 public:

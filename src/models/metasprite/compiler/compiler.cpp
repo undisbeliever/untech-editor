@@ -29,7 +29,7 @@ CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
     , actionPointData(u8"Project.MS_ActionPointsData", true)
     , collisionBoxData(u8"Project.MS_CollisionBoxData", true)
     , frameSetData(u8"Project.MS_FrameSetData")
-    , valid(true)
+
 {
 }
 

@@ -33,11 +33,11 @@ public:
     {
     }
 
-    inline const uint16_t& data() const { return _data; }
+    [[nodiscard]] inline const uint16_t& data() const { return _data; }
 
-    inline uint8_t blue() const { return (_data >> 10) & 31; }
-    inline uint8_t green() const { return (_data >> 5) & 31; }
-    inline uint8_t red() const { return _data & 31; }
+    [[nodiscard]] inline uint8_t blue() const { return (_data >> 10) & 31; }
+    [[nodiscard]] inline uint8_t green() const { return (_data >> 5) & 31; }
+    [[nodiscard]] inline uint8_t red() const { return _data & 31; }
 
     void setData(const uint16_t data);
 

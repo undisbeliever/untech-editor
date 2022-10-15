@@ -70,17 +70,7 @@ static void processProgramArguments(const std::span<const char*> arguments)
     }
 }
 
-static void processProgramArguments(int argc, const char* argv[])
-{
-    if (argc < 1 || argv == nullptr) {
-        std::cerr << "Invalid program arguments";
-        abort();
-    }
-
-    processProgramArguments(std::span(argv, argc));
-}
-
-int main(int argc, const char* argv[])
+static int run_main(std::span<const char*> arguments)
 {
     using namespace UnTech::Gui;
 
@@ -92,7 +82,7 @@ int main(int argc, const char* argv[])
 
     Shaders::initialize();
 
-    processProgramArguments(argc, argv);
+    processProgramArguments(arguments);
 
     if (UnTechEditor::instance() == nullptr) {
         AboutPopup::openPopup();
@@ -143,4 +133,29 @@ int main(int argc, const char* argv[])
     imgui.cleanup();
 
     return EXIT_SUCCESS;
+}
+
+int main(int argc, const char** const argv)
+{
+    try {
+        if (argc < 1 || argv == nullptr) {
+            std::cerr << "Invalid program arguments";
+            return EXIT_FAILURE;
+        }
+
+        const auto arguments = std::span(argv, argc);
+
+        for (auto a : arguments) {
+            if (a == nullptr) {
+                std::cerr << "Invalid program arguments";
+                return EXIT_FAILURE;
+            }
+        }
+
+        return run_main(arguments);
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "UNCAUGHT EXCEPTION: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 }

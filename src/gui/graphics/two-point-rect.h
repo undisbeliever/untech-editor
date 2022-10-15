@@ -44,22 +44,22 @@ struct TwoPointRect {
     {
     }
 
-    int width() const { return x2 - x1; }
-    int height() const { return y2 - y1; }
+    [[nodiscard]] int width() const { return x2 - x1; }
+    [[nodiscard]] int height() const { return y2 - y1; }
 
-    bool contains(int x, int y) const
+    [[nodiscard]] bool contains(int x, int y) const
     {
         return x >= this->x1 && x < this->x2
                && y >= this->y1 && y <= this->y2;
     }
 
-    bool contains(const point p) const
+    [[nodiscard]] bool contains(const point p) const
     {
         return p.x >= this->x1 && p.x < this->x2
                && p.y >= this->y1 && p.y <= this->y2;
     }
 
-    bool contains(const TwoPointRect r) const
+    [[nodiscard]] bool contains(const TwoPointRect r) const
     {
         return r.x1 >= this->x1 && r.x2 <= this->x2
                && r.y1 >= this->y1 && r.y2 <= this->y2;

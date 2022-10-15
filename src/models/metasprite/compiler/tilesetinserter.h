@@ -43,13 +43,13 @@ struct TilesetData {
 
     uint8_t tilesetTypeByte;
 
-    std::optional<unsigned> tilesetIndexForFrameId(unsigned frameId) const
+    [[nodiscard]] std::optional<unsigned> tilesetIndexForFrameId(unsigned frameId) const
     {
         int tilesetId = frameTilesets.at(frameId);
         return tilesetId >= 0 ? std::optional<int>(tilesetId) : std::nullopt;
     }
 
-    const FrameTilesetData& getTileset(std::optional<unsigned> index) const
+    [[nodiscard]] const FrameTilesetData& getTileset(std::optional<unsigned> index) const
     {
         return index ? dynamicTilesets.at(*index) : staticTileset;
     }

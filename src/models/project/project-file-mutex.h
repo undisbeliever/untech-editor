@@ -6,22 +6,24 @@
 
 #pragma once
 
+#include "project.h"
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 
 namespace UnTech::Project {
-
-struct ProjectFile;
 
 class ProjectFileMutex {
     mutable std::shared_mutex _mutex;
     std::unique_ptr<ProjectFile> const _project;
 
-private:
+public:
     ProjectFileMutex(const ProjectFileMutex&) = delete;
     ProjectFileMutex(ProjectFileMutex&&) = delete;
     ProjectFileMutex& operator=(const ProjectFileMutex&) = delete;
     ProjectFileMutex& operator=(ProjectFileMutex&&) = delete;
+
+    ~ProjectFileMutex() = default;
 
 public:
     ProjectFileMutex(std::unique_ptr<ProjectFile> project)
@@ -38,7 +40,9 @@ public:
     {
         std::shared_lock lock(_mutex);
 
-        f(const_cast<const ProjectFile&>(*_project));
+        // Ensure `f` has read-only access to `_project`
+        const ProjectFile& const_pf = *_project;
+        f(const_pf);
     }
 
     template <typename Function>

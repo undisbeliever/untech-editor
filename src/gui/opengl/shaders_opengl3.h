@@ -70,7 +70,7 @@ private:
     bool _showInteractiveTiles;
     bool _showTileCollisions;
 
-private:
+public:
     MtTileset(const MtTileset&) = delete;
     MtTileset(MtTileset&&) = delete;
     MtTileset& operator=(const MtTileset&) = delete;
@@ -103,11 +103,14 @@ public:
 
     void setTileCollisions(const TileCollisionData& tileCollisions)
     {
+        static_assert(std::is_trivial_v<TileCollisionData>);
         static_assert(sizeof(MetaTiles::TileCollisionType) == 1);
         static_assert(sizeof(TileCollisionData) == TC_TEXTURE_SIZE * TC_TEXTURE_SIZE);
 
-        _tileCollisionsData.setData(usize(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE),
-                                    reinterpret_cast<const uint8_t*>(tileCollisions.data()));
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        const auto* data = reinterpret_cast<const uint8_t*>(tileCollisions.data());
+
+        _tileCollisionsData.setData(usize(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE), data);
 
         if (_showTileCollisions) {
             _textureValid = false;

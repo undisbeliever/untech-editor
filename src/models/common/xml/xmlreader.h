@@ -34,7 +34,7 @@ public:
     explicit xml_error(const XmlReader& xml, const std::u8string_view message);
     explicit xml_error(const XmlReader& tag, const std::u8string_view message, const std::exception& error);
 
-    inline const std::filesystem::path& filePath() const { return _filePath; }
+    [[nodiscard]] inline const std::filesystem::path& filePath() const { return _filePath; }
 
 private:
     const std::filesystem::path _filePath;
@@ -69,7 +69,7 @@ private:
 
     std::stack<std::u8string_view> _tagStack;
     std::u8string_view _currentTag;
-    bool _inSelfClosingTag;
+    bool _inSelfClosingTag{};
 
 public:
     XmlReader() = delete;
@@ -78,14 +78,16 @@ public:
     XmlReader& operator=(const XmlReader&) = delete;
     XmlReader& operator=(XmlReader&&) = delete;
 
-    XmlReader(std::u8string&& xml, const std::filesystem::path& filePath = std::filesystem::path());
+    ~XmlReader() = default;
+
+    XmlReader(std::u8string&& xml, std::filesystem::path filePath = std::filesystem::path());
 
     static std::unique_ptr<XmlReader> fromFile(const std::filesystem::path& filePath);
 
     /** The filesystem path of the XML file, may be empty */
-    inline const std::filesystem::path& filePath() const { return _filePath; }
+    [[nodiscard]] inline const std::filesystem::path& filePath() const { return _filePath; }
 
-    std::u8string filename() const;
+    [[nodiscard]] std::u8string filename() const;
 
     /** restart processing from the beginning */
     void parseDocument();
@@ -123,10 +125,10 @@ public:
     void parseCloseTag();
 
     /** the current line number of the cursor */
-    inline unsigned lineNo() const { return _input.lineNo(); }
+    [[nodiscard]] inline unsigned lineNo() const { return _input.lineNo(); }
 
-    std::u8string generateErrorString(const std::u8string_view message) const;
-    std::u8string generateErrorString(const std::u8string_view message, const std::exception& ex) const;
+    [[nodiscard]] std::u8string generateErrorString(const std::u8string_view message) const;
+    [[nodiscard]] std::u8string generateErrorString(const std::u8string_view message, const std::exception& ex) const;
 
 private:
     void skipText();

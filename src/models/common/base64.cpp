@@ -13,7 +13,7 @@ namespace UnTech::Base64 {
 constexpr unsigned BLOCK_SIZE_BYTES = 3;
 constexpr unsigned BLOCK_SIZE_CHARS = 4;
 
-char8_t lookup[64] = {
+constexpr std::array<char8_t, 64> lookup = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -25,19 +25,19 @@ char8_t lookup[64] = {
 static inline std::array<char8_t, BLOCK_SIZE_CHARS> encodeBlock(std::span<const uint8_t, 3> s)
 {
     return {
-        lookup[((s[0] >> 2))],
-        lookup[((s[0] & 0x03) << 4) | (s[1] >> 4)],
-        lookup[((s[1] & 0x0F) << 2) | (s[2] >> 6)],
-        lookup[((s[2] & 0x3F))]
+        lookup.at(((s[0] >> 2))),
+        lookup.at(((s[0] & 0x03) << 4) | (s[1] >> 4)),
+        lookup.at(((s[1] & 0x0F) << 2) | (s[2] >> 6)),
+        lookup.at(((s[2] & 0x3F)))
     };
 }
 
 static inline std::array<char8_t, BLOCK_SIZE_CHARS> encodeBlock(std::span<const uint8_t, 2> s)
 {
     return {
-        lookup[((s[0] >> 2))],
-        lookup[((s[0] & 0x03) << 4) | (s[1] >> 4)],
-        lookup[((s[1] & 0x0F) << 2)],
+        lookup.at(((s[0] >> 2))),
+        lookup.at(((s[0] & 0x03) << 4) | (s[1] >> 4)),
+        lookup.at(((s[1] & 0x0F) << 2)),
         u8'=',
     };
 }
@@ -45,8 +45,8 @@ static inline std::array<char8_t, BLOCK_SIZE_CHARS> encodeBlock(std::span<const 
 static inline std::array<char8_t, BLOCK_SIZE_CHARS> encodeBlock(std::span<const uint8_t, 1> s)
 {
     return {
-        lookup[((s[0] >> 2))],
-        lookup[((s[0] & 0x03) << 4)],
+        lookup.at(((s[0] >> 2))),
+        lookup.at(((s[0] & 0x03) << 4)),
         u8'=',
         u8'='
     };
@@ -115,7 +115,8 @@ inline uint8_t get_val(const char& c)
 
 size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string_view text)
 {
-    uint8_t token, tmp;
+    uint8_t token{};
+    uint8_t tmp{};
 
     // `bytesDecoded` can be larger then the size of the buffer
     size_t bytesDecoded = 0;
@@ -130,6 +131,7 @@ size_t decodeToBuffer(std::span<uint8_t> buffer, const std::u8string_view text)
 
     auto textIt = text.begin();
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define NEXT_TOKEN()                \
     do {                            \
         if (textIt == text.end()) { \

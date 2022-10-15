@@ -19,8 +19,9 @@ namespace UnTech::Entity {
 
 const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 6;
 
-#define BASE_ROM_STRUCT u8"BaseEntityRomStruct"
-#define ENTITY_ROM_STRUCT_NAMESPACE u8"Project.EntityRomStructs"
+constexpr std::u8string_view BASE_ROM_STRUCT = u8"BaseEntityRomStruct";
+constexpr std::u8string_view ENTITY_ROM_STRUCT_NAMESPACE = u8"Project.EntityRomStructs";
+
 static const idstring baseRomStruct = u8"BASE_ROM_STRUCT"_id;
 
 const std::unordered_set<idstring> INVALID_NAMES{
@@ -202,7 +203,7 @@ static bool validate(const EntityRomStruct& input, const unsigned structIndex, E
         addError(u8"Invalid name ", input.name);
     }
     if (input.name == baseRomStruct) {
-        addError(u8"Name cannot be " BASE_ROM_STRUCT);
+        addError(u8"Name cannot be ", BASE_ROM_STRUCT);
     }
     if (input.parent.isValid() && input.parent == input.name) {
         addError(u8"Parent cannot refer to self");
@@ -384,11 +385,11 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
 bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         err.addErrorString(msg...);
         valid = false;
     };
-    auto addListIdError = [&](unsigned index, const auto&... msg) {
+    auto addListIdError = [&](unsigned index, const auto... msg) {
         err.addError(listIdError(index, msg...));
         valid = false;
     };
@@ -506,7 +507,7 @@ static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunc
                                                       const StructFieldMap& structFieldMap,
                                                       const Project::ProjectFile& project, ErrorList& err)
 {
-    auto addError = [&](const EntityFunctionTable& ft, const unsigned ftIndex, const auto&... msg) {
+    auto addError = [&](const EntityFunctionTable& ft, const unsigned ftIndex, const auto... msg) {
         err.addError(entityFunctionTableError(ft, ftIndex, msg...));
     };
 
@@ -561,7 +562,7 @@ static void writeIncFile_StructField(StringStream& out, const StructField& f)
 // dependency error when assembling the project.
 static void writeIncFile_BaseRomStruct(StringStream& out)
 {
-    out.write(u8"namespace " ENTITY_ROM_STRUCT_NAMESPACE u8"." BASE_ROM_STRUCT u8" {\n",
+    out.write(u8"namespace ", ENTITY_ROM_STRUCT_NAMESPACE, u8".", BASE_ROM_STRUCT, u8" {\n",
               u8"\tbasestruct_offset(", CompiledEntityRomData::ROM_DATA_LABEL, u8")\n");
 
     auto writeField = [&](std::u8string_view name, DataType type) {
@@ -585,8 +586,8 @@ static void writeIncFile_RomStruct(StringStream& out, const EntityRomStruct& s, 
     const idstring& parent = s.parent.isValid() ? s.parent : baseRomStruct;
     const char8_t* structType = hasChild ? u8"basestruct" : u8"childstruct";
 
-    out.write(u8"namespace " ENTITY_ROM_STRUCT_NAMESPACE u8".", s.name, u8" {\n\t",
-              structType, u8" (" ENTITY_ROM_STRUCT_NAMESPACE u8".", parent, u8")\n");
+    out.write(u8"namespace ", ENTITY_ROM_STRUCT_NAMESPACE, u8".", s.name, u8" {\n\t",
+              structType, u8" (", ENTITY_ROM_STRUCT_NAMESPACE, u8".", parent, u8")\n");
 
     for (const auto& f : s.fields) {
         writeIncFile_StructField(out, f);
@@ -656,7 +657,7 @@ static void writeIncFile_FunctionTableDefines(StringStream& out, const NamedList
 {
     for (const auto& ft : functionTables) {
         const idstring& structName = ft.entityStruct.isValid() ? ft.entityStruct : baseRomStruct;
-        out.write(u8"define ", prefixForEntityType(ft.entityType), ft.name, u8".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE u8".", structName,
+        out.write(u8"define ", prefixForEntityType(ft.entityType), ft.name, u8".RomStruct = ", ENTITY_ROM_STRUCT_NAMESPACE, u8".", structName,
                   u8"\ndefine ", prefixForEntityType(ft.entityType), ft.name, u8".ExportOrder = MSEO.", ft.exportOrder, u8"\n");
     }
 

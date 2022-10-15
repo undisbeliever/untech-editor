@@ -15,11 +15,6 @@
 
 namespace UnTech::Xml {
 
-static inline std::u8string_view toStringView(const std::u8string_view::const_iterator begin, const std::u8string_view::const_iterator end)
-{
-    return std::u8string_view(&*begin, std::distance(begin, end));
-}
-
 XmlWriter::XmlWriter(const std::filesystem::path& filePath, const std::u8string_view doctype, size_t bufferSize)
     : _out(bufferSize)
     , _filePath(filePath)
@@ -183,7 +178,7 @@ void XmlWriter::escapeAndWrite(const std::u8string_view text)
         {
             const auto end = std::find_first_of(it, text.end(),
                                                 toMatch.begin(), toMatch.end());
-            _out.write(toStringView(it, end));
+            _out.write(std::u8string_view(it, end));
             it = end;
         }
 

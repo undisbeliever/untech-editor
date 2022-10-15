@@ -24,8 +24,8 @@ struct Tile16 {
     uint16_t largeTileId = INVALID_SMALL_TILE;
     std::array<uint16_t, 4> smallTileIds = INVALID_SMALL_TILES_ARRAY;
 
-    bool isLarge() const { return largeTileId != INVALID_SMALL_TILE; }
-    bool isSmall() const { return largeTileId == INVALID_SMALL_TILE; }
+    [[nodiscard]] bool isLarge() const { return largeTileId != INVALID_SMALL_TILE; }
+    [[nodiscard]] bool isSmall() const { return largeTileId == INVALID_SMALL_TILE; }
 
     bool operator==(const Tile16&) const = default;
     auto operator<=>(const Tile16&) const = default;

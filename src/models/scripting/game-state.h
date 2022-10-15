@@ -63,7 +63,7 @@ struct GameStateData {
         unsigned index;
         idstring room;
 
-        bool allowedInRoom(const idstring& r) const
+        [[nodiscard]] bool allowedInRoom(const idstring& r) const
         {
             return !room.isValid() || r == room;
         }

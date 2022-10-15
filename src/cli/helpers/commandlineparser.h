@@ -37,11 +37,11 @@ public:
     // cppcheck-suppress noExplicitConstructor
     OptionValue(std::filesystem::path&& p);
 
-    Type type() const { return _type; }
+    [[nodiscard]] Type type() const { return _type; }
     operator bool() const { return _boolean; }
-    bool boolean() const { return _boolean; }
-    unsigned uint() const { return _uint; }
-    const std::filesystem::path& path() const { return _path; }
+    [[nodiscard]] bool boolean() const { return _boolean; }
+    [[nodiscard]] unsigned uint() const { return _uint; }
+    [[nodiscard]] const std::filesystem::path& path() const { return _path; }
 };
 
 enum class OptionType {
@@ -60,7 +60,7 @@ struct Argument {
     OptionValue defaultValue;
     std::string helpText;
 
-    bool hasParameter() const;
+    [[nodiscard]] bool hasParameter() const;
 };
 
 struct Config {
@@ -82,13 +82,13 @@ public:
     explicit Parser(const Config& config);
 
     // may exit application on help/version/error
-    void parse(int argc, const char* argv[]);
+    void parse(int argc, const char** const argv);
 
     void printHelpText() const;
     void printVersion() const;
 
-    const std::filesystem::path& inputFilename() const { return _inputFilename; }
-    const auto& options() const { return _options; }
+    [[nodiscard]] const std::filesystem::path& inputFilename() const { return _inputFilename; }
+    [[nodiscard]] const auto& options() const { return _options; }
 
 private:
     void parse(const std::span<const char*> arguments);

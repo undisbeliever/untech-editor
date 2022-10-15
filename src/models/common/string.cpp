@@ -4,7 +4,9 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+// NOLINTNEXTLINE(modernize-deprecated-headers)
 #include "string.h"
+
 #include <cassert>
 #include <fstream>
 #include <span>
@@ -21,6 +23,8 @@ static __attribute__((always_inline)) inline std::optional<unsigned> checkUtf8Co
 
     // Code based off The Unicode 7.0 Standard
     // Table 3-7. *Well-Formed UTF-8 Byte Sequences*
+
+    // NOLINTBEGIN(bugprone-branch-clone)
 
     if (c[0] <= 0x7F) {
         return 1;
@@ -70,6 +74,8 @@ static __attribute__((always_inline)) inline std::optional<unsigned> checkUtf8Co
     else {
         return std::nullopt;
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 bool checkUtf8WellFormed(const std::u8string_view str)

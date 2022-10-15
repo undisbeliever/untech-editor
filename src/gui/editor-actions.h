@@ -62,13 +62,15 @@ template <typename T>
 const std::pair<const T*, const std::filesystem::path&>
 fileListItem(const ExternalFileList<T>* list, const typename ExternalFileList<T>::size_type index)
 {
+    const static std::filesystem::path BLANK_FILENAME{};
+
     if (list) {
         if (index < list->size()) {
             auto& item = list->item(index);
             return { item.value.get(), item.filename };
         }
     }
-    return { nullptr, {} };
+    return { nullptr, BLANK_FILENAME };
 }
 
 template <typename ActionPolicy>
@@ -80,13 +82,15 @@ struct EditorActions {
     protected:
         EditorT* const editor;
 
+    public:
+        ~BaseAction() override = default;
+
     protected:
         BaseAction(EditorT* editor)
             : editor(editor)
         {
             assert(editor != nullptr);
         }
-        virtual ~BaseAction() = default;
 
         EditorDataT& getProjectData(Project::ProjectFile& projectFile) const
         {
@@ -103,7 +107,7 @@ struct EditorActions {
         }
 
     public:
-        virtual void notifyGui(AbstractEditorGui* gui) const final
+        void notifyGui(AbstractEditorGui* gui) const final
         {
             editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
@@ -264,18 +268,18 @@ struct EditorFieldActions {
         {
             assert(editor != nullptr);
         }
-        virtual ~EditFieldAction() = default;
+        ~EditFieldAction() override = default;
 
-        virtual void notifyGui(AbstractEditorGui* gui) const final
+        void notifyGui(AbstractEditorGui* gui) const final
         {
             editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
 
-        virtual void firstDo_editorData() const final
+        void firstDo_editorData() const final
         {
         }
 
-        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             FieldT& projectData = this->getProjectField(projectFile);
 
@@ -287,7 +291,7 @@ struct EditorFieldActions {
             return !(oldValue == newValue);
         }
 
-        virtual void undo(Project::ProjectFile& projectFile) const final
+        void undo(Project::ProjectFile& projectFile) const final
         {
             FieldT& projectData = this->getProjectField(projectFile);
             FieldT& editorData = this->getEditorField();
@@ -296,7 +300,7 @@ struct EditorFieldActions {
             editorData = oldValue;
         }
 
-        virtual void redo(Project::ProjectFile& projectFile) const final
+        void redo(Project::ProjectFile& projectFile) const final
         {
             FieldT& projectData = this->getProjectField(projectFile);
             FieldT& editorData = this->getEditorField();

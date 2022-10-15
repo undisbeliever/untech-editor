@@ -19,43 +19,25 @@ struct UnsignedBits {
 private:
     T data;
 
-    inline auto& _op(const T v)
-    {
-        data = v & MASK;
-        return *this;
-    }
-
 public:
     constexpr static unsigned MASK = (1 << BITS) - 1;
-
-    ~UnsignedBits() = default;
-    UnsignedBits(const UnsignedBits&) = default;
-    UnsignedBits(UnsignedBits&&) = default;
-    UnsignedBits& operator=(const UnsignedBits&) = default;
-    UnsignedBits& operator=(UnsignedBits&&) = default;
 
     constexpr UnsignedBits()
         : data(0)
     {
     }
 
-    constexpr UnsignedBits(const T& v)
+    constexpr UnsignedBits(const T v)
         : data(v & MASK)
     {
     }
 
     inline operator T() const { return data; }
 
-    inline auto& operator=(const T v) { return _op(v); }
-    inline auto& operator&=(const T v) { return _op(data & v); }
-    inline auto& operator|=(const T v) { return _op(data | v); }
-    inline auto& operator^=(const T v) { return _op(data ^ v); }
-    inline auto& operator+=(const T v) { return _op(data + v); }
-    inline auto& operator-=(const T v) { return _op(data - v); }
-    inline auto& operator*=(const T v) { return _op(data * v); }
-    inline auto& operator/=(const T v) { return _op(data / v); }
-    inline auto& operator%=(const T v) { return _op(data % v); }
-    inline auto& operator<<=(const T v) { return _op(data << v); }
-    inline auto& operator>>=(const T v) { return _op(data >> v); }
+    inline auto& operator=(const T v)
+    {
+        data = v & MASK;
+        return *this;
+    }
 };
 }

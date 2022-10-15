@@ -41,10 +41,10 @@ struct ms8point {
             throw out_of_range(u8"upoint.y");
         }
 
-        return ms8point(px, py);
+        return { px, py };
     }
 
-    ms8point flip(bool hFlip, bool vFlip) const
+    [[nodiscard]] ms8point flip(bool hFlip, bool vFlip) const
     {
         ms8point p = *this;
 
@@ -58,7 +58,7 @@ struct ms8point {
         return p;
     }
 
-    ms8point flip(bool hFlip, bool vFlip, unsigned width, unsigned height) const
+    [[nodiscard]] ms8point flip(bool hFlip, bool vFlip, unsigned width, unsigned height) const
     {
         ms8point p = *this;
 
@@ -72,7 +72,7 @@ struct ms8point {
         return p;
     }
 
-    ms8point flip(bool hFlip, bool vFlip, unsigned squareSize) const
+    [[nodiscard]] ms8point flip(bool hFlip, bool vFlip, unsigned squareSize) const
     {
         return flip(hFlip, vFlip, squareSize, squareSize);
     }
@@ -104,7 +104,7 @@ struct ms8rect {
     {
     }
 
-    constexpr ms8rect(int x, int y, uint8_t width, uint8_t height)
+    constexpr ms8rect(int_ms8_t x, int_ms8_t y, uint8_t width, uint8_t height)
         : x(x)
         , y(y)
         , width(width)
@@ -138,15 +138,18 @@ struct ms8rect {
             throw out_of_range(u8"urect.height");
         }
 
-        return ms8rect(rx, ry, r.width, r.height);
+        static_assert(std::is_unsigned_v<decltype(r.width)>);
+        static_assert(std::is_unsigned_v<decltype(r.height)>);
+
+        return { rx, ry, uint8_t(r.width), uint8_t(r.height) };
     }
 
-    inline int left() const { return x; }
-    inline int right() const { return x + width; }
-    inline int top() const { return y; }
-    inline int bottom() const { return y + height; }
+    [[nodiscard]] inline int left() const { return x; }
+    [[nodiscard]] inline int right() const { return x + width; }
+    [[nodiscard]] inline int top() const { return y; }
+    [[nodiscard]] inline int bottom() const { return y + height; }
 
-    inline usize size() const { return usize(width, height); }
+    [[nodiscard]] inline usize size() const { return { width, height }; }
 
     // extends this m8rect so the other ms8rect fits in it.
     void extend(const ms8rect& other)
@@ -164,19 +167,19 @@ struct ms8rect {
         this->height = std::max(oldBottom, other.bottom()) - this->y;
     }
 
-    inline bool contains(const ms8point& p) const
+    [[nodiscard]] inline bool contains(const ms8point& p) const
     {
         return p.x >= left() && p.x < right()
                && p.y >= top() && p.y < bottom();
     }
 
-    inline bool contains(const point& p) const
+    [[nodiscard]] inline bool contains(const point& p) const
     {
         return p.x >= left() && p.x < right()
                && p.y >= top() && p.y < bottom();
     }
 
-    ms8rect flip(bool hFlip, bool vFlip) const
+    [[nodiscard]] ms8rect flip(bool hFlip, bool vFlip) const
     {
         ms8rect r = *this;
 

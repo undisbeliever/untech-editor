@@ -95,15 +95,15 @@ public:
 public:
     AbstractMetaTileEditorGui(const char* strId);
 
-    virtual bool setEditorData(AbstractEditorData* data) override;
-    virtual void resetState() override;
-    virtual void editorClosed() override;
+    bool setEditorData(AbstractEditorData* data) override;
+    void resetState() override;
+    void editorClosed() override;
 
-    virtual void viewMenu() override;
+    void viewMenu() override;
 
 protected:
     virtual void selectionChanged() = 0;
-    virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
+    [[nodiscard]] virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
 
     void showLayerButtons();
 
@@ -128,11 +128,11 @@ protected:
     bool selectObjectsButton();
     void editModeButtons();
 
-    EditMode editMode() const { return _currentEditMode; }
+    [[nodiscard]] EditMode editMode() const { return _currentEditMode; }
     void setEditMode(EditMode mode);
 
     void setTileCursor(grid<uint16_t>&& tileCursor);
-    const grid<uint16_t>& tileCursor() const;
+    [[nodiscard]] const grid<uint16_t>& tileCursor() const;
 
     void commitPlacedTiles();
     void abandonPlacedTiles();

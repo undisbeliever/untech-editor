@@ -90,11 +90,13 @@ protected:
     ResourceState _state;
     std::vector<ResourceStatus> _resources;
 
-private:
+public:
     ResourceListStatus(const ResourceListStatus&) = delete;
     ResourceListStatus(ResourceListStatus&&) = delete;
     ResourceListStatus& operator=(const ResourceListStatus&) = delete;
     ResourceListStatus& operator=(ResourceListStatus&&) = delete;
+
+    ~ResourceListStatus() = default;
 
 public:
     ResourceListStatus(std::u8string typeNameSingle, std::u8string typeNamePlural);
@@ -130,8 +132,11 @@ public:
     {
         std::shared_lock lock(_mutex);
 
-        f(const_cast<const ResourceState&>(_state),
-          const_cast<const std::vector<ResourceStatus>&>(_resources));
+        // Ensure `f` has read-only access to `_state` and `_resources`
+        const ResourceState& const_state = _state;
+        const std::vector<ResourceStatus>& const_resources = _resources;
+
+        f(const_state, const_resources);
     }
 
     template <typename Function>
@@ -140,7 +145,9 @@ public:
         std::shared_lock lock(_mutex);
 
         if (index < _resources.size()) {
-            f(const_cast<const ResourceStatus&>(_resources.at(index)));
+            // Ensure `f` has read-only access to `_resources`
+            const ResourceStatus& const_status = _resources.at(index);
+            f(const_status);
         }
     }
 };
@@ -324,11 +331,13 @@ private:
 
     std::array<std::reference_wrapper<ResourceListStatus>, N_RESOURCE_TYPES> _resourceListStatuses;
 
-private:
+public:
     ProjectData(const ProjectData&) = delete;
     ProjectData(ProjectData&&) = delete;
     ProjectData& operator=(const ProjectData&) = delete;
     ProjectData& operator=(ProjectData&&) = delete;
+
+    ~ProjectData() = default;
 
 public:
     ProjectData();

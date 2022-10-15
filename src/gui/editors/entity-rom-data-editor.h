@@ -38,9 +38,9 @@ private:
 public:
     explicit EntityRomDataEditorData(ItemIndex itemIndex);
 
-    virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void errorDoubleClicked(const AbstractError*) final;
-    virtual void updateSelection() final;
+    bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    void errorDoubleClicked(const AbstractError*) final;
+    void updateSelection() final;
 };
 
 class EntityRomDataEditorGui final : public AbstractEditorGui {
@@ -58,12 +58,12 @@ private:
 public:
     EntityRomDataEditorGui();
 
-    virtual bool setEditorData(AbstractEditorData* data) final;
-    virtual void resetState() final;
-    virtual void editorClosed() final;
+    bool setEditorData(AbstractEditorData* data) final;
+    void resetState() final;
+    void editorClosed() final;
 
-    virtual void processGui(const Project::ProjectFile& projectFile,
-                            const Project::ProjectData& projectData) final;
+    void processGui(const Project::ProjectFile& projectFile,
+                    const Project::ProjectData& projectData) final;
 
 private:
     void listIdsGui();
@@ -73,7 +73,7 @@ private:
     template <typename ActionPolicy>
     void entityEntriesGui(const char8_t* text, const Project::ProjectFile& projectFile);
 
-    std::vector<unsigned> generateStructChain(const idstring& name) const;
+    [[nodiscard]] std::vector<unsigned> generateStructChain(const idstring& name) const;
 };
 
 }

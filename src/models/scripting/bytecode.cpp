@@ -47,8 +47,6 @@ static unsigned argumentSize(const ArgumentType type)
         return 0;
 
     case ArgumentType::Flag:
-        return 1;
-
     case ArgumentType::Word:
         return 1;
 
@@ -56,14 +54,8 @@ static unsigned argumentSize(const ArgumentType type)
         return 2;
 
     case ArgumentType::RoomScript:
-        return 1;
-
     case ArgumentType::EntityGroup:
-        return 1;
-
     case ArgumentType::Room:
-        return 1;
-
     case ArgumentType::RoomEntrance:
         return 1;
     }
@@ -93,7 +85,7 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
 
     unsigned currentOpcode = 0;
     auto addInstruction = [&](const Instruction& inst, const unsigned index) {
-        InstructionData iData;
+        InstructionData iData{};
 
         iData.opcode = currentOpcode;
         iData.arguments = inst.arguments;
@@ -177,12 +169,12 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     return out;
 }
 
-static std::array<std::u8string, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
+static constexpr std::array<std::u8string_view, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
     u8"_Flag0",
     u8"_Flag1",
 };
 
-static std::array<std::u8string, 8> ARGUMENT_SUFFIXES{
+static constexpr std::array<std::u8string_view, 8> ARGUMENT_SUFFIXES{
     u8"",
     u8"_ ERROR _", // Flag
     u8"_Word",

@@ -147,9 +147,10 @@ struct SpriteImporterEditorData::AP {
 
 static usize originRange(const usize& frameSize)
 {
-    return usize(
+    return {
         std::min(SI::MAX_ORIGIN, frameSize.width),
-        std::min(SI::MAX_ORIGIN, frameSize.height));
+        std::min(SI::MAX_ORIGIN, frameSize.height)
+    };
 }
 
 SpriteImporterEditorData::SpriteImporterEditorData(ItemIndex itemIndex)
@@ -348,8 +349,6 @@ void SpriteImporterEditorGui::frameSetPropertiesGui(const Project::ProjectFile& 
         }
 
         {
-            bool edited;
-
             ImColor c(fs.transparentColor.rgb());
 
             const std::u8string tcString = fs.transparentColor.rgbHexString();
@@ -375,11 +374,11 @@ void SpriteImporterEditorGui::frameSetPropertiesGui(const Project::ProjectFile& 
                 ImGui::EndCombo();
             }
 
-            if (ImGui::ColorEdit3("##ColorEdit", (float*)&c.Value)) {
+            if (ImGui::ColorEdit3("##ColorEdit", &c)) {
                 fs.transparentColor = rgba::fromRgba(c);
                 fs.transparentColor.alpha = 0xff;
             }
-            edited = ImGui::IsItemDeactivatedAfterEdit();
+            const bool edited = ImGui::IsItemDeactivatedAfterEdit();
 
             if (edited) {
                 EditorActions<AP::FrameSet>::fieldEdited<

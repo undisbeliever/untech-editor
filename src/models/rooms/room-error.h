@@ -61,9 +61,8 @@ public:
 
 public:
     explicit InvalidRoomTilesError(std::vector<InvalidRoomTile>&& invalidTiles_);
-    virtual ~InvalidRoomTilesError();
 
-    virtual void printIndented(StringStream& out) const final;
+    void printIndented(StringStream& out) const final;
 };
 
 }

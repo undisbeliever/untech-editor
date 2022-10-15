@@ -23,10 +23,11 @@ public:
     {
     }
 
-    const std::u8string& msg() const noexcept { return message; }
+    [[nodiscard]] const std::u8string& msg() const noexcept { return message; }
 
-    virtual const char* what() const noexcept final
+    [[nodiscard]] const char* what() const noexcept final
     {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         return reinterpret_cast<const char*>(message.c_str());
     }
 };

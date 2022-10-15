@@ -12,21 +12,23 @@ namespace UnTech {
 std::u8string convert_old_string(const char* str)
 {
     const std::string_view sv(str);
-    return std::u8string(sv.begin(), sv.end());
+    return { sv.begin(), sv.end() };
 }
 
 std::u8string convert_old_string(std::string_view sv)
 {
-    return std::u8string(sv.begin(), sv.end());
+    return { sv.begin(), sv.end() };
 }
 
 void stdout_write(std::u8string_view s)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     std::cout.write(reinterpret_cast<const char*>(s.data()), s.size());
 }
 
 void stderr_write(std::u8string_view s)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     std::cerr.write(reinterpret_cast<const char*>(s.data()), s.size());
 }
 

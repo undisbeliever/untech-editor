@@ -16,6 +16,7 @@
 #include <cassert>
 #include <filesystem>
 
+#include <utility>
 #include <vector>
 
 namespace UnTech::Project {
@@ -37,8 +38,8 @@ private:
         const std::u8string name;
         const unsigned address;
 
-        DataItem(const std::u8string& n, unsigned a)
-            : name(n)
+        DataItem(std::u8string n, unsigned a)
+            : name(std::move(n))
             , address(a)
         {
         }
@@ -63,16 +64,16 @@ private:
 
 public:
     RomDataWriter(const MemoryMapSettings& memoryMap,
-                  const std::u8string& blockName,
-                  const std::u8string& blockRodata,
+                  std::u8string blockName,
+                  std::u8string blockRodata,
                   const std::vector<Constant>& constants)
         : _memoryMap(memoryMap)
         , _bankSize(memoryMap.bankSize())
         , _constants(constants)
         , _romBanks()
         , _namedData()
-        , _blockName(blockName)
-        , _blockRodata(blockRodata)
+        , _blockName(std::move(blockName))
+        , _blockRodata(std::move(blockRodata))
     {
         _romBanks.reserve(memoryMap.nBanks);
 
@@ -203,7 +204,7 @@ public:
         incData.write(u8"\n\n");
     }
 
-    std::vector<uint8_t> writeBinaryData() const
+    [[nodiscard]] std::vector<uint8_t> writeBinaryData() const
     {
         std::vector<uint8_t> binData;
         binData.reserve(_bankSize * _romBanks.size());

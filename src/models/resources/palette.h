@@ -30,7 +30,7 @@ struct PaletteInput {
     bool skipFirstFrame = false;
 
     // returns 0 frames if input is invalid
-    unsigned nFrames() const;
+    [[nodiscard]] unsigned nFrames() const;
 
     bool operator==(const PaletteInput&) const = default;
 };
@@ -45,11 +45,11 @@ struct PaletteData {
     std::vector<std::vector<Snes::SnesColor>> paletteFrames;
     unsigned animationDelay;
 
-    unsigned nAnimations() const { return paletteFrames.size(); }
-    unsigned colorsPerFrame() const;
+    [[nodiscard]] unsigned nAnimations() const { return paletteFrames.size(); }
+    [[nodiscard]] unsigned colorsPerFrame() const;
 
     // PaleteData SHOULD BE valid before exporting
-    std::vector<uint8_t> exportSnesData() const;
+    [[nodiscard]] std::vector<uint8_t> exportSnesData() const;
 };
 
 // Will return a nullptr if PaletteInput or PaletteData is invalid

@@ -29,9 +29,9 @@ public:
     explicit vectorset() = default;
     ~vectorset() = default;
     vectorset(const vectorset&) = default;
-    vectorset(vectorset&&) = default;
+    vectorset(vectorset&&) noexcept = default;
     vectorset& operator=(const vectorset&) = default;
-    vectorset& operator=(vectorset&&) = default;
+    vectorset& operator=(vectorset&&) noexcept = default;
 
     vectorset(const std::vector<T>& v)
         : _vector(v)
@@ -97,8 +97,8 @@ public:
         return false;
     }
 
-    bool empty() const { return _vector.empty(); }
-    size_t size() const { return _vector.size(); }
+    [[nodiscard]] bool empty() const { return _vector.empty(); }
+    [[nodiscard]] size_t size() const { return _vector.size(); }
     size_type capacity() const { return _vector.capacity(); }
 
     void clear() { _vector.clear(); }
@@ -146,9 +146,9 @@ public:
     explicit vectorset() = default;
     ~vectorset() = default;
     vectorset(const vectorset&) = default;
-    vectorset(vectorset&&) = default;
+    vectorset(vectorset&&) noexcept = default;
     vectorset& operator=(const vectorset&) = default;
-    vectorset& operator=(vectorset&&) = default;
+    vectorset& operator=(vectorset&&) noexcept = default;
 
     vectorset(const std::vector<T*>& v)
         : _vector(v)
@@ -198,8 +198,8 @@ public:
         return false;
     }
 
-    bool empty() const { return _vector.empty(); }
-    size_t size() const { return _vector.size(); }
+    [[nodiscard]] bool empty() const { return _vector.empty(); }
+    [[nodiscard]] size_t size() const { return _vector.size(); }
     size_type capacity() const { return _vector.capacity(); }
 
     void clear() { _vector.clear(); }

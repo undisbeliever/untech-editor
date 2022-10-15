@@ -20,9 +20,9 @@ struct MemoryMapSettings {
     unsigned firstBank = 0xc2;
     unsigned nBanks = 6;
 
-    unsigned bankSize() const { return mode == MappingMode::HIROM ? 64 * 1024 : 32 * 1024; }
+    [[nodiscard]] unsigned bankSize() const { return mode == MappingMode::HIROM ? 64 * 1024 : 32 * 1024; }
 
-    unsigned bankAddress(const unsigned bankNumber) const
+    [[nodiscard]] unsigned bankAddress(const unsigned bankNumber) const
     {
         const unsigned a = (firstBank + bankNumber) * 0x10000;
         return mode == MappingMode::HIROM ? a : a + 0x8000;

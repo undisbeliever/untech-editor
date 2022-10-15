@@ -20,25 +20,31 @@ struct alignas(4) rgba {
 
     static constexpr rgba fromRgba(uint32_t rgbaValue)
     {
-        return rgba((rgbaValue >> 0) & 0xff,
-                    (rgbaValue >> 8) & 0xff,
-                    (rgbaValue >> 16) & 0xff,
-                    (rgbaValue >> 24) & 0xff);
+        return {
+            uint8_t((rgbaValue >> 0) & 0xff),
+            uint8_t((rgbaValue >> 8) & 0xff),
+            uint8_t((rgbaValue >> 16) & 0xff),
+            uint8_t((rgbaValue >> 24) & 0xff)
+        };
     }
 
     static constexpr rgba fromRgbHex(uint32_t rgbHex)
     {
-        return rgba((rgbHex >> 16) & 0xff,
-                    (rgbHex >> 8) & 0xff,
-                    (rgbHex >> 0) & 0xff);
+        return {
+            uint8_t((rgbHex >> 16) & 0xff),
+            uint8_t((rgbHex >> 8) & 0xff),
+            uint8_t((rgbHex >> 0) & 0xff)
+        };
     }
 
     static constexpr rgba fromRgbaHex(uint32_t rgbaHex)
     {
-        return rgba((rgbaHex >> 24) & 0xff,
-                    (rgbaHex >> 16) & 0xff,
-                    (rgbaHex >> 8) & 0xff,
-                    (rgbaHex >> 0) & 0xff);
+        return {
+            uint8_t((rgbaHex >> 24) & 0xff),
+            uint8_t((rgbaHex >> 16) & 0xff),
+            uint8_t((rgbaHex >> 8) & 0xff),
+            uint8_t((rgbaHex >> 0) & 0xff)
+        };
     }
 
     constexpr rgba()
@@ -57,27 +63,27 @@ struct alignas(4) rgba {
     {
     }
 
-    inline uint32_t rgb() const
+    [[nodiscard]] inline uint32_t rgb() const
     {
         return (blue << 16) | (green << 8) | red;
     }
 
-    inline uint32_t rgbaValue() const
+    [[nodiscard]] inline uint32_t rgbaValue() const
     {
         return (alpha << 24) | (blue << 16) | (green << 8) | red;
     }
 
-    inline uint32_t rgbHex() const
+    [[nodiscard]] inline uint32_t rgbHex() const
     {
         return (red << 16) | (green << 8) | blue;
     }
 
-    inline uint32_t rgbaHex() const
+    [[nodiscard]] inline uint32_t rgbaHex() const
     {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    std::u8string rgbHexString() const;
+    [[nodiscard]] std::u8string rgbHexString() const;
 
     bool operator==(const rgba&) const = default;
 

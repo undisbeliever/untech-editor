@@ -165,7 +165,7 @@ bool InputPngImageFilename(const char* label, std::filesystem::path* path)
     const auto [closed, fn] = processOpenDialog(id);
     if (fn) {
         if (*path != fn) {
-            *path = std::move(*fn);
+            *path = *fn;
             pathEdited = true;
         }
     }

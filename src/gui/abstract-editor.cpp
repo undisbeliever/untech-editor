@@ -36,7 +36,7 @@ public:
         : EditorUndoAction()
     {
     }
-    virtual ~MacroAction() = default;
+    ~MacroAction() override = default;
 
     void addAction(std::unique_ptr<EditorUndoAction>&& a)
     {
@@ -44,14 +44,14 @@ public:
         actions.push_back(std::move(a));
     }
 
-    virtual void firstDo_editorData() const final
+    void firstDo_editorData() const final
     {
         for (auto& a : actions) {
             a->firstDo_editorData();
         }
     }
 
-    virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+    bool firstDo_projectFile(Project::ProjectFile& projectFile) final
     {
         bool changed = false;
         for (auto& a : actions) {
@@ -66,7 +66,7 @@ public:
         return changed;
     }
 
-    virtual void undo(Project::ProjectFile& projectFile) const final
+    void undo(Project::ProjectFile& projectFile) const final
     {
         for (const auto& a : reverse(actions)) {
             if (a) {
@@ -75,7 +75,7 @@ public:
         }
     }
 
-    virtual void redo(Project::ProjectFile& projectFile) const final
+    void redo(Project::ProjectFile& projectFile) const final
     {
         for (auto& a : actions) {
             if (a) {
@@ -84,7 +84,7 @@ public:
         }
     }
 
-    virtual void notifyGui(AbstractEditorGui* gui) const final
+    void notifyGui(AbstractEditorGui* gui) const final
     {
         for (auto& a : actions) {
             if (a) {
@@ -108,7 +108,6 @@ AbstractEditorData::AbstractEditorData(const ItemIndex itemIndex)
     , _pendingProjectFileActions()
     , _undoStack()
     , _redoStack()
-    , _clean(true)
     , _inMacro(false)
 {
 }

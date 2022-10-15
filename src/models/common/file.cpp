@@ -5,8 +5,8 @@
  */
 
 #include "file.h"
-#include "string.h"
 #include "models/common/exceptions.h"
+#include "models/common/string.h"
 #include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <array>
@@ -25,8 +25,8 @@
 #include <shlwapi.h>
 #include <windows.h>
 #else
+#include <cstdlib>
 #include <fcntl.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
@@ -56,6 +56,7 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
     std::vector<uint8_t> ret(size);
 
     static_assert(sizeof(uint8_t) == sizeof(char));
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     in.read(reinterpret_cast<char*>(ret.data()), ret.size());
 
     in.close();
@@ -81,6 +82,7 @@ std::u8string readUtf8TextFile(const std::filesystem::path& filePath)
     std::array<char8_t, 4> header{};
     static_assert(header.size() > N_BOM_CHARS);
 
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     in.read(reinterpret_cast<char*>(header.data()), N_BOM_CHARS);
     assert(header.back() == 0);
 
@@ -107,6 +109,7 @@ std::u8string readUtf8TextFile(const std::filesystem::path& filePath)
     if (size > 0) {
         ret.resize(size_t(size));
 
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         in.read(reinterpret_cast<char*>(ret.data()), size);
 
         const auto read = in.gcount();
@@ -203,7 +206,7 @@ void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byt
     int mode = 0666;
 
     // Using lstat to detect if the filename is a symbolic link
-    struct stat statbuf;
+    struct stat statbuf {};
     if (::lstat(filePath.c_str(), &statbuf) == 0) {
         if (S_ISLNK(statbuf.st_mode)) {
             throw runtime_error(u8"Cannot write to a symbolic link: ", filePath.u8string());
@@ -244,7 +247,8 @@ void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byt
         remaining = remaining.subspan(done);
     }
 
-    int r;
+    int r{};
+
     r = ::close(fd);
     if (r != 0) {
         throw std::system_error(errno, std::system_category(),

@@ -16,7 +16,7 @@ class InvalidRoomTileGraphics {
 public:
     struct Tile {
         TwoPointRect rect;
-        unsigned reasonBits;
+        unsigned reasonBits{};
     };
 
 private:

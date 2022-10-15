@@ -28,7 +28,7 @@ const static size_t MAX_COLLISION_BOX_SIZE = 127;
 
 const static size_t MAX_ACTION_POINT_FUNCTIONS = 126;
 
-const static size_t PALETTE_COLORS = 16;
+const static unsigned PALETTE_COLORS = 16;
 
 using SpriteOrderType = UnsignedBits<2, uint_fast8_t>;
 const static SpriteOrderType DEFAULT_SPRITE_ORDER = 2;
@@ -56,7 +56,7 @@ struct NameReference {
 
     NameReference() = default;
 
-    std::u8string_view flipStringSuffix() const;
+    [[nodiscard]] std::u8string_view flipStringSuffix() const;
 
     bool operator==(const NameReference&) const = default;
 };

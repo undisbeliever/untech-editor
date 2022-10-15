@@ -8,6 +8,7 @@
 #include "models/common/exceptions.h"
 #include "models/common/file.h"
 #include "models/common/string.h"
+#include "models/common/u8strings.h"
 #include "models/snes/cartridge.h"
 #include <cstdlib>
 #include <iomanip>
@@ -16,7 +17,7 @@
 using namespace UnTech;
 using namespace UnTech::Snes::Cartridge;
 
-typedef CommandLine::OptionType OT;
+using OT = CommandLine::OptionType;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech Write Sfc Header Utility",
     "sfc file",
@@ -27,6 +28,19 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
         { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
 };
+
+static MemoryMap getMemoryMap(const CommandLine::Parser& args)
+{
+    if (args.options().at("lorom").boolean()) {
+        return MemoryMap::LOROM;
+    }
+    else if (args.options().at("hirom").boolean()) {
+        return MemoryMap::HIROM;
+    }
+    else {
+        throw runtime_error(u8"expected --lorom or --hirom");
+    }
+}
 
 int process(const CommandLine::Parser& args)
 {
@@ -40,16 +54,7 @@ int process(const CommandLine::Parser& args)
 
     bool verbose = args.options().at("verbose").boolean();
 
-    MemoryMap memoryMap;
-    if (args.options().at("lorom").boolean()) {
-        memoryMap = MemoryMap::LOROM;
-    }
-    else if (args.options().at("hirom").boolean()) {
-        memoryMap = MemoryMap::HIROM;
-    }
-    else {
-        throw runtime_error(u8"expected --lorom or --hirom");
-    }
+    const MemoryMap memoryMap = getMemoryMap(args);
 
     std::vector<uint8_t> rom = File::readBinaryFile(filename, 16 * 1024 * 1024);
 
@@ -68,7 +73,7 @@ int process(const CommandLine::Parser& args)
         if (verbose) {
             const auto msg = stringBuilder(u8"old checksum: 0x", hex_4(oldChecksum), u8" (complement 0x", hex_4(oldComplement), u8")\n",
                                            u8"new checksum: 0x", hex_4(newChecksum), u8" (complement 0x", hex_4(newComplement), u8")\n");
-            std::cout.write(reinterpret_cast<const char*>(msg.data()), msg.size());
+            stdout_write(msg);
         }
 
         writeChecksum(filename, newChecksum, memoryMap);
@@ -80,7 +85,7 @@ int process(const CommandLine::Parser& args)
     else {
         if (verbose) {
             const auto msg = stringBuilder(u8"checksum ok: 0x", hex_4(newChecksum), u8" (complement 0x", hex_4(newComplement), u8")\n");
-            std::cout.write(reinterpret_cast<const char*>(msg.data()), msg.size());
+            stdout_write(msg);
         }
     }
 

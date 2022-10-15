@@ -137,6 +137,9 @@ protected:
             return editor->*ActionPolicy::SelectionPtr;
         }
 
+    public:
+        ~BaseAction() override = default;
+
     protected:
         BaseAction(EditorT* editor,
                    const ListArgsT& listArgs)
@@ -145,7 +148,6 @@ protected:
         {
             assert(editor != nullptr);
         }
-        virtual ~BaseAction() = default;
 
         ListT& getProjectList(Project::ProjectFile& projectFile) const
         {
@@ -205,7 +207,7 @@ protected:
         }
 
     public:
-        virtual void notifyGui(AbstractEditorGui* gui) const final
+        void notifyGui(AbstractEditorGui* gui) const final
         {
             editorUndoAction_notifyGui<ActionPolicy>(gui);
         }
@@ -1071,13 +1073,13 @@ protected:
             , indexesAndNewValues(std::move(indexesAndValues))
         {
         }
-        virtual ~EditMultipleNestedItems() = default;
+        ~EditMultipleNestedItems() override = default;
 
-        virtual void firstDo_editorData() const final
+        void firstDo_editorData() const final
         {
         }
 
-        virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
+        bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
             EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
             EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
@@ -1106,7 +1108,7 @@ protected:
             return changed;
         }
 
-        virtual void undo(Project::ProjectFile& projectFile) const final
+        void undo(Project::ProjectFile& projectFile) const final
         {
             EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
             EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
@@ -1134,7 +1136,7 @@ protected:
             assert(it == oldValues.end());
         }
 
-        virtual void redo(Project::ProjectFile& projectFile) const final
+        void redo(Project::ProjectFile& projectFile) const final
         {
             EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
             EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
@@ -1157,7 +1159,7 @@ protected:
         }
 
     public:
-        virtual void notifyGui(AbstractEditorGui* gui) const final
+        void notifyGui(AbstractEditorGui* gui) const final
         {
             editorUndoAction_notifyGui<ActionPolicy>(gui);
         }

@@ -7,6 +7,7 @@
 #include "helpers/commandlineparser.h"
 #include "models/common/file.h"
 #include "models/common/stringstream.h"
+#include "models/common/u8strings.h"
 #include "models/project/project-compiler.h"
 #include "models/project/project.h"
 #include <cstdlib>
@@ -15,7 +16,7 @@
 using namespace UnTech;
 using namespace UnTech::Project;
 
-typedef CommandLine::OptionType OT;
+using OT = CommandLine::OptionType;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech Compiler",
     "utproject file",
@@ -44,8 +45,7 @@ int compile(const CommandLine::Parser& args)
 
     // Print errors
     if (errorStream.size() != 0) {
-        const std::u8string_view s = errorStream.string_view();
-        std::cerr.write(reinterpret_cast<const char*>(s.data()), s.size());
+        stderr_write(errorStream.string_view());
     }
 
     if (!output) {

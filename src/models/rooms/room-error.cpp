@@ -15,8 +15,6 @@ InvalidRoomTilesError::InvalidRoomTilesError(std::vector<InvalidRoomTile>&& inva
 {
 }
 
-InvalidRoomTilesError::~InvalidRoomTilesError() = default;
-
 void InvalidRoomTilesError::printIndented(StringStream& out) const
 {
     if (!invalidTiles.empty()) {

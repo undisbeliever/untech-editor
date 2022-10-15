@@ -118,8 +118,10 @@ grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag& tag)
     const unsigned height = tag.getAttributeUnsigned(u8"height", 1, MAX_GRID_HEIGHT);
     const unsigned expectedDataSize = width * height;
 
-    return grid<uint8_t>(width, height,
-                         xml.parseBase64OfKnownSize(expectedDataSize));
+    return {
+        width, height,
+        xml.parseBase64OfKnownSize(expectedDataSize)
+    };
 }
 
 void writeMetaTileGrid(XmlWriter& xml, const std::u8string& tagName, const grid<uint8_t>& mtGrid)

@@ -26,12 +26,6 @@ private:
     std::u8string buffer;
 
 private:
-    // Disabling copying/moving
-    StringStream(const StringStream&) = delete;
-    StringStream(StringStream&&) = delete;
-    StringStream& operator=(const StringStream&) = delete;
-    StringStream& operator=(StringStream&&) = delete;
-
     // Suggested maximum size of the StringStream.
     //
     // NOTE: the buffer size is checked before the string is written.
@@ -45,6 +39,15 @@ private:
             throw std::length_error("StringStream: buffer size > max_buffer_size");
         }
     }
+
+public:
+    // Disabling copying/moving
+    StringStream(const StringStream&) = delete;
+    StringStream(StringStream&&) = delete;
+    StringStream& operator=(const StringStream&) = delete;
+    StringStream& operator=(StringStream&&) = delete;
+
+    ~StringStream() = default;
 
 public:
     explicit StringStream(size_t startingSize = default_initial_size)
@@ -97,7 +100,7 @@ public:
         buffer.append(std::u8string_view(s));
     }
 
-    inline size_t size() const { return buffer.size(); }
+    [[nodiscard]] inline size_t size() const { return buffer.size(); }
 
     // returned string_view is only valid until the next write call.
     [[nodiscard]] std::u8string_view string_view() const { return buffer; }

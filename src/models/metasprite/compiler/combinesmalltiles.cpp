@@ -48,7 +48,7 @@ struct FirstPassOutput {
     {
     }
 
-    size_t nFrames() const { return firstTile.frames.size() + secondTile.frames.size(); }
+    [[nodiscard]] size_t nFrames() const { return firstTile.frames.size() + secondTile.frames.size(); }
 };
 
 static int scoreTilesVec(const std::vector<unsigned>& a, const std::vector<unsigned>& b)
@@ -195,7 +195,7 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
 
         assert(bestMatch != input.end());
 
-        std::array<uint16_t, 4> combined;
+        std::array<uint16_t, 4> combined{};
 
         combined[0] = mostPopular->firstTile.tileId;
         combined[1] = mostPopular->secondTile.tileId;
@@ -223,12 +223,12 @@ SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
                                  const std::vector<ExportIndex>& frameEntries)
 {
     if (frameSet.smallTileset.empty()) {
-        return SmallTileMap_t();
+        return {};
     }
 
     auto smallTileGraph = CombineSmallTiles::buildSmallTileGraph(frameSet, frameEntries);
     if (smallTileGraph.empty()) {
-        return SmallTileMap_t();
+        return {};
     }
     auto fp = CombineSmallTiles::firstPass(smallTileGraph);
     return CombineSmallTiles::secondPass(fp, frameSet.smallTileset.size());

@@ -13,12 +13,13 @@
 #include "models/common/u8strings.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include <cassert>
+#include <utility>
 
 namespace UnTech::Project {
 
 static const idstring BLANK_ID{};
 
-static std::array<std::u8string, 7> projectSettingNames{
+static constexpr std::array<std::u8string_view, 7> projectSettingNames{
     u8"Project Settings",
     u8"Game State",
     u8"Bytecode",
@@ -58,7 +59,7 @@ static std::u8string itemNameString(const ExternalFileList<T>& list, unsigned in
     }
 }
 template <size_t N>
-static const std::u8string& itemNameString(const std::array<std::u8string, N>& list, unsigned index)
+static std::u8string_view itemNameString(const std::array<std::u8string_view, N>& list, unsigned index)
 {
     return list.at(index);
 }
@@ -111,8 +112,8 @@ static inline const T& expandPresquite(const T& p)
 // All "write" methods MUST be implemented in the .cpp file and protected with a `std::unqiue_lock` or `std::lock_guard`
 
 ResourceListStatus::ResourceListStatus(std::u8string typeNameSingle, std::u8string typeNamePlural)
-    : _typeNameSingle(typeNameSingle)
-    , _typeNamePlural(typeNamePlural)
+    : _typeNameSingle(std::move(typeNameSingle))
+    , _typeNamePlural(std::move(typeNamePlural))
     , _currentCompileId(1)
     , _state(ResourceState::Unchecked)
     , _resources()
@@ -377,7 +378,7 @@ inline void ProjectDependencies::createDependencyGraph(const ProjectFile& projec
             const idstring name = f(item);
 
             mappings.dependants.emplace(name.str(), i);
-            mappings.preresquite.push_back(std::move(name));
+            mappings.preresquite.push_back(name);
         }
     };
 
@@ -413,6 +414,8 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
             mappings.dependants.emplace(newName.str(), index);
         }
     };
+
+    // NOLINTBEGIN(bugprone-branch-clone)
 
     switch (type) {
     case ResourceType::ProjectSettings: {
@@ -453,11 +456,15 @@ inline void ProjectDependencies::updateDependencyGraph(const ProjectFile& projec
         break;
     }
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index) const
 {
     std::shared_lock lock(_mutex);
+
+    // NOLINTBEGIN(bugprone-branch-clone)
 
     switch (index) {
     case ProjectSettingsIndex::ProjectSettings:
@@ -488,6 +495,8 @@ void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& pro
         projectData._rooms.markAllUnchecked();
         break;
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, const ResourceType type,
@@ -512,6 +521,8 @@ void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, cons
             markNameUnchecked(mappings, rls, oldName);
         }
     };
+
+    // NOLINTBEGIN(bugprone-branch-clone)
 
     switch (type) {
     case ResourceType::ProjectSettings: {
@@ -549,6 +560,8 @@ void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, cons
         break;
     }
     }
+
+    // NOLINTEND(bugprone-branch-clone)
 }
 
 // Compiling Functions
@@ -655,7 +668,7 @@ template <typename DataT, typename ConvertFunction, class InputT, typename... Pr
 bool ProjectData::compilePs(const ProjectSettingsIndex indexEnum, ConvertFunction convertFunction,
                             const InputT& input, const PreresquitesT&... prerequisites)
 {
-    const unsigned index = static_cast<unsigned>(indexEnum);
+    const auto index = static_cast<unsigned>(indexEnum);
 
     if (_projectSettingsStatus.state(index) != ResourceState::Unchecked) {
         return true;
@@ -676,7 +689,7 @@ bool ProjectData::compilePs(const ProjectSettingsIndex indexEnum, ConvertFunctio
 template <typename ValidateFunction, class InputT>
 bool ProjectData::validatePs(const ProjectSettingsIndex indexEnum, const ValidateFunction validateFunction, const InputT& input)
 {
-    const unsigned index = static_cast<unsigned>(indexEnum);
+    const auto index = static_cast<unsigned>(indexEnum);
 
     if (_projectSettingsStatus.state(index) != ResourceState::Unchecked) {
         return true;

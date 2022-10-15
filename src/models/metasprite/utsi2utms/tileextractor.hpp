@@ -12,6 +12,7 @@
 #include "models/snes/tilesetinserter.h"
 #include <array>
 #include <map>
+#include <utility>
 
 namespace UnTech::MetaSprite::Utsi2UtmsPrivate {
 
@@ -32,9 +33,9 @@ public:
 public:
     TileExtractor(MetaSprite::FrameSet& msFrameSet,
                   const Image& image,
-                  const std::map<rgba, unsigned>& colorMap)
+                  std::map<rgba, unsigned> colorMap)
         : image(image)
-        , colorMap(colorMap)
+        , colorMap(std::move(colorMap))
         , smallTileset(msFrameSet.smallTileset)
         , largeTileset(msFrameSet.largeTileset)
     {

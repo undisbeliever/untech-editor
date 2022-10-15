@@ -15,10 +15,10 @@ struct _point;
 template <typename T>
 struct _rect;
 
-typedef _point<int> point;
-typedef _point<unsigned> upoint;
-typedef _rect<int> rect;
-typedef _rect<unsigned> urect;
+using point = _point<int>;
+using upoint = _point<unsigned int>;
+using rect = _rect<int>;
+using urect = _rect<unsigned int>;
 
 template <typename T>
 struct _point {
@@ -56,35 +56,35 @@ struct usize {
     {
     }
 
-    inline usize expand(const usize& s) const
+    [[nodiscard]] inline usize expand(const usize& s) const
     {
-        return usize(std::max(width, s.width), std::max(height, s.height));
+        return { std::max(width, s.width), std::max(height, s.height) };
     }
 
-    inline usize expand(const upoint& p) const
+    [[nodiscard]] inline usize expand(const upoint& p) const
     {
-        return usize(std::max(width, p.x), std::max(height, p.y));
+        return { std::max(width, p.x), std::max(height, p.y) };
     }
 
-    inline usize expand(const urect& r) const;
+    [[nodiscard]] inline usize expand(const urect& r) const;
 
-    inline upoint clip(const upoint& p) const
+    [[nodiscard]] inline upoint clip(const upoint& p) const
     {
-        return upoint(std::min(width, p.x), std::min(height, p.y));
+        return { std::min(width, p.x), std::min(height, p.y) };
     }
 
-    inline bool contains(const upoint& p) const
+    [[nodiscard]] inline bool contains(const upoint& p) const
     {
         return p.x < width && p.y < height;
     }
 
-    inline bool contains(const upoint& p, unsigned squarePx) const
+    [[nodiscard]] inline bool contains(const upoint& p, unsigned squarePx) const
     {
         return p.x + squarePx <= width
                && p.y + squarePx <= height;
     }
 
-    inline bool contains(const urect& r) const;
+    [[nodiscard]] inline bool contains(const urect& r) const;
 
     bool operator==(const usize&) const = default;
 };
@@ -128,44 +128,44 @@ struct _rect {
     {
     }
 
-    inline T left() const { return x; }
-    inline T right() const { return x + T(width); }
-    inline T top() const { return y; }
-    inline T bottom() const { return y + T(height); }
+    [[nodiscard]] inline T left() const { return x; }
+    [[nodiscard]] inline T right() const { return x + T(width); }
+    [[nodiscard]] inline T top() const { return y; }
+    [[nodiscard]] inline T bottom() const { return y + T(height); }
 
-    inline usize size() const { return { width, height }; }
-    inline _point<T> topLeft() const { return { x, y }; }
-    inline _point<T> bottomRight() const { return { right(), bottom() }; }
+    [[nodiscard]] inline usize size() const { return { width, height }; }
+    [[nodiscard]] inline _point<T> topLeft() const { return { x, y }; }
+    [[nodiscard]] inline _point<T> bottomRight() const { return { right(), bottom() }; }
 
     // Returns the bottom-right-most point inside the rect
-    inline _point<T> internalBottomRight() const { return { x + T(width) - 1, y + T(height) - 1 }; }
+    [[nodiscard]] inline _point<T> internalBottomRight() const { return { x + T(width) - 1, y + T(height) - 1 }; }
 
-    inline bool contains(const _point<T>& p) const
+    [[nodiscard]] inline bool contains(const _point<T>& p) const
     {
         return p.x >= left() && p.x < right()
                && p.y >= top() && p.y < bottom();
     }
 
-    inline bool overlaps(const _rect& r) const
+    [[nodiscard]] inline bool overlaps(const _rect& r) const
     {
         return left() < r.right() && right() > r.left()
                && top() < r.bottom() && bottom() > r.top();
     }
 
-    inline bool overlaps(const _point<T>& p, unsigned squareSize) const
+    [[nodiscard]] inline bool overlaps(const _point<T>& p, unsigned squareSize) const
     {
         return left() < (p.x + squareSize) && right() > p.x
                && top() < (p.y + squareSize) && bottom() > p.y;
     }
 
     // Clips the _point within the width/height of the _rect
-    inline _point<T> clipInside(const _point<T>& p) const
+    [[nodiscard]] inline _point<T> clipInside(const _point<T>& p) const
     {
         return _point<T>(std::min(p.x, width - 1), std::min(p.y, height - 1));
     }
 
     // Clips the _point within the width/height of the _rect
-    _point<T> clipInside(const _point<T>& p, unsigned squareSize) const
+    [[nodiscard]] _point<T> clipInside(const _point<T>& p, unsigned squareSize) const
     {
         _point<T> ret(0, 0);
 
@@ -181,7 +181,7 @@ struct _rect {
 
     // clips the rectangle inside this one
     // The method of clipping depends on the state of the previous rectangle.
-    _rect clipInside(const _rect& r, const _rect& prev) const
+    [[nodiscard]] _rect clipInside(const _rect& r, const _rect& prev) const
     {
         _rect ret = r;
 
@@ -227,7 +227,7 @@ struct _rect {
 
 inline usize usize::expand(const urect& r) const
 {
-    return usize(std::max(width, r.right()), std::max(height, r.bottom()));
+    return { std::max(width, r.right()), std::max(height, r.bottom()) };
 }
 
 inline bool usize::contains(const urect& r) const

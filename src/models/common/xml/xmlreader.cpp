@@ -11,6 +11,7 @@
 #include "../stringparser.hpp"
 #include "../u8strings.h"
 #include <cassert>
+#include <utility>
 
 namespace UnTech::Xml {
 
@@ -94,11 +95,6 @@ std::u8string unescapeXmlString(const std::u8string_view xmlString)
     return ret;
 }
 
-static inline std::u8string_view toStringView(const std::u8string::const_iterator begin, const std::u8string::const_iterator end)
-{
-    return std::u8string_view(&*begin, std::distance(begin, end));
-}
-
 std::u8string XmlReader::filename() const
 {
     if (_filePath.empty()) {
@@ -109,8 +105,8 @@ std::u8string XmlReader::filename() const
     }
 }
 
-XmlReader::XmlReader(std::u8string&& xml, const std::filesystem::path& filePath)
-    : _filePath(filePath)
+XmlReader::XmlReader(std::u8string&& xml, std::filesystem::path filePath)
+    : _filePath(std::move(filePath))
     , _input(std::move(xml))
 {
     if (_input.atEnd()) {
@@ -244,9 +240,15 @@ XmlTag XmlReader::parseTag()
             return tag;
         }
         else {
-            // stringBuilder does not accept char types, have to convert to a c_string manually.
-            const char8_t charStr[] = { u8'`', c, u8'`', u8'\0' };
-            throw xml_error(*this, stringBuilder(u8"Unknown character ", charStr));
+            if (c >= 0x20 && c < 0x80) {
+                // c is printable.
+                // `stringBuilder()` does not accept char types.  Have to manually covert `c` to a u8string_view.
+                throw xml_error(*this, stringBuilder(u8"Unknown character `", std::u8string_view(&c, 1), u8"`"));
+            }
+            else {
+                // c is not printable.
+                throw xml_error(*this, stringBuilder(u8"Unknown character 0x", hex(uint32_t(c))));
+            }
         }
     }
 
@@ -256,7 +258,7 @@ XmlTag XmlReader::parseTag()
 std::u8string XmlReader::parseText()
 {
     if (_inSelfClosingTag) {
-        return std::u8string();
+        return {};
     }
 
     std::u8string text;
@@ -266,7 +268,7 @@ std::u8string XmlReader::parseText()
         const auto oldTextPos = _input.pos();
 
         if (_input.testAndConsume(u8"<!--")) {
-            text += unescapeXmlString(toStringView(startText, oldTextPos));
+            text += unescapeXmlString(std::u8string_view(startText, oldTextPos));
 
             if (_input.skipUntil(u8"-->") == false) {
                 throw xml_error(*this, u8"Unclosed comment");
@@ -276,7 +278,7 @@ std::u8string XmlReader::parseText()
         }
 
         else if (_input.testAndConsume(u8"<![CDATA[")) {
-            text += unescapeXmlString(toStringView(startText, oldTextPos));
+            text += unescapeXmlString(std::u8string_view(startText, oldTextPos));
 
             const auto startCData = _input.pos();
 
@@ -297,7 +299,7 @@ std::u8string XmlReader::parseText()
         }
     }
 
-    text += unescapeXmlString(toStringView(startText, _input.pos()));
+    text += unescapeXmlString(std::u8string_view(startText, _input.pos()));
 
     return text;
 }
@@ -408,7 +410,7 @@ inline std::u8string_view XmlReader::parseName()
         throw xml_error(*this, u8"Missing identifier");
     }
 
-    return toStringView(nameStart, _input.pos());
+    return { nameStart, _input.pos() };
 }
 
 inline std::u8string_view XmlReader::parseAttributeValue()
@@ -425,7 +427,7 @@ inline std::u8string_view XmlReader::parseAttributeValue()
         throw xml_error(*this, u8"Incomplete attribute value");
     }
 
-    return toStringView(valueStart, _input.pos() - 1);
+    return { valueStart, _input.pos() - 1 };
 }
 
 std::u8string XmlTag::generateErrorString(const std::u8string_view msg) const

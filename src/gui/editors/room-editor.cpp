@@ -250,9 +250,9 @@ static void selectScriptLine(NodeSelection& sel, const Scripting::Script& script
 
         unsigned depth = 0;
         unsigned index = 0;
-        std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> parentIndex;
+        std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> parentIndex{};
 
-        std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> foundParentIndex;
+        std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> foundParentIndex{};
         unsigned foundChildIndex = INT_MAX;
 
         explicit Visitor(const unsigned targetLineNo)
@@ -782,6 +782,9 @@ void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(entityDragDropId, flags)) {
             IM_ASSERT(payload->DataSize == sizeof(EntityDragDropType));
 
+            static_assert(std::is_trivial_v<EntityDragDropType>);
+
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
             auto entityIndex = *reinterpret_cast<const EntityDragDropType*>(payload->Data);
 
             static_assert(std::is_unsigned_v<EntityDragDropType>);
@@ -1266,7 +1269,7 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         _scratchpadTilemap.setMapData(_scratchpad);
 
         if (tileset) {
-            _tilesetShader.setTilesetData(*tileset, std::move(mtData));
+            _tilesetShader.setTilesetData(*tileset, mtData);
             _tilesetShader.setTileCollisions(tileset->tileCollisions);
             _tilesetShader.setInteractiveTilesData(*tileset, projectFile, projectData);
 
@@ -1314,14 +1317,14 @@ private:
     const Scripting::BytecodeMapping& bcMapping;
     const Project::ProjectFile& projectFile;
 
-    unsigned depth;
+    unsigned depth{ 0 };
 
     std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> parentIndex;
-    unsigned index;
+    unsigned index{ 0 };
 
     constexpr static std::array<const char*, 2> argLabels = { "##Arg1", "##Arg2" };
 
-    bool openAddMenu;
+    bool openAddMenu{ false };
     static std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> addMenuParentIndex;
 
     const ImVec4 disabledColor;
@@ -1335,10 +1338,7 @@ public:
         : data(d)
         , bcMapping(mapping)
         , projectFile(projectFile)
-        , depth(0)
         , parentIndex()
-        , index(0)
-        , openAddMenu(false)
         , disabledColor(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled))
     {
         assert(data != nullptr);
@@ -1726,7 +1726,7 @@ private:
         }
     }
 
-    void processStatements__afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements)
+    void processStatements_afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements)
     {
         auto& sel = data->scriptStatementsSel;
 
@@ -1766,7 +1766,7 @@ private:
         parentIndex.front() = scriptId;
         index = scriptId;
 
-        processStatements__afterParentIndexUpdated(statements);
+        processStatements_afterParentIndexUpdated(statements);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1784,7 +1784,7 @@ private:
 
         ImGui::Indent(INDENT_SPACING);
 
-        processStatements__afterParentIndexUpdated(statements);
+        processStatements_afterParentIndexUpdated(statements);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1807,7 +1807,7 @@ private:
 
         ImGui::Indent(INDENT_SPACING);
 
-        processStatements__afterParentIndexUpdated(thenStatements);
+        processStatements_afterParentIndexUpdated(thenStatements);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1819,7 +1819,7 @@ private:
         if (!elseStatements.empty()) {
             ImGui::TextUnformatted(u8"else");
 
-            processStatements__afterParentIndexUpdated(elseStatements);
+            processStatements_afterParentIndexUpdated(elseStatements);
 
             if (ImGui::Button("Add##Else")) {
                 openProcessMenu();

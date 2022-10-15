@@ -115,7 +115,7 @@ inline std::u8string stringBuilder(const std::u8string_view str)
 
 inline std::u8string stringBuilder(const char8_t* c_str)
 {
-    return std::u8string(c_str);
+    return { c_str };
 }
 
 }

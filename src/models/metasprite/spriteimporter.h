@@ -45,13 +45,14 @@ struct FrameSetGrid {
     {
     }
 
-    inline urect cell(const upoint& gridLocation) const
+    [[nodiscard]] inline urect cell(const upoint& gridLocation) const
     {
-        return urect(
+        return {
             gridLocation.x * (frameSize.width + padding.x) + offset.x,
             gridLocation.y * (frameSize.height + padding.y) + offset.y,
             frameSize.width,
-            frameSize.height);
+            frameSize.height
+        };
     }
 
     bool operator==(const FrameSetGrid&) const = default;
@@ -73,12 +74,14 @@ struct FrameObject {
     {
     }
 
-    inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
+    [[nodiscard]] inline unsigned sizePx() const { return size == ObjectSize::SMALL ? 8 : 16; }
 
-    inline upoint bottomRight() const
+    [[nodiscard]] inline upoint bottomRight() const
     {
-        return upoint(location.x + sizePx(),
-                      location.y + sizePx());
+        return {
+            location.x + sizePx(),
+            location.y + sizePx()
+        };
     }
 
     bool operator==(const FrameObject&) const = default;
@@ -100,11 +103,11 @@ struct ActionPoint {
 
 struct CollisionBox {
     urect aabb;
-    bool exists;
+    bool exists{ false };
 
     CollisionBox()
         : aabb(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
-        , exists(false)
+
     {
     }
 
@@ -127,9 +130,9 @@ struct Frame {
     CollisionBox hitbox;
     CollisionBox hurtbox;
 
-    usize minimumViableSize(const FrameSetGrid& grid) const;
+    [[nodiscard]] usize minimumViableSize(const FrameSetGrid& grid) const;
 
-    urect frameLocation(const FrameSetGrid& grid) const
+    [[nodiscard]] urect frameLocation(const FrameSetGrid& grid) const
     {
         if (!locationOverride) {
             return grid.cell(gridLocation);
@@ -139,7 +142,7 @@ struct Frame {
         }
     }
 
-    upoint origin(const FrameSetGrid& grid) const
+    [[nodiscard]] upoint origin(const FrameSetGrid& grid) const
     {
         return originOverride.value_or(grid.origin);
     }
@@ -156,25 +159,20 @@ struct UserSuppliedPalette {
     };
     static const EnumMap<Position> positionEnumMap;
 
-    Position position;
-    unsigned nPalettes;
-    unsigned colorSize;
+    Position position{ Position::TOP_LEFT };
+    unsigned nPalettes{ 0 };
+    unsigned colorSize{ 4 };
 
-    UserSuppliedPalette()
-        : position(Position::TOP_LEFT)
-        , nPalettes(0)
-        , colorSize(4)
-    {
-    }
+    UserSuppliedPalette() = default;
 
-    bool usesUserSuppliedPalette() const
+    [[nodiscard]] bool usesUserSuppliedPalette() const
     {
         return nPalettes > 0 && colorSize > 0;
     }
 
-    usize paletteSize() const
+    [[nodiscard]] usize paletteSize() const
     {
-        return usize(colorSize * PALETTE_COLORS, nPalettes * colorSize);
+        return { colorSize * PALETTE_COLORS, nPalettes * colorSize };
     }
 
     bool operator==(const UserSuppliedPalette&) const = default;

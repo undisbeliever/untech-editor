@@ -32,8 +32,8 @@ struct FrameSetFile {
     void loadFile();
 
     // returns an empty idstring if no frameSet exists
-    const idstring& name() const;
-    const idstring& exportOrder() const;
+    [[nodiscard]] const idstring& name() const;
+    [[nodiscard]] const idstring& exportOrder() const;
 
     FrameSetFile() = default;
 

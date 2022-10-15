@@ -23,27 +23,26 @@ public:
 public:
     // NOTE: Indexes may be out of bounds.
 
-    unsigned animationIndex;
+    unsigned animationIndex{};
 
-    unsigned overrideNextAnimationIndex;
+    unsigned overrideNextAnimationIndex{};
 
-    unsigned aFrameIndex;
-    unsigned frameTime;
+    unsigned aFrameIndex{};
+    unsigned frameTime{};
 
-    unsigned displayFrameCount;
+    unsigned displayFrameCount{};
 
-    Region region;
+    Region region{ Region::NTSC };
 
     // fixed point
     point velocityFP;
     point positionFP;
 
-    bool running;
+    bool running{};
 
 public:
     PreviewState()
     {
-        region = Region::NTSC;
         resetState();
     }
 
@@ -62,7 +61,7 @@ public:
         positionFP.x = p.x << FP_SHIFT;
         positionFP.y = p.y << FP_SHIFT;
     }
-    point positionInt() const { return point(positionFP.x >> FP_SHIFT, positionFP.y >> FP_SHIFT); }
+    [[nodiscard]] point positionInt() const { return { positionFP.x >> FP_SHIFT, positionFP.y >> FP_SHIFT }; }
 
 private:
     void nextAnimationFrame(const Animation& ani, const NamedList<Animation>& animations);

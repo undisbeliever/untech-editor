@@ -23,8 +23,8 @@ constexpr size_t CHECKSUM_ADDR = 0xffde;
 constexpr unsigned MIN_ROM_SIZE = 64 * 1024;
 constexpr unsigned MAX_ROM_SIZE = 4 * 1024 * 1024;
 
-#define MIN_ROM_STRING "64 KiB"
-#define MAX_ROM_STRING "4 MiB"
+constexpr std::u8string_view MIN_ROM_STRING = u8"64 KiB";
+constexpr std::u8string_view MAX_ROM_STRING = u8"4 MiB";
 
 size_t headerAddress(MemoryMap memoryMap)
 {
@@ -105,10 +105,10 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
     static_assert(INT_MAX > MAX_ROM_SIZE * 256, u8"int too small");
 
     if (rom.size() < MIN_ROM_SIZE) {
-        throw runtime_error(u8"ROM is to small (minimum " MIN_ROM_STRING u8").");
+        throw runtime_error(u8"ROM is to small (minimum ", MIN_ROM_STRING, u8").");
     }
     if (rom.size() > MAX_ROM_SIZE) {
-        throw runtime_error(u8"ROM is to large (maximum " MAX_ROM_STRING u8").");
+        throw runtime_error(u8"ROM is to large (maximum ", MAX_ROM_STRING, u8").");
     }
 
     unsigned part1Size = 1;

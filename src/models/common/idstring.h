@@ -93,11 +93,11 @@ public:
         return fromString(std::u8string_view(s));
     }
 
-    inline bool isValid() const { return !data.empty(); }
+    [[nodiscard]] inline bool isValid() const { return !data.empty(); }
 
     // clang-format off
-    inline const std::u8string& str() const { return data; }
-    inline const char8_t* c_str() const { return data.c_str(); }
+    [[nodiscard]] inline const std::u8string& str() const { return data; }
+    [[nodiscard]] inline const char8_t* c_str() const { return data.c_str(); }
     // clang-format on
 
     void clear() { data.clear(); }
@@ -108,7 +108,7 @@ public:
 
 inline idstring operator"" _id(const char8_t* str, const size_t size)
 {
-    const auto id = idstring::fromString(std::u8string_view(str, size));
+    auto id = idstring::fromString(std::u8string_view(str, size));
     assert(id.isValid());
     return id;
 }

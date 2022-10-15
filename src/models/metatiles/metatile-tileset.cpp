@@ -78,7 +78,7 @@ convertTileset(const MetaTileTilesetInput& input,
         return nullptr;
     }
 
-    auto addTileError = [&](const unsigned index, const auto&... msg) {
+    auto addTileError = [&](const unsigned index, const auto... msg) {
         err.addError(tileError(index, msg...));
         valid = false;
     };

@@ -33,6 +33,9 @@ struct GridActions {
         EditorT* const editor;
         const ListArgsT listArgs;
 
+    public:
+        ~BaseAction() override = default;
+
     protected:
         BaseAction(EditorT* editor, const ListArgsT& listArgs)
             : editor(editor)
@@ -40,7 +43,6 @@ struct GridActions {
         {
             assert(editor != nullptr);
         }
-        virtual ~BaseAction() = default;
 
         GridT& getProjectGrid(Project::ProjectFile& projectFile) const
         {
@@ -69,7 +71,7 @@ struct GridActions {
         }
 
     public:
-        virtual void notifyGui(AbstractEditorGui* gui) const final
+        void notifyGui(AbstractEditorGui* gui) const final
         {
             editorUndoAction_notifyGui<ActionPolicy>(gui);
         }

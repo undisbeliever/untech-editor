@@ -51,12 +51,9 @@ struct TilePriorities {
     // Cannot use a std::array<bool, N> for tile priority it's not bit packed.
     // Cannot use a std::bitset<N> as it cannot be converted to a byte array/vector for serialization.
     // Bit order matches `MetaTileTilesetData::tileMap` order.
-    std::array<uint8_t, N_METATILES * PRIORITIES_PER_TILE / 8> data;
+    std::array<uint8_t, N_METATILES * PRIORITIES_PER_TILE / 8> data{};
 
-    TilePriorities()
-        : data{}
-    {
-    }
+    TilePriorities() = default;
 
     static unsigned bitIndex(unsigned metaTile, unsigned subTile)
     {
@@ -71,7 +68,7 @@ struct TilePriorities {
         return y + x;
     }
 
-    bool getTilePriority(unsigned metaTile, unsigned subTile) const
+    [[nodiscard]] bool getTilePriority(unsigned metaTile, unsigned subTile) const
     {
         const unsigned bi = bitIndex(metaTile, subTile);
         const unsigned byteIndex = bi / 8;
@@ -89,7 +86,7 @@ struct TilePriorities {
         data.at(byteIndex) = (data.at(byteIndex) & ~(1 << shift)) | (v << shift);
     }
 
-    std::pair<unsigned, uint8_t> indexDataPairToSetTilePriority(unsigned metaTile, unsigned subTile, bool v) const
+    [[nodiscard]] std::pair<unsigned, uint8_t> indexDataPairToSetTilePriority(unsigned metaTile, unsigned subTile, bool v) const
     {
         const unsigned bi = bitIndex(metaTile, subTile);
         const unsigned byteIndex = bi / 8;
@@ -113,7 +110,7 @@ struct CrumblingTileChain {
     // If this value is NO_THIRD_TRANSITION then there will not be a third transition
     uint16_t secondDelay = 900;
 
-    bool hasThirdTransition() const
+    [[nodiscard]] bool hasThirdTransition() const
     {
         return secondDelay != NO_THIRD_TRANSITION;
     }
@@ -132,7 +129,7 @@ struct MetaTileTilesetInput {
     std::vector<idstring> palettes;
 
     Resources::AnimationFramesInput animationFrames;
-    std::array<TileCollisionType, N_METATILES> tileCollisions;
+    std::array<TileCollisionType, N_METATILES> tileCollisions{};
     std::array<idstring, N_METATILES> tileFunctionTables;
     TilePriorities tilePriorities;
 
@@ -149,18 +146,18 @@ struct MetaTileTilesetData {
     static const int TILESET_FORMAT_VERSION;
 
     std::vector<idstring> palettes;
-    std::array<uint8_t, N_METATILES> tileFunctionTables;
-    std::array<TileCollisionType, N_METATILES> tileCollisions;
+    std::array<uint8_t, N_METATILES> tileFunctionTables{};
+    std::array<TileCollisionType, N_METATILES> tileCollisions{};
     std::array<CrumblingTileChain, N_CRUMBLING_TILE_CHAINS> crumblingTiles;
 
     Resources::AnimatedTilesetData animatedTileset;
 
     explicit MetaTileTilesetData(Resources::AnimatedTilesetData&&);
 
-    std::vector<uint8_t> exportSnesData() const;
+    [[nodiscard]] std::vector<uint8_t> exportSnesData() const;
 
 private:
-    std::vector<uint8_t> convertTileset() const;
+    [[nodiscard]] std::vector<uint8_t> convertTileset() const;
 };
 
 std::shared_ptr<const MetaTileTilesetData>

@@ -716,7 +716,7 @@ void MetaSpriteEditorGui::colorPopup()
     auto& fs = _data->data;
 
     static bool _popupOpen = false;
-    static ImVec4 _oldColor;
+    static ImColor _oldColor;
 
     const float itemWidth = 80;
     const ImVec2 colorButtonSize(itemWidth, itemWidth * 4 / 6);
@@ -728,23 +728,22 @@ void MetaSpriteEditorGui::colorPopup()
 
         const auto palIndex = _data->palettesSel.selectedIndex();
 
-        bool colorChanged = false;
+        bool snesColorChanged = false;
 
         if (_colorSel < MetaSprite::PALETTE_COLORS
             && palIndex < fs.palettes.size()) {
 
             auto& snesColor = fs.palettes.at(palIndex).at(_colorSel);
-            const rgba color = Snes::toRgb(snesColor);
-            ImVec4 colorVec = ImGui::ColorConvertU32ToFloat4(color.rgb());
+
+            ImColor color{ Snes::toRgb(snesColor).rgb() };
+            bool colorChanged = false;
 
             if (!_popupOpen) {
-                _oldColor = colorVec;
+                _oldColor = color;
                 _popupOpen = true;
             }
 
-            bool colorVecChanged = false;
-
-            colorVecChanged |= ImGui::ColorPicker3("##picker", (float*)&colorVec, flags);
+            colorChanged |= ImGui::ColorPicker3("##picker", &color, flags);
             const float colorPickerCursorY = ImGui::GetCursorPosY();
 
             ImGui::SameLine();
@@ -752,14 +751,14 @@ void MetaSpriteEditorGui::colorPopup()
             ImGui::BeginGroup();
 
             ImGui::TextUnformatted(u8"Current:");
-            ImGui::ColorButton("##current", colorVec, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoAlpha, colorButtonSize);
+            ImGui::ColorButton("##current", color, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoAlpha, colorButtonSize);
 
             ImGui::Spacing();
 
             ImGui::TextUnformatted(u8"Old:");
             if (ImGui::ColorButton("##old", _oldColor, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoAlpha, colorButtonSize)) {
-                colorVec = _oldColor;
-                colorVecChanged = true;
+                color = _oldColor;
+                colorChanged = true;
             }
 
             ImGui::SetCursorPosY(colorPickerCursorY - (ImGui::GetFrameHeight() + style.ItemSpacing.y) * 3);
@@ -771,23 +770,23 @@ void MetaSpriteEditorGui::colorPopup()
 
             if (ImGui::InputUnsigned("Blue", &blue)) {
                 snesColor.setBlue(clamp<unsigned>(blue, 0, 31));
-                colorChanged = true;
+                snesColorChanged = true;
             }
             if (ImGui::InputUnsigned("Green", &green)) {
                 snesColor.setGreen(clamp<unsigned>(green, 0, 31));
-                colorChanged = true;
+                snesColorChanged = true;
             }
             if (ImGui::InputUnsigned("Red", &red)) {
                 snesColor.setRed(clamp<unsigned>(red, 0, 31));
-                colorChanged = true;
+                snesColorChanged = true;
             }
 
             ImGui::PopItemWidth();
             ImGui::EndGroup();
 
-            if (colorVecChanged) {
-                snesColor = Snes::toSnesColor(rgba::fromRgba(ImGui::ColorConvertFloat4ToU32(colorVec)));
-                colorChanged = true;
+            if (colorChanged) {
+                snesColor = Snes::toSnesColor(rgba::fromRgba(color));
+                snesColorChanged = true;
             }
         }
         else {
@@ -797,7 +796,7 @@ void MetaSpriteEditorGui::colorPopup()
 
         ImGui::EndPopup();
 
-        if (colorChanged) {
+        if (snesColorChanged) {
             _paletteValid = false;
         }
     }
@@ -1014,7 +1013,7 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
     else if (ImGui::IsItemDeactivated()) {
         if (!_editedTiles.empty()) {
             ListActions<TilesetPolicy>::selectedListItemsEdited(_data, _editedTiles.vector());
-            _editedTiles.empty();
+            _editedTiles.clear();
         }
     }
 };

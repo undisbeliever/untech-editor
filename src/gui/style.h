@@ -18,16 +18,16 @@ enum class ZoomAspectRatio {
 
 class Zoom {
 private:
-    unsigned _zoomInt;
+    unsigned _zoomInt{};
     ImVec2 _zoom;
     std::u8string _zoomString;
 
 public:
     explicit Zoom(unsigned z);
 
-    unsigned zoomInt() const { return _zoomInt; }
-    const ImVec2& zoom() const { return _zoom; }
-    const std::u8string& zoomString() const { return _zoomString; }
+    [[nodiscard]] unsigned zoomInt() const { return _zoomInt; }
+    [[nodiscard]] const ImVec2& zoom() const { return _zoom; }
+    [[nodiscard]] const std::u8string& zoomString() const { return _zoomString; }
 
     void update();
 

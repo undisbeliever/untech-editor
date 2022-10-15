@@ -127,7 +127,7 @@ void PaletteEditorGui::paletteGui()
     ImGui::Separator();
     ImGui::Spacing();
 
-    const unsigned rowsPerFrame = clamp<unsigned>(palette.rowsPerFrame, 1, _imageTexture.height());
+    const auto rowsPerFrame = clamp<unsigned>(palette.rowsPerFrame, 1, _imageTexture.height());
     const unsigned firstFrame = palette.skipFirstFrame ? 1 : 0;
     const unsigned nFrames = std::max<unsigned>(1, _imageTexture.height() / rowsPerFrame - firstFrame);
 

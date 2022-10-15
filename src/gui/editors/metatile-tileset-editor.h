@@ -26,22 +26,22 @@ private:
 
     // This allows `errorDoubleClicked` to invalidate MetaTileTilesetEditorGui::_tileProperties
     // without adding AbstractMetaTileEditorGui to `errorDoubleClicked`.
-    bool tilePropertiesWindowValid;
+    bool tilePropertiesWindowValid{};
 
 public:
     explicit MetaTileTilesetEditorData(ItemIndex itemIndex);
 
-    virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void saveFile() const final;
-    virtual void errorDoubleClicked(const AbstractError*) final;
-    virtual void updateSelection() final;
+    bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    void saveFile() const final;
+    void errorDoubleClicked(const AbstractError*) final;
+    void updateSelection() final;
 
 protected:
-    virtual grid<uint8_t>& map() final;
-    virtual void mapTilesPlaced(const urect r) final;
+    grid<uint8_t>& map() final;
+    void mapTilesPlaced(const urect r) final;
 
-    virtual void selectedTilesetTilesChanged() final;
-    virtual void selectedTilesChanged() final;
+    void selectedTilesetTilesChanged() final;
+    void selectedTilesChanged() final;
 };
 
 class MetaTileTilesetEditorGui final : public AbstractMetaTileEditorGui {
@@ -84,18 +84,18 @@ public:
 public:
     MetaTileTilesetEditorGui();
 
-    virtual bool setEditorData(AbstractEditorData* data) final;
-    virtual void resetState() final;
-    virtual void editorClosed() final;
+    bool setEditorData(AbstractEditorData* data) final;
+    void resetState() final;
+    void editorClosed() final;
 
-    virtual void processGui(const Project::ProjectFile& projectFile,
-                            const Project::ProjectData& projectData) final;
+    void processGui(const Project::ProjectFile& projectFile,
+                    const Project::ProjectData& projectData) final;
 
-    virtual void viewMenu() final;
+    void viewMenu() final;
 
 protected:
-    virtual void selectionChanged() final;
-    virtual const std::array<idstring, 256>& tileFunctionTables() const final;
+    void selectionChanged() final;
+    [[nodiscard]] const std::array<idstring, 256>& tileFunctionTables() const final;
 
 private:
     void resetTileProperties();

@@ -18,12 +18,12 @@ class StringStream;
 class AbstractError {
 public:
     const std::u8string message;
-    bool isWarning;
+    bool isWarning{ false };
 
 public:
     AbstractError(std::u8string&& msg)
         : message(std::move(msg))
-        , isWarning(false)
+
     {
     }
 
@@ -55,7 +55,7 @@ public:
     {
     }
 
-    virtual ~GenericListError() = default;
+    ~GenericListError() override = default;
 };
 
 class ErrorList {
@@ -66,13 +66,13 @@ private:
 public:
     ErrorList();
 
-    const std::vector<std::unique_ptr<AbstractError>>& list() const { return _list; }
+    [[nodiscard]] const std::vector<std::unique_ptr<AbstractError>>& list() const { return _list; }
 
-    inline bool empty() const { return _list.empty(); }
-    unsigned errorCount() const { return _errorCount; }
-    unsigned warningCount() const { return _list.size() - _errorCount; }
+    [[nodiscard]] inline bool empty() const { return _list.empty(); }
+    [[nodiscard]] unsigned errorCount() const { return _errorCount; }
+    [[nodiscard]] unsigned warningCount() const { return _list.size() - _errorCount; }
 
-    bool hasError() const { return _errorCount > 0; }
+    [[nodiscard]] bool hasError() const { return _errorCount > 0; }
 
     void addError(std::unique_ptr<AbstractError> e)
     {

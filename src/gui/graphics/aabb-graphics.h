@@ -70,7 +70,7 @@ private:
 private:
     std::vector<SelectedAabb> _selectedAabb;
 
-    State _currentState;
+    State _currentState{ State::NONE };
 
     ImVec2 _zoom;
     TwoPointRect _bounds;
@@ -83,56 +83,53 @@ private:
 
     TwoPointRect _dragSelect;
     point _dragMove;
-    ResizeNodes _resizeNodes;
+    ResizeNodes _resizeNodes{};
 
     point _tileDragMove;
     point _previousTileMouseScenePos;
 
-    const void* _lastClickedSelector;
-    unsigned _selectedIndex;
+    const void* _lastClickedSelector{};
+    unsigned _selectedIndex{};
 
-    bool _isHovered;
-    bool _hasSingleSelection;
-    bool _previouslySelectedItemClicked;
+    bool _isHovered{};
+    bool _hasSingleSelection{};
+    bool _previouslySelectedItemClicked{};
 
 public:
-    AabbGraphics()
-    {
-        resetState();
-    }
+    AabbGraphics() = default;
     ~AabbGraphics() = default;
 
-    bool isNonInteractiveState() const
+    [[nodiscard]] bool isNonInteractiveState() const
     {
         return _currentState == State::NONE || _currentState == State::DISABLED;
     }
 
-    point toPoint(const ImVec2& globalPos) const
+    [[nodiscard]] point toPoint(const ImVec2& globalPos) const
     {
         const ImVec2 pos = ImVec2(globalPos.x - _offset.x, globalPos.y - _offset.y);
-        return point(std::floor(pos.x / _zoom.x), std::floor(pos.y / _zoom.y));
+        return { int(std::floor(pos.x / _zoom.x)), int(std::floor(pos.y / _zoom.y)) };
     }
 
-    ImVec2 toVec2(const int x, const int y) const
+    [[nodiscard]] ImVec2 toVec2(const int x, const int y) const
     {
-        return ImVec2((x * _zoom.x) + _offset.x, (y * _zoom.y) + _offset.y);
+        return { (x * _zoom.x) + _offset.x, (y * _zoom.y) + _offset.y };
     }
 
-    bool inClickState() const { return _currentState == State::CLICK; }
+    [[nodiscard]] bool inClickState() const { return _currentState == State::CLICK; }
 
-    bool isHoveredAndNotEditing() const { return _isHovered && isNonInteractiveState(); }
+    [[nodiscard]] bool isHoveredAndNotEditing() const { return _isHovered && isNonInteractiveState(); }
 
-    const point& mousePos() const { return _mousePos; }
+    [[nodiscard]] const point& mousePos() const { return _mousePos; }
 
-    const ImVec2& zoom() const { return _zoom; }
+    [[nodiscard]] const ImVec2& zoom() const { return _zoom; }
 
-    upoint mousePosUpoint() const
+    [[nodiscard]] upoint mousePosUpoint() const
     {
         if (_mousePos.x >= 0 && _mousePos.y >= 0) {
-            return upoint(_mousePos.x, _mousePos.y);
+            return { unsigned(_mousePos.x), unsigned(_mousePos.y) };
         }
         else {
-            return upoint(INT_MAX, INT_MAX);
+            return { INT_MAX, INT_MAX };
         }
     }
 
@@ -425,13 +422,6 @@ public:
         _isHovered = _mousePos.x == x && _mousePos.y == y;
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
-
         case State::CLICK: {
             if (_isHovered) {
                 _lastClickedSelector = sel;
@@ -454,7 +444,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 
@@ -479,12 +472,6 @@ public:
         _isHovered = r.contains(_mousePos);
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
 
         case State::CLICK: {
             if (_isHovered) {
@@ -519,7 +506,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 
@@ -553,7 +543,7 @@ public:
                            ds.uvMin, ds.uvMax, tintColor);
     }
 
-    ResizeNodes setResizeMouseCursor(const TwoPointRect& r) const
+    [[nodiscard]] ResizeNodes setResizeMouseCursor(const TwoPointRect& r) const
     {
         // Using + 1 for top/left so user can resize 1 pixel wide/tall rects
 
@@ -610,7 +600,7 @@ public:
 
         case Resize_TopLeft:
         case Resize_BottomRight:
-            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNESW);
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
             break;
 
         case Resize_TopRight:
@@ -828,13 +818,6 @@ public:
         _isHovered = r.contains(_mousePos);
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
-
         case State::CLICK: {
             if (_isHovered) {
                 _lastClickedSelector = sel;
@@ -857,7 +840,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 
@@ -914,13 +900,6 @@ public:
         _isHovered = r.contains(_mousePos);
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
-
         case State::CLICK: {
             if (_isHovered) {
                 _lastClickedSelector = sel;
@@ -944,7 +923,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 

@@ -66,7 +66,7 @@ Parser::Parser(const Config& config)
 {
 }
 
-void Parser::parse(int argc, const char* argv[])
+void Parser::parse(int argc, const char** const argv)
 {
     if (argc < 1 || argv == nullptr) {
         error("Invalid program arguments");
@@ -205,10 +205,7 @@ bool Parser::parseLongSwitch(const std::string_view argument, const std::string_
 bool Parser::parseSwitch(const Argument& argument, bool isShort, const std::string_view nextArg)
 {
     if (argument.hasParameter()) {
-        if (nextArg.empty()) {
-            error("Expected parameter", argument, isShort);
-        }
-        else if (nextArg.front() == '-') {
+        if (nextArg.empty() || nextArg.front() == '-') {
             error("Expected parameter", argument, isShort);
         }
     }

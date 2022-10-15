@@ -21,7 +21,7 @@ public:
     constexpr static unsigned TILE_SIZE = TS;
     constexpr static unsigned TILE_ARRAY_SIZE = TILE_SIZE * TILE_SIZE;
 
-    typedef std::array<uint8_t, TILE_ARRAY_SIZE> tileArray_t;
+    using tileArray_t = std::array<uint8_t, TILE_ARRAY_SIZE>;
 
 protected:
     std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};
@@ -34,7 +34,7 @@ public:
     inline const tileArray_t& data() const { return _data; }
     inline void setData(const tileArray_t& data) { _data = data; }
 
-    inline std::span<const uint8_t> sliver(const unsigned y) const
+    [[nodiscard]] inline std::span<const uint8_t> sliver(const unsigned y) const
     {
         if (y >= TILE_SIZE) {
             throw invalid_argument(u8"Tile::sliver: y too large");
@@ -48,7 +48,7 @@ public:
 
     Tile flip(bool h_flip, bool v_flip) const;
 
-    uint8_t pixel(unsigned x, unsigned y) const
+    [[nodiscard]] uint8_t pixel(unsigned x, unsigned y) const
     {
         if (x < TILE_SIZE && y < TILE_SIZE) {
             return _data[y * TILE_SIZE + x];

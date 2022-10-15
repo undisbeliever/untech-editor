@@ -43,15 +43,15 @@ private:
 
     SingleSelection palettesSel;
 
-    bool _tileSelectionValid;
+    bool _tileSelectionValid{};
 
 public:
     explicit MetaSpriteEditorData(ItemIndex itemIndex);
 
-    virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void saveFile() const final;
-    virtual void errorDoubleClicked(const AbstractError*) final;
-    virtual void updateSelection() final;
+    bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    void saveFile() const final;
+    void errorDoubleClicked(const AbstractError*) final;
+    void updateSelection() final;
 
 protected:
     void updateTileSelection();
@@ -101,21 +101,21 @@ public:
 public:
     MetaSpriteEditorGui();
 
-    virtual bool setEditorData(AbstractEditorData* data) final;
-    virtual void resetState() final;
-    virtual void editorClosed() final;
+    bool setEditorData(AbstractEditorData* data) final;
+    void resetState() final;
+    void editorClosed() final;
 
-    virtual void processGui(const Project::ProjectFile& projectFile,
-                            const Project::ProjectData& projectData) final;
+    void processGui(const Project::ProjectFile& projectFile,
+                    const Project::ProjectData& projectData) final;
 
-    virtual void processExtraWindows(const Project::ProjectFile& projectFile,
-                                     const Project::ProjectData& projectData) final;
+    void processExtraWindows(const Project::ProjectFile& projectFile,
+                             const Project::ProjectData& projectData) final;
 
-    virtual void viewMenu() final;
+    void viewMenu() final;
 
 protected:
-    virtual void addFrame(const idstring& name) final;
-    virtual void addAnimation(const idstring& name) final;
+    void addFrame(const idstring& name) final;
+    void addAnimation(const idstring& name) final;
 
 private:
     void frameSetPropertiesGui(const Project::ProjectFile& projectFile);

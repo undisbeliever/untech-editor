@@ -213,8 +213,6 @@ static bool isTileAllowedLeftofEndSlope(const MetaTiles::TileCollisionType tile)
     case TCT::DOWN_RIGHT_TALL_SLOPE:
     case TCT::UP_RIGHT_TALL_SLOPE:
     case TCT::UP_RIGHT_SLOPE:
-        return true;
-
     case TCT::END_SLOPE:
     case TCT::SOLID:
         return true;
@@ -227,8 +225,6 @@ static bool isTileAllowedLeftofEndSlope(const MetaTiles::TileCollisionType tile)
     case TCT::UP_RIGHT_SHORT_SLOPE:
     case TCT::UP_LEFT_TALL_SLOPE:
     case TCT::UP_LEFT_SHORT_SLOPE:
-        return false;
-
     case TCT::EMPTY:
     case TCT::UP_PLATFORM:
     case TCT::DOWN_PLATFORM:
@@ -247,8 +243,6 @@ static bool isTileAllowedRightofEndSlope(const MetaTiles::TileCollisionType tile
     case TCT::DOWN_LEFT_TALL_SLOPE:
     case TCT::UP_LEFT_TALL_SLOPE:
     case TCT::UP_LEFT_SLOPE:
-        return true;
-
     case TCT::END_SLOPE:
     case TCT::SOLID:
         return true;
@@ -261,8 +255,6 @@ static bool isTileAllowedRightofEndSlope(const MetaTiles::TileCollisionType tile
     case TCT::UP_RIGHT_SHORT_SLOPE:
     case TCT::UP_RIGHT_TALL_SLOPE:
     case TCT::UP_LEFT_SHORT_SLOPE:
-        return false;
-
     case TCT::EMPTY:
     case TCT::UP_PLATFORM:
     case TCT::DOWN_PLATFORM:
@@ -560,7 +552,7 @@ static bool validate(const RoomInput& input,
                      ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const auto&... msg) {
+    auto addError = [&](const auto... msg) {
         err.addErrorString(msg...);
         valid = false;
     };
@@ -873,7 +865,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
 
                     const auto parameterType = enIt->second.second;
                     parameter = processEntityParameter(ee.parameter, parameterType,
-                                                       [&](const auto&... msg) { addEntityError(eg, egIndex, eeIndex, msg...); });
+                                                       [&](const auto... msg) { addEntityError(eg, egIndex, eeIndex, msg...); });
                 }
                 else {
                     addEntityError(eg, egIndex, eeIndex, u8"Cannot find entity ", ee.entityId);
@@ -964,7 +956,8 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
     if (!valid) {
         out = nullptr;
     }
-    else if (data.empty()) {
+
+    if (data.empty()) {
         out = nullptr;
     }
 

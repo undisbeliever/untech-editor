@@ -53,6 +53,6 @@ public:
         return *this;
     }
 
-    inline uint8_t romData() const { return value + OFFSET; }
+    [[nodiscard]] inline uint8_t romData() const { return value + OFFSET; }
 };
 }

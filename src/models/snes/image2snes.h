@@ -24,7 +24,7 @@ private:
     unsigned _maxTiles = 1024;
     unsigned _paletteOffset = 0;
     unsigned _maxPalettes = 8;
-    bool _order = 0;
+    bool _order = false;
 
     const Snes::BitDepthSpecial _bitDepth;
     std::vector<Tile8px> _tileset;
@@ -40,13 +40,13 @@ public:
     void setMaxPalettes(unsigned m) { _maxPalettes = m; }
     void setOrder(bool o) { _order = o; }
 
-    BitDepthSpecial bitDepth() const { return _bitDepth; }
-    const auto& tileset() const { return _tileset; }
-    const auto& palette() const { return _palette; }
-    const auto& tilemap() const { return _tilemap; }
+    [[nodiscard]] BitDepthSpecial bitDepth() const { return _bitDepth; }
+    [[nodiscard]] const auto& tileset() const { return _tileset; }
+    [[nodiscard]] const auto& palette() const { return _palette; }
+    [[nodiscard]] const auto& tilemap() const { return _tilemap; }
 
-    std::vector<uint8_t> tilesetSnesData() const { return Snes::snesTileData(_tileset, _bitDepth); };
-    std::vector<uint8_t> paletteSnesData() const;
+    [[nodiscard]] std::vector<uint8_t> tilesetSnesData() const { return Snes::snesTileData(_tileset, _bitDepth); };
+    [[nodiscard]] std::vector<uint8_t> paletteSnesData() const;
 
     void process(const IndexedImage& image);
 };

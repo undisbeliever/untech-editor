@@ -108,8 +108,8 @@ processStillFrames(const MS::FrameSet& frameSet,
 
 FrameSetExportList buildExportList(const MS::FrameSet& frameSet, const FrameSetExportOrder& exportOrder)
 {
-    const auto animations = processAnimations(frameSet, exportOrder.animations);
-    const auto frames = processStillFrames(frameSet, exportOrder.stillFrames, animations);
+    auto animations = processAnimations(frameSet, exportOrder.animations);
+    auto frames = processStillFrames(frameSet, exportOrder.stillFrames, animations);
 
     return {
         std::move(animations),
