@@ -374,7 +374,7 @@ void SpriteImporterEditorGui::frameSetPropertiesGui(const Project::ProjectFile& 
                 ImGui::EndCombo();
             }
 
-            if (ImGui::ColorEdit3("##ColorEdit", (float*)&c.Value)) {
+            if (ImGui::ColorEdit3("##ColorEdit", &c)) {
                 fs.transparentColor = rgba::fromRgba(c);
                 fs.transparentColor.alpha = 0xff;
             }

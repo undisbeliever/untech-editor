@@ -63,6 +63,20 @@ inline void TextUnformatted(const UnTech::idstring& text)
     TextUnformatted(text.str());
 }
 
+inline bool ColorEdit3(const char* label, ImColor* c, ImGuiColorEditFlags flags = 0)
+{
+    static_assert(std::is_same_v<decltype(c->Value), ImVec4>);
+
+    return ColorEdit3(label, &c->Value.x, flags);
+}
+
+inline bool ColorPicker3(const char* label, ImColor* c, ImGuiColorEditFlags flags = 0)
+{
+    static_assert(std::is_same_v<decltype(c->Value), ImVec4>);
+
+    return ColorPicker3(label, &c->Value.x, flags);
+}
+
 bool InputText(const char* label, std::u8string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 bool InputTextMultiline(const char* label, std::u8string* str, const ImVec2& size = ImVec2(0, 0), ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 bool InputTextWithHint(const char* label, const char* hint, std::u8string* str, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
