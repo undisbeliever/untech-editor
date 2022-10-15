@@ -607,7 +607,7 @@ public:
 
         case Resize_TopLeft:
         case Resize_BottomRight:
-            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNESW);
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNWSE);
             break;
 
         case Resize_TopRight:
