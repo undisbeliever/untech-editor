@@ -422,13 +422,6 @@ public:
         _isHovered = _mousePos.x == x && _mousePos.y == y;
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
-
         case State::CLICK: {
             if (_isHovered) {
                 _lastClickedSelector = sel;
@@ -451,7 +444,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 
@@ -476,12 +472,6 @@ public:
         _isHovered = r.contains(_mousePos);
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
 
         case State::CLICK: {
             if (_isHovered) {
@@ -516,7 +506,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 
@@ -825,13 +818,6 @@ public:
         _isHovered = r.contains(_mousePos);
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
-
         case State::CLICK: {
             if (_isHovered) {
                 _lastClickedSelector = sel;
@@ -854,7 +840,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 
@@ -911,13 +900,6 @@ public:
         _isHovered = r.contains(_mousePos);
 
         switch (_currentState) {
-        case State::EDITING_FINISHED:
-        case State::DISABLED: {
-        } break;
-
-        case State::NONE: {
-        } break;
-
         case State::CLICK: {
             if (_isHovered) {
                 _lastClickedSelector = sel;
@@ -941,7 +923,10 @@ public:
             }
         } break;
 
-        case State::RESIZE_DRAG: {
+        case State::DISABLED:
+        case State::NONE:
+        case State::RESIZE_DRAG:
+        case State::EDITING_FINISHED: {
         } break;
         }
 

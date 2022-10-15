@@ -47,8 +47,6 @@ static unsigned argumentSize(const ArgumentType type)
         return 0;
 
     case ArgumentType::Flag:
-        return 1;
-
     case ArgumentType::Word:
         return 1;
 
@@ -56,14 +54,8 @@ static unsigned argumentSize(const ArgumentType type)
         return 2;
 
     case ArgumentType::RoomScript:
-        return 1;
-
     case ArgumentType::EntityGroup:
-        return 1;
-
     case ArgumentType::Room:
-        return 1;
-
     case ArgumentType::RoomEntrance:
         return 1;
     }
