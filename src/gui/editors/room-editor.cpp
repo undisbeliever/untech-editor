@@ -1726,7 +1726,7 @@ private:
         }
     }
 
-    void processStatements__afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements)
+    void processStatements_afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements)
     {
         auto& sel = data->scriptStatementsSel;
 
@@ -1766,7 +1766,7 @@ private:
         parentIndex.front() = scriptId;
         index = scriptId;
 
-        processStatements__afterParentIndexUpdated(statements);
+        processStatements_afterParentIndexUpdated(statements);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1784,7 +1784,7 @@ private:
 
         ImGui::Indent(INDENT_SPACING);
 
-        processStatements__afterParentIndexUpdated(statements);
+        processStatements_afterParentIndexUpdated(statements);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1807,7 +1807,7 @@ private:
 
         ImGui::Indent(INDENT_SPACING);
 
-        processStatements__afterParentIndexUpdated(thenStatements);
+        processStatements_afterParentIndexUpdated(thenStatements);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1819,7 +1819,7 @@ private:
         if (!elseStatements.empty()) {
             ImGui::TextUnformatted(u8"else");
 
-            processStatements__afterParentIndexUpdated(elseStatements);
+            processStatements_afterParentIndexUpdated(elseStatements);
 
             if (ImGui::Button("Add##Else")) {
                 openProcessMenu();
