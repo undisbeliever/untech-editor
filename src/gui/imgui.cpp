@@ -449,11 +449,13 @@ bool ToggledButtonWithTooltip(const char* label, bool* selected, const char* too
 
 void TextUnformatted(const char8_t* text)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     TextUnformatted(reinterpret_cast<const char*>(text), nullptr);
 }
 
 bool Button(const char8_t* label, const ImVec2& size_arg)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     return Button(reinterpret_cast<const char*>(label), size_arg);
 }
 

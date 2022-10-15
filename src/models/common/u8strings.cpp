@@ -22,11 +22,13 @@ std::u8string convert_old_string(std::string_view sv)
 
 void stdout_write(std::u8string_view s)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     std::cout.write(reinterpret_cast<const char*>(s.data()), s.size());
 }
 
 void stderr_write(std::u8string_view s)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     std::cerr.write(reinterpret_cast<const char*>(s.data()), s.size());
 }
 

@@ -39,8 +39,8 @@ lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
     const auto dest = std::span(out).subspan(HEADER_SIZE);
 
     const int cSize = LZ4_compress_HC(
-        reinterpret_cast<const char*>(source.data()),
-        reinterpret_cast<char*>(dest.data()),
+        reinterpret_cast<const char*>(source.data()), // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        reinterpret_cast<char*>(dest.data()),         // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         source.size(),
         dest.size(),
         LZ4HC_CLEVEL_MAX);

@@ -27,6 +27,7 @@ public:
 
     [[nodiscard]] const char* what() const noexcept final
     {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         return reinterpret_cast<const char*>(message.c_str());
     }
 };

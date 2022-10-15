@@ -40,14 +40,17 @@ class GroupMultipleSelection;
 // =====================
 inline const char* u8Cast(const char8_t* str)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     return reinterpret_cast<const char*>(str);
 }
 inline const char* u8Cast(const std::u8string& str)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     return reinterpret_cast<const char*>(str.c_str());
 }
 inline const char* u8Cast(const UnTech::idstring& str)
 {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     return reinterpret_cast<const char*>(str.c_str());
 }
 

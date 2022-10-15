@@ -23,6 +23,8 @@
 
 // clang-format off
 
+// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
+
 #include "imgui.h"
 
 struct InputTextCallback_UserData_u8string
@@ -88,3 +90,6 @@ bool ImGui::InputTextWithHint(const char* label, const char* hint, std::u8string
     cb_user_data.ChainCallbackUserData = user_data;
     return InputTextWithHint(label, hint, reinterpret_cast<char*>(str->data()), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
 }
+
+// NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
+

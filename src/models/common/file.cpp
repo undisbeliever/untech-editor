@@ -56,6 +56,7 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filePath, size_
     std::vector<uint8_t> ret(size);
 
     static_assert(sizeof(uint8_t) == sizeof(char));
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     in.read(reinterpret_cast<char*>(ret.data()), ret.size());
 
     in.close();
@@ -81,6 +82,7 @@ std::u8string readUtf8TextFile(const std::filesystem::path& filePath)
     std::array<char8_t, 4> header{};
     static_assert(header.size() > N_BOM_CHARS);
 
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     in.read(reinterpret_cast<char*>(header.data()), N_BOM_CHARS);
     assert(header.back() == 0);
 
@@ -107,6 +109,7 @@ std::u8string readUtf8TextFile(const std::filesystem::path& filePath)
     if (size > 0) {
         ret.resize(size_t(size));
 
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
         in.read(reinterpret_cast<char*>(ret.data()), size);
 
         const auto read = in.gcount();

@@ -782,6 +782,9 @@ void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(entityDragDropId, flags)) {
             IM_ASSERT(payload->DataSize == sizeof(EntityDragDropType));
 
+            static_assert(std::is_trivial_v<EntityDragDropType>);
+
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
             auto entityIndex = *reinterpret_cast<const EntityDragDropType*>(payload->Data);
 
             static_assert(std::is_unsigned_v<EntityDragDropType>);
