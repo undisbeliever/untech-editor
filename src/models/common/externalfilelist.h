@@ -92,15 +92,14 @@ public:
         return std::nullopt;
     }
 
-    // returns INT_MAX if name is not found
-    size_type indexOf(const idstring& name) const
+    std::optional<size_type> indexOf(const idstring& name) const
     {
         for (const auto [i, item] : const_enumerate(_list)) {
             if (item.value && item.value->name == name) {
                 return i;
             }
         }
-        return INT_MAX;
+        return std::nullopt;
     }
 
     Item& item(size_type index) { return _list.at(index); }

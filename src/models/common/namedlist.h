@@ -43,15 +43,14 @@ public:
     [[nodiscard]] bool empty() const { return _list.empty(); }
     size_type size() const { return _list.size(); }
 
-    // returns INT_MAX if name is not found
-    size_type indexOf(const idstring& name) const
+    std::optional<size_type> indexOf(const idstring& name) const
     {
         for (const auto [i, item] : const_enumerate(_list)) {
             if (item.name == name) {
                 return i;
             }
         }
-        return INT_MAX;
+        return std::nullopt;
     }
 
     optional_ref<T&> find(const idstring& name)

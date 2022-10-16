@@ -42,7 +42,7 @@ static std::vector<uint8_t> processAnimation(const ExportIndex& aniEntry,
         if (animation.oneShot == false) {
             unsigned nextAnimation = aniEntry.fsIndex;
             if (animation.nextAnimation.isValid()) {
-                nextAnimation = frameSet.animations.indexOf(animation.nextAnimation);
+                nextAnimation = frameSet.animations.indexOf(animation.nextAnimation).value();
             }
 
             nextAnimationId = indexOf_throw(animations, { nextAnimation, aniEntry.hFlip, aniEntry.vFlip });
@@ -59,7 +59,7 @@ static std::vector<uint8_t> processAnimation(const ExportIndex& aniEntry,
     for (const auto& aFrame : animation.frames) {
         const auto& frameRef = aFrame.frame;
 
-        uint8_t frameId = indexOf_throw(frames, { unsigned(frameSet.frames.indexOf(frameRef.name)),
+        uint8_t frameId = indexOf_throw(frames, { unsigned(frameSet.frames.indexOf(frameRef.name).value()),
                                                   static_cast<bool>(frameRef.hFlip ^ aniEntry.hFlip),
                                                   static_cast<bool>(frameRef.vFlip ^ aniEntry.vFlip) });
 

@@ -495,17 +495,17 @@ std::vector<unsigned> EntityRomDataEditorGui::generateStructChain(const idstring
     std::vector<unsigned> items;
     items.reserve(8);
 
-    unsigned sIndex = entityRomData.structs.indexOf(name);
-    while (sIndex < entityRomData.structs.size()) {
+    auto sIndex = entityRomData.structs.indexOf(name);
+    while (sIndex) {
         const bool containsParent = std::find(items.begin(), items.end(), sIndex) != items.end();
         if (containsParent) {
             items.clear();
             return items;
         }
 
-        items.push_back(sIndex);
+        items.push_back(sIndex.value());
 
-        const auto& st = entityRomData.structs.at(sIndex);
+        const auto& st = entityRomData.structs.at(sIndex.value());
         sIndex = entityRomData.structs.indexOf(st.parent);
     }
 

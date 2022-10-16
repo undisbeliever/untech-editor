@@ -1223,13 +1223,13 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         return;
     }
 
-    unsigned tilesetIndex = INT_MAX;
-    unsigned paletteIndex = INT_MAX;
+    std::optional<unsigned> tilesetIndex{};
+    std::optional<unsigned> paletteIndex{};
 
     if (scenes) {
         if (auto s = scenes->findScene(room.scene)) {
-            tilesetIndex = s->mtTileset.value_or(INT_MAX);
-            paletteIndex = s->palette.value_or(INT_MAX);
+            tilesetIndex = s->mtTileset;
+            paletteIndex = s->palette;
         }
     }
     else {
@@ -1256,8 +1256,8 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     const bool mtDataChanged = mtData != _tilesetShader.tilesetData();
 
     if (mtDataChanged || !mtData) {
-        auto tileset = tilesetIndex < projectFile.metaTileTilesets.size()
-                           ? projectFile.metaTileTilesets.at(tilesetIndex)
+        auto tileset = tilesetIndex
+                           ? projectFile.metaTileTilesets.at(tilesetIndex.value())
                            : std::nullopt;
 
         if (tileset) {

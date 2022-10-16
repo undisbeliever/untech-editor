@@ -236,13 +236,10 @@ private:
         }
 
         const auto s = room.roomScripts.scripts.indexOf(name);
-
-        if (s > room.roomScripts.scripts.size()) {
+        if (!s) {
             addLineError(u8"Unknown script: ", name);
-            return 0;
         }
-
-        return s;
+        return s.value_or(0);
     }
 
     unsigned getEntityGroupId(const std::u8string& value)
@@ -254,13 +251,10 @@ private:
         }
 
         const auto s = room.entityGroups.indexOf(name);
-
-        if (s > room.entityGroups.size()) {
+        if (!s) {
             addLineError(u8"Unknown entity group: ", name);
-            return 0;
         }
-
-        return s;
+        return s.value_or(0);
     }
 
     unsigned getRoomId(const std::u8string& value)
@@ -272,13 +266,10 @@ private:
         }
 
         const auto s = roomsList.indexOf(name);
-
-        if (s > roomsList.size()) {
+        if (!s) {
             addLineError(u8"Unknown room: ", name);
-            return 0;
         }
-
-        return s;
+        return s.value_or(0);
     }
 
     unsigned getRoomEntranceId(const std::u8string& value, const Rooms::RoomInput& r)
@@ -290,13 +281,10 @@ private:
         }
 
         const auto s = r.entrances.indexOf(name);
-
-        if (s > r.entrances.size()) {
+        if (!s) {
             addLineError(u8"Unknown room entrance: ", name);
-            return 0;
         }
-
-        return s;
+        return s.value_or(0);
     }
 
     void statementArgument(const ArgumentType& type, const std::u8string& value, const size_t bytecodePos)

@@ -780,8 +780,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
             buildArray([&](auto& st) { return input.tileIndex(st.aabb.internalBottomRight()) + 1; });
 
             buildArray([&](auto& st) -> uint16_t {
-                auto scriptId = input.roomScripts.scripts.indexOf(st.script);
-                assert(scriptId < input.roomScripts.scripts.size());
+                uint16_t scriptId = input.roomScripts.scripts.indexOf(st.script).value();
 
                 if (st.once) {
                     scriptId |= ONCE_FLAG;

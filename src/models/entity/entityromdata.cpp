@@ -698,7 +698,7 @@ static void processEntry(const EntityType entityType,
                                        [&](auto& fs) { return fs.name() == entry.frameSetId; })
                           - frameSets.begin();
 
-    unsigned initialProjectileId = std::min<unsigned>(0xff, projectiles.indexOf(entry.initialProjectileId));
+    unsigned initialProjectileId = projectiles.indexOf(entry.initialProjectileId).value_or(0xff);
     unsigned initialListId = entityType != EntityType::PLAYER ? std::find(listIds.begin(), listIds.end(), entry.initialListId) - listIds.begin()
                                                               : 0xff;
 

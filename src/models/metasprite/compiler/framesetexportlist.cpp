@@ -20,18 +20,17 @@ static std::vector<ExportIndex> baseExportList(const NamedList<T>& fsList, const
     ret.reserve(exportList.size());
 
     for (const auto& en : exportList) {
-        const unsigned aniIndex = fsList.indexOf(en.name);
-        if (aniIndex < fsList.size()) {
-            ret.push_back({ aniIndex, false, false });
+        const auto aniIndex = fsList.indexOf(en.name);
+        if (aniIndex) {
+            ret.push_back({ unsigned(aniIndex.value()), false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                const unsigned altIndex = fsList.indexOf(alt.name);
-
-                if (altIndex < fsList.size()) {
-                    ret.push_back({ altIndex, alt.hFlip, alt.vFlip });
+                const auto altIndex = fsList.indexOf(alt.name);
+                if (altIndex) {
+                    ret.push_back({ unsigned(altIndex.value()), alt.hFlip, alt.vFlip });
 
                     success = true;
                     break;
@@ -59,9 +58,8 @@ processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& ani
             const idstring& nextAnimation = animation.nextAnimation;
 
             const auto nextIndex = frameSet.animations.indexOf(nextAnimation);
-            assert(nextIndex < frameSet.animations.size());
 
-            ExportIndex toAdd = { unsigned(nextIndex), ani.hFlip, ani.vFlip };
+            ExportIndex toAdd = { unsigned(nextIndex.value()), ani.hFlip, ani.vFlip };
 
             const auto it = std::find(ret.begin(), ret.end(), toAdd);
             if (it == ret.end()) {
@@ -89,9 +87,8 @@ processStillFrames(const MS::FrameSet& frameSet,
             const auto& frameRef = aFrame.frame;
 
             const auto frameIndex = frameSet.frames.indexOf(frameRef.name);
-            assert(frameIndex < frameSet.frames.size());
 
-            ExportIndex e = { unsigned(frameIndex),
+            ExportIndex e = { unsigned(frameIndex.value()),
                               static_cast<bool>(frameRef.hFlip ^ ani.hFlip),
                               static_cast<bool>(frameRef.vFlip ^ ani.vFlip) };
 
