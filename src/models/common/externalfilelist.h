@@ -102,6 +102,12 @@ public:
         return std::nullopt;
     }
 
+    [[nodiscard]] bool contains(const idstring& name) const
+    {
+        return std::any_of(_list.begin(), _list.end(),
+                           [&](const auto& i) { return i.value && i.value->name == name; });
+    }
+
     Item& item(size_type index) { return _list.at(index); }
     const Item& item(size_type index) const { return _list.at(index); }
 

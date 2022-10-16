@@ -53,6 +53,12 @@ public:
         return std::nullopt;
     }
 
+    [[nodiscard]] bool contains(const idstring& name) const
+    {
+        return std::any_of(_list.begin(), _list.end(),
+                           [&](const T& i) { return i.name == name; });
+    }
+
     optional_ref<T&> find(const idstring& name)
     {
         for (T& i : _list) {

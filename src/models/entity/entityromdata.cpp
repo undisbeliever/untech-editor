@@ -254,7 +254,7 @@ static bool validate(const EntityFunctionTable& input, const unsigned ftIndex, c
     }
 
     if (input.exportOrder.isValid()) {
-        if (not project.frameSetExportOrders.find(input.exportOrder)) {
+        if (not project.frameSetExportOrders.contains(input.exportOrder)) {
             addError(u8"Cannot find FrameSet Export Order ", input.exportOrder);
         }
     }
@@ -297,7 +297,7 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
 
     if (input.initialProjectileId.isValid()) {
         const auto& projectiles = project.entityRomData.projectiles;
-        if (not projectiles.find(input.initialProjectileId)) {
+        if (not projectiles.contains(input.initialProjectileId)) {
             addError(u8"Unable to find projectile ", input.initialProjectileId);
         }
     }

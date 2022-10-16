@@ -167,7 +167,7 @@ static bool validateScriptTriggers(const std::vector<ScriptTrigger>& scriptTrigg
 
     for (auto [i, st] : const_enumerate(scriptTriggers)) {
         if (st.script.isValid()) {
-            if (!room.roomScripts.scripts.find(st.script)) {
+            if (!room.roomScripts.scripts.contains(st.script)) {
                 addStError(i, u8"Cannot find script: ", st.script);
             }
         }
