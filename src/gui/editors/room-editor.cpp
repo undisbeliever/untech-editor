@@ -1250,15 +1250,18 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         }
     }
 
-    _tilesetShader.setPaletteData(projectData.palettes().at(paletteIndex));
+    const auto palData = paletteIndex ? projectData.palettes().at(paletteIndex.value())
+                                      : nullptr;
 
-    const auto mtData = projectData.metaTileTilesets().at(tilesetIndex);
+    const auto mtData = tilesetIndex ? projectData.metaTileTilesets().at(tilesetIndex.value())
+                                     : nullptr;
+
+    _tilesetShader.setPaletteData(palData);
+
     const bool mtDataChanged = mtData != _tilesetShader.tilesetData();
-
     if (mtDataChanged || !mtData) {
-        auto tileset = tilesetIndex
-                           ? projectFile.metaTileTilesets.at(tilesetIndex.value())
-                           : std::nullopt;
+        const auto tileset = tilesetIndex ? projectFile.metaTileTilesets.at(tilesetIndex.value())
+                                          : std::nullopt;
 
         if (tileset) {
             _scratchpad = tileset->scratchpad;

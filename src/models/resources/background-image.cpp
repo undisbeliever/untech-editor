@@ -82,8 +82,7 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
     const auto& image = ImageCache::loadPngImage(input.imageFilename);
     assert(image);
 
-    const auto paletteIndex = projectDataStore.indexOf(input.conversionPlette);
-    const auto paletteData = projectDataStore.at(paletteIndex);
+    const auto [paletteIndex, paletteData] = projectDataStore.indexAndDataFor(input.conversionPlette);
     if (!paletteData) {
         err.addErrorString(u8"Cannot find palette: ", input.conversionPlette);
         return nullptr;

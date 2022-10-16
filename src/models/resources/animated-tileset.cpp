@@ -343,8 +343,7 @@ convertAnimationFrames(const AnimationFramesInput& input,
 
     const usize mapSize(imgSize.width / 8, imgSize.height / 8);
 
-    auto paletteIndex = projectDataStore.indexOf(input.conversionPalette);
-    auto paletteData = projectDataStore.at(paletteIndex);
+    const auto [paletteIndex, paletteData] = projectDataStore.indexAndDataFor(input.conversionPalette);
     if (!paletteData) {
         err.addErrorString(u8"Cannot find palette: ", input.conversionPalette);
         return std::nullopt;

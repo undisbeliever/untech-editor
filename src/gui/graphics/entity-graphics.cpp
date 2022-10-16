@@ -146,20 +146,18 @@ static std::optional<EntityFrame> findMetaSprite(const Entity::EntityRomEntry& e
                                                  const Project::ProjectFile& projectFile,
                                                  const Project::ProjectData& projectData)
 {
-    auto frameSetIndex = projectData.frameSets().indexOf(entry.frameSetId);
+    const auto [frameSetIndex, fs] = projectData.frameSets().indexAndDataFor(entry.frameSetId);
 
     if (!frameSetIndex) {
         return std::nullopt;
     }
 
-    if (const auto fs = projectData.frameSets().at(entry.frameSetId)) {
-        if (fs->msFrameSet) {
-            return entityFrame(entry, *fs->msFrameSet, fs);
-        }
+    if (fs && fs->msFrameSet) {
+        return entityFrame(entry, *fs->msFrameSet, fs);
     }
 
     if (frameSetIndex < projectFile.frameSets.size()) {
-        const auto& fsf = projectFile.frameSets.at(*frameSetIndex);
+        const auto& fsf = projectFile.frameSets.at(frameSetIndex.value());
         if (fsf.msFrameSet) {
             return entityFrame(entry, *fsf.msFrameSet, nullptr);
         }

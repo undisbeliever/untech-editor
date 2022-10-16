@@ -163,50 +163,25 @@ public:
     // MUST include a lock in each function
     // MUST NOT implement a write functions in the header file
 
-    inline std::optional<unsigned> indexOf(const idstring& id) const
+    [[nodiscard]] std::pair<std::optional<unsigned>, std::shared_ptr<const T>> indexAndDataFor(const idstring& id) const
     {
         std::shared_lock lock(_mutex);
 
         auto it = _mapping.find(id.str());
         if (it != _mapping.end()) {
-            return it->second;
+            return { it->second, _data.at(it->second) };
         }
         else {
-            return std::nullopt;
+            return { std::nullopt, nullptr };
         }
     }
 
-    inline std::shared_ptr<const T> at(unsigned index) const
+    [[nodiscard]] std::shared_ptr<const T> at(unsigned index) const
     {
         std::shared_lock lock(_mutex);
 
         if (index < _data.size()) {
             return _data.at(index);
-        }
-        else {
-            return {};
-        }
-    }
-
-    inline std::shared_ptr<const T> at(std::optional<unsigned> index) const
-    {
-        std::shared_lock lock(_mutex);
-
-        if (index) {
-            return at(index.value());
-        }
-        else {
-            return {};
-        }
-    }
-
-    inline std::shared_ptr<const T> at(const idstring& id) const
-    {
-        std::shared_lock lock(_mutex);
-
-        auto it = _mapping.find(id.str());
-        if (it != _mapping.end()) {
-            return at(it->second);
         }
         else {
             return {};

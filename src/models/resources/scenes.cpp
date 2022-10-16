@@ -457,8 +457,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     }
 
     case LayerType::BackgroundImage: {
-        const auto index = projectData.backgroundImages().indexOf(layer);
-        const auto bi = projectData.backgroundImages().at(index);
+        const auto [index, bi] = projectData.backgroundImages().indexAndDataFor(layer);
 
         if (!bi) {
             addError(u8"Cannot find background image", layer);
@@ -472,7 +471,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
             break;
         }
 
-        out.layerIndex = *index;
+        out.layerIndex = index.value();
         out.tileSize = bi->tilesetDataSize();
         out.nMaps = bi->nTilemaps();
         out.mapHorizontalMirroring = bi->tilemapHorizontalMirroring();
@@ -481,8 +480,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     }
 
     case LayerType::MetaTileTileset: {
-        const auto index = projectData.metaTileTilesets().indexOf(layer);
-        const auto mt = projectData.metaTileTilesets().at(layer);
+        const auto [index, mt] = projectData.metaTileTilesets().indexAndDataFor(layer);
 
         if (!mt) {
             addError(u8"Cannot find MetaTile Tileset", layer);
@@ -494,7 +492,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
             break;
         }
 
-        out.layerIndex = *index;
+        out.layerIndex = index.value();
         out.tileSize = mt->animatedTileset.vramTileSize();
 
         // The tilemap is fixed for MetaTile Tilesets
@@ -548,10 +546,11 @@ static SceneData readSceneData(const SceneInput& scene, const unsigned sceneInde
     const SceneSettingsInput& sceneSettings = resourceScenes.settings.at(nimIt->second);
     out.sceneSettings = nimIt->second;
 
-    out.palette = projectData.palettes().indexOf(scene.palette);
-    if (!out.palette) {
+    const auto [palIndex, palData] = projectData.palettes().indexAndDataFor(scene.palette);
+    if (!palIndex) {
         addError(u8"Cannot find palette ", scene.palette);
     }
+    out.palette = palIndex;
 
     out.mtTileset = {};
     out.vramUsed = 0;

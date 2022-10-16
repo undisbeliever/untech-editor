@@ -565,7 +565,7 @@ static bool validate(const RoomInput& input,
 
     if (auto sceneData = compiledScenes.findScene(input.scene)) {
         if (sceneData->mtTileset) {
-            tileset = metaTilesData.at(sceneData->mtTileset);
+            tileset = metaTilesData.at(sceneData->mtTileset.value());
         }
         else {
             addError(u8"Scene ", input.scene, u8" does not have a MetaTile layer");
