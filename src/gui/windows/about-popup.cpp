@@ -6,6 +6,7 @@
 
 #include "about-popup.h"
 #include "message-box.h"
+#include "version.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/texture.h"
@@ -115,10 +116,8 @@ void processGui()
         ImGui::Spacing();
 
         ImGui::Indent();
-        ImGui::TextUnformatted(u8"Copyright (c) 2016 - 2021, Marcus Rowe\n"
-                               "\n"
-                               "Licensed under The MIT License\n"
-                               "https://github.com/undisbeliever/untech-editor/blob/master/LICENSE  \n\n"s);
+        ImGui::TextUnformatted(UNTECH_VERSION_STRING);
+        ImGui::TextUnformatted(UNTECH_ABOUT_TEXT);
         ImGui::Unindent();
 
         ImGui::Spacing();
@@ -127,47 +126,8 @@ void processGui()
         ImGui::TextUnformatted(u8"\nThird Party Libraries:"s);
         ImGui::Indent();
 
-        ImGui::TextUnformatted(u8"LodePNG"s);
-        ImGui::Indent();
-        ImGui::TextUnformatted(u8"http://lodev.org/lodepng/\n"
-                               "Copyright (c) 2005-2022 Lode Vandevenne\n"
-                               "zlib License, https://github.com/lvandeve/lodepng/blob/master/LICENSE  \n\n");
-        ImGui::Unindent();
-
-        ImGui::TextUnformatted(u8"LZ4 Library"s);
-        ImGui::Indent();
-        ImGui::TextUnformatted(u8"https://lz4.github.io/lz4/\n"
-                               "Copyright (c) 2011-2020, Yann Collet\n"
-                               "BSD 2-Clause License, https://github.com/lz4/lz4/blob/dev/lib/LICENSE  \n\n"s);
-        ImGui::Unindent();
-
-        ImGui::TextUnformatted(u8"Dear ImGui"s);
-        ImGui::Indent();
-        ImGui::TextUnformatted(u8"https://github.com/ocornut/imgui\n"
-                               "Copyright (c) 2014-2022 Omar Cornut\n"
-                               "MIT License, https://github.com/ocornut/imgui/blob/master/LICENSE.txt  \n\n"s);
-        ImGui::Unindent();
-
-        ImGui::TextUnformatted(u8"imgui-filebrowser"s);
-        ImGui::Indent();
-        ImGui::TextUnformatted(u8"https://github.com/AirGuanZ/imgui-filebrowser\n"
-                               "Copyright (c) 2019-2022 Zhuang Guan\n"
-                               "MIT License, https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE  \n\n"s);
-        ImGui::Unindent();
-
-#ifdef IMGUI_IMPL_OPENGL_LOADER_GL3W
-        ImGui::TextUnformatted(u8"gl3w"s);
-        ImGui::Indent();
-        ImGui::TextUnformatted(u8"https://github.com/skaslev/gl3w\n"
-                               "Public Domain, https://github.com/skaslev/gl3w/blob/master/UNLICENSE  \n\n"s);
-        ImGui::Unindent();
-
-        ImGui::TextUnformatted(u8"glcorearb.h"s);
-        ImGui::Indent();
-        ImGui::TextUnformatted(u8"Copyright 2013-2020 The Khronos Group Inc.\n"
-                               "MIT License  \n\n"s);
-        ImGui::Unindent();
-#endif
+        ImGui::TextUnformatted(THIRD_PARTY_LIBS);
+        ImGui::TextUnformatted(THIRD_PARTY_GUI_LIBS);
 
         ImGui::Unindent();
         ImGui::Spacing();

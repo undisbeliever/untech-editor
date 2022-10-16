@@ -300,16 +300,13 @@ void Parser::printHelpText() const
 
 void Parser::printVersion() const
 {
-    std::cout << _config.programName
-              << " version " UNTECH_VERSION
-                 "\n"
-                 "\nPart of the " UNTECH_NAME " Editor Suite"
-                 "\nLicensed under " UNTECH_LICENSE
-                 "\n"
-                 "\nThe " UNTECH_NAME " Editor Suite makes uses of the following third party source code:"
-                 "\n\tLodePNG - Copyright (c) 2005-2022 Lode Vandevenne, zlib License"
-                 "\n\tLZ4 Library - Copyright (c) 2011-2020, Yann Collet, BSD 2-Clause license"
-                 "\n";
+    std::cout << _config.programName;
+    stdout_write(UNTECH_VERSION_STRING);
+    stdout_write(u8"\n");
+    stdout_write(UNTECH_ABOUT_TEXT);
+    stdout_write(u8"\n\n"
+                 u8"This program makes use of Third Party Libraries:\n");
+    stdout_write(THIRD_PARTY_LIBS);
 }
 
 template <typename... Args>
