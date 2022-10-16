@@ -100,9 +100,6 @@ struct EntityRomEntry {
     bool operator==(const EntityRomEntry&) const = default;
 };
 
-// Also validates the EntityRomDataStruct entries
-StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err);
-
 struct EntityRomData {
     std::vector<idstring> listIds;
 

@@ -382,7 +382,7 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
     return valid;
 }
 
-bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
+static bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -417,7 +417,7 @@ bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
     return valid;
 }
 
-StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err)
+static StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err)
 {
     std::vector<unsigned> toProcess(structs.size());
     {
