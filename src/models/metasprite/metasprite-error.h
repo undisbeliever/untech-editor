@@ -22,23 +22,7 @@ enum class MsErrorType {
     HIT_BOX,
     HURT_BOX,
 };
-
-class MetaSpriteError : public GenericListError {
-public:
-    const MsErrorType type;
-
-    MetaSpriteError(const MsErrorType type, unsigned pIndex, std::u8string&& message)
-        : GenericListError(pIndex, std::move(message))
-        , type(type)
-    {
-    }
-
-    MetaSpriteError(const MsErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
-        : GenericListError(pIndex, cIndex, std::move(message))
-        , type(type)
-    {
-    }
-};
+using MetaSpriteError = GenericListError<MsErrorType>;
 
 enum class EoErrorType {
     STILL_FRAMES,
@@ -46,37 +30,11 @@ enum class EoErrorType {
     ANIMATIONS,
     ANIMATIONS_ALT,
 };
-
-class ExportOrderError : public GenericListError {
-public:
-    const EoErrorType type;
-
-    ExportOrderError(const EoErrorType type, unsigned pIndex, std::u8string&& message)
-        : GenericListError(pIndex, std::move(message))
-        , type(type)
-    {
-    }
-
-    ExportOrderError(const EoErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
-        : GenericListError(pIndex, cIndex, std::move(message))
-        , type(type)
-    {
-    }
-};
+using ExportOrderError = GenericListError<EoErrorType>;
 
 enum class ApfErrorType {
     ACTION_POINT_FUNCTIONS,
 };
-
-class ActionPointFunctionError : public GenericListError {
-public:
-    const ApfErrorType type;
-
-    ActionPointFunctionError(const ApfErrorType type, unsigned pIndex, std::u8string&& message)
-        : GenericListError(pIndex, std::move(message))
-        , type(type)
-    {
-    }
-};
+using ActionPointFunctionError = GenericListError<ApfErrorType>;
 
 }

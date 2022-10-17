@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "entityromdata.h"
 #include "models/common/errorlist.h"
 
 namespace UnTech::Entity {
@@ -20,22 +19,6 @@ enum class EntityErrorType {
     PROJECTILE_ROM_ENTRY,
     PLAYER_ROM_ENTRY,
 };
-
-struct EntityError : public GenericListError {
-public:
-    const EntityErrorType type;
-
-    EntityError(const EntityErrorType type, unsigned pIndex, std::u8string&& message)
-        : GenericListError(pIndex, std::move(message))
-        , type(type)
-    {
-    }
-
-    EntityError(const EntityErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
-        : GenericListError(pIndex, cIndex, std::move(message))
-        , type(type)
-    {
-    }
-};
+using EntityError = GenericListError<EntityErrorType>;
 
 }

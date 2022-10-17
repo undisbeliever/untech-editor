@@ -14,22 +14,6 @@ enum class SceneErrorType {
     SCENE_SETTINGS,
     SCENE_LAYER_ERROR,
 };
-
-class SceneError : public GenericListError {
-public:
-    const SceneErrorType type;
-
-    SceneError(const SceneErrorType type, unsigned pIndex, std::u8string&& message)
-        : GenericListError(pIndex, std::move(message))
-        , type(type)
-    {
-    }
-
-    SceneError(const SceneErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
-        : GenericListError(pIndex, cIndex, std::move(message))
-        , type(type)
-    {
-    }
-};
+using SceneError = GenericListError<SceneErrorType>;
 
 }
