@@ -25,17 +25,17 @@ const char8_t* InvalidImageError::reasonString(const InvalidTileReason reason)
     return u8"";
 }
 
-static std::u8string invalidImageErrorMessage(unsigned frameId, const std::vector<InvalidImageTile>& invalidTiles)
+static std::u8string invalidImageErrorMessage(std::optional<unsigned> frameId, const std::vector<InvalidImageTile>& invalidTiles)
 {
-    if (frameId <= INT_MAX) {
-        return stringBuilder(invalidTiles.size(), u8" invalid tiles in frame ", frameId);
+    if (frameId.has_value()) {
+        return stringBuilder(invalidTiles.size(), u8" invalid tiles in frame ", frameId.value());
     }
     else {
         return stringBuilder(invalidTiles.size(), u8" invalid tiles");
     }
 }
 
-InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, unsigned frameId_)
+InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, std::optional<unsigned> frameId_)
     : AbstractError(invalidImageErrorMessage(frameId_, invalidTiles_))
     , invalidTiles(std::move(invalidTiles_))
     , frameId(frameId_)
@@ -45,8 +45,8 @@ InvalidImageError::InvalidImageError(std::vector<InvalidImageTile>&& invalidTile
 void InvalidImageError::printIndented(StringStream& out) const
 {
     if (!invalidTiles.empty()) {
-        if (hasFrameId()) {
-            out.write(invalidTiles.size(), u8" invalid tiles in frame ", frameId);
+        if (frameId.has_value()) {
+            out.write(invalidTiles.size(), u8" invalid tiles in frame ", frameId.value());
         }
         else {
             out.write(invalidTiles.size(), u8" invalid tiles");

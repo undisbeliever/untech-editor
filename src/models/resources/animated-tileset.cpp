@@ -89,7 +89,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(
         unsigned palette = getPalette(0, tileId);
         for (const auto frameId : range(nFrames)) {
             if (getPalette(frameId, tileId) != palette) {
-                invalidTiles.emplace_back(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, InvalidTileReason::NOT_SAME_PALETTE);
+                invalidTiles.push_back({ TS, unsigned(tileId % tileWidth) * TS, unsigned(tileId / tileWidth) * TS, InvalidTileReason::NOT_SAME_PALETTE });
                 break;
             }
         }
