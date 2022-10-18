@@ -22,8 +22,6 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
         { 'b', "bpp", OT::UNSIGNED, true, {}, "bits per pixel" },
         { 'o', "output", OT::FILENAME, true, {}, "tileset output file" },
         { 'p', "palette", OT::FILENAME, false, {}, "palette output file" },
-        { '\0', "version", OT::VERSION, false, {}, "display version information" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
 };
 

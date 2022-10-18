@@ -47,8 +47,6 @@ bool Argument::hasParameter() const
         return true;
 
     case OptionType::BOOLEAN:
-    case OptionType::VERSION:
-    case OptionType::HELP:
         return false;
     }
 
@@ -160,8 +158,15 @@ bool Parser::parseShortSwitches(const std::string_view argument, const std::stri
     while (!arg.empty()) {
         bool isValid = false;
 
+        const char argToTest = arg.front();
+
+        if (argToTest == 'h') {
+            printHelpText();
+            exit(EXIT_SUCCESS);
+        }
+
         for (const auto& a : _config.arguments) {
-            if (arg.front() == a.shortName) {
+            if (argToTest == a.shortName) {
                 if (arg.size() == 1) {
                     return parseSwitch(a, true, nextArg);
                 }
@@ -190,6 +195,15 @@ bool Parser::parseShortSwitches(const std::string_view argument, const std::stri
 bool Parser::parseLongSwitch(const std::string_view argument, const std::string_view nextArg)
 {
     const auto& cArgs = _config.arguments;
+
+    if (argument == "help") {
+        printHelpText();
+        exit(EXIT_SUCCESS);
+    }
+    if (argument == "version") {
+        printVersion();
+        exit(EXIT_SUCCESS);
+    }
 
     const auto it = std::find_if(cArgs.begin(), cArgs.end(),
                                  [&](const auto& a) { return argument == a.longName; });
@@ -229,14 +243,6 @@ bool Parser::parseSwitch(const Argument& argument, bool isShort, const std::stri
         }
         return true;
     }
-
-    case OptionType::VERSION:
-        printVersion();
-        exit(EXIT_SUCCESS);
-
-    case OptionType::HELP:
-        printHelpText();
-        exit(EXIT_SUCCESS);
     }
 
     return false;
@@ -295,7 +301,9 @@ void Parser::printHelpText() const
         }
     }
 
-    std::cout << std::endl;
+    std::cout << "\n  --version                 display version information"
+                 "\n  -h --help                 display this help message"
+              << std::endl;
 }
 
 void Parser::printVersion() const

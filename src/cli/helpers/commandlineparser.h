@@ -48,8 +48,6 @@ enum class OptionType {
     BOOLEAN,
     FILENAME,
     UNSIGNED,
-    VERSION,
-    HELP,
 };
 
 struct Argument {

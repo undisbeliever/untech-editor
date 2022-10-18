@@ -23,8 +23,6 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     {
         { 0, "output-inc", OT::FILENAME, true, {}, "output inc file" },
         { 0, "output-bin", OT::FILENAME, true, {}, "output bin file" },
-        { 0, "version", OT::VERSION, false, {}, "display version information" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
 };
 

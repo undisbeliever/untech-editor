@@ -22,8 +22,6 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
         { 'o', "output", OT::FILENAME, true, {}, "output file" },
         { 'l', "limit", OT::UNSIGNED, false, 0xffffU, "limit output file size in bytes" },
         { 'v', "verbose", OT::BOOLEAN, false, {}, "verbose output" },
-        { '\0', "version", OT::VERSION, false, {}, "display version information" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
 };
 

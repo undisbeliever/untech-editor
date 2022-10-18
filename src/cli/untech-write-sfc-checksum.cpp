@@ -25,7 +25,6 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
         { 0, "lorom", OT::BOOLEAN, false, {}, "LoROM mapping" },
         { 0, "hirom", OT::BOOLEAN, false, {}, "HiROM mapping" },
         { 'v', "verbose", OT::BOOLEAN, false, {}, "verbose output" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
 };
 

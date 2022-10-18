@@ -32,8 +32,6 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
         { '\0', "max-palettes", OT::UNSIGNED, false, 8U, "maximum number of palettes" },
         { '\0', "order", OT::UNSIGNED, false, 0U, "tilemap order" },
         { 'v', "verbose", OT::BOOLEAN, false, {}, "verbose output" },
-        { '\0', "version", OT::VERSION, false, {}, "display version information" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
 };
 
