@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "helpers/commandlineparser.h"
+#include "argparser.h"
 #include "models/common/exceptions.h"
 #include "models/common/indexedimage.h"
 #include "models/snes/image2tileset.h"
@@ -13,33 +13,39 @@
 
 using namespace UnTech;
 using namespace UnTech::Snes;
+using namespace UnTech::ArgParser;
 
-using OT = CommandLine::OptionType;
-const CommandLine::Config COMMAND_LINE_CONFIG = {
-    "UnTech png2tileset",
-    "png file",
-    {
-        { 'b', "bpp", OT::UNSIGNED, true, {}, "bits per pixel" },
-        { 'o', "output", OT::FILENAME, true, {}, "tileset output file" },
-        { 'p', "palette", OT::FILENAME, false, {}, "palette output file" },
-    }
+struct Args {
+    std::filesystem::path inputFilename;
+
+    unsigned bpp;
+    std::filesystem::path tilesetFilename;
+    std::filesystem::path paletteFilename; // optional
 };
 
-int process(const CommandLine::Parser& args)
+// clang-format off
+constexpr static auto ARG_PARSER_CONFIG = argParserConfig(
+    "UnTech png2tileset",
+    "png file",
+
+    RequiredArg< &Args::bpp             >{  'b',    "bpp",      "bits per pixel"        },
+    RequiredArg< &Args::tilesetFilename >{  'o',    "output",   "tileset output file"   },
+    OptionalArg< &Args::paletteFilename >{  'p',    "palette",  "palette output file"   }
+);
+// clang-format on
+
+int process(const Args& args)
 {
-    const auto image = IndexedImage::loadPngImage_shared(args.inputFilename());
+    const auto image = IndexedImage::loadPngImage_shared(args.inputFilename);
     assert(image);
 
     if (image->empty()) {
         throw runtime_error(image->errorString());
     }
 
-    const std::filesystem::path& tilesetFile = args.options().at("output").path();
-    const std::filesystem::path& paletteFile = args.options().at("palette").path();
+    const auto bitDepth = toBitDepthSpecial(args.bpp);
 
-    const auto bitDepth = toBitDepthSpecial(args.options().at("bpp").uint());
-
-    ImageToTileset::convertAndSave(*image, bitDepth, tilesetFile, paletteFile);
+    ImageToTileset::convertAndSave(*image, bitDepth, args.tilesetFilename, args.paletteFilename);
 
     return EXIT_SUCCESS;
 }
@@ -47,8 +53,7 @@ int process(const CommandLine::Parser& args)
 int main(int argc, const char* argv[])
 {
     try {
-        CommandLine::Parser args(COMMAND_LINE_CONFIG);
-        args.parse(argc, argv);
+        const Args args = parseProgramArguments(ARG_PARSER_CONFIG, argc, argv);
         return process(args);
     }
     catch (const std::exception& ex) {

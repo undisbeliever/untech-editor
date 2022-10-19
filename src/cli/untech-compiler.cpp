@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "helpers/commandlineparser.h"
+#include "argparser.h"
 #include "models/common/file.h"
 #include "models/common/stringstream.h"
 #include "models/common/u8strings.h"
@@ -15,26 +15,30 @@
 
 using namespace UnTech;
 using namespace UnTech::Project;
+using namespace UnTech::ArgParser;
 
-using OT = CommandLine::OptionType;
-const CommandLine::Config COMMAND_LINE_CONFIG = {
-    "UnTech Compiler",
-    "utproject file",
-    {
-        { 0, "output-inc", OT::FILENAME, true, {}, "output inc file" },
-        { 0, "output-bin", OT::FILENAME, true, {}, "output bin file" },
-    }
+struct Args {
+    std::filesystem::path inputFilename;
+
+    std::filesystem::path outputIncFilename;
+    std::filesystem::path outputBinFilename;
 };
 
-int compile(const CommandLine::Parser& args)
+// clang-format off
+constexpr static auto ARG_PARSER_CONFIG = argParserConfig(
+    "UnTech Compiler",
+    "utproject file",
+
+    RequiredArg< &Args::outputIncFilename   >{  '\0',   "output-inc",  "output inc file"   },
+    RequiredArg< &Args::outputBinFilename   >{  '\0',   "output-bin",  "output bin file"   }
+);
+// clang-format on
+
+int compile(const Args& args)
 {
-    const std::filesystem::path& projectFilePath = args.inputFilename();
-    const std::filesystem::path& incFilePath = args.options().at("output-inc").path();
-    const std::filesystem::path& binaryFilePath = args.options().at("output-bin").path();
+    const std::filesystem::path& relativeBinaryFilePath = args.outputBinFilename.lexically_relative(args.outputIncFilename.parent_path());
 
-    const std::filesystem::path& relativeBinaryFilePath = binaryFilePath.lexically_relative(incFilePath.parent_path());
-
-    std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilePath);
+    std::unique_ptr<ProjectFile> project = loadProjectFile(args.inputFilename);
     project->loadAllFiles();
 
     StringStream errorStream;
@@ -51,8 +55,8 @@ int compile(const CommandLine::Parser& args)
         return EXIT_FAILURE;
     }
 
-    File::atomicWrite(incFilePath, output->incData);
-    File::atomicWrite(binaryFilePath, output->binaryData);
+    File::atomicWrite(args.outputIncFilename, output->incData);
+    File::atomicWrite(args.outputBinFilename, output->binaryData);
 
     return EXIT_SUCCESS;
 }
@@ -60,8 +64,7 @@ int compile(const CommandLine::Parser& args)
 int main(int argc, const char* argv[])
 {
     try {
-        CommandLine::Parser args(COMMAND_LINE_CONFIG);
-        args.parse(argc, argv);
+        const Args args = parseProgramArguments(ARG_PARSER_CONFIG, argc, argv);
         return compile(args);
     }
     catch (const std::exception& ex) {

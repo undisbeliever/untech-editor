@@ -19,6 +19,10 @@ postfixOperator:src/gui/list-actions.h
 unusedStructMember:src/gui/editors/*.cpp
 
 
+# All cli apps use the same name for the program arguments struct
+ctuOneDefinitionRuleViolation:src/cli/*.cpp
+
+
 # `_data->data` pattern at the beginning of a Gui Window functions
 variableScope:src/gui/editors/*.cpp
 variableScope:src/gui/untech-editor.cpp
@@ -44,5 +48,8 @@ knownConditionTrueFalse:src/models/project/project-data.cpp
 
 # False positives (cppcheck cannot find the function caller)
 unusedFunction:src/models/common/*.cpp
+
+# False positives
+unusedStructMember:src/cli/argparser.h
 
 
