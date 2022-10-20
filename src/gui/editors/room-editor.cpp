@@ -1040,13 +1040,13 @@ void RoomEditorGui::editorGui()
         entityDropTarget(drawList);
 
         if (_graphics.isEditingFinished()) {
-            _data->startMacro();
+            _data->undoStack().startMacro();
 
             ListActions<AP::Entrances>::selectedItemsEdited(_data);
             ListActions<AP::EntityEntries>::selectedItemsEdited(_data);
             ListActions<AP::ScriptTriggers>::selectedItemsEdited(_data);
 
-            _data->endMacro();
+            _data->undoStack().endMacro();
         }
 
         Style::roomEditorZoom.processMouseWheel();

@@ -78,7 +78,7 @@ struct EditorActions {
     using EditorT = typename ActionPolicy::EditorT;
     using EditorDataT = typename ActionPolicy::EditorDataT;
 
-    class BaseAction : public EditorUndoAction {
+    class BaseAction : public UndoAction {
     protected:
         EditorT* const editor;
 
@@ -218,14 +218,14 @@ struct EditorActions {
 
     static void editorDataEdited(EditorT* editor)
     {
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditDataAction>(editor));
     }
 
     template <auto FieldPtr>
     static void fieldEdited(EditorT* editor)
     {
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditFieldAction<FieldPtr>>(editor));
     }
 };
@@ -239,7 +239,7 @@ struct EditorFieldActions {
     static constexpr auto FieldPtr = ActionPolicy::FieldPtr;
     using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
-    class EditFieldAction : public EditorUndoAction {
+    class EditFieldAction : public UndoAction {
     private:
         EditorT* const editor;
 
@@ -312,7 +312,7 @@ struct EditorFieldActions {
 
     static void fieldEdited(EditorT* editor)
     {
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditFieldAction>(editor));
     }
 };

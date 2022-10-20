@@ -842,7 +842,7 @@ void MetaSpriteEditorGui::tilesetButtons()
             }
         };
 
-        _data->startMacro();
+        _data->undoStack().startMacro();
         if (_data->smallTilesetSel.hasSelection()) {
             ListActions<AP::SmallTileset>::editList(_data, EditListAction::REMOVE);
             tileRemoved(_data->smallTilesetSel.selectedIndex(), ObjectSize::SMALL);
@@ -851,7 +851,7 @@ void MetaSpriteEditorGui::tilesetButtons()
             ListActions<AP::LargeTileset>::editList(_data, EditListAction::REMOVE);
             tileRemoved(_data->largeTilesetSel.selectedIndex(), ObjectSize::LARGE);
         }
-        _data->endMacro();
+        _data->undoStack().endMacro();
     }
 }
 
@@ -1252,7 +1252,7 @@ void MetaSpriteEditorGui::frameEditorGui()
                       &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
 
     if (_graphics.isEditingFinished()) {
-        _data->startMacro();
+        _data->undoStack().startMacro();
 
         if (_data->tileHitboxSel.isSelected()) {
             ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
@@ -1272,7 +1272,7 @@ void MetaSpriteEditorGui::frameEditorGui()
             ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hurtbox>(_data);
         }
 
-        _data->endMacro();
+        _data->undoStack().endMacro();
     }
 
     Style::metaSpriteZoom.processMouseWheel();

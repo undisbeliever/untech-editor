@@ -86,44 +86,44 @@ void CombinedListButtons(const char* idStr, EditorT* editor)
     (CombinedListButtons_AddButton<ActionPolicy>(editor), ...);
 
     if (ImGui::ButtonWithTooltip("C", "Clone Selected")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::CLONE)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("R##Remove", "Remove Selected")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("RT", "Raise to Top")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE_TO_TOP)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("R##Raise", "Raise")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("L", "Lower")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("LB", "Lower to Bottom")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER_TO_BOTTOM)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
 
     ImGui::PopID();

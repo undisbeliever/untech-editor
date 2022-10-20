@@ -7,6 +7,7 @@
 #pragma once
 
 #include "item-index.h"
+#include "undostack.h"
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -24,52 +25,6 @@ namespace UnTech::Gui {
 
 class AbstractEditorGui;
 
-class EditorUndoAction {
-public:
-    virtual ~EditorUndoAction() = default;
-
-    // Notify the GUI that the data has changed.
-    //
-    // AbstractEditorGui* may be null
-    //
-    // Called after `firstDo_editorData()`, `undo()` or `redo()` is called.
-    virtual void notifyGui(AbstractEditorGui*) const = 0;
-
-    // Preforms an action to the editor data.
-    //
-    // This function should update the selection if the list size or order is changed.
-    //
-    // This function is called after the GUI has been processed.
-    //
-    // The firstDo function is split into separate editorData and projectFile functions.
-    // This allows for the editor data to be updated immediately after the GUI has been
-    // processed, while also allowing for projectFile updates to be delayed until the
-    // background thread is no-longer blocking projectFile writes.
-    //
-    virtual void firstDo_editorData() const = 0;
-
-    // Preforms an action to the project data.
-    //
-    // Returns true if the action modified the project data.
-    // If this function returns false then the undo action will not be added to the stack.
-    //
-    // This function MUST NOT modify editor data or selection.
-    //
-    // This function is called after `firstDo_editorData()`.
-    //
-    virtual bool firstDo_projectFile(UnTech::Project::ProjectFile&) = 0;
-
-    // Undoes an action.
-    // This function MUST update both editor and project data.
-    // This function should update the selection if the list size or order is changed.
-    virtual void undo(UnTech::Project::ProjectFile&) const = 0;
-
-    // Redoes an undone action.
-    // This function MUST update both editor and project data.
-    // This function should update the selection if the list size or order is changed.
-    virtual void redo(UnTech::Project::ProjectFile&) const = 0;
-};
-
 class AbstractEditorData {
 public:
     constexpr static unsigned N_UNDO_ACTIONS = 200;
@@ -79,15 +34,7 @@ private:
     ItemIndex _itemIndex;
     std::u8string _basename;
 
-    std::vector<std::unique_ptr<EditorUndoAction>> _pendingEditorActions;
-    std::vector<std::unique_ptr<EditorUndoAction>> _pendingProjectFileActions;
-
-    // Using vector so I can trim the stacks when they get too large
-    std::vector<std::unique_ptr<EditorUndoAction>> _undoStack;
-    std::vector<std::unique_ptr<EditorUndoAction>> _redoStack;
-
-    bool _clean = true;
-    bool _inMacro;
+    UndoStack _undoStack;
 
 public:
     AbstractEditorData(const AbstractEditorData&) = delete;
@@ -96,7 +43,13 @@ public:
     AbstractEditorData& operator=(AbstractEditorData&&) = delete;
 
 public:
-    AbstractEditorData(const ItemIndex itemIndex);
+    AbstractEditorData(const ItemIndex itemIndex)
+        : _itemIndex{ itemIndex }
+        , _basename{}
+        , _undoStack{}
+    {
+    }
+
     virtual ~AbstractEditorData() = default;
 
     [[nodiscard]] ItemIndex itemIndex() const { return _itemIndex; }
@@ -104,40 +57,17 @@ public:
     // The returned string is empty on internal projectFile resources.
     [[nodiscard]] const std::u8string& basename() const { return _basename; }
 
+    [[nodiscard]] UndoStack& undoStack() { return _undoStack; }
+
     // Return false if itemIndex is invalid.
     // If this editor is an `AbstractExternalFileEditor`, then you MUST call `setFilename` in this function.
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) = 0;
 
-    // Called when a an error list item is double clicked
+    // Called when an error list item is double clicked
     virtual void errorDoubleClicked(const AbstractError*) = 0;
 
-    // Called after processGui and after an undo action has been processed.
+    // Called at the end of `UnTechEditor::processGui()` and `processUndoStack()`
     virtual void updateSelection() = 0;
-
-    // Undo functions MUST NOT be called by an EditorUndoAction instance
-    void addAction(std::unique_ptr<EditorUndoAction>&& action);
-
-    // Macros allow multiple actions to be preformed at once
-    void startMacro();
-    void endMacro();
-
-    // Called once per frame, before updateSelection().
-    // AbstractEditorGui* may be null
-    void processEditorActions(AbstractEditorGui*);
-
-    // AbstractEditorGui* may be null
-    // Returns true if the editor data changed.
-    bool processPendingProjectActions(UnTech::Project::ProjectFile&);
-    bool undo(UnTech::Project::ProjectFile&, AbstractEditorGui*);
-    bool redo(UnTech::Project::ProjectFile&, AbstractEditorGui*);
-
-    [[nodiscard]] bool canUndo() const { return !_undoStack.empty(); }
-    [[nodiscard]] bool canRedo() const { return !_redoStack.empty(); }
-
-    [[nodiscard]] bool hasPendingActions() const { return (!_pendingEditorActions.empty()) || (!_pendingProjectFileActions.empty()); }
-
-    [[nodiscard]] bool isClean() const { return _clean; }
-    void markClean() { _clean = true; }
 
 private:
     friend class ProjectListWindow;
@@ -203,9 +133,6 @@ public:
 protected:
     void undoStackButtons();
 };
-
-// Returns true if the editor data was changed.
-bool processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, UnTech::Project::ProjectFile&);
 
 std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
 

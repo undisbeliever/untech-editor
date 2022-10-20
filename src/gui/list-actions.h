@@ -124,7 +124,7 @@ public:
     }
 
 protected:
-    class BaseAction : public EditorUndoAction {
+    class BaseAction : public UndoAction {
     private:
         EditorT* const editor;
 
@@ -1043,7 +1043,7 @@ protected:
     };
 
 protected:
-    class EditMultipleNestedItems final : public EditorUndoAction {
+    class EditMultipleNestedItems final : public UndoAction {
     public:
         struct IndexAndValues {
             ListArgsT listArgs;
@@ -1068,7 +1068,7 @@ protected:
     public:
         EditMultipleNestedItems(EditorT* editor,
                                 const std::vector<IndexAndValues>&& indexesAndValues)
-            : EditorUndoAction()
+            : UndoAction()
             , editor(editor)
             , indexesAndNewValues(std::move(indexesAndValues))
         {
@@ -1169,7 +1169,7 @@ protected:
     template <auto FieldPtr>
     static void _editListField(EditorT* editor, const ListArgsT& listArgs, const index_type index)
     {
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditItemFieldAction<FieldPtr>>(
                 editor, listArgs, index));
     }
@@ -1196,7 +1196,7 @@ protected:
         for (auto& [index, v] : values) {
             index = i++;
         }
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<AddMultipleAction>(editor, listArgs, std::move(values)));
     }
 
@@ -1217,7 +1217,7 @@ protected:
             return;
         }
 
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
     }
 
@@ -1245,28 +1245,28 @@ protected:
 
         case EditListAction::RAISE_TO_TOP: {
             if (indexes.back() >= indexes.size()) {
-                editor->addAction(
+                editor->undoStack().addAction(
                     std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
             }
         } break;
 
         case EditListAction::RAISE: {
             if (indexes.front() > 0) {
-                editor->addAction(
+                editor->undoStack().addAction(
                     std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
             }
         } break;
 
         case EditListAction::LOWER: {
             if (indexes.back() + 1 < list->size()) {
-                editor->addAction(
+                editor->undoStack().addAction(
                     std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
             }
         } break;
 
         case EditListAction::LOWER_TO_BOTTOM: {
             if (indexes.front() < list->size() - indexes.size()) {
-                editor->addAction(
+                editor->undoStack().addAction(
                     std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
             }
         } break;
@@ -1285,7 +1285,7 @@ public:
         }
 
         if (list->size() < MAX_SIZE) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<AddAction>(editor, listArgs, list->size(), value));
         }
     }
@@ -1298,7 +1298,7 @@ public:
         }
 
         if (list->size() < MAX_SIZE) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<AddAction>(editor, listArgs, list->size()));
         }
     }
@@ -1311,7 +1311,7 @@ public:
         }
 
         if (list->size() < MAX_SIZE) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<AddAction>(editor, listArgs, list->size(), value));
         }
     }
@@ -1326,7 +1326,7 @@ public:
         if (index < list->size()) {
             if (list->size() < MAX_SIZE) {
                 const auto& item = list->at(index);
-                editor->addAction(
+                editor->undoStack().addAction(
                     std::make_unique<AddAction>(editor, listArgs, index + 1, item));
             }
         }
@@ -1341,7 +1341,7 @@ public:
 
         if (index < list->size()) {
             const auto& item = list->at(index);
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<RemoveAction>(editor, listArgs, index, item));
         }
     }
@@ -1358,7 +1358,7 @@ public:
             && fromIndex >= 0 && fromIndex < list->size()
             && toIndex >= 0 && toIndex < list->size()) {
 
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<MoveAction>(editor, listArgs, fromIndex, toIndex));
         }
     }
@@ -1371,7 +1371,7 @@ public:
         }
 
         if (index >= 0 && index + 1 < list->size()) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<MoveAction>(editor, listArgs, index, list->size() - 1));
         }
     }
@@ -1384,7 +1384,7 @@ public:
         }
 
         if (index < list->size()) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<EditItemAction>(editor, listArgs, index));
         }
     }
@@ -1412,7 +1412,7 @@ public:
                       indexes.end());
 
         if (!indexes.empty()) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<EditMultipleItemsAction>(editor, listArgs, std::move(indexes)));
         }
     }
@@ -1431,7 +1431,7 @@ public:
             return;
         }
 
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditAllItemsInListFieldAction<FieldPtr>>(editor, listArgs));
     }
 };
@@ -1572,7 +1572,7 @@ public:
         }
 
         if (!indexes.empty()) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<EditMultipleItemsAction>(editor, listArgs, std::move(indexes)));
         }
     }
@@ -1674,7 +1674,7 @@ public:
         } break;
 
         case EditListAction::CLONE: {
-            editor->startMacro();
+            editor->undoStack().startMacro();
             for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const auto& childSel = sel.childSel(groupIndex);
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
@@ -1683,11 +1683,11 @@ public:
                                       indexesAndDataForMultipleSelection(*list, childSel));
                 }
             }
-            editor->endMacro();
+            editor->undoStack().endMacro();
         } break;
 
         case EditListAction::REMOVE: {
-            editor->startMacro();
+            editor->undoStack().startMacro();
             for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
@@ -1696,14 +1696,14 @@ public:
                                        indexesAndDataForMultipleSelection(*list, childSel));
                 }
             }
-            editor->endMacro();
+            editor->undoStack().endMacro();
         } break;
 
         case EditListAction::RAISE_TO_TOP:
         case EditListAction::RAISE:
         case EditListAction::LOWER:
         case EditListAction::LOWER_TO_BOTTOM: {
-            editor->startMacro();
+            editor->undoStack().startMacro();
             for (const auto groupIndex : range(sel.MAX_GROUP_SIZE)) {
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = LA::getEditorListPtr(editor, listArgs)) {
@@ -1713,7 +1713,7 @@ public:
                                      action);
                 }
             }
-            editor->endMacro();
+            editor->undoStack().endMacro();
         } break;
         }
     }
@@ -1736,7 +1736,7 @@ public:
             }
         }
         if (!values.empty()) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<typename LA::EditMultipleNestedItems>(editor, std::move(values)));
         }
     }

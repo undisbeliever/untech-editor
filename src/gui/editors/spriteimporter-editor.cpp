@@ -844,7 +844,7 @@ void SpriteImporterEditorGui::frameEditorGui()
                       &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
 
     if (_graphics.isEditingFinished()) {
-        _data->startMacro();
+        _data->undoStack().startMacro();
 
         ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
         ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
@@ -861,7 +861,7 @@ void SpriteImporterEditorGui::frameEditorGui()
             ListActions<AP::Frames>::selectedFieldEdited<&SI::Frame::hurtbox>(_data);
         }
 
-        _data->endMacro();
+        _data->undoStack().endMacro();
     }
 
     Style::spriteImporterZoom.processMouseWheel();

@@ -28,7 +28,7 @@ struct GridActions {
                           std::tuple_cat(std::forward_as_tuple(*data), listArgs));
     }
 
-    class BaseAction : public EditorUndoAction {
+    class BaseAction : public UndoAction {
     private:
         EditorT* const editor;
         const ListArgsT listArgs;
@@ -209,7 +209,7 @@ struct GridActions {
             return;
         }
 
-        editor->addAction(std::make_unique<EditMultipleCellsAction>(
+        editor->undoStack().addAction(std::make_unique<EditMultipleCellsAction>(
             editor, listArgs, r.topLeft(), grid->subGrid(r)));
     }
 
@@ -234,7 +234,7 @@ struct GridActions {
             return;
         }
 
-        editor->addAction(std::make_unique<EditGridAction>(
+        editor->undoStack().addAction(std::make_unique<EditGridAction>(
             editor, listArgs, grid->resized(newSize, ActionPolicy::DEFAULT_VALUE)));
     }
 };

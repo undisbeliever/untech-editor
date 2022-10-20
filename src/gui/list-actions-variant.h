@@ -104,7 +104,7 @@ public:
         }
 
         if (index < list->size()) {
-            editor->addAction(
+            editor->undoStack().addAction(
                 std::make_unique<EditVariantItemFieldAction<FieldPtr>>(editor, listArgs, index));
         }
     }

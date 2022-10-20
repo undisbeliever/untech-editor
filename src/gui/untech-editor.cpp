@@ -185,7 +185,10 @@ void UnTechEditor::closeEditor()
 bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
 {
     assert(editor);
-    assert(editor->hasPendingActions() == false);
+
+    // Silence a [assertWithSideEffect] cppcheck warning
+    const auto& const_undoStack = _currentEditor->undoStack();
+    assert(const_undoStack.hasPendingActions() == false);
 
     // ::TODO is this necessary? ::
     _projectFile.read([&](const auto& pf) {
@@ -196,7 +199,7 @@ bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
     assert(editor->filename().empty() == false);
     try {
         editor->saveFile();
-        editor->markClean();
+        editor->undoStack().markClean();
         return true;
     }
     catch (const std::exception& ex) {
@@ -218,7 +221,7 @@ bool UnTechEditor::saveProjectFile()
 
         for (auto& editor : _editors) {
             if (dynamic_cast<AbstractExternalFileEditorData*>(editor.get()) == nullptr) {
-                editor->markClean();
+                editor->undoStack().markClean();
             }
         }
         _projectListWindow.markClean();
@@ -249,14 +252,16 @@ bool UnTechEditor::saveAll()
     forceProcessEditorActions();
 
     if (_currentEditor) {
-        assert(_currentEditor->hasPendingActions() == false);
+        // Silence a [assertWithSideEffect] cppcheck warning
+        const auto& undoStack = _currentEditor->undoStack();
+        assert(undoStack.hasPendingActions() == false);
     }
 
     bool ok = true;
     bool projectFileDirty = !_projectListWindow.isClean();
 
     for (auto& editor : _editors) {
-        if (!editor->isClean()) {
+        if (!editor->undoStack().isClean()) {
             if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(editor.get())) {
                 saveEditor(e);
             }
@@ -330,8 +335,8 @@ void UnTechEditor::processMenu()
     }
 
     if (ImGui::BeginMenu("Edit")) {
-        const bool canUndo = _currentEditor && _currentEditor->canUndo();
-        const bool canRedo = _currentEditor && _currentEditor->canRedo();
+        const bool canUndo = _currentEditor && _currentEditor->undoStack().canUndo();
+        const bool canRedo = _currentEditor && _currentEditor->undoStack().canRedo();
 
         if (ImGui::MenuItem("Undo", "Ctrl+Z", false, canUndo)) {
             if (_currentEditorGui) {
@@ -424,7 +429,7 @@ void UnTechEditor::requestExitEditor()
 
     bool projectFileClean = _projectListWindow.isClean();
     for (auto& e : _editors) {
-        if (!e->isClean()) {
+        if (!e->undoStack().isClean()) {
             if (auto* ee = dynamic_cast<AbstractExternalFileEditorData*>(e.get())) {
                 files.push_back(ee->filename().lexically_relative(parentPath).u8string());
             }
@@ -574,7 +579,7 @@ void UnTechEditor::processGui()
     unsavedChangesOnExitPopup();
 
     if (_currentEditor) {
-        _currentEditor->processEditorActions(_currentEditorGui);
+        _currentEditor->undoStack().processEditorActions(_currentEditorGui);
         _currentEditor->updateSelection();
     }
 }
@@ -587,11 +592,7 @@ void UnTechEditor::updateProjectFile()
         // ::TODO add requestStopCompiling to background thread::
 
         _projectFile.tryWrite([&](auto& pf) {
-            edited = _currentEditor->processPendingProjectActions(pf);
-
-            if (_currentEditorGui) {
-                edited |= processUndoStack(_currentEditorGui, _currentEditor, pf);
-            }
+            edited |= processUndoStack(_currentEditor, _currentEditorGui, pf);
         });
 
         if (edited) {
@@ -629,10 +630,8 @@ void UnTechEditor::forceProcessEditorActions()
     if (_currentEditor) {
         bool edited = false;
 
-        _currentEditor->processEditorActions(_currentEditorGui);
-
         _projectFile.write([&](auto& pf) {
-            edited = _currentEditor->processPendingProjectActions(pf);
+            edited |= processUndoStack(_currentEditor, _currentEditorGui, pf);
         });
 
         if (edited) {
@@ -670,7 +669,7 @@ void BackgroundThread::run()
                         projectData.markResourceInvalid(r.type, r.index);
 
                         // ::TODO add separate quque for updating dependencies::
-                        // ::: and add flag in EditorUndoAction to mark when dependencies changes::
+                        // ::: and add flag in AbstractEditorData to mark when dependencies changes::
                         projectFile.read([&](const auto& pf) {
                             static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
                             projectData.updateDependencyGraph(pf, r.type, r.index);
