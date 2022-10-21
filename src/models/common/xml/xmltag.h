@@ -173,19 +173,6 @@ public:
         }
     }
 
-    template <class MapT>
-    inline idstring getAttributeUniqueId(const std::u8string_view aName,
-                                         const MapT& map) const
-    {
-        // No need to escape value - only alnum and underscore characters are valid
-        auto id = idstring::fromString(getAttribute_rawValue(aName));
-
-        if (map.contains(id)) {
-            throw xml_error(*this, aName, u8"id already exists");
-        }
-        return id;
-    }
-
     [[nodiscard]] inline int getAttributeInteger(const std::u8string_view aName) const
     {
         static_assert(std::is_same_v<int, int32_t>);
