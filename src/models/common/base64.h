@@ -21,6 +21,8 @@ namespace UnTech::Base64 {
 /**
  * Encodes the given data as base64 text in the given file.
  * Uses MIME base64 style, indented by `indent` spaces.
+ *
+ * NOTE: `indent` will be capped if it is too large.
  */
 void encode(std::span<const uint8_t> data, StringStream& out, unsigned indent = 0);
 

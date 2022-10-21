@@ -57,15 +57,19 @@ void encode(std::span<const uint8_t> data, StringStream& out, unsigned indent)
     constexpr unsigned CHARS_PER_LINE = 64;
     constexpr unsigned BLOCKS_PER_LINE = CHARS_PER_LINE / 4;
 
-    std::u8string padding(indent, ' ');
+    constexpr std::u8string_view NEWLINE_AND_PADDING = u8"\n                    ";
 
-    out.write(padding);
+    const auto nPaddingChars = std::min<size_t>(indent, NEWLINE_AND_PADDING.size() - 1);
+    const auto newLineAndPadding = NEWLINE_AND_PADDING.substr(0, nPaddingChars + 1);
+
+    // Only print padding, not newline
+    out.write(NEWLINE_AND_PADDING.substr(1, nPaddingChars));
 
     unsigned blockId = 0;
     while (data.size() >= BLOCK_SIZE_BYTES) {
         if (blockId == BLOCKS_PER_LINE) {
             blockId = 0;
-            out.write(u8"\n", padding);
+            out.write(newLineAndPadding);
         }
         blockId++;
 
@@ -76,7 +80,7 @@ void encode(std::span<const uint8_t> data, StringStream& out, unsigned indent)
 
     if (!data.empty()) {
         if (blockId == BLOCKS_PER_LINE) {
-            out.write(u8"\n", padding);
+            out.write(newLineAndPadding);
         }
 
         if (data.size() == 1) {
