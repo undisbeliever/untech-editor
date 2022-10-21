@@ -167,7 +167,7 @@ static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tile
 static void readTilePriorities(XmlReader& xml, const XmlTag&, MetaTileTilesetInput& tilesetInput)
 {
     // <tile-priorities> tag
-    xml.parseBase64ToByteArray(tilesetInput.tilePriorities.data);
+    xml.parseBase64ToFixedSizeBuffer(tilesetInput.tilePriorities.data);
 }
 
 static void writeTilePriorities(XmlWriter& xml, const TilePriorities& tilePriorities)
