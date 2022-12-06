@@ -1322,13 +1322,11 @@ void RoomEditorGui::updateInvalidTileList(const Project::ProjectData& projectDat
 // Room Scripts
 // ============
 
-class RoomScriptGuiVisitor {
+class RoomScriptGui {
     using AP = RoomEditorData::AP;
 
 private:
     RoomEditorData* const data;
-    const Scripting::BytecodeMapping& bcMapping;
-    const Project::ProjectFile& projectFile;
 
     unsigned depth{ 0 };
 
@@ -1345,37 +1343,34 @@ private:
     constexpr static float INDENT_SPACING = 30;
 
 public:
-    RoomScriptGuiVisitor(RoomEditorData* d,
-                         const Scripting::BytecodeMapping& mapping,
-                         const Project::ProjectFile& projectFile)
+    explicit RoomScriptGui(RoomEditorData* d)
         : data(d)
-        , bcMapping(mapping)
-        , projectFile(projectFile)
         , parentIndex()
         , disabledColor(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled))
     {
         assert(data != nullptr);
     }
 
-    void processGui(Scripting::Script& script, const unsigned scriptId)
+    void processGui(Scripting::Script& script, const unsigned scriptId, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         ImGui::PushItemWidth((ImGui::GetWindowWidth() - 30) / 4);
 
-        processStatements_root(script.statements, scriptId);
+        processStatements_root(script.statements, scriptId, pf, bcMapping);
 
         ImGui::PopItemWidth();
 
-        processAddMenu();
+        processAddMenu(bcMapping);
 
         assert(depth == 0);
     }
 
-    bool roomArgument(const char* label, std::u8string* value) const
+private:
+    bool roomArgument(const char* label, std::u8string* value, const Project::ProjectFile& pf) const
     {
         bool edited = false;
 
         if (ImGui::BeginCombo(label, u8Cast(*value))) {
-            for (const auto& item : projectFile.rooms) {
+            for (const auto& item : pf.rooms) {
                 if (item.value && item.value->name.isValid()) {
                     const auto& roomName = item.value->name;
                     if (ImGui::Selectable(u8Cast(roomName), roomName.str() == *value)) {
@@ -1426,7 +1421,7 @@ public:
         return edited;
     }
 
-    bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::u8string* value)
+    bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::u8string* value, const Project::ProjectFile& pf)
     {
         using Type = Scripting::ArgumentType;
 
@@ -1485,7 +1480,7 @@ public:
         } break;
 
         case Type::Room: {
-            edited = roomArgument(label, value);
+            edited = roomArgument(label, value, pf);
         } break;
 
         case Type::RoomEntrance: {
@@ -1497,40 +1492,65 @@ public:
         return edited;
     }
 
-    bool roomAndRoomEntraceArguments(std::array<std::u8string, 2>& arguments)
+    bool roomAndRoomEntraceArguments(std::array<std::u8string, 2>& arguments, const Project::ProjectFile& pf)
     {
         bool edited = false;
 
         ImGui::SameLine();
-        edited |= roomArgument(argLabels.at(0), &arguments.at(0));
+        edited |= roomArgument(argLabels.at(0), &arguments.at(0), pf);
 
         ImGui::SameLine();
         edited |= roomEntranceArgument(argLabels.at(1), &arguments.at(1),
-                                       [&]() { return projectFile.rooms.find(idstring::fromString(arguments.at(0))); });
+                                       [&]() { return pf.rooms.find(idstring::fromString(arguments.at(0))); });
 
         return edited;
     }
 
-    bool scriptArguments(const Scripting::InstructionData& bc, std::array<std::u8string, 2>& arguments)
+    bool scriptArguments(const Scripting::InstructionData& bc, std::array<std::u8string, 2>& arguments, const Project::ProjectFile& pf)
     {
         constexpr std::array<Scripting::ArgumentType, 2> loadRoomArgs = { Scripting::ArgumentType::Room, Scripting::ArgumentType::RoomEntrance };
 
         if (bc.arguments == loadRoomArgs) {
-            return roomAndRoomEntraceArguments(arguments);
+            return roomAndRoomEntraceArguments(arguments, pf);
         }
         else {
             bool edited = false;
 
             assert(bc.arguments.size() == arguments.size());
             for (const auto i : range(arguments.size())) {
-                edited |= statementArgument(argLabels.at(i), bc.arguments.at(i), &arguments.at(i));
+                edited |= statementArgument(argLabels.at(i), bc.arguments.at(i), &arguments.at(i), pf);
             }
 
             return edited;
         }
     }
 
-    void operator()(Scripting::Statement& statement)
+    void scriptNode(Scripting::ScriptNode& node, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
+    {
+        // WHY!!!???
+        //
+        // No simple way to add reference arguments to std::visit.
+        // This works for now, and the compiler will catch any typing mistakes.
+
+        static_assert(std::variant_size_v<Scripting::ScriptNode> == 4);
+
+        switch (node.index()) {
+        case 0: {
+            return scriptNode_statement(std::get<0>(node), pf, bcMapping);
+        }
+        case 1: {
+            return scriptNode_ifStatement(std::get<1>(node), pf, bcMapping);
+        }
+        case 2: {
+            return scriptNode_whileStatement(std::get<2>(node), pf, bcMapping);
+        }
+        case 3: {
+            return scriptNode_comment(std::get<3>(node));
+        }
+        }
+    }
+
+    void scriptNode_statement(Scripting::Statement& statement, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         bool edited = false;
 
@@ -1540,7 +1560,7 @@ public:
         if (it != bcMapping.instructions.end()) {
             const auto& bc = it->second;
 
-            edited |= scriptArguments(bc, statement.arguments);
+            edited |= scriptArguments(bc, statement.arguments, pf);
         }
 
         if (edited) {
@@ -1548,7 +1568,7 @@ public:
         }
     }
 
-    void operator()(Scripting::IfStatement& s)
+    void scriptNode_ifStatement(Scripting::IfStatement& s, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         ImGui::TextUnformatted(u8"if ");
         ImGui::SameLine();
@@ -1558,10 +1578,10 @@ public:
             ListActionsVariant<AP::ScriptStatements>::variantFieldEdited<&Scripting::IfStatement::condition>(data, parentIndex, index);
         }
 
-        processChildStatements(s.thenStatements, s.elseStatements);
+        processChildStatements(s.thenStatements, s.elseStatements, pf, bcMapping);
     }
 
-    void operator()(Scripting::WhileStatement& s)
+    void scriptNode_whileStatement(Scripting::WhileStatement& s, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         ImGui::TextUnformatted(u8"while ");
         ImGui::SameLine();
@@ -1571,10 +1591,10 @@ public:
             ListActionsVariant<AP::ScriptStatements>::variantFieldEdited<&Scripting::WhileStatement::condition>(data, parentIndex, index);
         }
 
-        processChildStatements(s.statements);
+        processChildStatements(s.statements, pf, bcMapping);
     }
 
-    void operator()(Scripting::Comment& comment)
+    void scriptNode_comment(Scripting::Comment& comment)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, Style::commentColor());
 
@@ -1593,7 +1613,6 @@ public:
         ImGui::PopStyleColor();
     }
 
-private:
     bool condition(Scripting::Conditional* c)
     {
         bool edited = false;
@@ -1640,7 +1659,7 @@ private:
     }
 
     // ::TODO use menu to add statements anywhere::
-    void processAddMenu()
+    void processAddMenu(const Scripting::BytecodeMapping& bcMapping)
     {
         using namespace UnTech::Scripting;
 
@@ -1739,7 +1758,7 @@ private:
         }
     }
 
-    void processStatements_afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements)
+    void processStatements_afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         auto& sel = data->scriptStatementsSel;
 
@@ -1763,7 +1782,7 @@ private:
             ImGui::PopStyleColor();
 
             ImGui::SameLine(selSpacing);
-            std::visit(*this, s);
+            scriptNode(s, pf, bcMapping);
 
             ImGui::PopID();
         }
@@ -1772,21 +1791,21 @@ private:
         index = oldIndex;
     }
 
-    void processStatements_root(std::vector<Scripting::ScriptNode>& statements, const unsigned scriptId)
+    void processStatements_root(std::vector<Scripting::ScriptNode>& statements, const unsigned scriptId, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         depth = 0;
         parentIndex.fill(0xffff);
         parentIndex.front() = scriptId;
         index = scriptId;
 
-        processStatements_afterParentIndexUpdated(statements);
+        processStatements_afterParentIndexUpdated(statements, pf, bcMapping);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
         }
     }
 
-    void processChildStatements(std::vector<Scripting::ScriptNode>& statements)
+    void processChildStatements(std::vector<Scripting::ScriptNode>& statements, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         if (depth + 1 >= parentIndex.size()) {
             ImGui::TextUnformatted(u8"ERROR: MAXIMUM DEPTH REACHED");
@@ -1797,7 +1816,7 @@ private:
 
         ImGui::Indent(INDENT_SPACING);
 
-        processStatements_afterParentIndexUpdated(statements);
+        processStatements_afterParentIndexUpdated(statements, pf, bcMapping);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1809,7 +1828,7 @@ private:
         depth--;
     }
 
-    void processChildStatements(std::vector<Scripting::ScriptNode>& thenStatements, std::vector<Scripting::ScriptNode>& elseStatements)
+    void processChildStatements(std::vector<Scripting::ScriptNode>& thenStatements, std::vector<Scripting::ScriptNode>& elseStatements, const Project::ProjectFile& pf, const Scripting::BytecodeMapping& bcMapping)
     {
         if (depth + 1 >= parentIndex.size()) {
             ImGui::TextUnformatted(u8"ERROR: MAXIMUM DEPTH REACHED");
@@ -1820,7 +1839,7 @@ private:
 
         ImGui::Indent(INDENT_SPACING);
 
-        processStatements_afterParentIndexUpdated(thenStatements);
+        processStatements_afterParentIndexUpdated(thenStatements, pf, bcMapping);
 
         if (ImGui::Button("Add")) {
             openProcessMenu();
@@ -1832,7 +1851,7 @@ private:
         if (!elseStatements.empty()) {
             ImGui::TextUnformatted(u8"else");
 
-            processStatements_afterParentIndexUpdated(elseStatements);
+            processStatements_afterParentIndexUpdated(elseStatements, pf, bcMapping);
 
             if (ImGui::Button("Add##Else")) {
                 openProcessMenu();
@@ -1851,7 +1870,7 @@ private:
     }
 };
 
-std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::addMenuParentIndex;
+std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGui::addMenuParentIndex;
 
 template <typename AP>
 static void tempVariableList(const char* strId, RoomEditorData* data, const float outerHeight)
@@ -1949,8 +1968,8 @@ void RoomEditorGui::scriptsGui(const Project::ProjectFile& projectFile, const Pr
 
         ImGui::BeginChild("Scroll");
 
-        RoomScriptGuiVisitor sgVisitor(_data, *bcMapping, projectFile);
-        sgVisitor.processGui(script, scriptId);
+        RoomScriptGui rsg(_data);
+        rsg.processGui(script, scriptId, projectFile, *bcMapping);
 
         ImGui::EndChild();
     }

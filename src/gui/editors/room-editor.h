@@ -21,7 +21,7 @@ struct EntityGraphics;
 class RoomEditorData final : public AbstractMetaTileEditorData {
 private:
     friend class RoomEditorGui;
-    friend class RoomScriptGuiVisitor;
+    friend class RoomScriptGui;
     struct AP;
 
 public:
