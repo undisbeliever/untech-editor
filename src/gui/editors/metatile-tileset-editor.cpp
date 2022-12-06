@@ -137,7 +137,7 @@ void MetaTileTilesetEditorData::errorDoubleClicked(const AbstractError* error)
         switch (e->type) {
         case Type::TILE:
             selectedTilesetTiles.insert(e->firstIndex);
-            selectedTilesetTilesChanged();
+            tilePropertiesWindowValid = false;
 
             break;
         }
@@ -155,36 +155,22 @@ void MetaTileTilesetEditorData::updateSelection()
     paletteSel.update();
 }
 
-grid<uint8_t>& MetaTileTilesetEditorData::map()
+void MetaTileTilesetEditorGui::selectedTilesChanged()
 {
-    return data.scratchpad;
-}
+    assert(_data);
+    const auto& tileset = _data->data;
 
-void MetaTileTilesetEditorData::mapTilesPlaced(const urect r)
-{
-    assert(data.scratchpad.size().contains(r));
+    if (!_data->selectedTiles.empty()) {
+        const auto& scratchpad = tileset.scratchpad;
 
-    GridActions<AP::Scratchpad>::gridTilesPlaced(this, r);
-}
-
-void MetaTileTilesetEditorData::selectedTilesetTilesChanged()
-{
-    tilePropertiesWindowValid = false;
-}
-
-void MetaTileTilesetEditorData::selectedTilesChanged()
-{
-    if (!selectedTiles.empty()) {
-        const auto& scratchpad = data.scratchpad;
-
-        selectedTilesetTiles.clear();
-        for (const upoint& p : selectedTiles) {
+        _data->selectedTilesetTiles.clear();
+        for (const upoint& p : _data->selectedTiles) {
             if (p.x < scratchpad.width() && p.y < scratchpad.height()) {
-                selectedTilesetTiles.insert(scratchpad.at(p));
+                _data->selectedTilesetTiles.insert(scratchpad.at(p));
             }
         }
 
-        tilePropertiesWindowValid = false;
+        _data->tilePropertiesWindowValid = false;
     }
 }
 
@@ -227,6 +213,30 @@ void MetaTileTilesetEditorGui::resetState()
 void MetaTileTilesetEditorGui::editorClosed()
 {
     AbstractMetaTileEditorGui::editorClosed();
+}
+
+grid<uint8_t>& MetaTileTilesetEditorGui::map()
+{
+    assert(_data);
+    auto& tileset = _data->data;
+
+    return tileset.scratchpad;
+}
+
+void MetaTileTilesetEditorGui::mapTilesPlaced(const urect r)
+{
+    assert(_data);
+    const auto& tileset = _data->data;
+
+    assert(tileset.scratchpad.size().contains(r));
+
+    GridActions<AP::Scratchpad>::gridTilesPlaced(_data, r);
+}
+
+void MetaTileTilesetEditorGui::selectedTilesetTilesChanged()
+{
+    assert(_data);
+    _data->tilePropertiesWindowValid = false;
 }
 
 void MetaTileTilesetEditorGui::propertiesGui(const Project::ProjectFile& projectFile)

@@ -443,30 +443,6 @@ void RoomEditorData::updateSelection()
     scriptStatementsSel.update();
 }
 
-grid<uint8_t>& RoomEditorData::map()
-{
-    return data.map;
-}
-
-void RoomEditorData::mapTilesPlaced(const urect r)
-{
-    assert(data.map.size().contains(r));
-
-    GridActions<AP::Map>::gridTilesPlaced(this, r);
-}
-
-void RoomEditorData::selectedTilesetTilesChanged()
-{
-    selectedTiles.clear();
-    selectedScratchpadTiles.clear();
-}
-
-void RoomEditorData::selectedTilesChanged()
-{
-    selectedTilesetTiles.clear();
-    selectedScratchpadTiles.clear();
-}
-
 void RoomEditorData::selectedScratchpadTilesChanged()
 {
     selectedTiles.clear();
@@ -527,6 +503,40 @@ void RoomEditorGui::resetState()
 void RoomEditorGui::editorClosed()
 {
     AbstractMetaTileEditorGui::editorClosed();
+}
+
+grid<uint8_t>& RoomEditorGui::map()
+{
+    assert(_data);
+    auto& room = _data->data;
+
+    return room.map;
+}
+
+void RoomEditorGui::mapTilesPlaced(const urect r)
+{
+    assert(_data);
+    const auto& room = _data->data;
+
+    assert(room.map.size().contains(r));
+
+    GridActions<AP::Map>::gridTilesPlaced(_data, r);
+}
+
+void RoomEditorGui::selectedTilesetTilesChanged()
+{
+    assert(_data);
+
+    _data->selectedTiles.clear();
+    _data->selectedScratchpadTiles.clear();
+}
+
+void RoomEditorGui::selectedTilesChanged()
+{
+    assert(_data);
+
+    _data->selectedTilesetTiles.clear();
+    _data->selectedScratchpadTiles.clear();
 }
 
 constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGroupText{

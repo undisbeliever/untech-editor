@@ -50,12 +50,6 @@ public:
     void updateSelection() final;
 
 protected:
-    grid<uint8_t>& map() final;
-    void mapTilesPlaced(const urect r) final;
-
-    void selectedTilesetTilesChanged() final;
-    void selectedTilesChanged() final;
-
     void selectedScratchpadTilesChanged();
     void clearSelectedTiles();
 };
@@ -123,6 +117,12 @@ public:
     void viewMenu() final;
 
 protected:
+    [[nodiscard]] grid<uint8_t>& map() final;
+    void mapTilesPlaced(const urect r) final;
+
+    void selectedTilesetTilesChanged() final;
+    void selectedTilesChanged() final;
+
     void selectionChanged() final;
 
     [[nodiscard]] const std::array<idstring, 256>& tileFunctionTables() const final;

@@ -32,13 +32,6 @@ protected:
 
 public:
     AbstractMetaTileEditorData(ItemIndex itemIndex);
-
-protected:
-    virtual grid<uint8_t>& map() = 0;
-    virtual void mapTilesPlaced(const urect r) = 0;
-
-    virtual void selectedTilesChanged() = 0;
-    virtual void selectedTilesetTilesChanged() = 0;
 };
 
 class AbstractMetaTileEditorGui : public AbstractEditorGui {
@@ -104,6 +97,14 @@ public:
 protected:
     virtual void selectionChanged() = 0;
     [[nodiscard]] virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
+
+    // NOTE: AbstractMetaTileEditorGui will edit the map data returned by this function.
+    [[nodiscard]] virtual grid<uint8_t>& map() = 0;
+
+    virtual void mapTilesPlaced(const urect r) = 0;
+
+    virtual void selectedTilesChanged() = 0;
+    virtual void selectedTilesetTilesChanged() = 0;
 
     void showLayerButtons();
 
