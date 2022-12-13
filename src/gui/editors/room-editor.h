@@ -58,7 +58,7 @@ class RoomEditorGui final : public AbstractMetaTileEditorGui {
 private:
     using AP = RoomEditorData::AP;
 
-    RoomEditorData* _data;
+    std::shared_ptr<RoomEditorData> _data;
 
     Shaders::MtTilemap _scratchpadTilemap;
 
@@ -104,7 +104,7 @@ public:
 public:
     RoomEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
     void resetState() final;
     void editorClosed() final;
 

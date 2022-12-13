@@ -81,9 +81,10 @@ InteractiveTilesEditorGui::InteractiveTilesEditorGui()
 {
 }
 
-bool InteractiveTilesEditorGui::setEditorData(AbstractEditorData* data)
+bool InteractiveTilesEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
 {
-    return (_data = dynamic_cast<InteractiveTilesEditorData*>(data));
+    _data = std::dynamic_pointer_cast<InteractiveTilesEditorData>(data);
+    return _data != nullptr;
 }
 
 void InteractiveTilesEditorGui::resetState()

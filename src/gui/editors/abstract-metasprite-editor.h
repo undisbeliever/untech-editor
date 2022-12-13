@@ -78,10 +78,10 @@ protected:
     void setMetaSpriteData(AbstractMetaSpriteEditorData* data);
 
     template <typename AP, typename EditorT, typename FrameSetT>
-    void animationPropertiesGui(EditorT* editor, FrameSetT* frameSet);
+    void animationPropertiesGui(const std::shared_ptr<EditorT>& editor, FrameSetT* frameSet);
 
-    template <typename EditorDataT, typename DrawFunction>
-    void animationPreviewWindow(EditorDataT* data, DrawFunction drawFunction);
+    template <typename EditorT, typename DrawFunction>
+    void animationPreviewWindow(const std::shared_ptr<EditorT>& data, DrawFunction drawFunction);
 
     void exportOrderWindow();
 

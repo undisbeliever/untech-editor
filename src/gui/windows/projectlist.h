@@ -38,7 +38,7 @@ class ProjectListWindow {
 private:
     State _state = State::SELECT_RESOURCE;
     std::optional<ItemIndex> _selectedIndex;
-    std::vector<std::unique_ptr<AbstractEditorData>> _removedEditors;
+    std::vector<std::shared_ptr<AbstractEditorData>> _removedEditors;
 
     // Selected index in the "Add Resource" menu
     unsigned _addMenuIndex = 0;
@@ -63,7 +63,7 @@ public:
     {
         return _state == State::ADD_RESOURCE_CONFIRMED || _state == State::REMOVE_RESOURCE_CONFIRMED;
     }
-    void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
+    void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::shared_ptr<AbstractEditorData>>& editors);
 
 private:
     void projectListWindow(const Project::ProjectData& projectData);
@@ -74,7 +74,7 @@ private:
     void addResource(UnTech::Project::ProjectFile& projectFile);
 
     [[nodiscard]] bool canRemoveSelectedIndex() const;
-    void removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
+    void removeResource(Project::ProjectFile& projectFile, std::vector<std::shared_ptr<AbstractEditorData>>& editors);
 };
 
 }

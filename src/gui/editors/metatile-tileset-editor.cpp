@@ -190,10 +190,12 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
 {
 }
 
-bool MetaTileTilesetEditorGui::setEditorData(AbstractEditorData* data)
+bool MetaTileTilesetEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
 {
     AbstractMetaTileEditorGui::setEditorData(data);
-    return (_data = dynamic_cast<MetaTileTilesetEditorData*>(data));
+    _data = std::dynamic_pointer_cast<MetaTileTilesetEditorData>(data);
+
+    return _data != nullptr;
 }
 
 void MetaTileTilesetEditorGui::resetState()

@@ -33,12 +33,12 @@ class ActionPointsEditorGui final : public AbstractEditorGui {
 private:
     using AP = ActionPointsEditorData::AP;
 
-    ActionPointsEditorData* _data;
+    std::shared_ptr<ActionPointsEditorData> _data;
 
 public:
     ActionPointsEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
     void resetState() final;
     void editorClosed() final;
 

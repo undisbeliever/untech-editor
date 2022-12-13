@@ -211,7 +211,7 @@ inline void endApTable() { ImGui::EndTable(); }
 
 // The `columnFunctions` take a `value_type&` input and return `true` when the item has finished editing
 template <typename ActionPolicy, typename EditorT, typename... T>
-inline void apTable_data_custom(EditorT* editor, const std::tuple<T...> listArgs,
+inline void apTable_data_custom(const std::shared_ptr<EditorT>& editor, const std::tuple<T...> listArgs,
                                 auto selFunction, auto... columnFunctions)
 {
     // ::TODO improve selection::
@@ -219,7 +219,7 @@ inline void apTable_data_custom(EditorT* editor, const std::tuple<T...> listArgs
     auto* data = ActionPolicy::getEditorData(*editor);
     assert(data);
 
-    auto& sel = editor->*ActionPolicy::SelectionPtr;
+    auto& sel = (*editor).*(ActionPolicy::SelectionPtr);
     auto* list = std::apply(&ActionPolicy::getList,
                             std::tuple_cat(std::forward_as_tuple(*data), listArgs));
 
@@ -257,9 +257,9 @@ inline void apTable_data_custom(EditorT* editor, const std::tuple<T...> listArgs
 }
 
 template <typename ActionPolicy, typename EditorT>
-inline void apTable_data(EditorT* editor, auto... columnFunctions)
+inline void apTable_data(const std::shared_ptr<EditorT>& editor, auto... columnFunctions)
 {
-    auto& sel = editor->*ActionPolicy::SelectionPtr;
+    auto& sel = (*editor).*(ActionPolicy::SelectionPtr);
 
     apTable_data_custom<ActionPolicy>(
         editor, sel.listArgs(),
@@ -270,7 +270,7 @@ inline void apTable_data(EditorT* editor, auto... columnFunctions)
 // ----------------
 
 template <typename ActionPolicy, typename EditorT, size_t N_COLUMNS>
-void apTable(const char* strId, EditorT* editor, const std::array<const char*, N_COLUMNS>& columnNames, auto... columnFunctions)
+void apTable(const char* strId, const std::shared_ptr<EditorT>& editor, const std::array<const char*, N_COLUMNS>& columnNames, auto... columnFunctions)
 {
     static_assert(sizeof...(columnFunctions) == N_COLUMNS);
 
@@ -287,7 +287,7 @@ void apTable(const char* strId, EditorT* editor, const std::array<const char*, N
 }
 
 template <typename ActionPolicy, typename EditorT, size_t N_COLUMNS>
-void apTable(const char* strId, EditorT* editor, const std::array<const char*, N_COLUMNS>& columnNames,
+void apTable(const char* strId, const std::shared_ptr<EditorT>& editor, const std::array<const char*, N_COLUMNS>& columnNames,
              const ImVec2& outerSize,
              auto... columnFunctions)
 {
@@ -306,7 +306,7 @@ void apTable(const char* strId, EditorT* editor, const std::array<const char*, N
 }
 
 template <typename ActionPolicy, typename EditorT, size_t N_COLUMNS>
-void apTable_noScrolling(const char* strId, EditorT* editor, const std::array<const char*, N_COLUMNS>& columnNames, auto... columnFunctions)
+void apTable_noScrolling(const char* strId, const std::shared_ptr<EditorT>& editor, const std::array<const char*, N_COLUMNS>& columnNames, auto... columnFunctions)
 {
     static_assert(sizeof...(columnFunctions) == N_COLUMNS);
 

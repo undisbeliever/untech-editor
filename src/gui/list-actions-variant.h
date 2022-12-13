@@ -35,27 +35,27 @@ private:
         // set by firstDo()
         FieldT oldValue;
 
-        ClassT& getEditorData() const
+        [[nodiscard]] ClassT& getEditorData(EditorT& editor) const
         {
-            ListT& editorList = this->getEditorList();
+            ListT& editorList = this->getEditorList(editor);
             assert(index < editorList.size());
             return std::get<ClassT>(editorList.at(index));
         }
 
-        ClassT& getProjectData(Project::ProjectFile& projectFile) const
+        [[nodiscard]] ClassT& getProjectData(Project::ProjectFile& projectFile, EditorT& editor) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
+            ListT& projectList = this->getProjectList(projectFile, editor);
             assert(index < projectList.size());
             return std::get<ClassT>(projectList.at(index));
         }
 
     public:
-        EditVariantItemFieldAction(EditorT* editor,
+        EditVariantItemFieldAction(const std::shared_ptr<EditorT>& editor,
                                    const ListArgsT& listArgs,
                                    const index_type index)
             : AbstractListActions<ActionPolicy>::BaseAction(editor, listArgs)
             , index(index)
-            , newValue(getEditorData().*FieldPtr)
+            , newValue(getEditorData(*editor).*FieldPtr)
         {
         }
         virtual ~EditVariantItemFieldAction() = default;
@@ -66,37 +66,44 @@ private:
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            ClassT& pd = getProjectData(projectFile);
+            if (auto e = this->getEditor()) {
+                ClassT& pd = getProjectData(projectFile, *e);
 
-            oldValue = pd.*FieldPtr;
+                oldValue = pd.*FieldPtr;
 
-            pd.*FieldPtr = newValue;
+                pd.*FieldPtr = newValue;
 
-            return !(oldValue == newValue);
+                return !(oldValue == newValue);
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            ClassT& ed = getEditorData();
-            ClassT& pd = getProjectData(projectFile);
+            if (auto e = this->getEditor()) {
+                ClassT& ed = getEditorData(*e);
+                ClassT& pd = getProjectData(projectFile, *e);
 
-            ed.*FieldPtr = oldValue;
-            pd.*FieldPtr = oldValue;
+                ed.*FieldPtr = oldValue;
+                pd.*FieldPtr = oldValue;
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            ClassT& ed = getEditorData();
-            ClassT& pd = getProjectData(projectFile);
+            if (auto e = this->getEditor()) {
+                ClassT& ed = getEditorData(*e);
+                ClassT& pd = getProjectData(projectFile, *e);
 
-            ed.*FieldPtr = newValue;
-            pd.*FieldPtr = newValue;
+                ed.*FieldPtr = newValue;
+                pd.*FieldPtr = newValue;
+            }
         }
     };
 
 public:
     template <auto FieldPtr>
-    static void variantFieldEdited(EditorT* editor, const ListArgsT& listArgs, const index_type index)
+    static void variantFieldEdited(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = ListActions<ActionPolicy>::getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -110,7 +117,7 @@ public:
     }
 
     template <auto FieldPtr>
-    static void variantFieldEdited(EditorT* editor, const index_type index)
+    static void variantFieldEdited(const std::shared_ptr<EditorT>& editor, const index_type index)
     {
         const std::tuple<> listArgs = std::make_tuple();
 

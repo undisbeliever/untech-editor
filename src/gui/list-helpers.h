@@ -14,7 +14,7 @@
 namespace UnTech::Gui {
 
 template <typename ActionPolicy>
-void ListButtons(typename ActionPolicy::EditorT* editor)
+void ListButtons(const std::shared_ptr<typename ActionPolicy::EditorT>& editor)
 {
     assert(editor != nullptr);
 
@@ -54,7 +54,7 @@ void ListButtons(typename ActionPolicy::EditorT* editor)
 }
 
 template <typename ActionPolicy>
-bool CombinedListButtons_AddButton(typename ActionPolicy::EditorT* editor)
+bool CombinedListButtons_AddButton(const std::shared_ptr<typename ActionPolicy::EditorT>& editor)
 {
     bool changed = false;
 
@@ -77,7 +77,7 @@ bool CombinedListButtons_AddButton(typename ActionPolicy::EditorT* editor)
 }
 
 template <typename... ActionPolicy, typename EditorT>
-void CombinedListButtons(const char* idStr, EditorT* editor)
+void CombinedListButtons(const char* idStr, const std::shared_ptr<EditorT>& editor)
 {
     assert(editor != nullptr);
 
@@ -130,7 +130,7 @@ void CombinedListButtons(const char* idStr, EditorT* editor)
 }
 
 template <class ActionPolicy>
-void NamedListSidebar(typename ActionPolicy::EditorT* editor, float width = 200)
+void NamedListSidebar(const std::shared_ptr<typename ActionPolicy::EditorT>& editor, float width = 200)
 {
     using Actions = ListActions<ActionPolicy>;
     using SelectionT = typename ActionPolicy::SelectionT;
@@ -144,7 +144,7 @@ void NamedListSidebar(typename ActionPolicy::EditorT* editor, float width = 200)
         ImGui::BeginChild("struct-list");
 
         if (list) {
-            SelectionT& sel = editor->*ActionPolicy::SelectionPtr;
+            SelectionT& sel = (*editor).*(ActionPolicy::SelectionPtr);
 
             for (auto [i, item] : enumerate(*list)) {
                 ImGui::PushID(i);

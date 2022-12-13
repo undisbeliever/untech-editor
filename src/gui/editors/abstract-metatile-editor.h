@@ -64,7 +64,7 @@ public:
     };
 
 private:
-    AbstractMetaTileEditorData* _data;
+    std::shared_ptr<AbstractMetaTileEditorData> _data;
 
 protected:
     Shaders::MtTileset _tilesetShader;
@@ -88,7 +88,7 @@ public:
 public:
     AbstractMetaTileEditorGui(const char* strId);
 
-    bool setEditorData(AbstractEditorData* data) override;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) override;
     void resetState() override;
     void editorClosed() override;
 

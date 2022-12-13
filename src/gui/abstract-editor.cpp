@@ -52,7 +52,7 @@ void AbstractEditorGui::undoStackButtons()
     }
 }
 
-std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
+std::shared_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
                                                  const UnTech::Project::ProjectFile& projectFile)
 {
     using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
@@ -61,31 +61,31 @@ std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
     case ResourceType::ProjectSettings: {
         switch (ProjectSettingsIndex(itemIndex.index)) {
         case ProjectSettingsIndex::ProjectSettings:
-            return std::make_unique<ProjectSettingsEditorData>(itemIndex);
+            return std::make_shared<ProjectSettingsEditorData>(itemIndex);
 
         case ProjectSettingsIndex::GameState:
-            return std::make_unique<GameStateEditorData>(itemIndex);
+            return std::make_shared<GameStateEditorData>(itemIndex);
 
         case ProjectSettingsIndex::Bytecode:
-            return std::make_unique<BytecodeEditorData>(itemIndex);
+            return std::make_shared<BytecodeEditorData>(itemIndex);
 
         case ProjectSettingsIndex::InteractiveTiles:
-            return std::make_unique<InteractiveTilesEditorData>(itemIndex);
+            return std::make_shared<InteractiveTilesEditorData>(itemIndex);
 
         case ProjectSettingsIndex::ActionPoints:
-            return std::make_unique<ActionPointsEditorData>(itemIndex);
+            return std::make_shared<ActionPointsEditorData>(itemIndex);
 
         case ProjectSettingsIndex::EntityRomData:
-            return std::make_unique<EntityRomDataEditorData>(itemIndex);
+            return std::make_shared<EntityRomDataEditorData>(itemIndex);
 
         case ProjectSettingsIndex::Scenes:
-            return std::make_unique<ScenesEditorData>(itemIndex);
+            return std::make_shared<ScenesEditorData>(itemIndex);
         }
         return nullptr;
     }
 
     case ResourceType::FrameSetExportOrders:
-        return std::make_unique<FrameSetExportOrderEditorData>(itemIndex);
+        return std::make_shared<FrameSetExportOrderEditorData>(itemIndex);
 
     case ResourceType::FrameSets: {
         if (itemIndex.index < projectFile.frameSets.size()) {
@@ -94,52 +94,52 @@ std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
                 return nullptr;
 
             case FrameSetType::METASPRITE:
-                return std::make_unique<MetaSpriteEditorData>(itemIndex);
+                return std::make_shared<MetaSpriteEditorData>(itemIndex);
 
             case FrameSetType::SPRITE_IMPORTER:
-                return std::make_unique<SpriteImporterEditorData>(itemIndex);
+                return std::make_shared<SpriteImporterEditorData>(itemIndex);
             }
         }
         return nullptr;
     }
 
     case ResourceType::Palettes:
-        return std::make_unique<PaletteEditorData>(itemIndex);
+        return std::make_shared<PaletteEditorData>(itemIndex);
 
     case ResourceType::BackgroundImages:
-        return std::make_unique<BackgroundImageEditorData>(itemIndex);
+        return std::make_shared<BackgroundImageEditorData>(itemIndex);
 
     case ResourceType::MataTileTilesets:
-        return std::make_unique<MetaTileTilesetEditorData>(itemIndex);
+        return std::make_shared<MetaTileTilesetEditorData>(itemIndex);
 
     case ResourceType::Rooms:
-        return std::make_unique<RoomEditorData>(itemIndex);
+        return std::make_shared<RoomEditorData>(itemIndex);
     }
 
     return nullptr;
 }
 
-std::vector<std::unique_ptr<AbstractEditorGui>> createEditorGuis()
+std::vector<std::shared_ptr<AbstractEditorGui>> createEditorGuis()
 {
     constexpr unsigned N_ELEMENTS = 14;
 
-    std::vector<std::unique_ptr<AbstractEditorGui>> ret;
+    std::vector<std::shared_ptr<AbstractEditorGui>> ret;
     ret.reserve(N_ELEMENTS);
 
-    ret.push_back(std::make_unique<ProjectSettingsEditorGui>());
-    ret.push_back(std::make_unique<GameStateEditorGui>());
-    ret.push_back(std::make_unique<BytecodeEditorGui>());
-    ret.push_back(std::make_unique<InteractiveTilesEditorGui>());
-    ret.push_back(std::make_unique<ActionPointsEditorGui>());
-    ret.push_back(std::make_unique<EntityRomDataEditorGui>());
-    ret.push_back(std::make_unique<ScenesEditorGui>());
-    ret.push_back(std::make_unique<FrameSetExportOrderEditorGui>());
-    ret.push_back(std::make_unique<MetaSpriteEditorGui>());
-    ret.push_back(std::make_unique<SpriteImporterEditorGui>());
-    ret.push_back(std::make_unique<PaletteEditorGui>());
-    ret.push_back(std::make_unique<BackgroundImageEditorGui>());
-    ret.push_back(std::make_unique<MetaTileTilesetEditorGui>());
-    ret.push_back(std::make_unique<RoomEditorGui>());
+    ret.push_back(std::make_shared<ProjectSettingsEditorGui>());
+    ret.push_back(std::make_shared<GameStateEditorGui>());
+    ret.push_back(std::make_shared<BytecodeEditorGui>());
+    ret.push_back(std::make_shared<InteractiveTilesEditorGui>());
+    ret.push_back(std::make_shared<ActionPointsEditorGui>());
+    ret.push_back(std::make_shared<EntityRomDataEditorGui>());
+    ret.push_back(std::make_shared<ScenesEditorGui>());
+    ret.push_back(std::make_shared<FrameSetExportOrderEditorGui>());
+    ret.push_back(std::make_shared<MetaSpriteEditorGui>());
+    ret.push_back(std::make_shared<SpriteImporterEditorGui>());
+    ret.push_back(std::make_shared<PaletteEditorGui>());
+    ret.push_back(std::make_shared<BackgroundImageEditorGui>());
+    ret.push_back(std::make_shared<MetaTileTilesetEditorGui>());
+    ret.push_back(std::make_shared<RoomEditorGui>());
 
     assert(ret.size() == N_ELEMENTS);
 

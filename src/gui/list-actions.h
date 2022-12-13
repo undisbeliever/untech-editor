@@ -110,48 +110,54 @@ class AbstractListActions {
     static_assert(MAX_SIZE <= SelectionT::MAX_SIZE);
 
 public:
-    static const ListT* getEditorListPtr(EditorT* editor, const ListArgsT& listArgs)
+    [[nodiscard]] static const ListT* getEditorListPtr(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs)
     {
+        assert(editor != nullptr);
         EditorDataT* data = ActionPolicy::getEditorData(*editor);
         assert(data != nullptr);
         return std::apply(&ActionPolicy::getList,
                           std::tuple_cat(std::forward_as_tuple(*data), listArgs));
     }
 
-    static const SelectionT& getSelection(const EditorT* editor)
+    [[nodiscard]] static const SelectionT& getSelection(const EditorT& editor)
     {
-        return editor->*ActionPolicy::SelectionPtr;
+        return editor.*(ActionPolicy::SelectionPtr);
+    }
+
+    [[nodiscard]] static SelectionT& selection(EditorT& editor)
+    {
+        return editor.*(ActionPolicy::SelectionPtr);
     }
 
 protected:
     class BaseAction : public UndoAction {
     private:
-        EditorT* const editor;
+        const std::weak_ptr<EditorT> _editor;
 
     protected:
         const ListArgsT listArgs;
-
-    private:
-        SelectionT& selection() const
-        {
-            return editor->*ActionPolicy::SelectionPtr;
-        }
 
     public:
         ~BaseAction() override = default;
 
     protected:
-        BaseAction(EditorT* editor,
-                   const ListArgsT& listArgs)
-            : editor(editor)
-            , listArgs(listArgs)
+        BaseAction(std::weak_ptr<EditorT> editor,
+                   const ListArgsT& listArgs_)
+            : _editor(std::move(editor))
+            , listArgs(listArgs_)
         {
-            assert(editor != nullptr);
         }
 
-        ListT& getProjectList(Project::ProjectFile& projectFile) const
+        [[nodiscard]] inline std::shared_ptr<EditorT> getEditor() const
         {
-            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            auto e = _editor.lock();
+            assert(e != nullptr);
+            return e;
+        }
+
+        [[nodiscard]] ListT& getProjectList(Project::ProjectFile& projectFile, EditorT& editor) const
+        {
+            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor.itemIndex());
             assert(data != nullptr);
             ListT* list = std::apply(&ActionPolicy::getList,
                                      std::tuple_cat(std::forward_as_tuple(*data), listArgs));
@@ -159,9 +165,9 @@ protected:
             return *list;
         }
 
-        ListT& getEditorList() const
+        [[nodiscard]] ListT& getEditorList(EditorT& editor) const
         {
-            EditorDataT* data = ActionPolicy::getEditorData(*editor);
+            EditorDataT* data = ActionPolicy::getEditorData(editor);
             assert(data != nullptr);
             ListT* list = std::apply(&ActionPolicy::getList,
                                      std::tuple_cat(std::forward_as_tuple(*data), listArgs));
@@ -169,41 +175,41 @@ protected:
             return *list;
         }
 
-        void updateSelection_setSelected(index_type index) const
+        void updateSelection_setSelected(EditorT& editor, index_type index) const
         {
             std::apply(&SelectionT::setSelected,
-                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(index)));
+                       std::tuple_cat(std::forward_as_tuple(selection(editor)), this->listArgs, std::make_tuple(index)));
         }
 
-        void updateSelection_clearSelection() const
+        void updateSelection_clearSelection(EditorT& editor) const
         {
-            selection().clearSelection();
+            selection(editor).clearSelection();
         }
 
-        void updateSelection_appendSelection(index_type index) const
+        void updateSelection_appendSelection(EditorT& editor, index_type index) const
         {
             auto f = [&](auto... args) {
-                selection().appendSelection(args...);
+                selection(editor).appendSelection(args...);
             };
             std::apply(f, std::tuple_cat(this->listArgs, std::make_tuple(index)));
         }
 
-        void updateSelection_itemAdded(index_type index) const
+        void updateSelection_itemAdded(EditorT& editor, index_type index) const
         {
             std::apply(&SelectionT::itemAdded,
-                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(index)));
+                       std::tuple_cat(std::forward_as_tuple(selection(editor)), this->listArgs, std::make_tuple(index)));
         }
 
-        void updateSelection_itemRemoved(index_type index) const
+        void updateSelection_itemRemoved(EditorT& editor, index_type index) const
         {
             std::apply(&SelectionT::itemRemoved,
-                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(index)));
+                       std::tuple_cat(std::forward_as_tuple(selection(editor)), this->listArgs, std::make_tuple(index)));
         }
 
-        void updateSelection_itemMoved(index_type from, index_type to) const
+        void updateSelection_itemMoved(EditorT& editor, index_type from, index_type to) const
         {
             std::apply(&SelectionT::itemMoved,
-                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(from, to)));
+                       std::tuple_cat(std::forward_as_tuple(selection(editor)), this->listArgs, std::make_tuple(from, to)));
         }
 
     public:
@@ -223,11 +229,11 @@ private:
         const value_type value;
 
     public:
-        AddRemoveAction(EditorT* editor,
+        AddRemoveAction(std::weak_ptr<EditorT> editor,
                         const ListArgsT& listArgs,
                         const index_type index,
                         const value_type& value)
-            : BaseAction(editor, listArgs)
+            : BaseAction(std::move(editor), listArgs)
             , index(index)
             , value(value)
         {
@@ -247,33 +253,33 @@ private:
             list.erase(list.begin() + index);
         }
 
-        void updateSelection_ItemAdded_first() const
+        void updateSelection_ItemAdded_first(EditorT& editor) const
         {
-            this->updateSelection_setSelected(index);
+            this->updateSelection_setSelected(editor, index);
         }
 
-        void updateSelection_ItemAdded() const
+        void updateSelection_ItemAdded(EditorT& editor) const
         {
-            this->updateSelection_itemAdded(index);
+            this->updateSelection_itemAdded(editor, index);
         }
 
-        void updateSelection_ItemRemoved() const
+        void updateSelection_ItemRemoved(EditorT& editor) const
         {
-            this->updateSelection_itemRemoved(index);
+            this->updateSelection_itemRemoved(editor, index);
         }
     };
 
 private:
     class AddAction final : public AddRemoveAction {
     public:
-        AddAction(EditorT* editor,
+        AddAction(std::weak_ptr<EditorT> editor,
                   const ListArgsT& listArgs,
                   const index_type index)
             : AddRemoveAction(editor, listArgs, index, value_type())
         {
         }
 
-        AddAction(EditorT* editor,
+        AddAction(std::weak_ptr<EditorT> editor,
                   const ListArgsT& listArgs,
                   const index_type index,
                   const value_type& value)
@@ -284,39 +290,47 @@ private:
 
         virtual void firstDo_editorData() const final
         {
-            this->addItem(this->getEditorList());
+            if (auto e = this->getEditor()) {
+                this->addItem(this->getEditorList(*e));
 
-            this->updateSelection_ItemAdded_first();
+                this->updateSelection_ItemAdded_first(*e);
+            }
         }
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            this->addItem(this->getProjectList(projectFile));
-
-            return true;
+            if (auto e = this->getEditor()) {
+                this->addItem(this->getProjectList(projectFile, *e));
+                return true;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItem(this->getEditorList());
-            this->removeItem(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->removeItem(this->getEditorList(*e));
+                this->removeItem(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemRemoved();
+                this->updateSelection_ItemRemoved(*e);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->addItem(this->getEditorList());
-            this->addItem(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->addItem(this->getEditorList(*e));
+                this->addItem(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemAdded();
+                this->updateSelection_ItemAdded(*e);
+            }
         }
     };
 
 private:
     class RemoveAction final : public AddRemoveAction {
     public:
-        RemoveAction(EditorT* editor,
+        RemoveAction(std::weak_ptr<EditorT> editor,
                      const ListArgsT& listArgs,
                      const index_type index,
                      const value_type& value)
@@ -327,32 +341,40 @@ private:
 
         virtual void firstDo_editorData() const final
         {
-            this->removeItem(this->getEditorList());
+            if (auto e = this->getEditor()) {
+                this->removeItem(this->getEditorList(*e));
 
-            this->updateSelection_ItemRemoved();
+                this->updateSelection_ItemRemoved(*e);
+            }
         }
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            this->removeItem(this->getProjectList(projectFile));
-
-            return true;
+            if (auto e = this->getEditor()) {
+                this->removeItem(this->getProjectList(projectFile, *e));
+                return true;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->addItem(this->getEditorList());
-            this->addItem(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->addItem(this->getEditorList(*e));
+                this->addItem(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemAdded();
+                this->updateSelection_ItemAdded(*e);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItem(this->getEditorList());
-            this->removeItem(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->removeItem(this->getEditorList(*e));
+                this->removeItem(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemRemoved();
+                this->updateSelection_ItemRemoved(*e);
+            }
         }
     };
 
@@ -362,10 +384,10 @@ private:
         const index_type fromIndex;
         const index_type toIndex;
 
-        void moveItem(Project::ProjectFile& projectFile, index_type from, index_type to) const
+        void moveItem(Project::ProjectFile& projectFile, EditorT& e, index_type from, index_type to) const
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
+            ListT& projectList = this->getProjectList(projectFile, e);
+            ListT& editorList = this->getEditorList(e);
 
             assert(projectList.size() == editorList.size());
 
@@ -375,15 +397,15 @@ private:
             moveListItem(from, to, projectList);
             moveListItem(from, to, editorList);
 
-            this->updateSelection_itemMoved(from, to);
+            this->updateSelection_itemMoved(e, from, to);
         }
 
     public:
-        MoveAction(EditorT* editor,
+        MoveAction(std::weak_ptr<EditorT> editor,
                    const ListArgsT& listArgs,
                    const index_type from,
                    const index_type to)
-            : BaseAction(editor, listArgs)
+            : BaseAction(std::move(editor), listArgs)
             , fromIndex(from)
             , toIndex(to)
         {
@@ -392,26 +414,35 @@ private:
 
         virtual void firstDo_editorData() const final
         {
-            moveListItem(fromIndex, toIndex, this->getEditorList());
+            if (auto e = this->getEditor()) {
+                moveListItem(fromIndex, toIndex, this->getEditorList(*e));
 
-            this->updateSelection_itemMoved(fromIndex, toIndex);
+                this->updateSelection_itemMoved(*e, fromIndex, toIndex);
+            }
         }
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            moveListItem(fromIndex, toIndex, this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                moveListItem(fromIndex, toIndex, this->getProjectList(projectFile, *e));
 
-            return true;
+                return true;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            moveItem(projectFile, toIndex, fromIndex);
+            if (auto e = this->getEditor()) {
+                moveItem(projectFile, *e, toIndex, fromIndex);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            moveItem(projectFile, fromIndex, toIndex);
+            if (auto e = this->getEditor()) {
+                moveItem(projectFile, *e, fromIndex, toIndex);
+            }
         }
     };
 
@@ -422,10 +453,10 @@ private:
 
     public:
         // values vector must be sorted by index_type and not contain any duplicate indexes
-        AddRemoveMultipleAction(EditorT* editor,
+        AddRemoveMultipleAction(std::weak_ptr<EditorT> editor,
                                 const ListArgsT& listArgs,
                                 const std::vector<std::pair<index_type, value_type>>&& values)
-            : BaseAction(editor, listArgs)
+            : BaseAction(std::move(editor), listArgs)
             , _values(std::move(values))
         {
         }
@@ -450,25 +481,25 @@ private:
             }
         }
 
-        void updateSelection_setSelection() const
+        void updateSelection_setSelection(EditorT& e) const
         {
-            this->updateSelection_clearSelection();
+            this->updateSelection_clearSelection(e);
             for (const auto& [index, value] : _values) {
-                this->updateSelection_appendSelection(index);
+                this->updateSelection_appendSelection(e, index);
             }
         }
 
-        void updateSelection_ItemsAdded() const
+        void updateSelection_ItemsAdded(EditorT& e) const
         {
             for (const auto& [index, value] : _values) {
-                this->updateSelection_itemAdded(index);
+                this->updateSelection_itemAdded(e, index);
             }
         }
 
-        void updateSelection_ItemsRemoved() const
+        void updateSelection_ItemsRemoved(EditorT& e) const
         {
             for (const auto& [index, value] : reverse(_values)) {
-                this->updateSelection_itemRemoved(index);
+                this->updateSelection_itemRemoved(e, index);
             }
         }
     };
@@ -477,7 +508,7 @@ private:
     class AddMultipleAction final : public AddRemoveMultipleAction {
     public:
         // values vector must be sorted by index_type and not contain any duplicate indexes
-        AddMultipleAction(EditorT* editor,
+        AddMultipleAction(std::weak_ptr<EditorT> editor,
                           const ListArgsT& listArgs,
                           const std::vector<std::pair<index_type, value_type>>&& values)
             : AddRemoveMultipleAction(editor, listArgs, std::move(values))
@@ -487,32 +518,41 @@ private:
 
         virtual void firstDo_editorData() const final
         {
-            this->addItems(this->getEditorList());
+            if (auto e = this->getEditor()) {
+                this->addItems(this->getEditorList(*e));
 
-            this->updateSelection_setSelection();
+                this->updateSelection_setSelection(*e);
+            }
         }
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            this->addItems(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->addItems(this->getProjectList(projectFile, *e));
 
-            return true;
+                return true;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItems(this->getEditorList());
-            this->removeItems(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->removeItems(this->getEditorList(*e));
+                this->removeItems(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemsRemoved();
+                this->updateSelection_ItemsRemoved(*e);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->addItems(this->getEditorList());
-            this->addItems(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->addItems(this->getEditorList(*e));
+                this->addItems(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemsAdded();
+                this->updateSelection_ItemsAdded(*e);
+            }
         }
     };
 
@@ -520,7 +560,7 @@ private:
     class RemoveMultipleAction final : public AddRemoveMultipleAction {
     public:
         // values vector must be sorted by index_type and not contain any duplicate indexes
-        RemoveMultipleAction(EditorT* editor,
+        RemoveMultipleAction(std::weak_ptr<EditorT> editor,
                              const ListArgsT& listArgs,
                              const std::vector<std::pair<index_type, value_type>>&& values)
             : AddRemoveMultipleAction(editor, listArgs, std::move(values))
@@ -530,32 +570,41 @@ private:
 
         virtual void firstDo_editorData() const final
         {
-            this->removeItems(this->getEditorList());
+            if (auto e = this->getEditor()) {
+                this->removeItems(this->getEditorList(*e));
 
-            this->updateSelection_ItemsRemoved();
+                this->updateSelection_ItemsRemoved(*e);
+            }
         }
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            this->removeItems(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->removeItems(this->getProjectList(projectFile, *e));
 
-            return true;
+                return true;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            this->addItems(this->getEditorList());
-            this->addItems(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->addItems(this->getEditorList(*e));
+                this->addItems(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemsAdded();
+                this->updateSelection_ItemsAdded(*e);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            this->removeItems(this->getEditorList());
-            this->removeItems(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                this->removeItems(this->getEditorList(*e));
+                this->removeItems(this->getProjectList(projectFile, *e));
 
-            this->updateSelection_ItemsRemoved();
+                this->updateSelection_ItemsRemoved(*e);
+            }
         }
     };
 
@@ -696,26 +745,26 @@ private:
             });
         }
 
-        void redo_updateSelection(const index_type listSize) const
+        void redo_updateSelection(EditorT& editor, const index_type listSize) const
         {
             redo_helper(listSize, [&](index_type from, index_type to) {
-                this->updateSelection_itemMoved(from, to);
+                this->updateSelection_itemMoved(editor, from, to);
             });
         }
 
-        void undo_updateSelection(const index_type listSize) const
+        void undo_updateSelection(EditorT& editor, const index_type listSize) const
         {
             undo_helper(listSize, [&](index_type from, index_type to) {
-                this->updateSelection_itemMoved(from, to);
+                this->updateSelection_itemMoved(editor, from, to);
             });
         }
 
     public:
-        MoveMultipleAction(EditorT* editor,
+        MoveMultipleAction(std::weak_ptr<EditorT> editor,
                            const ListArgsT& listArgs,
                            const std::vector<index_type>&& indexes,
                            const EditListAction direction)
-            : BaseAction(editor, listArgs)
+            : BaseAction(std::move(editor), listArgs)
             , indexes(std::move(indexes))
             , direction(direction)
         {
@@ -724,41 +773,50 @@ private:
 
         virtual void firstDo_editorData() const final
         {
-            ListT& list = this->getEditorList();
+            if (auto e = this->getEditor()) {
+                ListT& list = this->getEditorList(*e);
 
-            redo_updateSelection(list.size());
-            redo_list(list);
+                redo_updateSelection(*e, list.size());
+                redo_list(list);
+            }
         }
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            redo_list(this->getProjectList(projectFile));
+            if (auto e = this->getEditor()) {
+                redo_list(this->getProjectList(projectFile, *e));
 
-            return true;
+                return true;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            ListT& editorList = this->getEditorList();
-            ListT& projectList = this->getProjectList(projectFile);
+            if (auto e = this->getEditor()) {
+                ListT& editorList = this->getEditorList(*e);
+                ListT& projectList = this->getProjectList(projectFile, *e);
 
-            assert(editorList.size() == projectList.size());
+                assert(editorList.size() == projectList.size());
 
-            undo_updateSelection(editorList.size());
-            undo_list(editorList);
-            undo_list(projectList);
+                undo_updateSelection(*e, editorList.size());
+                undo_list(editorList);
+                undo_list(projectList);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            ListT& editorList = this->getEditorList();
-            ListT& projectList = this->getProjectList(projectFile);
+            if (auto e = this->getEditor()) {
+                ListT& editorList = this->getEditorList(*e);
+                ListT& projectList = this->getProjectList(projectFile, *e);
 
-            assert(editorList.size() == projectList.size());
+                assert(editorList.size() == projectList.size());
 
-            redo_updateSelection(editorList.size());
-            redo_list(editorList);
-            redo_list(projectList);
+                redo_updateSelection(*e, editorList.size());
+                redo_list(editorList);
+                redo_list(projectList);
+            }
         }
     };
 
@@ -770,20 +828,20 @@ protected:
         // set by firstDo()
         value_type oldValue;
 
-        const value_type& getEditorValue() const
+        const value_type& getEditorValue(EditorT& editor) const
         {
-            ListT& editorList = this->getEditorList();
+            ListT& editorList = this->getEditorList(editor);
             assert(index < editorList.size());
             return editorList.at(index);
         }
 
     public:
-        EditItemAction(EditorT* editor,
+        EditItemAction(std::shared_ptr<EditorT> editor,
                        const ListArgsT& listArgs,
                        const index_type index)
             : BaseAction(editor, listArgs)
             , index(index)
-            , newValue(getEditorValue())
+            , newValue(getEditorValue(*editor))
         {
         }
         virtual ~EditItemAction() = default;
@@ -794,40 +852,47 @@ protected:
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            ListT& projectList = this->getProjectList(projectFile);
+            if (auto e = this->getEditor()) {
+                ListT& projectList = this->getProjectList(projectFile, *e);
 
-            assert(index < projectList.size());
+                assert(index < projectList.size());
 
-            oldValue = projectList.at(index);
+                oldValue = projectList.at(index);
 
-            projectList.at(index) = newValue;
+                projectList.at(index) = newValue;
 
-            // operator!= may not implemented in a few of my structs
-            return !(oldValue == newValue);
+                // operator!= may not implemented in a few of my structs
+                return !(oldValue == newValue);
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
+            if (auto e = this->getEditor()) {
+                ListT& projectList = this->getProjectList(projectFile, *e);
+                ListT& editorList = this->getEditorList(*e);
 
-            assert(projectList.size() == editorList.size());
-            assert(index < projectList.size());
+                assert(projectList.size() == editorList.size());
+                assert(index < projectList.size());
 
-            projectList.at(index) = oldValue;
-            editorList.at(index) = oldValue;
+                projectList.at(index) = oldValue;
+                editorList.at(index) = oldValue;
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
+            if (auto e = this->getEditor()) {
+                ListT& projectList = this->getProjectList(projectFile, *e);
+                ListT& editorList = this->getEditorList(*e);
 
-            assert(projectList.size() == editorList.size());
-            assert(index < projectList.size());
+                assert(projectList.size() == editorList.size());
+                assert(index < projectList.size());
 
-            projectList.at(index) = newValue;
-            editorList.at(index) = newValue;
+                projectList.at(index) = newValue;
+                editorList.at(index) = newValue;
+            }
         }
     };
 
@@ -844,20 +909,20 @@ protected:
         // set by firstDo()
         FieldT oldValue;
 
-        const FieldT& getEditorValue() const
+        const FieldT& getEditorValue(EditorT& e) const
         {
-            ListT& editorList = this->getEditorList();
+            ListT& editorList = this->getEditorList(e);
             assert(index < editorList.size());
             return editorList.at(index).*FieldPtr;
         }
 
     public:
-        EditItemFieldAction(EditorT* editor,
+        EditItemFieldAction(std::shared_ptr<EditorT> editor,
                             const ListArgsT& listArgs,
                             const index_type index)
             : BaseAction(editor, listArgs)
             , index(index)
-            , newValue(getEditorValue())
+            , newValue(getEditorValue(*editor))
         {
         }
         virtual ~EditItemFieldAction() = default;
@@ -868,39 +933,46 @@ protected:
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            ListT& projectList = this->getProjectList(projectFile);
+            if (auto e = this->getEditor()) {
+                ListT& projectList = this->getProjectList(projectFile, *e);
 
-            assert(index < projectList.size());
+                assert(index < projectList.size());
 
-            oldValue = projectList.at(index).*FieldPtr;
+                oldValue = projectList.at(index).*FieldPtr;
 
-            projectList.at(index).*FieldPtr = newValue;
+                projectList.at(index).*FieldPtr = newValue;
 
-            return oldValue != newValue;
+                return oldValue != newValue;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
+            if (auto e = this->getEditor()) {
+                ListT& projectList = this->getProjectList(projectFile, *e);
+                ListT& editorList = this->getEditorList(*e);
 
-            assert(projectList.size() == editorList.size());
-            assert(index < projectList.size());
+                assert(projectList.size() == editorList.size());
+                assert(index < projectList.size());
 
-            projectList.at(index).*FieldPtr = oldValue;
-            editorList.at(index).*FieldPtr = oldValue;
+                projectList.at(index).*FieldPtr = oldValue;
+                editorList.at(index).*FieldPtr = oldValue;
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            ListT& projectList = this->getProjectList(projectFile);
-            ListT& editorList = this->getEditorList();
+            if (auto e = this->getEditor()) {
+                ListT& projectList = this->getProjectList(projectFile, *e);
+                ListT& editorList = this->getEditorList(*e);
 
-            assert(projectList.size() == editorList.size());
-            assert(index < projectList.size());
+                assert(projectList.size() == editorList.size());
+                assert(index < projectList.size());
 
-            projectList.at(index).*FieldPtr = newValue;
-            editorList.at(index).*FieldPtr = newValue;
+                projectList.at(index).*FieldPtr = newValue;
+                editorList.at(index).*FieldPtr = newValue;
+            }
         }
     };
 
@@ -936,12 +1008,12 @@ protected:
         }
 
     public:
-        EditMultipleItemsAction(EditorT* editor,
+        EditMultipleItemsAction(std::shared_ptr<EditorT> editor,
                                 const ListArgsT& listArgs,
                                 const std::vector<index_type>&& indexes)
             : BaseAction(editor, listArgs)
             , _indexes(std::move(indexes))
-            , _newValues(getValues(this->getEditorList(), _indexes))
+            , _newValues(getValues(this->getEditorList(*editor), _indexes))
         {
         }
         virtual ~EditMultipleItemsAction() = default;
@@ -952,25 +1024,32 @@ protected:
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            ListT& projectList = this->getProjectList(projectFile);
+            if (auto e = this->getEditor()) {
+                ListT& projectList = this->getProjectList(projectFile, *e);
 
-            _oldValues = getValues(projectList, _indexes);
+                _oldValues = getValues(projectList, _indexes);
 
-            setValues(projectList, _newValues);
+                setValues(projectList, _newValues);
 
-            return _oldValues != _newValues;
+                return _oldValues != _newValues;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            setValues(this->getEditorList(), _oldValues);
-            setValues(this->getProjectList(projectFile), _oldValues);
+            if (auto e = this->getEditor()) {
+                setValues(this->getEditorList(*e), _oldValues);
+                setValues(this->getProjectList(projectFile, *e), _oldValues);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            setValues(this->getEditorList(), _newValues);
-            setValues(this->getProjectList(projectFile), _newValues);
+            if (auto e = this->getEditor()) {
+                setValues(this->getEditorList(*e), _newValues);
+                setValues(this->getProjectList(projectFile, *e), _newValues);
+            }
         }
     };
 
@@ -1006,10 +1085,10 @@ protected:
         }
 
     public:
-        EditAllItemsInListFieldAction(EditorT* editor,
+        EditAllItemsInListFieldAction(std::shared_ptr<EditorT> editor,
                                       const ListArgsT& listArgs)
             : BaseAction(editor, listArgs)
-            , _newValues(getValues(this->getEditorList()))
+            , _newValues(getValues(this->getEditorList(*editor)))
         {
         }
         virtual ~EditAllItemsInListFieldAction() = default;
@@ -1020,25 +1099,32 @@ protected:
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            const ListT& projectList = this->getProjectList(projectFile);
+            if (auto e = this->getEditor()) {
+                const ListT& projectList = this->getProjectList(projectFile, *e);
 
-            _oldValues = getValues(projectList);
+                _oldValues = getValues(projectList);
 
-            setValues(this->getProjectList(projectFile), _newValues);
+                setValues(this->getProjectList(projectFile), _newValues);
 
-            return _oldValues != _newValues;
+                return _oldValues != _newValues;
+            }
+            return false;
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            setValues(this->getEditorList(), _oldValues);
-            setValues(this->getProjectList(projectFile), _oldValues);
+            if (auto e = this->getEditor()) {
+                setValues(this->getEditorList(*e), _oldValues);
+                setValues(this->getProjectList(projectFile, *e), _oldValues);
+            }
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            setValues(this->getEditorList(), _newValues);
-            setValues(this->getProjectList(projectFile), _newValues);
+            if (auto e = this->getEditor()) {
+                setValues(this->getEditorList(*e), _newValues);
+                setValues(this->getProjectList(projectFile, *e), _newValues);
+            }
         }
     };
 
@@ -1051,25 +1137,24 @@ protected:
         };
 
     private:
-        EditorT* const editor;
+        const std::weak_ptr<EditorT> _editor;
         const std::vector<IndexAndValues> indexesAndNewValues;
         std::vector<value_type> oldValues;
 
     private:
-        static ListT& getList(EditorDataT* data, const ListArgsT& listArgs)
+        static ListT& getList(EditorDataT& data, const ListArgsT& listArgs)
         {
-            assert(data != nullptr);
             ListT* list = std::apply(&ActionPolicy::getList,
-                                     std::tuple_cat(std::forward_as_tuple(*data), listArgs));
+                                     std::tuple_cat(std::forward_as_tuple(data), listArgs));
             assert(list != nullptr);
             return *list;
         }
 
     public:
-        EditMultipleNestedItems(EditorT* editor,
+        EditMultipleNestedItems(std::weak_ptr<EditorT> editor,
                                 const std::vector<IndexAndValues>&& indexesAndValues)
             : UndoAction()
-            , editor(editor)
+            , _editor(editor)
             , indexesAndNewValues(std::move(indexesAndValues))
         {
         }
@@ -1081,79 +1166,86 @@ protected:
 
         bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
-            EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
-            assert(projectData);
-            assert(editorData);
+            if (auto e = _editor.lock()) {
+                EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, e->itemIndex());
+                EditorDataT* editorData = ActionPolicy::getEditorData(*e);
+                assert(projectData);
+                assert(editorData);
 
-            assert(oldValues.empty());
+                assert(oldValues.empty());
 
-            bool changed = false;
+                bool changed = false;
 
-            for (const IndexAndValues& childValues : indexesAndNewValues) {
-                ListT& projectList = getList(projectData, childValues.listArgs);
+                for (const IndexAndValues& childValues : indexesAndNewValues) {
+                    ListT& projectList = getList(*projectData, childValues.listArgs);
 
-                for (const auto& [index, editorValue] : childValues.childIndexesAndValues) {
-                    assert(index >= 0 && index < projectList.size());
+                    for (const auto& [index, editorValue] : childValues.childIndexesAndValues) {
+                        assert(index >= 0 && index < projectList.size());
 
-                    value_type& projectValue = projectList.at(index);
+                        value_type& projectValue = projectList.at(index);
 
-                    oldValues.push_back(projectValue);
+                        oldValues.push_back(projectValue);
 
-                    changed |= projectValue != editorValue;
-                    projectValue = editorValue;
+                        changed |= projectValue != editorValue;
+                        projectValue = editorValue;
+                    }
                 }
-            }
 
-            return changed;
+                return changed;
+            }
+            return false;
         }
 
         void undo(Project::ProjectFile& projectFile) const final
         {
-            EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
-            EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
-            assert(projectData);
-            assert(editorData);
+            if (auto e = _editor.lock()) {
+                EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, e->itemIndex());
+                EditorDataT* editorData = ActionPolicy::getEditorData(*e);
+                assert(projectData);
+                assert(editorData);
 
-            auto it = oldValues.begin();
+                auto it = oldValues.begin();
 
-            for (const IndexAndValues& childValues : indexesAndNewValues) {
-                ListT& projectList = getList(projectData, childValues.listArgs);
-                ListT& editorList = getList(editorData, childValues.listArgs);
+                for (const IndexAndValues& childValues : indexesAndNewValues) {
+                    ListT& projectList = getList(*projectData, childValues.listArgs);
+                    ListT& editorList = getList(*editorData, childValues.listArgs);
 
-                assert(projectList.size() == editorList.size());
+                    assert(projectList.size() == editorList.size());
 
-                for (const auto& civ : childValues.childIndexesAndValues) {
-                    const index_type index = civ.first;
-                    assert(index >= 0 && index < projectList.size());
+                    for (const auto& civ : childValues.childIndexesAndValues) {
+                        const index_type index = civ.first;
+                        assert(index >= 0 && index < projectList.size());
 
-                    const value_type& oldValue = *it++;
+                        const value_type& oldValue = *it++;
 
-                    projectList.at(index) = oldValue;
-                    editorList.at(index) = oldValue;
+                        projectList.at(index) = oldValue;
+                        editorList.at(index) = oldValue;
+                    }
                 }
+                assert(it == oldValues.end());
             }
-            assert(it == oldValues.end());
         }
 
         void redo(Project::ProjectFile& projectFile) const final
         {
-            EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
-            EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
-            assert(projectData);
-            assert(editorData);
+            if (auto e = _editor.lock()) {
+                EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, e->itemIndex());
+                EditorDataT* editorData = ActionPolicy::getEditorData(*e);
+                assert(projectData);
+                assert(editorData);
 
-            for (const IndexAndValues& childValues : indexesAndNewValues) {
-                ListT& projectList = getList(projectData, childValues.listArgs);
-                ListT& editorList = getList(editorData, childValues.listArgs);
+                for (const IndexAndValues& childValues : indexesAndNewValues) {
+                    ListT& projectList = getList(*projectData, childValues.listArgs);
+                    ListT& editorList = getList(*editorData, childValues.listArgs);
 
-                assert(projectList.size() == editorList.size());
+                    assert(projectList.size() == editorList.size());
 
-                for (const auto& [index, newValue] : childValues.childIndexesAndValues) {
-                    assert(index >= 0 && index < projectList.size());
+                    for (const auto& [index, newValue] : childValues.childIndexesAndValues) {
+                        assert(index >= 0 && index < projectList.size());
 
-                    projectList.at(index) = newValue;
-                    editorList.at(index) = newValue;
+                        projectList.at(index) = newValue;
+                        editorList.at(index) = newValue;
+                    }
                 }
             }
         }
@@ -1167,7 +1259,7 @@ protected:
 
 protected:
     template <auto FieldPtr>
-    static void _editListField(EditorT* editor, const ListArgsT& listArgs, const index_type index)
+    static void _editListField(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const index_type index)
     {
         editor->undoStack().addAction(
             std::make_unique<EditItemFieldAction<FieldPtr>>(
@@ -1175,7 +1267,7 @@ protected:
     }
 
     // `values` MUST BE sorted by index (ie, created by `indexesAndDataForMultipleSelection`)
-    static void cloneMultiple(EditorT* editor, const ListArgsT& listArgs,
+    static void cloneMultiple(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs,
                               std::vector<std::pair<index_type, value_type>>&& values)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1201,7 +1293,7 @@ protected:
     }
 
     // `values` MUST BE sorted by index (ie, created by `indexesAndDataForMultipleSelection`)
-    static void removeMultiple(EditorT* editor, const ListArgsT& listArgs,
+    static void removeMultiple(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs,
                                std::vector<std::pair<index_type, value_type>>&& values)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1222,7 +1314,7 @@ protected:
     }
 
     // `indexes` MUST be sorted (ie, created by `indexesForMultipleSelection`)
-    static void moveMultiple(EditorT* editor, const ListArgsT& listArgs, const std::vector<index_type>&& indexes, EditListAction action)
+    static void moveMultiple(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const std::vector<index_type>&& indexes, EditListAction action)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -1274,9 +1366,9 @@ protected:
     }
 
 public:
-    static void addItemToSelectedList(EditorT* editor, const value_type& value)
+    static void addItemToSelectedList(const std::shared_ptr<EditorT>& editor, const value_type& value)
     {
-        const SelectionT& sel = getSelection(editor);
+        const SelectionT& sel = getSelection(*editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1290,7 +1382,7 @@ public:
         }
     }
 
-    static void addItem(EditorT* editor, const ListArgsT& listArgs)
+    static void addItem(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -1303,7 +1395,7 @@ public:
         }
     }
 
-    static void addItem(EditorT* editor, const ListArgsT& listArgs, const value_type& value)
+    static void addItem(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const value_type& value)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -1316,7 +1408,7 @@ public:
         }
     }
 
-    static void cloneItem(EditorT* editor, const ListArgsT& listArgs, const index_type index)
+    static void cloneItem(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -1332,7 +1424,7 @@ public:
         }
     }
 
-    static void removeItem(EditorT* editor, const ListArgsT& listArgs, const index_type index)
+    static void removeItem(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -1346,7 +1438,7 @@ public:
         }
     }
 
-    static void moveItem(EditorT* editor, const ListArgsT& listArgs,
+    static void moveItem(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs,
                          const index_type fromIndex, const index_type toIndex)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1363,7 +1455,7 @@ public:
         }
     }
 
-    static void moveItemToBottom(EditorT* editor, const ListArgsT& listArgs, const index_type index)
+    static void moveItemToBottom(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -1376,7 +1468,7 @@ public:
         }
     }
 
-    static void itemEdited(EditorT* editor, const ListArgsT& listArgs, const index_type index)
+    static void itemEdited(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -1389,7 +1481,7 @@ public:
         }
     }
 
-    static void selectedListItemEdited(EditorT* editor, const index_type index)
+    static void selectedListItemEdited(const std::shared_ptr<EditorT>& editor, const index_type index)
     {
         const SelectionT& sel = getSelection(editor);
         const ListArgsT listArgs = sel.listArgs();
@@ -1397,9 +1489,9 @@ public:
         itemEdited(editor, listArgs, index);
     }
 
-    static void selectedListItemsEdited(EditorT* editor, std::vector<index_type> indexes)
+    static void selectedListItemsEdited(const std::shared_ptr<EditorT>& editor, std::vector<index_type> indexes)
     {
-        const SelectionT& sel = getSelection(editor);
+        const SelectionT& sel = getSelection(*editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1418,9 +1510,9 @@ public:
     }
 
     template <auto FieldPtr>
-    static void allItemsInSelectedListFieldEdited(EditorT* editor)
+    static void allItemsInSelectedListFieldEdited(const std::shared_ptr<EditorT>& editor)
     {
-        const SelectionT& sel = getSelection(editor);
+        const SelectionT& sel = getSelection(*editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1447,9 +1539,9 @@ class SingleSelListActions : public AbstractListActions<ActionPolicy> {
     using LA = AbstractListActions<ActionPolicy>;
 
 public:
-    static void editList(EditorT* editor, EditListAction action)
+    static void editList(const std::shared_ptr<EditorT>& editor, EditListAction action)
     {
-        const SelectionT& sel = LA::getSelection(editor);
+        const SelectionT& sel = LA::getSelection(*editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const index_type i = sel.selectedIndex();
@@ -1487,16 +1579,16 @@ public:
         }
     }
 
-    static void selectedItemEdited(EditorT* editor)
+    static void selectedItemEdited(const std::shared_ptr<EditorT>& editor)
     {
-        const auto& sel = LA::getSelection(editor);
+        const auto& sel = LA::getSelection(*editor);
         LA::itemEdited(editor, sel.listArgs(), sel.selectedIndex());
     }
 
     template <auto FieldPtr>
-    static void selectedFieldEdited(EditorT* editor)
+    static void selectedFieldEdited(const std::shared_ptr<EditorT>& editor)
     {
-        const auto& sel = LA::getSelection(editor);
+        const auto& sel = LA::getSelection(*editor);
         LA::template _editListField<FieldPtr>(editor, sel.listArgs(), sel.selectedIndex());
     }
 };
@@ -1512,9 +1604,9 @@ class MultipleSelListActions : public AbstractListActions<ActionPolicy> {
     using LA = AbstractListActions<ActionPolicy>;
 
 public:
-    static void editList(EditorT* editor, EditListAction action)
+    static void editList(const std::shared_ptr<EditorT>& editor, EditListAction action)
     {
-        const SelectionT& sel = LA::getSelection(editor);
+        const SelectionT& sel = LA::getSelection(*editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const ListT* list = LA::getEditorListPtr(editor, listArgs);
@@ -1548,11 +1640,11 @@ public:
         }
     }
 
-    static void selectedItemsEdited(EditorT* editor)
+    static void selectedItemsEdited(const std::shared_ptr<EditorT>& editor)
     {
         using EditMultipleItemsAction = typename LA::EditMultipleItemsAction;
 
-        const SelectionT& sel = LA::getSelection(editor);
+        const SelectionT& sel = LA::getSelection(*editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const ListT* list = LA::getEditorListPtr(editor, listArgs);
@@ -1591,18 +1683,18 @@ class ListActionsImpl<ActionPolicy, SingleSelection> : public SingleSelListActio
     using LA = SingleSelListActions<ActionPolicy>;
 
 public:
-    static void addItem(EditorT* editor, const value_type& value)
+    static void addItem(const std::shared_ptr<EditorT>& editor, const value_type& value)
     {
         LA::addItem(editor, std::make_tuple(), value);
     }
 
-    static void itemEdited(EditorT* editor, const index_type index)
+    static void itemEdited(const std::shared_ptr<EditorT>& editor, const index_type index)
     {
         LA::itemEdited(editor, std::make_tuple<>(), index);
     }
 
     template <auto FieldPtr>
-    static void fieldEdited(EditorT* editor, const index_type index)
+    static void fieldEdited(const std::shared_ptr<EditorT>& editor, const index_type index)
     {
         LA::template _editListField<FieldPtr>(editor, std::make_tuple<>(), index);
     }
@@ -1622,18 +1714,18 @@ class ListActionsImpl<ActionPolicy, MultipleSelection> : public MultipleSelListA
     using LA = MultipleSelListActions<ActionPolicy>;
 
 public:
-    static void addItem(EditorT* editor, const value_type& value)
+    static void addItem(const std::shared_ptr<EditorT>& editor, const value_type& value)
     {
         LA::addItem(editor, std::make_tuple(), value);
     }
 
-    static void itemEdited(EditorT* editor, const index_type index)
+    static void itemEdited(const std::shared_ptr<EditorT>& editor, const index_type index)
     {
         LA::itemEdited(editor, std::make_tuple(), index);
     }
 
     template <auto FieldPtr>
-    static void fieldEdited(EditorT* editor, const index_type index)
+    static void fieldEdited(const std::shared_ptr<EditorT>& editor, const index_type index)
     {
         LA::template _editListField<FieldPtr>(editor, std::make_tuple(), index);
     }
@@ -1655,19 +1747,19 @@ class ListActionsImpl<ActionPolicy, GroupMultipleSelection> : public AbstractLis
     using LA = AbstractListActions<ActionPolicy>;
 
 public:
-    static void editList(EditorT* editor, EditListAction action)
+    static void editList(const std::shared_ptr<EditorT>& editor, EditListAction action)
     {
         using ParentActionPolicy = typename ActionPolicy::ParentActionPolicy;
 
         static_assert(ParentActionPolicy::MAX_SIZE <= GroupMultipleSelection::MAX_GROUP_SIZE);
         static_assert(std::is_same_v<ListArgsT, std::tuple<unsigned>>);
 
-        const GroupMultipleSelection& sel = LA::getSelection(editor);
+        const GroupMultipleSelection& sel = LA::getSelection(*editor);
 
         switch (action) {
         case EditListAction::ADD: {
             // Can only add an item to a group if the parent is selected
-            const SingleSelection& parentSel = editor->*ParentActionPolicy::SelectionPtr;
+            const SingleSelection& parentSel = (*editor).*(ParentActionPolicy::SelectionPtr);
             const ListArgsT listArgs = std::make_tuple(parentSel.selectedIndex());
 
             LA::addItem(editor, listArgs);
@@ -1718,9 +1810,9 @@ public:
         }
     }
 
-    static void selectedItemsEdited(EditorT* editor)
+    static void selectedItemsEdited(const std::shared_ptr<EditorT>& editor)
     {
-        const GroupMultipleSelection& sel = LA::getSelection(editor);
+        const GroupMultipleSelection& sel = LA::getSelection(*editor);
 
         std::vector<typename LA::EditMultipleNestedItems::IndexAndValues> values;
 

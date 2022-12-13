@@ -47,7 +47,7 @@ class EntityRomDataEditorGui final : public AbstractEditorGui {
 private:
     using AP = EntityRomDataEditorData::AP;
 
-    EntityRomDataEditorData* _data;
+    std::shared_ptr<EntityRomDataEditorData> _data;
 
     SplitterBarState _sidebar;
     SplitterBarState _leftTopbar;
@@ -58,7 +58,7 @@ private:
 public:
     EntityRomDataEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
     void resetState() final;
     void editorClosed() final;
 

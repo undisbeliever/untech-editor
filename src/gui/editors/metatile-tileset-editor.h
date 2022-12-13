@@ -53,7 +53,7 @@ private:
         bool functionTableSame;
     };
 
-    MetaTileTilesetEditorData* _data;
+    std::shared_ptr<MetaTileTilesetEditorData> _data;
 
     usize _scratchpadSize;
     std::optional<TileProperties> _tileProperties;
@@ -77,7 +77,7 @@ public:
 public:
     MetaTileTilesetEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
     void resetState() final;
     void editorClosed() final;
 

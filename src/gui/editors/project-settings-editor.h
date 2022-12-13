@@ -30,12 +30,12 @@ class ProjectSettingsEditorGui final : public AbstractEditorGui {
 private:
     using AP = ProjectSettingsEditorData::AP;
 
-    ProjectSettingsEditorData* _data;
+    std::shared_ptr<ProjectSettingsEditorData> _data;
 
 public:
     ProjectSettingsEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
     void resetState() final;
     void editorClosed() final;
 

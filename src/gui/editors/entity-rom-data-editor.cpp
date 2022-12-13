@@ -206,9 +206,10 @@ EntityRomDataEditorGui::EntityRomDataEditorGui()
 {
 }
 
-bool EntityRomDataEditorGui::setEditorData(AbstractEditorData* data)
+bool EntityRomDataEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
 {
-    return (_data = dynamic_cast<EntityRomDataEditorData*>(data));
+    _data = std::dynamic_pointer_cast<EntityRomDataEditorData>(data);
+    return _data != nullptr;
 }
 
 void EntityRomDataEditorGui::resetState()
@@ -351,7 +352,7 @@ void EntityRomDataEditorGui::entityEntriesGui(const char8_t* text, const Project
 
     NamedListSidebar<ActionPolicy>(_data);
 
-    SelectionT& sel = _data->*ActionPolicy::SelectionPtr;
+    SelectionT& sel = (*_data).*(ActionPolicy::SelectionPtr);
     NamedList<EntityRomEntry>* list = ActionPolicy::getList(entityRomData);
 
     ImGui::SameLine();

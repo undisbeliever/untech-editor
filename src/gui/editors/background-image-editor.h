@@ -32,7 +32,7 @@ class BackgroundImageEditorGui final : public AbstractEditorGui {
 private:
     using AP = BackgroundImageEditorData::AP;
 
-    BackgroundImageEditorData* _data;
+    std::shared_ptr<BackgroundImageEditorData> _data;
 
     InvalidImageErrorGraphics _invalidTiles;
     unsigned _invalidTilesCompileId;
@@ -45,7 +45,7 @@ public:
 public:
     BackgroundImageEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
     void resetState() final;
     void editorClosed() final;
 

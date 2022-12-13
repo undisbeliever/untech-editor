@@ -20,9 +20,9 @@ struct GridActions {
     using ListArgsT = typename ActionPolicy::ListArgsT;
     using GridT = typename ActionPolicy::GridT;
 
-    static const GridT* getEditorGridPtr(EditorT* editor, const ListArgsT& listArgs)
+    [[nodiscard]] static const GridT* getEditorGridPtr(EditorT& editor, const ListArgsT& listArgs)
     {
-        EditorDataT* data = ActionPolicy::getEditorData(*editor);
+        EditorDataT* data = ActionPolicy::getEditorData(editor);
         assert(data != nullptr);
         return std::apply(&ActionPolicy::getGrid,
                           std::tuple_cat(std::forward_as_tuple(*data), listArgs));
@@ -30,23 +30,29 @@ struct GridActions {
 
     class BaseAction : public UndoAction {
     private:
-        EditorT* const editor;
+        const std::weak_ptr<EditorT> _editor;
         const ListArgsT listArgs;
 
     public:
         ~BaseAction() override = default;
 
     protected:
-        BaseAction(EditorT* editor, const ListArgsT& listArgs)
-            : editor(editor)
+        BaseAction(std::weak_ptr<EditorT> editor, const ListArgsT& listArgs)
+            : _editor(std::move(editor))
             , listArgs(listArgs)
         {
-            assert(editor != nullptr);
         }
 
-        GridT& getProjectGrid(Project::ProjectFile& projectFile) const
+        [[nodiscard]] inline std::shared_ptr<EditorT> getEditor() const
         {
-            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            auto e = _editor.lock();
+            assert(e != nullptr);
+            return e;
+        }
+
+        [[nodiscard]] GridT& getProjectGrid(Project::ProjectFile& projectFile, EditorT& editor) const
+        {
+            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor.itemIndex());
             assert(data != nullptr);
             GridT* grid = std::apply(&ActionPolicy::getGrid,
                                      std::tuple_cat(std::forward_as_tuple(*data), listArgs));
@@ -54,9 +60,9 @@ struct GridActions {
             return *grid;
         }
 
-        GridT& getEditorGrid() const
+        [[nodiscard]] GridT& getEditorGrid(EditorT& editor) const
         {
-            EditorDataT* data = ActionPolicy::getEditorData(*editor);
+            EditorDataT* data = ActionPolicy::getEditorData(editor);
             assert(data != nullptr);
             GridT* grid = std::apply(&ActionPolicy::getGrid,
                                      std::tuple_cat(std::forward_as_tuple(*data), listArgs));
@@ -64,9 +70,9 @@ struct GridActions {
             return *grid;
         }
 
-        void clearSelection() const
+        static void clearSelection(EditorT& editor)
         {
-            upoint_vectorset& sel = editor->*ActionPolicy::SelectionPtr;
+            upoint_vectorset& sel = editor.*(ActionPolicy::SelectionPtr);
             sel.clear();
         }
 
@@ -84,8 +90,8 @@ struct GridActions {
         GridT oldGrid;
 
     public:
-        EditGridAction(EditorT* editor, const ListArgsT& listArgs, const GridT&& g)
-            : BaseAction(editor, listArgs)
+        EditGridAction(std::weak_ptr<EditorT> editor, const ListArgsT& listArgs, const GridT&& g)
+            : BaseAction(std::move(editor), listArgs)
             , newGrid(g)
             , oldGrid()
         {
@@ -98,26 +104,31 @@ struct GridActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            GridT& projectGrid = this->getProjectGrid(projectFile);
+            if (auto e = this->getEditor()) {
+                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
 
-            oldGrid = projectGrid;
+                oldGrid = projectGrid;
 
-            setCells(projectFile, newGrid);
+                setCells(projectFile, newGrid);
 
-            // operator!= may not implemented in a few of my structs
-            return !(newGrid == oldGrid);
+                // operator!= may not implemented in a few of my structs
+                return !(newGrid == oldGrid);
+            }
+            return false;
         }
 
         void setCells(Project::ProjectFile& projectFile, const GridT& grid) const
         {
-            GridT& projectGrid = this->getProjectGrid(projectFile);
-            GridT& editorGrid = this->getEditorGrid();
+            if (auto e = this->getEditor()) {
+                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
+                GridT& editorGrid = this->getEditorGrid(*e);
 
-            projectGrid = grid;
-            editorGrid = grid;
+                projectGrid = grid;
+                editorGrid = grid;
 
-            if (oldGrid.size() != newGrid.size()) {
-                this->clearSelection();
+                if (oldGrid.size() != newGrid.size()) {
+                    this->clearSelection(*e);
+                }
             }
         }
 
@@ -140,8 +151,8 @@ struct GridActions {
         GridT oldValues;
 
     public:
-        EditMultipleCellsAction(EditorT* editor, const ListArgsT& listArgs, upoint p, const GridT&& g)
-            : BaseAction(editor, listArgs)
+        EditMultipleCellsAction(std::weak_ptr<EditorT> editor, const ListArgsT& listArgs, upoint p, const GridT&& g)
+            : BaseAction(std::move(editor), listArgs)
             , position(p)
             , newValues(g)
             , oldValues()
@@ -155,32 +166,37 @@ struct GridActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            GridT& projectGrid = this->getProjectGrid(projectFile);
-            GridT& editorGrid = this->getEditorGrid();
+            if (auto e = this->getEditor()) {
+                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
+                GridT& editorGrid = this->getEditorGrid(*e);
 
-            assert(projectGrid.size() == editorGrid.size());
-            assert(position.x + newValues.width() <= projectGrid.width());
-            assert(position.y + newValues.height() <= projectGrid.height());
+                assert(projectGrid.size() == editorGrid.size());
+                assert(position.x + newValues.width() <= projectGrid.width());
+                assert(position.y + newValues.height() <= projectGrid.height());
 
-            oldValues = projectGrid.subGrid(position, newValues.size());
+                oldValues = projectGrid.subGrid(position, newValues.size());
 
-            projectGrid.setCells(position, newValues);
+                projectGrid.setCells(position, newValues);
 
-            // operator!= may not implemented in a few of my structs
-            return !(newValues == oldValues);
+                // operator!= may not implemented in a few of my structs
+                return !(newValues == oldValues);
+            }
+            return false;
         }
 
         void setCells(Project::ProjectFile& projectFile, const GridT& values) const
         {
-            GridT& projectGrid = this->getProjectGrid(projectFile);
-            GridT& editorGrid = this->getEditorGrid();
+            if (auto e = this->getEditor()) {
+                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
+                GridT& editorGrid = this->getEditorGrid(*e);
 
-            assert(projectGrid.size() == editorGrid.size());
-            assert(position.x + values.width() <= projectGrid.width());
-            assert(position.y + values.height() <= projectGrid.height());
+                assert(projectGrid.size() == editorGrid.size());
+                assert(position.x + values.width() <= projectGrid.width());
+                assert(position.y + values.height() <= projectGrid.height());
 
-            projectGrid.setCells(position, values);
-            editorGrid.setCells(position, values);
+                projectGrid.setCells(position, values);
+                editorGrid.setCells(position, values);
+            }
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
@@ -194,11 +210,11 @@ struct GridActions {
         }
     };
 
-    static void gridTilesPlaced(EditorT* editor, const urect r)
+    static void gridTilesPlaced(const std::shared_ptr<EditorT>& editor, const urect r)
     {
         const ListArgsT listArgs;
 
-        const GridT* grid = getEditorGridPtr(editor, listArgs);
+        const GridT* grid = getEditorGridPtr(*editor, listArgs);
         if (grid == nullptr) {
             return;
         }
@@ -213,11 +229,11 @@ struct GridActions {
             editor, listArgs, r.topLeft(), grid->subGrid(r)));
     }
 
-    static void resizeGrid(EditorT* editor, const usize newSize)
+    static void resizeGrid(const std::shared_ptr<EditorT>& editor, const usize newSize)
     {
         const ListArgsT listArgs;
 
-        const GridT* grid = getEditorGridPtr(editor, listArgs);
+        const GridT* grid = getEditorGridPtr(*editor, listArgs);
         if (grid == nullptr) {
             return;
         }

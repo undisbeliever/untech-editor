@@ -434,12 +434,12 @@ MetaSpriteEditorGui::MetaSpriteEditorGui()
 {
 }
 
-bool MetaSpriteEditorGui::setEditorData(AbstractEditorData* data)
+bool MetaSpriteEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
 {
-    _data = dynamic_cast<MetaSpriteEditorData*>(data);
-    setMetaSpriteData(_data);
+    _data = std::dynamic_pointer_cast<MetaSpriteEditorData>(data);
+    setMetaSpriteData(_data.get());
 
-    return _data;
+    return _data != nullptr;
 }
 
 void MetaSpriteEditorGui::resetState()
@@ -894,7 +894,7 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
         return;
     }
 
-    SingleSelection& sel = _data->*TilesetPolicy::SelectionPtr;
+    SingleSelection& sel = (*_data).*(TilesetPolicy::SelectionPtr);
 
     const ImVec2 offset = ImGui::GetCursorScreenPos();
 

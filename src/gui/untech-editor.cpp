@@ -111,12 +111,12 @@ void UnTechEditor::closeProject()
 // MUST ONLY be called by `updateProjectFile`
 void UnTechEditor::openEditor(const ItemIndex itemIndex)
 {
-    AbstractEditorData* editor = nullptr;
+    std::shared_ptr<AbstractEditorData> editor = nullptr;
 
     auto it = std::find_if(_editors.cbegin(), _editors.cend(),
                            [&](const auto& e) { return e->itemIndex() == itemIndex; });
     if (it != _editors.cend()) {
-        editor = it->get();
+        editor = *it;
     }
 
     if (editor == nullptr) {
@@ -125,8 +125,8 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
             if (auto e = createEditor(itemIndex, pf)) {
                 if (e->loadDataFromProject(pf)) {
                     // itemIndex is valid
-                    editor = e.get();
-                    _editors.push_back(std::move(e));
+                    editor = e;
+                    _editors.push_back(e);
                 }
             }
         });
@@ -146,7 +146,7 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
                 unsigned counter = 0;
                 for (auto& eg : _editorGuis) {
                     if (eg->setEditorData(_currentEditor)) {
-                        _currentEditorGui = eg.get();
+                        _currentEditorGui = eg;
                         counter++;
                     }
                 }
@@ -238,7 +238,7 @@ void UnTechEditor::saveCurrentEditor()
     if (_currentEditor) {
         forceProcessEditorActions();
 
-        if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor)) {
+        if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor.get())) {
             saveEditor(e);
         }
         else {
@@ -567,7 +567,7 @@ void UnTechEditor::processGui()
     fullscreenBackgroundWindow();
 
     if (_currentEditor) {
-        processErrorListWindow(_projectData, _currentEditor);
+        processErrorListWindow(_projectData, _currentEditor.get());
 
         _projectFile.read([&](const auto& pf) {
             _currentEditorGui->processExtraWindows(pf, _projectData);
@@ -579,7 +579,7 @@ void UnTechEditor::processGui()
     unsavedChangesOnExitPopup();
 
     if (_currentEditor) {
-        _currentEditor->undoStack().processEditorActions(_currentEditorGui);
+        _currentEditor->undoStack().processEditorActions(_currentEditorGui.get());
         _currentEditor->updateSelection();
     }
 }
@@ -592,7 +592,7 @@ void UnTechEditor::updateProjectFile()
         // ::TODO add requestStopCompiling to background thread::
 
         _projectFile.tryWrite([&](auto& pf) {
-            edited |= processUndoStack(_currentEditor, _currentEditorGui, pf);
+            edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
         });
 
         if (edited) {
@@ -631,7 +631,7 @@ void UnTechEditor::forceProcessEditorActions()
         bool edited = false;
 
         _projectFile.write([&](auto& pf) {
-            edited |= processUndoStack(_currentEditor, _currentEditorGui, pf);
+            edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
         });
 
         if (edited) {

@@ -32,7 +32,7 @@ class PaletteEditorGui final : public AbstractEditorGui {
 private:
     using AP = PaletteEditorData::AP;
 
-    PaletteEditorData* _data;
+    std::shared_ptr<PaletteEditorData> _data;
 
     SingleAnimationTimer _animationTimer;
 
@@ -45,7 +45,7 @@ public:
 public:
     PaletteEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
     void resetState() final;
     void editorClosed() final;
 

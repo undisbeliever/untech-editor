@@ -26,7 +26,7 @@ inline void AbstractMetaSpriteEditorData::updateSelection()
 }
 
 template <typename AP, typename EditorT, typename FrameSetT>
-void AbstractMetaSpriteEditorGui::animationPropertiesGui(EditorT* editor, FrameSetT* frameSet)
+void AbstractMetaSpriteEditorGui::animationPropertiesGui(const std::shared_ptr<EditorT>& editor, FrameSetT* frameSet)
 {
     using MsAnimation = UnTech::MetaSprite::Animation::Animation;
 
@@ -80,8 +80,8 @@ void AbstractMetaSpriteEditorGui::animationPropertiesGui(EditorT* editor, FrameS
     ImGui::EndChild();
 }
 
-template <typename EditorDataT, typename DrawFunction>
-void AbstractMetaSpriteEditorGui::animationPreviewWindow(EditorDataT* data, DrawFunction drawFunction)
+template <typename EditorT, typename DrawFunction>
+void AbstractMetaSpriteEditorGui::animationPreviewWindow(const std::shared_ptr<EditorT>& data, DrawFunction drawFunction)
 {
     assert(data);
     const auto& fs = data->data;

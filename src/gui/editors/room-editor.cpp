@@ -480,10 +480,12 @@ RoomEditorGui::RoomEditorGui()
 {
 }
 
-bool RoomEditorGui::setEditorData(AbstractEditorData* data)
+bool RoomEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
 {
     AbstractMetaTileEditorGui::setEditorData(data);
-    return (_data = dynamic_cast<RoomEditorData*>(data));
+    _data = std::dynamic_pointer_cast<RoomEditorData>(data);
+
+    return _data != nullptr;
 }
 
 void RoomEditorGui::resetState()
@@ -1326,7 +1328,7 @@ class RoomScriptGui {
     using AP = RoomEditorData::AP;
 
 private:
-    RoomEditorData* const data;
+    const std::shared_ptr<RoomEditorData> data;
 
     unsigned depth{ 0 };
 
@@ -1343,8 +1345,8 @@ private:
     constexpr static float INDENT_SPACING = 30;
 
 public:
-    explicit RoomScriptGui(RoomEditorData* d)
-        : data(d)
+    explicit RoomScriptGui(std::shared_ptr<RoomEditorData> d)
+        : data(std::move(d))
         , parentIndex()
         , disabledColor(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled))
     {
@@ -1873,7 +1875,7 @@ private:
 std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGui::addMenuParentIndex;
 
 template <typename AP>
-static void tempVariableList(const char* strId, RoomEditorData* data, const float outerHeight)
+static void tempVariableList(const char* strId, const std::shared_ptr<RoomEditorData>& data, const float outerHeight)
 {
     apTable<AP>(
         strId, data,

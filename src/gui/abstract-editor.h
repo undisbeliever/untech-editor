@@ -118,7 +118,7 @@ public:
     }
     virtual ~AbstractEditorGui() = default;
 
-    virtual bool setEditorData(AbstractEditorData* data) = 0;
+    virtual bool setEditorData(std::shared_ptr<AbstractEditorData> data) = 0;
 
     // Called after setEditorData or ImageCache invalidation
     virtual void resetState() = 0;
@@ -134,8 +134,8 @@ protected:
     void undoStackButtons();
 };
 
-std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
+std::shared_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
 
-std::vector<std::unique_ptr<AbstractEditorGui>> createEditorGuis();
+std::vector<std::shared_ptr<AbstractEditorGui>> createEditorGuis();
 
 }

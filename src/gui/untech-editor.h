@@ -78,11 +78,11 @@ private:
     const std::filesystem::path _filename;
     const std::u8string _basename;
 
-    std::vector<std::unique_ptr<AbstractEditorGui>> _editorGuis;
+    std::vector<std::shared_ptr<AbstractEditorGui>> _editorGuis;
 
-    std::vector<std::unique_ptr<AbstractEditorData>> _editors;
-    AbstractEditorData* _currentEditor;
-    AbstractEditorGui* _currentEditorGui;
+    std::vector<std::shared_ptr<AbstractEditorData>> _editors;
+    std::shared_ptr<AbstractEditorData> _currentEditor;
+    std::shared_ptr<AbstractEditorGui> _currentEditorGui;
 
     ProjectListWindow _projectListWindow;
 
