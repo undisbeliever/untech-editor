@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "room-script-gui.h"
 #include "gui/editors/abstract-metatile-editor.h"
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/graphics/invalid-room-tile-graphics.h"
@@ -59,6 +60,8 @@ private:
     using AP = RoomEditorData::AP;
 
     std::shared_ptr<RoomEditorData> _data;
+
+    RoomScriptGui _roomScriptGui;
 
     Shaders::MtTilemap _scratchpadTilemap;
 
@@ -132,7 +135,6 @@ private:
     void scratchpadGui();
 
     void editorGui();
-    void scriptsGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     void entityTextureWindow();
 
