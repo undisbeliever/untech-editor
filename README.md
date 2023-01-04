@@ -40,10 +40,11 @@ Build Requirements
 ==================
 
 To build the UnTech Editor the following must be installed and available
-in your $PATH:
+in your $PATH and includes:
 
  * GNU Make
  * A C++20 compiler (g++ or clang++)
+ * GSL: Guidelines Support Library
  * SDL 2
  * OpenGL 3
 

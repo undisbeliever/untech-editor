@@ -10,6 +10,7 @@
 #include "editor-actions-notify-gui.h"
 #include "models/common/aabb.h"
 #include "models/common/vectorset-upoint.h"
+#include <gsl/gsl>
 
 namespace UnTech::Gui {
 
@@ -19,6 +20,8 @@ struct GridActions {
     using EditorDataT = typename ActionPolicy::EditorDataT;
     using ListArgsT = typename ActionPolicy::ListArgsT;
     using GridT = typename ActionPolicy::GridT;
+
+    using NotNullEditorPtr = gsl::not_null<std::shared_ptr<EditorT>>;
 
     [[nodiscard]] static const GridT* getEditorGridPtr(EditorT& editor, const ListArgsT& listArgs)
     {
@@ -37,13 +40,13 @@ struct GridActions {
         ~BaseAction() override = default;
 
     protected:
-        BaseAction(std::weak_ptr<EditorT> editor, const ListArgsT& listArgs)
-            : _editor(std::move(editor))
+        BaseAction(const NotNullEditorPtr& editor, const ListArgsT& listArgs)
+            : _editor(editor.get())
             , listArgs(listArgs)
         {
         }
 
-        [[nodiscard]] inline std::shared_ptr<EditorT> getEditor() const
+        [[nodiscard]] inline NotNullEditorPtr getEditor() const
         {
             auto e = _editor.lock();
             assert(e != nullptr);
@@ -90,7 +93,7 @@ struct GridActions {
         GridT oldGrid;
 
     public:
-        EditGridAction(std::weak_ptr<EditorT> editor, const ListArgsT& listArgs, const GridT&& g)
+        EditGridAction(const NotNullEditorPtr& editor, const ListArgsT& listArgs, const GridT&& g)
             : BaseAction(std::move(editor), listArgs)
             , newGrid(g)
             , oldGrid()
@@ -104,31 +107,30 @@ struct GridActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            if (auto e = this->getEditor()) {
-                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
+            auto e = this->getEditor();
 
-                oldGrid = projectGrid;
+            GridT& projectGrid = this->getProjectGrid(projectFile, *e);
 
-                setCells(projectFile, newGrid);
+            oldGrid = projectGrid;
 
-                // operator!= may not implemented in a few of my structs
-                return !(newGrid == oldGrid);
-            }
-            return false;
+            setCells(projectFile, newGrid);
+
+            // operator!= may not implemented in a few of my structs
+            return !(newGrid == oldGrid);
         }
 
         void setCells(Project::ProjectFile& projectFile, const GridT& grid) const
         {
-            if (auto e = this->getEditor()) {
-                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
-                GridT& editorGrid = this->getEditorGrid(*e);
+            auto e = this->getEditor();
 
-                projectGrid = grid;
-                editorGrid = grid;
+            GridT& projectGrid = this->getProjectGrid(projectFile, *e);
+            GridT& editorGrid = this->getEditorGrid(*e);
 
-                if (oldGrid.size() != newGrid.size()) {
-                    this->clearSelection(*e);
-                }
+            projectGrid = grid;
+            editorGrid = grid;
+
+            if (oldGrid.size() != newGrid.size()) {
+                this->clearSelection(*e);
             }
         }
 
@@ -151,7 +153,7 @@ struct GridActions {
         GridT oldValues;
 
     public:
-        EditMultipleCellsAction(std::weak_ptr<EditorT> editor, const ListArgsT& listArgs, upoint p, const GridT&& g)
+        EditMultipleCellsAction(const NotNullEditorPtr& editor, const ListArgsT& listArgs, upoint p, const GridT&& g)
             : BaseAction(std::move(editor), listArgs)
             , position(p)
             , newValues(g)
@@ -166,37 +168,36 @@ struct GridActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            if (auto e = this->getEditor()) {
-                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
-                GridT& editorGrid = this->getEditorGrid(*e);
+            auto e = this->getEditor();
 
-                assert(projectGrid.size() == editorGrid.size());
-                assert(position.x + newValues.width() <= projectGrid.width());
-                assert(position.y + newValues.height() <= projectGrid.height());
+            GridT& projectGrid = this->getProjectGrid(projectFile, *e);
+            GridT& editorGrid = this->getEditorGrid(*e);
 
-                oldValues = projectGrid.subGrid(position, newValues.size());
+            assert(projectGrid.size() == editorGrid.size());
+            assert(position.x + newValues.width() <= projectGrid.width());
+            assert(position.y + newValues.height() <= projectGrid.height());
 
-                projectGrid.setCells(position, newValues);
+            oldValues = projectGrid.subGrid(position, newValues.size());
 
-                // operator!= may not implemented in a few of my structs
-                return !(newValues == oldValues);
-            }
-            return false;
+            projectGrid.setCells(position, newValues);
+
+            // operator!= may not implemented in a few of my structs
+            return !(newValues == oldValues);
         }
 
         void setCells(Project::ProjectFile& projectFile, const GridT& values) const
         {
-            if (auto e = this->getEditor()) {
-                GridT& projectGrid = this->getProjectGrid(projectFile, *e);
-                GridT& editorGrid = this->getEditorGrid(*e);
+            auto e = this->getEditor();
 
-                assert(projectGrid.size() == editorGrid.size());
-                assert(position.x + values.width() <= projectGrid.width());
-                assert(position.y + values.height() <= projectGrid.height());
+            GridT& projectGrid = this->getProjectGrid(projectFile, *e);
+            GridT& editorGrid = this->getEditorGrid(*e);
 
-                projectGrid.setCells(position, values);
-                editorGrid.setCells(position, values);
-            }
+            assert(projectGrid.size() == editorGrid.size());
+            assert(position.x + values.width() <= projectGrid.width());
+            assert(position.y + values.height() <= projectGrid.height());
+
+            projectGrid.setCells(position, values);
+            editorGrid.setCells(position, values);
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
@@ -210,7 +211,7 @@ struct GridActions {
         }
     };
 
-    static void gridTilesPlaced(const std::shared_ptr<EditorT>& editor, const urect r)
+    static void gridTilesPlaced(const NotNullEditorPtr& editor, const urect r)
     {
         const ListArgsT listArgs;
 
@@ -229,7 +230,7 @@ struct GridActions {
             editor, listArgs, r.topLeft(), grid->subGrid(r)));
     }
 
-    static void resizeGrid(const std::shared_ptr<EditorT>& editor, const usize newSize)
+    static void resizeGrid(const NotNullEditorPtr& editor, const usize newSize)
     {
         const ListArgsT listArgs;
 

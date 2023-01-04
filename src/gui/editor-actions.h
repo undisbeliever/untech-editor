@@ -11,6 +11,7 @@
 #include "models/common/externalfilelist.h"
 #include "models/common/namedlist.h"
 #include "models/common/type-traits.h"
+#include <gsl/gsl>
 
 namespace UnTech::Gui {
 
@@ -78,6 +79,8 @@ struct EditorActions {
     using EditorT = typename ActionPolicy::EditorT;
     using EditorDataT = typename ActionPolicy::EditorDataT;
 
+    using NotNullEditorPtr = gsl::not_null<std::shared_ptr<EditorT>>;
+
     class BaseAction : public UndoAction {
     protected:
         const std::weak_ptr<EditorT> _editor;
@@ -86,12 +89,13 @@ struct EditorActions {
         ~BaseAction() override = default;
 
     protected:
-        BaseAction(std::weak_ptr<EditorT> editor)
-            : _editor(std::move(editor))
+        BaseAction(const NotNullEditorPtr& editor)
+            : UndoAction()
+            , _editor(editor.get())
         {
         }
 
-        [[nodiscard]] inline std::shared_ptr<EditorT> getEditor() const
+        [[nodiscard]] inline NotNullEditorPtr getEditor() const
         {
             auto e = _editor.lock();
             assert(e != nullptr);
@@ -126,7 +130,7 @@ struct EditorActions {
         EditorDataT oldValue;
 
     public:
-        EditDataAction(std::shared_ptr<EditorT> editor)
+        EditDataAction(const NotNullEditorPtr& editor)
             : BaseAction(editor)
             , newValue(this->getEditorData(*editor))
         {
@@ -139,39 +143,38 @@ struct EditorActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            if (auto e = this->getEditor()) {
-                EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            auto e = this->getEditor();
 
-                oldValue = projectData;
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
 
-                projectData = newValue;
+            oldValue = projectData;
 
-                // operator!= may not implemented in a few of my structs
-                return !(oldValue == newValue);
-            }
-            return false;
+            projectData = newValue;
+
+            // operator!= may not implemented in a few of my structs
+            return !(oldValue == newValue);
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = this->getEditor()) {
-                EditorDataT& projectData = this->getProjectData(projectFile, *e);
-                EditorDataT& editorData = this->getEditorData(*e);
+            auto e = this->getEditor();
 
-                projectData = oldValue;
-                editorData = oldValue;
-            }
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
+
+            projectData = oldValue;
+            editorData = oldValue;
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = this->getEditor()) {
-                EditorDataT& projectData = this->getProjectData(projectFile, *e);
-                EditorDataT& editorData = this->getEditorData(*e);
+            auto e = this->getEditor();
 
-                projectData = newValue;
-                editorData = newValue;
-            }
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
+
+            projectData = newValue;
+            editorData = newValue;
         }
     };
 
@@ -187,7 +190,7 @@ struct EditorActions {
         FieldT oldValue;
 
     public:
-        EditFieldAction(std::shared_ptr<EditorT> editor)
+        EditFieldAction(const NotNullEditorPtr& editor)
             : BaseAction(editor)
             , newValue((this->getEditorData(*editor)).*FieldPtr)
         {
@@ -200,50 +203,49 @@ struct EditorActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            if (auto e = this->getEditor()) {
-                EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            auto e = this->getEditor();
 
-                oldValue = projectData.*FieldPtr;
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
 
-                projectData.*FieldPtr = newValue;
+            oldValue = projectData.*FieldPtr;
 
-                // operator!= may not implemented in a few of my structs
-                return !(oldValue == newValue);
-            }
-            return false;
+            projectData.*FieldPtr = newValue;
+
+            // operator!= may not implemented in a few of my structs
+            return !(oldValue == newValue);
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = this->getEditor()) {
-                EditorDataT& projectData = this->getProjectData(projectFile, *e);
-                EditorDataT& editorData = this->getEditorData(*e);
+            auto e = this->getEditor();
 
-                projectData.*FieldPtr = oldValue;
-                editorData.*FieldPtr = oldValue;
-            }
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
+
+            projectData.*FieldPtr = oldValue;
+            editorData.*FieldPtr = oldValue;
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = this->getEditor()) {
-                EditorDataT& projectData = this->getProjectData(projectFile, *e);
-                EditorDataT& editorData = this->getEditorData(*e);
+            auto e = this->getEditor();
 
-                projectData.*FieldPtr = newValue;
-                editorData.*FieldPtr = newValue;
-            }
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
+
+            projectData.*FieldPtr = newValue;
+            editorData.*FieldPtr = newValue;
         }
     };
 
-    static void editorDataEdited(const std::shared_ptr<EditorT>& editor)
+    static void editorDataEdited(const NotNullEditorPtr& editor)
     {
         editor->undoStack().addAction(
             std::make_unique<EditDataAction>(editor));
     }
 
     template <auto FieldPtr>
-    static void fieldEdited(const std::shared_ptr<EditorT>& editor)
+    static void fieldEdited(const NotNullEditorPtr& editor)
     {
         editor->undoStack().addAction(
             std::make_unique<EditFieldAction<FieldPtr>>(editor));
@@ -259,6 +261,8 @@ struct EditorFieldActions {
     static constexpr auto FieldPtr = ActionPolicy::FieldPtr;
     using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
+    using NotNullEditorPtr = gsl::not_null<std::shared_ptr<EditorT>>;
+
     class EditFieldAction : public UndoAction {
     private:
         const std::weak_ptr<EditorT> _editor;
@@ -266,6 +270,13 @@ struct EditorFieldActions {
         const FieldT newValue;
         // set by firstDo()
         FieldT oldValue;
+
+        [[nodiscard]] inline NotNullEditorPtr getEditor() const
+        {
+            auto e = _editor.lock();
+            assert(e != nullptr);
+            return e;
+        }
 
         [[nodiscard]] FieldT& getProjectField(Project::ProjectFile& projectFile, EditorT& editor) const
         {
@@ -282,11 +293,11 @@ struct EditorFieldActions {
         }
 
     public:
-        EditFieldAction(std::shared_ptr<EditorT> editor)
-            : _editor(editor)
+        EditFieldAction(const NotNullEditorPtr& editor)
+            : UndoAction()
+            , _editor(editor.get())
             , newValue(this->getEditorField(*editor))
         {
-            assert(editor != nullptr);
         }
         ~EditFieldAction() override = default;
 
@@ -301,43 +312,42 @@ struct EditorFieldActions {
 
         bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            if (auto e = _editor.lock()) {
-                FieldT& projectData = this->getProjectField(projectFile, *e);
+            auto e = getEditor();
 
-                oldValue = projectData;
+            FieldT& projectData = this->getProjectField(projectFile, *e);
 
-                projectData = newValue;
+            oldValue = projectData;
 
-                // operator!= may not implemented in a few of my structs
-                return !(oldValue == newValue);
-            }
-            return false;
+            projectData = newValue;
+
+            // operator!= may not implemented in a few of my structs
+            return !(oldValue == newValue);
         }
 
         void undo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = _editor.lock()) {
-                FieldT& projectData = this->getProjectField(projectFile, *e);
-                FieldT& editorData = this->getEditorField(*e);
+            auto e = getEditor();
 
-                projectData = oldValue;
-                editorData = oldValue;
-            }
+            FieldT& projectData = this->getProjectField(projectFile, *e);
+            FieldT& editorData = this->getEditorField(*e);
+
+            projectData = oldValue;
+            editorData = oldValue;
         }
 
         void redo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = _editor.lock()) {
-                FieldT& projectData = this->getProjectField(projectFile, *e);
-                FieldT& editorData = this->getEditorField(*e);
+            auto e = getEditor();
 
-                projectData = newValue;
-                editorData = newValue;
-            }
+            FieldT& projectData = this->getProjectField(projectFile, *e);
+            FieldT& editorData = this->getEditorField(*e);
+
+            projectData = newValue;
+            editorData = newValue;
         }
     };
 
-    static void fieldEdited(const std::shared_ptr<EditorT>& editor)
+    static void fieldEdited(const NotNullEditorPtr& editor)
     {
         editor->undoStack().addAction(
             std::make_unique<EditFieldAction>(editor));

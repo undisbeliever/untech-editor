@@ -7,6 +7,7 @@
 #pragma once
 
 #include "list-actions.h"
+#include <gsl/gsl>
 #include <variant>
 
 namespace UnTech::Gui {
@@ -20,6 +21,8 @@ class ListActionsVariant final : public ListActions<ActionPolicy> {
     using ListT = typename ActionPolicy::ListT;
     using index_type = typename ListT::size_type;
     using value_type = typename ListT::value_type;
+
+    using NotNullEditorPtr = gsl::not_null<std::shared_ptr<EditorT>>;
 
 private:
     template <auto FieldPtr>
@@ -50,7 +53,7 @@ private:
         }
 
     public:
-        EditVariantItemFieldAction(const std::shared_ptr<EditorT>& editor,
+        EditVariantItemFieldAction(const NotNullEditorPtr& editor,
                                    const ListArgsT& listArgs,
                                    const index_type index)
             : AbstractListActions<ActionPolicy>::BaseAction(editor, listArgs)
@@ -66,44 +69,43 @@ private:
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            if (auto e = this->getEditor()) {
-                ClassT& pd = getProjectData(projectFile, *e);
+            auto e = this->getEditor();
 
-                oldValue = pd.*FieldPtr;
+            ClassT& pd = getProjectData(projectFile, *e);
 
-                pd.*FieldPtr = newValue;
+            oldValue = pd.*FieldPtr;
 
-                return !(oldValue == newValue);
-            }
-            return false;
+            pd.*FieldPtr = newValue;
+
+            return !(oldValue == newValue);
         }
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = this->getEditor()) {
-                ClassT& ed = getEditorData(*e);
-                ClassT& pd = getProjectData(projectFile, *e);
+            auto e = this->getEditor();
 
-                ed.*FieldPtr = oldValue;
-                pd.*FieldPtr = oldValue;
-            }
+            ClassT& ed = getEditorData(*e);
+            ClassT& pd = getProjectData(projectFile, *e);
+
+            ed.*FieldPtr = oldValue;
+            pd.*FieldPtr = oldValue;
         }
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            if (auto e = this->getEditor()) {
-                ClassT& ed = getEditorData(*e);
-                ClassT& pd = getProjectData(projectFile, *e);
+            auto e = this->getEditor();
 
-                ed.*FieldPtr = newValue;
-                pd.*FieldPtr = newValue;
-            }
+            ClassT& ed = getEditorData(*e);
+            ClassT& pd = getProjectData(projectFile, *e);
+
+            ed.*FieldPtr = newValue;
+            pd.*FieldPtr = newValue;
         }
     };
 
 public:
     template <auto FieldPtr>
-    static void variantFieldEdited(const std::shared_ptr<EditorT>& editor, const ListArgsT& listArgs, const index_type index)
+    static void variantFieldEdited(const NotNullEditorPtr& editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = ListActions<ActionPolicy>::getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
@@ -117,7 +119,7 @@ public:
     }
 
     template <auto FieldPtr>
-    static void variantFieldEdited(const std::shared_ptr<EditorT>& editor, const index_type index)
+    static void variantFieldEdited(const NotNullEditorPtr& editor, const index_type index)
     {
         const std::tuple<> listArgs = std::make_tuple();
 
