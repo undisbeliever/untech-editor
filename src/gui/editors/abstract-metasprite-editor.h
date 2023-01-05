@@ -74,9 +74,6 @@ protected:
     void showLayerButtons() const;
     void showExtraWindowButtons();
 
-    // Must be called in `setEditorData`
-    void setMetaSpriteData(AbstractMetaSpriteEditorData* data);
-
     template <typename AP, typename EditorT, typename FrameSetT>
     void animationPropertiesGui(const std::shared_ptr<EditorT>& editor, FrameSetT* frameSet);
 

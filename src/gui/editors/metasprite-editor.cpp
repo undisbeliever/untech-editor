@@ -437,8 +437,6 @@ MetaSpriteEditorGui::MetaSpriteEditorGui()
 bool MetaSpriteEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<MetaSpriteEditorData>(data);
-    setMetaSpriteData(_data.get());
-
     return _data != nullptr;
 }
 
