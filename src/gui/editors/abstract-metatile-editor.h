@@ -88,7 +88,7 @@ public:
 public:
     AbstractMetaTileEditorGui(const char* strId);
 
-    bool setEditorData(std::shared_ptr<AbstractEditorData> data) override;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) override;
     void resetState() override;
     void editorClosed() override;
 

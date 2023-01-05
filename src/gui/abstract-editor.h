@@ -113,12 +113,12 @@ public:
 public:
     AbstractEditorGui(const char* strId)
         : childWindowStrId(strId)
-
     {
     }
+
     virtual ~AbstractEditorGui() = default;
 
-    virtual bool setEditorData(std::shared_ptr<AbstractEditorData> data) = 0;
+    virtual bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) = 0;
 
     // Called after setEditorData or ImageCache invalidation
     virtual void resetState() = 0;

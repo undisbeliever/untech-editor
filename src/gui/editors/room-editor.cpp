@@ -398,7 +398,7 @@ RoomEditorGui::RoomEditorGui()
 {
 }
 
-bool RoomEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool RoomEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     AbstractMetaTileEditorGui::setEditorData(data);
     _data = std::dynamic_pointer_cast<RoomEditorData>(data);

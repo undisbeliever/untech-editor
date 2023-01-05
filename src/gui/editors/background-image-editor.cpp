@@ -69,7 +69,7 @@ BackgroundImageEditorGui::BackgroundImageEditorGui()
 {
 }
 
-bool BackgroundImageEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool BackgroundImageEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<BackgroundImageEditorData>(data);
     return _data != nullptr;

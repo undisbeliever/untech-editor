@@ -318,7 +318,7 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui(const char* strId)
 {
 }
 
-bool AbstractMetaTileEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool AbstractMetaTileEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<AbstractMetaTileEditorData>(data);
     return _data != nullptr;

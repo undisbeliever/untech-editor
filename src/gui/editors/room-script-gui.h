@@ -43,9 +43,9 @@ public:
     {
     }
 
-    void setEditorData(std::shared_ptr<RoomEditorData> data)
+    void setEditorData(const std::shared_ptr<RoomEditorData>& data)
     {
-        _data = std::move(data);
+        _data = data;
     }
 
     void processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);

@@ -106,7 +106,7 @@ ScenesEditorGui::ScenesEditorGui()
 {
 }
 
-bool ScenesEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool ScenesEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<ScenesEditorData>(data);
     return _data != nullptr;

@@ -77,7 +77,7 @@ public:
 public:
     MetaTileTilesetEditorGui();
 
-    bool setEditorData(std::shared_ptr<AbstractEditorData> data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 

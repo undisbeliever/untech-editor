@@ -206,7 +206,7 @@ EntityRomDataEditorGui::EntityRomDataEditorGui()
 {
 }
 
-bool EntityRomDataEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool EntityRomDataEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<EntityRomDataEditorData>(data);
     return _data != nullptr;

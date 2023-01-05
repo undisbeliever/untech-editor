@@ -86,7 +86,7 @@ BytecodeEditorGui::BytecodeEditorGui()
 {
 }
 
-bool BytecodeEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool BytecodeEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<BytecodeEditorData>(data);
     return _data != nullptr;

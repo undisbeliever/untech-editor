@@ -282,7 +282,7 @@ SpriteImporterEditorGui::SpriteImporterEditorGui()
 {
 }
 
-bool SpriteImporterEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool SpriteImporterEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<SpriteImporterEditorData>(data);
     setMetaSpriteData(_data.get());

@@ -190,7 +190,7 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
 {
 }
 
-bool MetaTileTilesetEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool MetaTileTilesetEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     AbstractMetaTileEditorGui::setEditorData(data);
     _data = std::dynamic_pointer_cast<MetaTileTilesetEditorData>(data);

@@ -71,7 +71,7 @@ ProjectSettingsEditorGui::ProjectSettingsEditorGui()
 {
 }
 
-bool ProjectSettingsEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool ProjectSettingsEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<ProjectSettingsEditorData>(data);
     return _data != nullptr;

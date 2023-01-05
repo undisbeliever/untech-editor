@@ -81,7 +81,7 @@ InteractiveTilesEditorGui::InteractiveTilesEditorGui()
 {
 }
 
-bool InteractiveTilesEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool InteractiveTilesEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<InteractiveTilesEditorData>(data);
     return _data != nullptr;

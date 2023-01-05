@@ -79,7 +79,7 @@ ActionPointsEditorGui::ActionPointsEditorGui()
 {
 }
 
-bool ActionPointsEditorGui::setEditorData(std::shared_ptr<AbstractEditorData> data)
+bool ActionPointsEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     _data = std::dynamic_pointer_cast<ActionPointsEditorData>(data);
     return _data != nullptr;
