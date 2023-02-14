@@ -63,10 +63,12 @@ public:
     ExternalFileList() = default;
     ~ExternalFileList() = default;
 
+    // Allow moving
+    ExternalFileList(ExternalFileList&&) = default;
+    ExternalFileList& operator=(ExternalFileList&& other) = default;
+
     ExternalFileList(const ExternalFileList&) = delete;
-    ExternalFileList(ExternalFileList&&) = delete;
     ExternalFileList& operator=(const ExternalFileList& other) = delete;
-    ExternalFileList& operator=(ExternalFileList&& other) = delete;
 
     size_type size() const { return _list.size(); }
 

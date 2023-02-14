@@ -10,7 +10,7 @@
 #include "gui/imgui-drawing.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
-#include <mutex>
+#include "models/common/mutex_wrapper.h"
 #include <unordered_map>
 #include <vector>
 
@@ -58,35 +58,38 @@ struct EntityGraphics {
 
 class EntityGraphicsStore {
 private:
-    std::mutex _mutex;
-    std::shared_ptr<const EntityGraphics> _data;
-    unsigned _entityRomDataCompileId;
+    struct State {
+        std::shared_ptr<const EntityGraphics> data{};
+        unsigned entityRomDataCompileId = 0;
+    };
+    mutex<State> _state;
 
 public:
     EntityGraphicsStore();
 
     std::shared_ptr<const EntityGraphics> get()
     {
-        std::lock_guard lock(_mutex);
-
-        return _data;
-    }
-
-    void set(std::shared_ptr<const EntityGraphics> d, unsigned erdCompileId)
-    {
-        std::lock_guard lock(_mutex);
-
-        _data = std::move(d);
-        _entityRomDataCompileId = erdCompileId;
+        return _state.access_and_return_const_shared_ptr<EntityGraphics>([&](auto& s) {
+            return s.data;
+        });
     }
 
     unsigned getEntityRomDataCompileId()
     {
-        std::lock_guard lock(_mutex);
+        return _state.access_and_return_unsigned([&](auto& s) {
+            return s.entityRomDataCompileId;
+        });
+    }
 
-        return _entityRomDataCompileId;
+    void set(std::shared_ptr<const EntityGraphics> d, unsigned erdCompileId)
+    {
+        _state.access([&](auto& s) {
+            s.data = std::move(d);
+            s.entityRomDataCompileId = erdCompileId;
+        });
     }
 };
+
 extern EntityGraphicsStore entityGraphicsStore;
 
 void processEntityGraphics(const Project::ProjectFile& projectFile,

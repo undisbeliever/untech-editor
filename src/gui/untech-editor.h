@@ -9,8 +9,8 @@
 #include "item-index.h"
 #include "splitter.h"
 #include "gui/graphics/entity-graphics.h"
+#include "models/common/mutex_wrapper.h"
 #include "models/project/project-data.h"
-#include "models/project/project-file-mutex.h"
 #include "models/project/project.h"
 #include "windows/projectlist.h"
 #include <atomic>
@@ -27,13 +27,18 @@ class AbstractEditorData;
 class AbstractExternalFileEditorData;
 class AbstractEditorGui;
 
+using ProjectFileMutex = shared_mutex<std::unique_ptr<UnTech::Project::ProjectFile>>;
+
 class BackgroundThread {
 private:
-    UnTech::Project::ProjectFileMutex& projectFile;
+    // These two fields are thread safe
+    ProjectFileMutex& projectFile;
     UnTech::Project::ProjectData& projectData;
 
     std::thread thread;
 
+    // Cannot use Untech::mutex<T> wrapper here.
+    // `mutex` is used by `std::condition_variable`
     std::mutex mutex;
     std::condition_variable cv;
 
@@ -55,8 +60,7 @@ public:
     BackgroundThread(BackgroundThread&&) = delete;
 
 public:
-    BackgroundThread(UnTech::Project::ProjectFileMutex& pf,
-                     UnTech::Project::ProjectData& pd);
+    BackgroundThread(ProjectFileMutex& pf, UnTech::Project::ProjectData& pd);
     ~BackgroundThread();
 
     void markAllResourcesInvalid();
@@ -70,7 +74,7 @@ class UnTechEditor {
 private:
     static std::shared_ptr<UnTechEditor> _instance;
 
-    UnTech::Project::ProjectFileMutex _projectFile;
+    ProjectFileMutex _projectFile;
     UnTech::Project::ProjectData _projectData;
 
     BackgroundThread _backgroundThread;

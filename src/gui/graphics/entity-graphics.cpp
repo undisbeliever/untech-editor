@@ -35,11 +35,11 @@ EntityGraphics::EntityGraphics(const usize& imageSize)
 }
 
 EntityGraphicsStore::EntityGraphicsStore()
-    : _mutex()
-    , _data(blankEntityGraphics())
-    , _entityRomDataCompileId(UINT_MAX)
+    : _state()
 {
-    assert(_data);
+    _state.access([](auto& s) {
+        s.data = blankEntityGraphics();
+    });
 }
 
 static void drawInvalidSymbol(Image& image, const unsigned xPos, const unsigned yPos, const unsigned width, const unsigned height)

@@ -708,7 +708,7 @@ void BackgroundThread::run()
     isProcessing = false;
 }
 
-BackgroundThread::BackgroundThread(Project::ProjectFileMutex& pf, Project::ProjectData& pd)
+BackgroundThread::BackgroundThread(ProjectFileMutex& pf, Project::ProjectData& pd)
     : projectFile(pf)
     , projectData(pd)
     , thread()
