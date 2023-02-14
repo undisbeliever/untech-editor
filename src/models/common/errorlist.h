@@ -38,7 +38,7 @@ public:
 };
 
 template <typename T>
-requires std::is_enum_v<T>
+    requires std::is_enum_v<T>
 struct GenericListError : public AbstractError {
 public:
     const T type;

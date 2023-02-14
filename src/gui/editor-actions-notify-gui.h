@@ -14,7 +14,7 @@ namespace UnTech::Gui {
 class AbstractEditorGui;
 
 template <typename ActionPolicy>
-requires requires { ActionPolicy::validFlag; }
+    requires requires { ActionPolicy::validFlag; }
 void editorUndoAction_notifyGui(gsl::not_null<AbstractEditorGui*> abstractGui)
 {
     using GuiClass = typename member_class<decltype(ActionPolicy::validFlag)>::type;
