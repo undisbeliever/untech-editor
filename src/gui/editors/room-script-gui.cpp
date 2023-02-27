@@ -690,7 +690,7 @@ void RoomScriptGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     ImGui::BeginChild("Script");
 
-    const auto bcMapping = projectData.bytecodeData();
+    const auto bcMapping = projectData.projectSettingsData.bytecodeData();
     if (bcMapping) {
         const bool isStartupScript = _data->scriptsSel.selectedIndex() >= roomScripts.scripts.size();
         const unsigned scriptId = !isStartupScript ? _data->scriptsSel.selectedIndex() : NodeSelection::NO_SELECTION;

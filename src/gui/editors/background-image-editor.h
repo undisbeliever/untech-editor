@@ -35,7 +35,6 @@ private:
     std::shared_ptr<BackgroundImageEditorData> _data;
 
     InvalidImageErrorGraphics _invalidTiles;
-    unsigned _invalidTilesCompileId;
 
     Texture _imageTexture;
 
@@ -52,12 +51,12 @@ public:
     void processGui(const Project::ProjectFile& projectFile,
                     const Project::ProjectData& projectData) final;
 
+    void resourceCompiled(const ErrorList& errors) final;
+
 private:
     void backgroundImageGui(const Project::ProjectFile& projectFile);
 
     void updateImageTexture();
-
-    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

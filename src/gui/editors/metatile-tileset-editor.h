@@ -60,7 +60,6 @@ private:
 
     InvalidImageErrorGraphics _invalidTilesCommon;
     std::vector<InvalidImageErrorGraphics> _invalidTilesFrame;
-    unsigned _invalidTilesCompileId;
 
     SplitterBarState _sidebar;
     SplitterBarState _minimapRight_sidebar;
@@ -83,6 +82,8 @@ public:
 
     void processGui(const Project::ProjectFile& projectFile,
                     const Project::ProjectData& projectData) final;
+
+    void resourceCompiled(const ErrorList& errors) final;
 
     void viewMenu() final;
 
@@ -111,7 +112,6 @@ private:
 
     void updateMtTilesetShader(const Project::ProjectFile& projectFile,
                                const Project::ProjectData& projectData);
-    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

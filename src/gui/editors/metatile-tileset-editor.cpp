@@ -179,7 +179,6 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
     , _data(nullptr)
     , _scratchpadSize()
     , _tileProperties(std::nullopt)
-    , _invalidTilesCompileId(0)
     , _sidebar{ 300, 200, 400 }
     , _minimapRight_sidebar{ 320, 280, 400 }
     , _minimapBottom_sidebar{ 320, 280, 400 }
@@ -206,7 +205,6 @@ void MetaTileTilesetEditorGui::resetState()
 
     setEditMode(EditMode::SelectTiles);
 
-    _invalidTilesCompileId = 0;
     _tilesetShaderImageFilenamesValid = false;
     _tileCollisionsValid = false;
     _interactiveTilesValid = false;
@@ -721,7 +719,6 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
 
     updateMtTilesetShader(projectFile, projectData);
     updateMapAndProcessAnimations();
-    updateInvalidTileList(projectData);
 
     auto editorTabs = [&] {
         if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
@@ -814,12 +811,12 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile&
 
     if (_data->paletteSel.selectedIndex() < mtTileset.palettes.size()) {
         const auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
-        const auto [palIndex, palData] = projectData.palettes().indexAndDataFor(paletteName);
+        const auto [palIndex, palData] = projectData.palettes.indexAndDataFor(paletteName);
 
         _tilesetShader.setPaletteData(palData);
     }
 
-    const auto mtData = projectData.metaTileTilesets().at(_data->itemIndex().index);
+    const auto mtData = projectData.metaTileTilesets.at(_data->itemIndex().index);
     if (mtData != _tilesetShader.tilesetData() || !_tilesetShaderImageFilenamesValid) {
         _tilesetShader.setTilesetData(mtTileset, mtData);
         _tilesetShaderImageFilenamesValid = true;
@@ -838,38 +835,31 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile&
     }
 }
 
-void MetaTileTilesetEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+void MetaTileTilesetEditorGui::resourceCompiled(const ErrorList& errors)
 {
+    assert(_data);
+
     using InvalidImageError = UnTech::Resources::InvalidImageError;
 
-    assert(_data);
-    const auto& mtTileset = _data->data;
+    _invalidTilesCommon.clear();
+    _invalidTilesFrame.resize(_data->data.animationFrames.frameImageFilenames.size());
+    for (auto& invalidTiles : _invalidTilesFrame) {
+        invalidTiles.clear();
+    }
 
-    projectData.metaTileTilesets().readResourceState(
-        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
-            if (status.compileId != _invalidTilesCompileId) {
-                _invalidTilesCompileId = status.compileId;
-                _invalidTilesCommon.clear();
-                _invalidTilesFrame.resize(mtTileset.animationFrames.frameImageFilenames.size());
-                for (auto& invalidTiles : _invalidTilesFrame) {
-                    invalidTiles.clear();
-                }
-
-                for (const auto& errorItem : status.errorList.list()) {
-                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
-                        if (imgErr->frameId) {
-                            const auto fid = imgErr->frameId.value();
-                            if (fid < _invalidTilesFrame.size()) {
-                                _invalidTilesFrame.at(fid).append(*imgErr);
-                            }
-                        }
-                        else {
-                            _invalidTilesCommon.append(*imgErr);
-                        }
-                    }
+    for (const auto& errorItem : errors.list()) {
+        if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
+            if (imgErr->frameId) {
+                const auto fid = imgErr->frameId.value();
+                if (fid < _invalidTilesFrame.size()) {
+                    _invalidTilesFrame.at(fid).append(*imgErr);
                 }
             }
-        });
+            else {
+                _invalidTilesCommon.append(*imgErr);
+            }
+        }
+    }
 }
 
 }

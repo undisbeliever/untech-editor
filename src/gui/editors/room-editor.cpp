@@ -384,7 +384,6 @@ RoomEditorGui::RoomEditorGui()
     , _entityTexture()
     , _entityGraphics(nullptr)
     , _scenesData(nullptr)
-    , _invalidTilesCompileId(0)
     , _sidebar{ 360, 300, 300 }
     , _minimapRight_sidebar{ 350, 280, 400 }
     , _minimapRight_bottombar{ 350, 100, 100 }
@@ -413,8 +412,6 @@ void RoomEditorGui::resetState()
     AbstractMetaTileEditorGui::resetState();
 
     setEditMode(EditMode::SelectObjects);
-
-    _invalidTilesCompileId = 0;
 
     _mtTilesetValid = false;
     _scenesData = nullptr;
@@ -1011,7 +1008,6 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
     updateMapAndProcessAnimations();
     updateEntityGraphics();
     updateTilesetData(projectFile, projectData);
-    updateInvalidTileList(projectData);
 
     splitterSidebarRight(
         "##splitter", &_sidebar,
@@ -1146,7 +1142,7 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     assert(_data);
     auto& room = _data->data;
 
-    const auto scenes = projectData.scenes();
+    const auto scenes = projectData.projectSettingsData.scenes();
     if (_scenesData != scenes) {
         _scenesData = scenes;
         _mtTilesetValid = false;
@@ -1183,10 +1179,10 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         }
     }
 
-    const auto palData = paletteIndex ? projectData.palettes().at(paletteIndex.value())
+    const auto palData = paletteIndex ? projectData.palettes.at(paletteIndex.value())
                                       : nullptr;
 
-    const auto mtData = tilesetIndex ? projectData.metaTileTilesets().at(tilesetIndex.value())
+    const auto mtData = tilesetIndex ? projectData.metaTileTilesets.at(tilesetIndex.value())
                                      : nullptr;
 
     _tilesetShader.setPaletteData(palData);
@@ -1223,23 +1219,17 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     _mtTilesetValid = true;
 }
 
-void RoomEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+void RoomEditorGui::resourceCompiled(const ErrorList& errors)
 {
     assert(_data);
 
-    projectData.rooms().readResourceState(
-        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
-            if (status.compileId != _invalidTilesCompileId) {
-                _invalidTilesCompileId = status.compileId;
-                _invalidTiles.clear();
+    _invalidTiles.clear();
 
-                for (const auto& errorItem : status.errorList.list()) {
-                    if (auto* tileErr = dynamic_cast<const Rooms::InvalidRoomTilesError*>(errorItem.get())) {
-                        _invalidTiles.append(*tileErr);
-                    }
-                }
-            }
-        });
+    for (const auto& errorItem : errors.list()) {
+        if (auto* tileErr = dynamic_cast<const Rooms::InvalidRoomTilesError*>(errorItem.get())) {
+            _invalidTiles.append(*tileErr);
+        }
+    }
 }
 
 }

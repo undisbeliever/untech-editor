@@ -9,10 +9,10 @@
 #include "gui/abstract-editor.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
-#include "gui/untech-editor.h"
 #include "models/common/iterators.h"
 #include "models/enums.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/project/compiler-status.h"
 #include "models/project/project.h"
 #include "models/rooms/rooms-serializer.h"
 #include <functional>
@@ -174,6 +174,7 @@ static void resourceStateIcon(UnTech::Project::ResourceState state)
     using RS = UnTech::Project::ResourceState;
 
     switch (state) {
+    case RS::AllUnchecked:
     case RS::Unchecked:
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
         ImGui::TextUnformatted(u8"·");
@@ -193,12 +194,17 @@ static void resourceStateIcon(UnTech::Project::ResourceState state)
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
         ImGui::TextUnformatted(u8"M");
         break;
+
+    case RS::DependencyError:
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+        ImGui::TextUnformatted(u8"D");
+        break;
     }
 
     ImGui::PopStyleColor();
 }
 
-void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& projectData)
+void ProjectListWindow::projectListWindow(const UnTech::Project::CompilerStatus& status)
 {
     using namespace std::string_literals;
 
@@ -206,24 +212,22 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
 
     std::optional<ItemIndex> pendingIndex = _selectedIndex;
 
-    for (const auto rtIndex : range(N_RESOURCE_TYPES)) {
-        const auto type = static_cast<ResourceType>(rtIndex);
-        const Project::ResourceListStatus& list = projectData.resourceListStatus(type);
+    status.resourceLists().read([&](const auto& resourceLists) {
+        for (const auto [rtIndex, rList] : enumerate(resourceLists)) {
 
-        list.readResourceListState([&](const auto& state, const auto& resources) {
-            static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
-            static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
+            assert(resourceLists.size() == N_RESOURCE_TYPES);
+            const auto type = static_cast<ResourceType>(rtIndex);
 
-            assert(resources.size() < INT_MAX);
+            assert(rList.resources.size() < INT_MAX);
 
-            resourceStateIcon(state);
+            resourceStateIcon(rList.state);
             ImGui::SameLine();
-            ImGui::TextUnformatted(list.typeNamePlural());
+            ImGui::TextUnformatted(rList.typeNamePlural);
 
             ImGui::PushID(int(type));
             ImGui::Indent();
 
-            for (auto [index, item] : enumerate(resources)) {
+            for (auto [index, item] : enumerate(rList.resources)) {
                 const ItemIndex itemIndex{ type, unsigned(index) };
 
                 ImGui::PushID(index);
@@ -249,8 +253,8 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
 
             ImGui::Unindent();
             ImGui::PopID();
-        });
-    }
+        }
+    });
 
     _selectedIndex = pendingIndex;
 
@@ -338,9 +342,9 @@ void ProjectListWindow::confirmRemovePopup()
     }
 }
 
-void ProjectListWindow::processGui(const UnTech::Project::ProjectData& projectData)
+void ProjectListWindow::processGui(const UnTech::Project::CompilerStatus& status)
 {
-    projectListWindow(projectData);
+    projectListWindow(status);
 
     addResourceDialog();
     confirmRemovePopup();

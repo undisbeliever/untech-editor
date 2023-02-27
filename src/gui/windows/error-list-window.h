@@ -6,13 +6,12 @@
 
 #pragma once
 
-namespace UnTech::Project {
-class ProjectData;
-}
+#include "models/project/compiler-status.h"
+#include <gsl/gsl>
 
 namespace UnTech::Gui {
 class AbstractEditorData;
 
-void processErrorListWindow(const Project::ProjectData& projectData, AbstractEditorData* editorData);
+void processErrorListWindow(gsl::not_null<AbstractEditorData*> editorData, const Project::ResourceState resourceState, const ErrorList& errors);
 
 }

@@ -13,8 +13,8 @@
 #include <vector>
 
 namespace UnTech::Project {
-class ProjectData;
 struct ProjectFile;
+class CompilerStatus;
 }
 
 namespace UnTech::Gui {
@@ -57,7 +57,7 @@ public:
     void markClean() { _clean = true; }
 
     void processMenu();
-    void processGui(const Project::ProjectData& projectData);
+    void processGui(const Project::CompilerStatus& status);
 
     [[nodiscard]] bool hasPendingActions() const
     {
@@ -66,7 +66,7 @@ public:
     void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::shared_ptr<AbstractEditorData>>& editors);
 
 private:
-    void projectListWindow(const Project::ProjectData& projectData);
+    void projectListWindow(const Project::CompilerStatus& status);
 
     void addResourceDialog();
     void confirmRemovePopup();

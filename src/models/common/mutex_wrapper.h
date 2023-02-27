@@ -9,6 +9,7 @@
 #include <concepts>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 
 namespace UnTech {
@@ -74,6 +75,12 @@ public:
     shared_mutex() = default;
     ~shared_mutex() = default;
 
+    shared_mutex(T d)
+        : _mutex()
+        , _data(std::move(d))
+    {
+    }
+
     // Forbid moving
     shared_mutex(const shared_mutex&) = delete;
     shared_mutex(shared_mutex&&) = delete;
@@ -109,6 +116,81 @@ public:
         if (lock.owns_lock()) {
             f(_data);
         }
+    }
+
+    // I wanted to write a c++20 concept that would restrict the return
+    // type of Function is `std::shared_ptr<const U>` or `std::integral`,
+    // but I never figured it out.
+    // Instead, we have separate access methods for each return type.
+
+    // Returning a bool is safe
+    template <typename Function>
+    bool write_and_return_bool(Function f)
+        requires std::invocable<Function, T&>
+    {
+        std::lock_guard lock(_mutex);
+
+        return f(_data);
+    }
+
+    // Returning an size_t from T is safe
+    template <typename Function>
+    size_t read_and_return_size_t(Function f) const
+        requires std::invocable<Function, const T&>
+    {
+        std::lock_guard lock(_mutex);
+
+        // Ensure `f` only has read-only access to `_data`
+        const T& const_d = _data;
+        return f(const_d);
+    }
+
+    // Returning a uint64_t from T is safe
+    template <typename Function>
+    uint64_t read_and_return_uint64_t(Function f) const
+        requires std::invocable<Function, const T&>
+    {
+        std::lock_guard lock(_mutex);
+
+        // Ensure `f` only has read-only access to `_data`
+        const T& const_d = _data;
+        return f(const_d);
+    }
+
+    // Returning an enum is safe
+    template <typename U, typename Function>
+    U read_and_return_enum(Function f) const
+        requires std::invocable<Function, T&> and std::is_enum_v<U>
+    {
+        std::lock_guard lock(_mutex);
+
+        // Ensure `f` only has read-only access to `_data`
+        const T& const_d = _data;
+        return f(const_d);
+    }
+
+    // Returning a std::shared_ptr<const U> from T is safe
+    template <typename U, typename Function>
+    std::shared_ptr<const U> read_and_return_const_shared_ptr(Function f) const
+        requires std::invocable<Function, const T&>
+    {
+        std::lock_guard lock(_mutex);
+
+        // Ensure `f` only has read-only access to `_data`
+        const T& const_d = _data;
+        return f(const_d);
+    }
+
+    // Returning a size_t and a std::shared_ptr<const U> from T is safe
+    template <typename U, typename Function>
+    std::pair<std::optional<size_t>, std::shared_ptr<const U>> read_and_return_index_and_const_shared_ptr(Function f) const
+        requires std::invocable<Function, const T&>
+    {
+        std::lock_guard lock(_mutex);
+
+        // Ensure `f` only has read-only access to `_data`
+        const T& const_d = _data;
+        return f(const_d);
     }
 };
 

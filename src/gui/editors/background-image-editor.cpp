@@ -63,7 +63,6 @@ void BackgroundImageEditorData::updateSelection()
 BackgroundImageEditorGui::BackgroundImageEditorGui()
     : AbstractEditorGui("##BG image editor")
     , _data(nullptr)
-    , _invalidTilesCompileId(0)
     , _imageTexture()
     , _textureValid(false)
 {
@@ -78,7 +77,6 @@ bool BackgroundImageEditorGui::setEditorData(const std::shared_ptr<AbstractEdito
 void BackgroundImageEditorGui::resetState()
 {
     _textureValid = false;
-    _invalidTilesCompileId = 0;
 }
 
 void BackgroundImageEditorGui::editorClosed()
@@ -164,14 +162,13 @@ void BackgroundImageEditorGui::backgroundImageGui(const Project::ProjectFile& pr
     }
 }
 
-void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
+void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;
     }
 
     updateImageTexture();
-    updateInvalidTileList(projectData);
 
     backgroundImageGui(projectFile);
 }
@@ -192,25 +189,17 @@ void BackgroundImageEditorGui::updateImageTexture()
     _textureValid = true;
 }
 
-void BackgroundImageEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+void BackgroundImageEditorGui::resourceCompiled(const ErrorList& errors)
 {
     using InvalidImageError = UnTech::Resources::InvalidImageError;
 
-    assert(_data);
+    _invalidTiles.clear();
 
-    projectData.backgroundImages().readResourceState(
-        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
-            if (status.compileId != _invalidTilesCompileId) {
-                _invalidTilesCompileId = status.compileId;
-                _invalidTiles.clear();
-
-                for (const auto& errorItem : status.errorList.list()) {
-                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
-                        _invalidTiles.append(*imgErr);
-                    }
-                }
-            }
-        });
+    for (const auto& errorItem : errors.list()) {
+        if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
+            _invalidTiles.append(*imgErr);
+        }
+    }
 }
 
 }

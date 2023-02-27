@@ -111,7 +111,7 @@ void MtTileset::setInteractiveTilesData(const MetaTiles::MetaTileTilesetInput& t
 
     _textureValid = false;
 
-    const auto interactiveTiles = projectData.interactiveTiles();
+    const auto interactiveTiles = projectData.projectSettingsData.interactiveTiles();
 
     if (!interactiveTiles) {
         _interactiveTilesDataValid = false;

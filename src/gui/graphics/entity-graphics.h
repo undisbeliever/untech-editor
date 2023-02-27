@@ -16,7 +16,7 @@
 
 namespace UnTech::Project {
 struct ProjectFile;
-class ProjectData;
+struct ProjectData;
 }
 
 namespace UnTech::Gui {
@@ -93,5 +93,6 @@ public:
 extern EntityGraphicsStore entityGraphicsStore;
 
 void processEntityGraphics(const Project::ProjectFile& projectFile,
-                           const Project::ProjectData& projectData);
+                           const Project::ProjectData& projectData,
+                           const uint64_t entityRomDataCompileId);
 }

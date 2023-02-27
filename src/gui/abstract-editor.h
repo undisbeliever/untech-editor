@@ -14,11 +14,12 @@
 
 namespace UnTech {
 class AbstractError;
+class ErrorList;
 }
 
 namespace UnTech::Project {
 struct ProjectFile;
-class ProjectData;
+struct ProjectData;
 }
 
 namespace UnTech::Gui {
@@ -127,6 +128,8 @@ public:
 
     virtual void processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData) = 0;
     virtual void processExtraWindows(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
+
+    virtual void resourceCompiled(const ErrorList& errors);
 
     virtual void viewMenu();
 

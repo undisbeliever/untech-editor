@@ -10,6 +10,7 @@
 #include "splitter.h"
 #include "gui/graphics/entity-graphics.h"
 #include "models/common/mutex_wrapper.h"
+#include "models/project/compiler-status.h"
 #include "models/project/project-data.h"
 #include "models/project/project.h"
 #include "windows/projectlist.h"
@@ -34,6 +35,7 @@ private:
     // These two fields are thread safe
     ProjectFileMutex& projectFile;
     UnTech::Project::ProjectData& projectData;
+    UnTech::Project::CompilerStatus& compilerStatus;
 
     std::thread thread;
 
@@ -49,7 +51,7 @@ private:
 
     std::atomic_flag projectDataValid;
 
-    std::atomic_bool markAllResourcesInvalidFlag;
+    std::atomic_bool resourceListMovedOrResized;
     std::vector<ItemIndex> markResourceInvalidQueue;
 
 public:
@@ -60,10 +62,12 @@ public:
     BackgroundThread(BackgroundThread&&) = delete;
 
 public:
-    BackgroundThread(ProjectFileMutex& pf, UnTech::Project::ProjectData& pd);
+    BackgroundThread(ProjectFileMutex& pf, UnTech::Project::ProjectData& pd, UnTech::Project::CompilerStatus& cs);
     ~BackgroundThread();
 
-    void markAllResourcesInvalid();
+    // Must be called when a resource list changes size or is reordered
+    void markResourceListMovedOrResized();
+
     void markResourceInvalid(ItemIndex index);
 
 private:
@@ -74,6 +78,7 @@ class UnTechEditor {
 private:
     static std::shared_ptr<UnTechEditor> _instance;
 
+    UnTech::Project::CompilerStatus _compilerStatus;
     ProjectFileMutex _projectFile;
     UnTech::Project::ProjectData _projectData;
 
@@ -85,8 +90,12 @@ private:
     std::vector<std::shared_ptr<AbstractEditorGui>> _editorGuis;
 
     std::vector<std::shared_ptr<AbstractEditorData>> _editors;
+
     std::shared_ptr<AbstractEditorData> _currentEditor;
     std::shared_ptr<AbstractEditorGui> _currentEditorGui;
+
+    // The last compileId read for the current resource
+    uint64_t _lastCompileId;
 
     ProjectListWindow _projectListWindow;
 

@@ -79,7 +79,6 @@ private:
     grid<uint8_t> _scratchpad;
 
     InvalidRoomTileGraphics _invalidTiles;
-    unsigned _invalidTilesCompileId;
 
     SplitterBarState _sidebar;
     SplitterBarState _minimapRight_sidebar;
@@ -117,6 +116,8 @@ public:
     void processExtraWindows(const Project::ProjectFile& projectFile,
                              const Project::ProjectData& projectData) final;
 
+    void resourceCompiled(const ErrorList& errors) final;
+
     void viewMenu() final;
 
 protected:
@@ -147,7 +148,6 @@ private:
     void updateEntityGraphics();
     void updateTilesetData(const Project::ProjectFile& projectFile,
                            const Project::ProjectData& projectData);
-    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

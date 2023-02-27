@@ -146,7 +146,7 @@ static std::optional<EntityFrame> findMetaSprite(const Entity::EntityRomEntry& e
                                                  const Project::ProjectFile& projectFile,
                                                  const Project::ProjectData& projectData)
 {
-    const auto [frameSetIndex, fs] = projectData.frameSets().indexAndDataFor(entry.frameSetId);
+    const auto [frameSetIndex, fs] = projectData.frameSets.indexAndDataFor(entry.frameSetId);
 
     if (!frameSetIndex) {
         return std::nullopt;
@@ -319,11 +319,10 @@ packEntityFrames(const std::vector<EntityFrame>& entityFrames)
 }
 
 void processEntityGraphics(const Project::ProjectFile& projectFile,
-                           const Project::ProjectData& projectData)
+                           const Project::ProjectData& projectData,
+                           const uint64_t entityRomDataCompileId)
 {
-    const auto erdCompileId = projectData.projectSettingsStatus().compileId(unsigned(ProjectSettingsIndex::EntityRomData));
-
-    if (erdCompileId == entityGraphicsStore.getEntityRomDataCompileId()) {
+    if (entityRomDataCompileId == entityGraphicsStore.getEntityRomDataCompileId()) {
         return;
     }
 
@@ -332,7 +331,7 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
     const auto [packingNodes, textureSize] = packEntityFrames(entityFrames);
 
     if (textureSize.height > MAX_TEXTURE_SIZE) {
-        entityGraphicsStore.set(blankEntityGraphics(), erdCompileId);
+        entityGraphicsStore.set(blankEntityGraphics(), entityRomDataCompileId);
         return;
     }
 
@@ -412,7 +411,7 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
         }
     }
 
-    entityGraphicsStore.set(std::move(eg), erdCompileId);
+    entityGraphicsStore.set(std::move(eg), entityRomDataCompileId);
 }
 
 }

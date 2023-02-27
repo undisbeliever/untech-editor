@@ -8,20 +8,30 @@
 #include "gui/abstract-editor.h"
 #include "gui/imgui.h"
 #include "gui/style.h"
-#include "models/project/project-data.h"
 
 namespace UnTech::Gui {
 
-void processErrorListWindow(const Project::ResourceStatus& status, AbstractEditorData* editorData)
+using RS = Project::ResourceState;
+
+void processErrorListWindow(gsl::not_null<AbstractEditorData*> editorData, const Project::ResourceState resourceState, const ErrorList& errors)
 {
-    if (status.errorList.empty()) {
+    if (errors.empty() && resourceState != RS::DependencyError) {
         return;
     }
 
     ImGui::SetNextWindowSize(ImVec2(600, 200), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Error List")) {
 
-        for (const auto& item : status.errorList.list()) {
+        if (resourceState == RS::DependencyError) {
+            ImGui::PushStyleColor(ImGuiCol_Text, Style::failColor);
+            ImGui::Bullet();
+            ImGui::PopStyleColor();
+
+            ImGui::SameLine();
+            ImGui::TextUnformatted(u8"Dependency Error");
+        }
+
+        for (const auto& item : errors.list()) {
             if (!item->isWarning) {
                 ImGui::PushStyleColor(ImGuiCol_Text, Style::failColor);
             }
@@ -44,26 +54,6 @@ void processErrorListWindow(const Project::ResourceStatus& status, AbstractEdito
     }
 
     ImGui::End();
-}
-
-void processErrorListWindow(const Project::ProjectData& projectData, AbstractEditorData* editorData)
-{
-    if (editorData == nullptr) {
-        return;
-    }
-
-    const auto itemIndex = editorData->itemIndex();
-
-    const auto& list = projectData.resourceListStatus(itemIndex.type);
-
-    list.readResourceListState([&](const auto& state, const auto& resources) {
-        static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
-        static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
-
-        if (itemIndex.index < resources.size()) {
-            processErrorListWindow(resources.at(itemIndex.index), editorData);
-        }
-    });
 }
 
 }

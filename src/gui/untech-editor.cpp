@@ -15,22 +15,26 @@
 #include "gui/windows/projectlist.h"
 #include "models/common/imagecache.h"
 #include "models/common/u8strings.h"
+#include "models/project/compiler-status.h"
 #include "models/project/project.h"
+#include "models/project/resource-compiler.h"
 
 namespace UnTech::Gui {
 
 std::shared_ptr<UnTechEditor> UnTechEditor::_instance = nullptr;
 
 UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, const std::filesystem::path& fn)
-    : _projectFile(std::move(pf))
+    : _compilerStatus(*pf)
+    , _projectFile(std::move(pf))
     , _projectData()
-    , _backgroundThread(_projectFile, _projectData)
+    , _backgroundThread(_projectFile, _projectData, _compilerStatus)
     , _filename(fn)
     , _basename(fn.filename().u8string())
     , _editorGuis(createEditorGuis())
     , _editors()
     , _currentEditor(nullptr)
     , _currentEditorGui(nullptr)
+    , _lastCompileId(UINT64_MAX)
     , _projectListWindow()
     , _projectListSidebar{ 280, 150, 500 }
     , _showProjectListSidebar(true)
@@ -180,6 +184,9 @@ void UnTechEditor::closeEditor()
 
     _currentEditor = nullptr;
     _currentEditorGui = nullptr;
+
+    // Ensure `AbstractEditorGui::resourceCompiled` is called on the next frame.
+    _lastCompileId = UINT64_MAX;
 }
 
 bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
@@ -281,7 +288,7 @@ bool UnTechEditor::saveAll()
 void UnTechEditor::invalidateImageCache()
 {
     ImageCache::invalidateImageCache();
-    _backgroundThread.markAllResourcesInvalid();
+    _backgroundThread.markResourceListMovedOrResized();
     if (_currentEditorGui) {
         _currentEditorGui->resetState();
     }
@@ -542,7 +549,7 @@ void UnTechEditor::fullscreenBackgroundWindow()
             auto s = splitterSidebarLeft("plSplitter", &_projectListSidebar);
 
             ImGui::BeginChild("ProjectList", s.first, false);
-            _projectListWindow.processGui(_projectData);
+            _projectListWindow.processGui(_compilerStatus);
             ImGui::EndChild();
 
             editorSize = s.second;
@@ -567,7 +574,17 @@ void UnTechEditor::processGui()
     fullscreenBackgroundWindow();
 
     if (_currentEditor) {
-        processErrorListWindow(_projectData, _currentEditor.get());
+        const auto& itemIndex = _currentEditor->itemIndex();
+
+        _compilerStatus.readResourceState(itemIndex.type, itemIndex.index,
+                                          [&](const auto& rs) {
+                                              if (rs.compileId != _lastCompileId) {
+                                                  _lastCompileId = rs.compileId;
+                                                  _currentEditorGui->resourceCompiled(rs.errorList);
+                                              }
+
+                                              processErrorListWindow(_currentEditor.get(), rs.state, rs.errorList);
+                                          });
 
         _projectFile.read([&](const auto& pf) {
             _currentEditorGui->processExtraWindows(pf, _projectData);
@@ -607,7 +624,7 @@ void UnTechEditor::updateProjectFile()
             _projectListWindow.processPendingActions(pf, _editors);
         });
 
-        _backgroundThread.markAllResourcesInvalid();
+        _backgroundThread.markResourceListMovedOrResized();
     }
 
     if (_projectListWindow.selectedIndex()) {
@@ -653,26 +670,23 @@ void BackgroundThread::run()
             {
                 std::unique_lock lock(mutex);
 
-                if (markAllResourcesInvalidFlag) {
+                if (resourceListMovedOrResized) {
                     projectFile.read([&](const auto& pf) {
                         static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
 
-                        projectData.clearAndPopulateNamesAndDependencies(pf);
+                        compilerStatus.updateListSizeAndNames(pf);
                     });
 
                     markResourceInvalidQueue.clear();
-                    markAllResourcesInvalidFlag = false;
+                    resourceListMovedOrResized = false;
                 }
 
                 if (!markResourceInvalidQueue.empty()) {
                     for (auto& r : markResourceInvalidQueue) {
-                        projectData.markResourceInvalid(r.type, r.index);
 
-                        // ::TODO add separate quque for updating dependencies::
-                        // ::: and add flag in AbstractEditorData to mark when dependencies changes::
                         projectFile.read([&](const auto& pf) {
-                            static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
-                            projectData.updateDependencyGraph(pf, r.type, r.index);
+                            // Also updates dependencies
+                            compilerStatus.markUnchecked(r.type, r.index, pf);
                         });
                     }
 
@@ -684,9 +698,10 @@ void BackgroundThread::run()
                 projectFile.read([&](auto& pf) {
                     static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
 
-                    projectData.compileAll_NoEarlyExit(pf);
+                    Project::compileResources(compilerStatus, projectData, pf);
 
-                    processEntityGraphics(pf, projectData);
+                    const auto entityRomDataCompileId = compilerStatus.getCompileId(ProjectSettingsIndex::EntityRomData);
+                    processEntityGraphics(pf, projectData, entityRomDataCompileId);
                 });
             }
 
@@ -702,15 +717,16 @@ void BackgroundThread::run()
                                           u8"\n\n\nThis should not happen."
                                           u8"\n\nThe resource compiler is now disabled."));
 
-        projectData.markAllResourcesInvalid();
+        compilerStatus.markAllUnchecked();
     }
 
     isProcessing = false;
 }
 
-BackgroundThread::BackgroundThread(ProjectFileMutex& pf, Project::ProjectData& pd)
+BackgroundThread::BackgroundThread(ProjectFileMutex& pf, Project::ProjectData& pd, Project::CompilerStatus& cs)
     : projectFile(pf)
     , projectData(pd)
+    , compilerStatus(cs)
     , thread()
     , mutex()
     , cv()
@@ -718,7 +734,7 @@ BackgroundThread::BackgroundThread(ProjectFileMutex& pf, Project::ProjectData& p
     , pendingAction(false)
     , isProcessing(false)
     , projectDataValid(false)
-    , markAllResourcesInvalidFlag(true)
+    , resourceListMovedOrResized(true)
     , markResourceInvalidQueue()
 {
     thread = std::thread(&BackgroundThread::run, this);
@@ -742,12 +758,12 @@ BackgroundThread::~BackgroundThread()
     assert(isProcessing == false);
 }
 
-void BackgroundThread::markAllResourcesInvalid()
+void BackgroundThread::markResourceListMovedOrResized()
 {
     {
         std::lock_guard lock(mutex);
 
-        markAllResourcesInvalidFlag = true;
+        resourceListMovedOrResized = true;
 
         projectDataValid.clear();
         pendingAction = true;

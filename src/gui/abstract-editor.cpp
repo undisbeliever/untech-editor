@@ -36,6 +36,10 @@ void AbstractEditorGui::processExtraWindows(const Project::ProjectFile&, const P
 {
 }
 
+void AbstractEditorGui::resourceCompiled(const ErrorList&)
+{
+}
+
 void AbstractEditorGui::viewMenu()
 {
 }
