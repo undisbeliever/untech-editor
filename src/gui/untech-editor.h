@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "background-thread.h"
 #include "item-index.h"
 #include "splitter.h"
 #include "gui/graphics/entity-graphics.h"
@@ -29,50 +30,6 @@ class AbstractExternalFileEditorData;
 class AbstractEditorGui;
 
 using ProjectFileMutex = shared_mutex<std::unique_ptr<UnTech::Project::ProjectFile>>;
-
-class BackgroundThread {
-private:
-    // These two fields are thread safe
-    ProjectFileMutex& projectFile;
-    UnTech::Project::ProjectData& projectData;
-    UnTech::Project::CompilerStatus& compilerStatus;
-
-    std::thread thread;
-
-    // Cannot use Untech::mutex<T> wrapper here.
-    // `mutex` is used by `std::condition_variable`
-    std::mutex mutex;
-    std::condition_variable cv;
-
-    std::atomic_bool threadActive;
-    std::atomic_bool pendingAction;
-
-    std::atomic_bool isProcessing;
-
-    std::atomic_flag projectDataValid;
-
-    std::atomic_bool resourceListMovedOrResized;
-    std::vector<ItemIndex> markResourceInvalidQueue;
-
-public:
-    // Cannot copy or move BackgroundThread
-    BackgroundThread(const BackgroundThread&) = delete;
-    BackgroundThread& operator=(const BackgroundThread&) = delete;
-    BackgroundThread& operator=(BackgroundThread&&) = delete;
-    BackgroundThread(BackgroundThread&&) = delete;
-
-public:
-    BackgroundThread(ProjectFileMutex& pf, UnTech::Project::ProjectData& pd, UnTech::Project::CompilerStatus& cs);
-    ~BackgroundThread();
-
-    // Must be called when a resource list changes size or is reordered
-    void markResourceListMovedOrResized();
-
-    void markResourceInvalid(ItemIndex index);
-
-private:
-    void run();
-};
 
 class UnTechEditor {
 private:

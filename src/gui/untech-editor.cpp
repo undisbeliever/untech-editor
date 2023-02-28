@@ -14,10 +14,8 @@
 #include "gui/windows/message-box.h"
 #include "gui/windows/projectlist.h"
 #include "models/common/imagecache.h"
-#include "models/common/u8strings.h"
 #include "models/project/compiler-status.h"
 #include "models/project/project.h"
-#include "models/project/resource-compiler.h"
 
 namespace UnTech::Gui {
 
@@ -613,7 +611,7 @@ void UnTechEditor::updateProjectFile()
         });
 
         if (edited) {
-            _backgroundThread.markResourceInvalid(_currentEditor->itemIndex());
+            _backgroundThread.markResourceUnchecked(_currentEditor->itemIndex());
         }
     }
 
@@ -652,136 +650,11 @@ void UnTechEditor::forceProcessEditorActions()
         });
 
         if (edited) {
-            _backgroundThread.markResourceInvalid(_currentEditor->itemIndex());
+            _backgroundThread.markResourceUnchecked(_currentEditor->itemIndex());
         }
 
         _currentEditor->updateSelection();
     }
-}
-
-void BackgroundThread::run()
-{
-    try {
-        while (threadActive) {
-            pendingAction = false;
-
-            isProcessing = true;
-
-            {
-                std::unique_lock lock(mutex);
-
-                if (resourceListMovedOrResized) {
-                    projectFile.read([&](const auto& pf) {
-                        static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
-
-                        compilerStatus.updateListSizeAndNames(pf);
-                    });
-
-                    markResourceInvalidQueue.clear();
-                    resourceListMovedOrResized = false;
-                }
-
-                if (!markResourceInvalidQueue.empty()) {
-                    for (auto& r : markResourceInvalidQueue) {
-
-                        projectFile.read([&](const auto& pf) {
-                            // Also updates dependencies
-                            compilerStatus.markUnchecked(r.type, r.index, pf);
-                        });
-                    }
-
-                    markResourceInvalidQueue.clear();
-                }
-            }
-
-            if (!projectDataValid.test_and_set()) {
-                projectFile.read([&](auto& pf) {
-                    static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
-
-                    Project::compileResources(compilerStatus, projectData, pf);
-
-                    const auto entityRomDataCompileId = compilerStatus.getCompileId(ProjectSettingsIndex::EntityRomData);
-                    processEntityGraphics(pf, projectData, entityRomDataCompileId);
-                });
-            }
-
-            isProcessing = false;
-
-            std::unique_lock lock(mutex);
-            cv.wait(lock, [&]() { return pendingAction || !threadActive; });
-        }
-    }
-    catch (const std::exception& ex) {
-        MsgBox::showMessage(u8"An exception occurred when compiling a resource",
-                            stringBuilder(convert_old_string(ex.what()),
-                                          u8"\n\n\nThis should not happen."
-                                          u8"\n\nThe resource compiler is now disabled."));
-
-        compilerStatus.markAllUnchecked();
-    }
-
-    isProcessing = false;
-}
-
-BackgroundThread::BackgroundThread(ProjectFileMutex& pf, Project::ProjectData& pd, Project::CompilerStatus& cs)
-    : projectFile(pf)
-    , projectData(pd)
-    , compilerStatus(cs)
-    , thread()
-    , mutex()
-    , cv()
-    , threadActive(true)
-    , pendingAction(false)
-    , isProcessing(false)
-    , projectDataValid(false)
-    , resourceListMovedOrResized(true)
-    , markResourceInvalidQueue()
-{
-    thread = std::thread(&BackgroundThread::run, this);
-}
-
-BackgroundThread::~BackgroundThread()
-{
-    // Request stop thread
-    {
-        std::lock_guard lock(mutex);
-
-        // ::TODO set requestStopCompiling flag::
-        threadActive = false;
-    }
-    cv.notify_all();
-
-    if (thread.joinable()) {
-        thread.join();
-    }
-
-    assert(isProcessing == false);
-}
-
-void BackgroundThread::markResourceListMovedOrResized()
-{
-    {
-        std::lock_guard lock(mutex);
-
-        resourceListMovedOrResized = true;
-
-        projectDataValid.clear();
-        pendingAction = true;
-    }
-    cv.notify_all();
-}
-
-void BackgroundThread::markResourceInvalid(const ItemIndex index)
-{
-    {
-        std::lock_guard lock(mutex);
-
-        markResourceInvalidQueue.push_back(index);
-
-        projectDataValid.clear();
-        pendingAction = true;
-    }
-    cv.notify_all();
 }
 
 }
