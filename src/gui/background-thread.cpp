@@ -32,6 +32,7 @@ static void markResourcesUnchanged(BackgroundThread::ChangesQueue& queue, Projec
 
 static void bgThread(
     std::stop_token stopToken, // NOLINT(performance-unnecessary-value-param)
+    std::atomic_flag& cancelToken,
     mutex<BackgroundThread::ChangesQueue>& queue, std::binary_semaphore& queueChanged,
     const ProjectFileMutex& projectFile, Project::ProjectData& projectData, Project::CompilerStatus& compilerStatus)
 {
@@ -40,6 +41,7 @@ static void bgThread(
         stopToken, [&]() {
             // Unpause the background thread if it is waiting for the queue to change.
             queueChanged.release();
+            cancelToken.test_and_set();
         }
     };
 
@@ -52,9 +54,10 @@ static void bgThread(
                 // Process the queue
                 queue.access([&](auto& queue) {
                     markResourcesUnchanged(queue, compilerStatus, pf);
+                    cancelToken.clear();
                 });
 
-                Project::compileResources(compilerStatus, projectData, pf);
+                Project::compileResources(compilerStatus, projectData, pf, cancelToken);
 
                 const auto entityRomDataCompileId = compilerStatus.getCompileId(ProjectSettingsIndex::EntityRomData);
                 processEntityGraphics(pf, projectData, entityRomDataCompileId);
@@ -77,9 +80,10 @@ BackgroundThread::BackgroundThread(const ProjectFileMutex& pf, Project::ProjectD
     , projectFile(pf)
     , projectData(data)
     , compilerStatus(status)
+    , cancelToken()
 {
     thread = std::jthread(bgThread,
-                          std::ref(queue), std::ref(queueChanged),
+                          std::ref(cancelToken), std::ref(queue), std::ref(queueChanged),
                           std::cref(projectFile), std::ref(projectData), std::ref(compilerStatus));
 
     markResourceListMovedOrResized();
@@ -89,6 +93,7 @@ void BackgroundThread::markResourceUnchecked(ItemIndex index)
 {
     queue.access([&](auto& q) {
         q.resources.push_back(index);
+        cancelToken.test_and_set();
     });
     queueChanged.release();
 }
@@ -97,6 +102,7 @@ void BackgroundThread::markResourceListMovedOrResized()
 {
     queue.access([&](auto& q) {
         q.resourceListMovedOrResized = true;
+        cancelToken.test_and_set();
     });
     queueChanged.release();
 }

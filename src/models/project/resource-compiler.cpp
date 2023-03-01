@@ -13,6 +13,7 @@
 #include "models/common/u8strings.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include <stdexcept>
+#include <thread>
 #include <unordered_set>
 
 namespace UnTech::Project {
@@ -174,6 +175,7 @@ static inline bool compilePs(CompilerStatus& status, const PSI psIndex,
 
 template <typename Function, typename ListT, typename... Args>
 static inline bool validateList(CompilerStatus& status, const RT type,
+                                std::atomic_flag& cancelToken,
                                 Function validateFunction, const ListT& list, const Args&... args)
 {
     const auto oldListState = status.getState(type);
@@ -190,6 +192,10 @@ static inline bool validateList(CompilerStatus& status, const RT type,
         const size_t listSize = list.size();
 
         for (const size_t index : range(listSize)) {
+            if (cancelToken.test()) {
+                return false;
+            }
+
             const auto item = getItem(list, index);
 
             // Also adds the item name to the names set.
@@ -240,8 +246,8 @@ static inline bool validateList(CompilerStatus& status, const RT type,
 }
 
 template <typename Function, typename ListT, typename T, typename... Args>
-static inline bool compileList(CompilerStatus& status, const RT type,
-                               DataStore<T>& dataStore,
+static inline bool compileList(CompilerStatus& status, const RT type, DataStore<T>& dataStore,
+                               std::atomic_flag& cancelToken,
                                Function compileFunction, const ListT& list, const Args&... args)
 {
     const auto oldListState = status.getState(type);
@@ -262,6 +268,10 @@ static inline bool compileList(CompilerStatus& status, const RT type,
         assert(dataStore.size() == list.size());
 
         for (const size_t index : range(listSize)) {
+            if (cancelToken.test()) {
+                return false;
+            }
+
             if (isUnchecked(status.getState(type, index))) {
                 std::shared_ptr<const T> data{ nullptr };
                 ResourceState state = ResourceState::Unchecked;
@@ -305,7 +315,7 @@ static inline bool compileList(CompilerStatus& status, const RT type,
     }
 }
 
-bool compileResources_impl(CompilerStatus& status, ProjectData& data, const ProjectFile& project, const bool earlyExit)
+bool compileResources_impl(CompilerStatus& status, ProjectData& data, const ProjectFile& project, const bool earlyExit, std::atomic_flag& cancelToken)
 {
     bool valid = true;
 
@@ -316,16 +326,34 @@ bool compileResources_impl(CompilerStatus& status, ProjectData& data, const Proj
                        data.projectSettingsData,
                        Scripting::compileBytecode, project.bytecode);
 
+    if (cancelToken.test()) {
+        return false;
+    }
+
     valid &= validateList(status, RT::FrameSetExportOrders,
+                          cancelToken,
                           MetaSprite::validateExportOrder, project.frameSetExportOrders);
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     valid &= compileList(status, RT::Palettes,
                          data.palettes,
+                         cancelToken,
                          Resources::convertPalette, project.palettes);
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     valid &= compilePs(status, PSI::ActionPoints,
                        data.projectSettingsData,
                        MetaSprite::generateActionPointMapping, project.actionPointFunctions);
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     valid &= compilePs(status, PSI::InteractiveTiles,
                        data.projectSettingsData,
@@ -337,15 +365,30 @@ bool compileResources_impl(CompilerStatus& status, ProjectData& data, const Proj
 
     valid &= compileList(status, RT::FrameSets,
                          data.frameSets,
+                         cancelToken,
                          MetaSprite::Compiler::compileFrameSet, project.frameSets, project, data.projectSettingsData.actionPointMapping());
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     valid &= compileList(status, RT::BackgroundImages,
                          data.backgroundImages,
+                         cancelToken,
                          Resources::convertBackgroundImage, project.backgroundImages, data.palettes);
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     valid &= compileList(status, RT::MataTileTilesets,
                          data.metaTileTilesets,
+                         cancelToken,
                          MetaTiles::convertTileset, project.metaTileTilesets, data.palettes, data.projectSettingsData.interactiveTiles());
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     if (earlyExit && !valid) {
         return false;
@@ -355,13 +398,25 @@ bool compileResources_impl(CompilerStatus& status, ProjectData& data, const Proj
                        data.projectSettingsData,
                        Entity::compileEntityRomData, project.entityRomData, project);
 
+    if (cancelToken.test()) {
+        return false;
+    }
+
     valid &= compilePs(status, PSI::GameState,
                        data.projectSettingsData,
                        Scripting::compileGameState, project.gameState, project.rooms, project.entityRomData);
 
+    if (cancelToken.test()) {
+        return false;
+    }
+
     valid &= compilePs(status, PSI::Scenes,
                        data.projectSettingsData,
                        Resources::compileScenesData, project.resourceScenes, data);
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     if (earlyExit && !valid) {
         return false;
@@ -369,9 +424,14 @@ bool compileResources_impl(CompilerStatus& status, ProjectData& data, const Proj
 
     valid &= compileList(status, RT::Rooms,
                          data.rooms,
+                         cancelToken,
                          Rooms::compileRoom,
                          project.rooms, project.rooms, data.projectSettingsData.scenes(), data.projectSettingsData.entityRomData(),
                          project.projectSettings.roomSettings, data.projectSettingsData.gameState(), data.projectSettingsData.bytecodeData(), data.metaTileTilesets);
+
+    if (cancelToken.test()) {
+        return false;
+    }
 
     status.updateResourceListState(RT::ProjectSettings);
 

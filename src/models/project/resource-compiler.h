@@ -8,19 +8,21 @@
 
 #include "compiler-status.h"
 #include "project-data.h"
+#include <atomic>
 
 namespace UnTech::Project {
 
-bool compileResources_impl(CompilerStatus& status, ProjectData& data, const ProjectFile& project, const bool earlyExit);
+bool compileResources_impl(CompilerStatus& status, ProjectData& data, const ProjectFile& project, const bool earlyExit, std::atomic_flag& cancelToken);
 
-inline bool compileResources(CompilerStatus& status, ProjectData& data, const ProjectFile& pf)
+inline bool compileResources(CompilerStatus& status, ProjectData& data, const ProjectFile& pf, std::atomic_flag& cancelToken)
 {
-    return compileResources_impl(status, data, pf, false);
+    return compileResources_impl(status, data, pf, false, cancelToken);
 }
 
 inline bool compileResources_earlyExit(CompilerStatus& status, ProjectData& data, const ProjectFile& pf)
 {
-    return compileResources_impl(status, data, pf, true);
+    std::atomic_flag cancelToken{};
+    return compileResources_impl(status, data, pf, true, cancelToken);
 }
 
 }

@@ -110,7 +110,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     ProjectData projectData;
     CompilerStatus status(input);
 
-    const bool valid = compileResources(status, projectData, input);
+    const bool valid = compileResources_earlyExit(status, projectData, input);
 
     printErrors(status, errorStream);
 

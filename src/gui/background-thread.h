@@ -9,6 +9,7 @@
 #include "item-index.h"
 #include "models/common/mutex_wrapper.h"
 #include "models/project/project.h"
+#include <atomic>
 #include <memory>
 #include <thread>
 
@@ -37,6 +38,8 @@ private:
     const ProjectFileMutex& projectFile;
     Project::ProjectData& projectData;
     Project::CompilerStatus& compilerStatus;
+
+    std::atomic_flag cancelToken;
 
     std::jthread thread;
 
