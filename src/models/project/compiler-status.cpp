@@ -407,10 +407,6 @@ void CompilerStatus::store(const ResourceType type, const size_t index, Resource
     _resourceLists.write([&](auto& rl) {
         auto& listStatus = rl.at(size_t(type));
 
-        if (state != ResourceState::Valid && state != ResourceState::Unchecked) {
-            listStatus.state = ResourceState::Invalid;
-        }
-
         auto& rs = listStatus.resources.at(index);
         rs.compileId = getNextCompileId();
         rs.state = state;
