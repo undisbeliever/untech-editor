@@ -14,18 +14,14 @@
 #include "gui/windows/message-box.h"
 #include "gui/windows/projectlist.h"
 #include "models/common/imagecache.h"
-#include "models/project/compiler-status.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
 
 std::shared_ptr<UnTechEditor> UnTechEditor::_instance = nullptr;
 
-UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, const std::filesystem::path& fn)
-    : _compilerStatus(*pf)
-    , _projectFile(std::move(pf))
-    , _projectData()
-    , _backgroundThread(_projectFile, _projectData, _compilerStatus)
+UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile> pf, const std::filesystem::path& fn)
+    : _backgroundThread(std::move(pf))
     , _filename(fn)
     , _basename(fn.filename().u8string())
     , _editorGuis(createEditorGuis())
@@ -123,7 +119,7 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
 
     if (editor == nullptr) {
         // Create editor
-        _projectFile.read([&](const auto& pf) {
+        _backgroundThread.read_pf([&](const auto& pf) {
             if (auto e = createEditor(itemIndex, pf)) {
                 if (e->loadDataFromProject(pf)) {
                     // itemIndex is valid
@@ -140,7 +136,7 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
         _currentEditor = editor;
         if (editor) {
             bool success = false;
-            _projectFile.read([&](const auto& pf) {
+            _backgroundThread.read_pf([&](const auto& pf) {
                 success = editor->loadDataFromProject(pf);
             });
 
@@ -196,7 +192,7 @@ bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
     assert(const_undoStack.hasPendingActions() == false);
 
     // ::TODO is this necessary? ::
-    _projectFile.read([&](const auto& pf) {
+    _backgroundThread.read_pf([&](const auto& pf) {
         bool dataLoaded = editor->loadDataFromProject(pf);
         assert(dataLoaded);
     });
@@ -220,7 +216,7 @@ bool UnTechEditor::saveProjectFile()
     forceProcessEditorActions();
 
     try {
-        _projectFile.read([&](const auto& pf) {
+        _backgroundThread.read_pf([&](const auto& pf) {
             UnTech::Project::saveProjectFile(pf, _filename);
         });
 
@@ -547,7 +543,7 @@ void UnTechEditor::fullscreenBackgroundWindow()
             auto s = splitterSidebarLeft("plSplitter", &_projectListSidebar);
 
             ImGui::BeginChild("ProjectList", s.first, false);
-            _projectListWindow.processGui(_compilerStatus);
+            _projectListWindow.processGui(_backgroundThread.compilerStatus());
             ImGui::EndChild();
 
             editorSize = s.second;
@@ -558,8 +554,8 @@ void UnTechEditor::fullscreenBackgroundWindow()
 
             ImGui::SameLine();
             ImGui::BeginChild(_currentEditorGui->childWindowStrId, editorSize, false);
-            _projectFile.read([&](const auto& pf) {
-                _currentEditorGui->processGui(pf, _projectData);
+            _backgroundThread.read_pf([&](const auto& pf) {
+                _currentEditorGui->processGui(pf, _backgroundThread.projectData());
             });
             ImGui::EndChild();
         }
@@ -574,18 +570,19 @@ void UnTechEditor::processGui()
     if (_currentEditor) {
         const auto& itemIndex = _currentEditor->itemIndex();
 
-        _compilerStatus.readResourceState(itemIndex.type, itemIndex.index,
-                                          [&](const auto& rs) {
-                                              if (rs.compileId != _lastCompileId) {
-                                                  _lastCompileId = rs.compileId;
-                                                  _currentEditorGui->resourceCompiled(rs.errorList);
-                                              }
+        _backgroundThread.compilerStatus().readResourceState(
+            itemIndex.type, itemIndex.index,
+            [&](const auto& rs) {
+                if (rs.compileId != _lastCompileId) {
+                    _lastCompileId = rs.compileId;
+                    _currentEditorGui->resourceCompiled(rs.errorList);
+                }
 
-                                              processErrorListWindow(_currentEditor.get(), rs.state, rs.errorList);
-                                          });
+                processErrorListWindow(_currentEditor.get(), rs.state, rs.errorList);
+            });
 
-        _projectFile.read([&](const auto& pf) {
-            _currentEditorGui->processExtraWindows(pf, _projectData);
+        _backgroundThread.read_pf([&](const auto& pf) {
+            _currentEditorGui->processExtraWindows(pf, _backgroundThread.projectData());
         });
     }
 
@@ -606,9 +603,11 @@ void UnTechEditor::updateProjectFile()
 
         // ::TODO add requestStopCompiling to background thread::
 
-        _projectFile.tryWrite([&](auto& pf) {
-            edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
-        });
+        if (_currentEditor->undoStack().hasPendingActions()) {
+            _backgroundThread.tryWrite_pf([&](auto& pf) {
+                edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
+            });
+        }
 
         if (edited) {
             _backgroundThread.markResourceUnchecked(_currentEditor->itemIndex());
@@ -618,7 +617,7 @@ void UnTechEditor::updateProjectFile()
     if (_projectListWindow.hasPendingActions()) {
         closeEditor();
 
-        _projectFile.write([&](auto& pf) {
+        _backgroundThread.write_pf([&](auto& pf) {
             _projectListWindow.processPendingActions(pf, _editors);
         });
 
@@ -645,7 +644,7 @@ void UnTechEditor::forceProcessEditorActions()
     if (_currentEditor) {
         bool edited = false;
 
-        _projectFile.write([&](auto& pf) {
+        _backgroundThread.write_pf([&](auto& pf) {
             edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
         });
 

@@ -16,6 +16,8 @@
 
 namespace UnTech::Gui {
 
+using ProjectFileMutex = shared_mutex<std::unique_ptr<UnTech::Project::ProjectFile>>;
+
 static void markResourcesUnchanged(BackgroundThread::ChangesQueue& queue, Project::CompilerStatus& status, const Project::ProjectFile& pf)
 {
     if (queue.resourceListMovedOrResized) {
@@ -74,17 +76,17 @@ static void bgThread(
     }
 }
 
-BackgroundThread::BackgroundThread(const ProjectFileMutex& pf, Project::ProjectData& data, Project::CompilerStatus& status)
-    : queue()
+BackgroundThread::BackgroundThread(std::unique_ptr<Project::ProjectFile> pf)
+    : _compilerStatus(*pf)
+    , _projectData()
+    , projectFile(std::move(pf))
+    , queue()
     , queueChanged(0)
-    , projectFile(pf)
-    , projectData(data)
-    , compilerStatus(status)
     , cancelToken()
 {
     thread = std::jthread(bgThread,
                           std::ref(cancelToken), std::ref(queue), std::ref(queueChanged),
-                          std::cref(projectFile), std::ref(projectData), std::ref(compilerStatus));
+                          std::cref(projectFile), std::ref(_projectData), std::ref(_compilerStatus));
 
     markResourceListMovedOrResized();
 }

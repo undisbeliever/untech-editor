@@ -9,10 +9,6 @@
 #include "background-thread.h"
 #include "item-index.h"
 #include "splitter.h"
-#include "gui/graphics/entity-graphics.h"
-#include "models/common/mutex_wrapper.h"
-#include "models/project/compiler-status.h"
-#include "models/project/project-data.h"
 #include "models/project/project.h"
 #include "windows/projectlist.h"
 #include <atomic>
@@ -29,15 +25,9 @@ class AbstractEditorData;
 class AbstractExternalFileEditorData;
 class AbstractEditorGui;
 
-using ProjectFileMutex = shared_mutex<std::unique_ptr<UnTech::Project::ProjectFile>>;
-
 class UnTechEditor {
 private:
     static std::shared_ptr<UnTechEditor> _instance;
-
-    UnTech::Project::CompilerStatus _compilerStatus;
-    ProjectFileMutex _projectFile;
-    UnTech::Project::ProjectData _projectData;
 
     BackgroundThread _backgroundThread;
 
@@ -65,7 +55,8 @@ private:
     std::vector<std::u8string> _unsavedFilesList;
 
 private:
-    UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf,
+    // pf MUST NOT be nullptr
+    UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile> pf,
                  const std::filesystem::path& fn);
 
 public:

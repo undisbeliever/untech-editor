@@ -82,7 +82,7 @@ public:
     uint64_t getCompileId(const ProjectSettingsIndex index) const;
 
     template <typename Function>
-    inline void readResourceState(const ResourceType type, const size_t index, Function f)
+    inline void readResourceState(const ResourceType type, const size_t index, Function f) const
         requires std::is_invocable_v<Function, const ResourceStatus&>
     {
         _resourceLists.read([&](const auto& rl) {
