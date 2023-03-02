@@ -162,33 +162,6 @@ static bool validate(const Frame& input, const unsigned frameIndex, const FrameS
     return valid;
 }
 
-usize Frame::minimumViableSize(const FrameSetGrid& grid) const
-{
-    usize limit = usize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
-
-    limit = limit.expand(origin(grid));
-
-    auto expandCollisionBox = [&](const CollisionBox& box) {
-        if (box.exists) {
-            limit = limit.expand(box.aabb);
-        }
-    };
-    expandCollisionBox(tileHitbox);
-    expandCollisionBox(shield);
-    expandCollisionBox(hitbox);
-    expandCollisionBox(hurtbox);
-
-    for (const auto& obj : objects) {
-        limit = limit.expand(obj.bottomRight());
-    }
-
-    for (const auto& ap : actionPoints) {
-        limit = limit.expand(ap.location);
-    }
-
-    return limit;
-}
-
 /*
  * FRAME SET
  * =========
