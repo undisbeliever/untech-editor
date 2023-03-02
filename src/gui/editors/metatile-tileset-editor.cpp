@@ -218,9 +218,7 @@ void MetaTileTilesetEditorGui::editorClosed()
 grid<uint8_t>& MetaTileTilesetEditorGui::map()
 {
     assert(_data);
-    auto& tileset = _data->data;
-
-    return tileset.scratchpad;
+    return _data->data.scratchpad;
 }
 
 void MetaTileTilesetEditorGui::mapTilesPlaced(const urect r)

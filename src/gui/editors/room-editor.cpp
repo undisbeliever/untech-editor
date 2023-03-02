@@ -427,9 +427,7 @@ void RoomEditorGui::editorClosed()
 grid<uint8_t>& RoomEditorGui::map()
 {
     assert(_data);
-    auto& room = _data->data;
-
-    return room.map;
+    return _data->data.map;
 }
 
 void RoomEditorGui::mapTilesPlaced(const urect r)

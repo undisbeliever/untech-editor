@@ -69,14 +69,14 @@ public:
 
     std::shared_ptr<const EntityGraphics> get()
     {
-        return _state.access_and_return_const_shared_ptr<EntityGraphics>([&](auto& s) {
+        return _state.access_and_return_const_shared_ptr<EntityGraphics>([&](const auto& s) {
             return s.data;
         });
     }
 
     unsigned getEntityRomDataCompileId()
     {
-        return _state.access_and_return_unsigned([&](auto& s) {
+        return _state.access_and_return_unsigned([&](const auto& s) {
             return s.entityRomDataCompileId;
         });
     }
