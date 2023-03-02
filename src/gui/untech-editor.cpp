@@ -624,10 +624,10 @@ void UnTechEditor::updateProjectFile()
         _backgroundThread.markResourceListMovedOrResized();
     }
 
-    if (_projectListWindow.selectedIndex()) {
-        const auto index = *_projectListWindow.selectedIndex();
-        if (_currentEditor == nullptr || _currentEditor->itemIndex() != index) {
-            openEditor(index);
+    const auto selectedIndex = _projectListWindow.selectedIndex();
+    if (selectedIndex) {
+        if (_currentEditor == nullptr || _currentEditor->itemIndex() != selectedIndex.value()) {
+            openEditor(selectedIndex.value());
         }
     }
     else {

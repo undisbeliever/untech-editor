@@ -563,9 +563,9 @@ static bool validate(const RoomInput& input,
 
     std::shared_ptr<const MetaTiles::MetaTileTilesetData> tileset;
 
-    if (auto sceneData = compiledScenes.findScene(input.scene)) {
-        if (sceneData->mtTileset) {
-            tileset = metaTilesData.at(sceneData->mtTileset.value());
+    if (const auto sceneData = compiledScenes.findScene(input.scene)) {
+        if (const auto mt = sceneData->mtTileset) {
+            tileset = metaTilesData.at(mt.value());
         }
         else {
             addError(u8"Scene ", input.scene, u8" does not have a MetaTile layer");

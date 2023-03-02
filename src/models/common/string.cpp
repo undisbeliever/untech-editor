@@ -84,7 +84,7 @@ bool checkUtf8WellFormed(const std::u8string_view str)
 
     while (span.size() >= 4) {
         const auto l = checkUtf8Codepoint(span.first<4>());
-        if (l == std::nullopt) {
+        if (!l) {
             return false;
         }
         span = span.subspan(l.value());
@@ -98,7 +98,7 @@ bool checkUtf8WellFormed(const std::u8string_view str)
         std::copy(span.begin(), span.end(), array.begin());
 
         const auto l = checkUtf8Codepoint(array);
-        if (l == std::nullopt || l > span.size()) {
+        if (!l || l > span.size()) {
             return false;
         }
         span = span.subspan(l.value());

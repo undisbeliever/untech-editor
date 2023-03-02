@@ -508,7 +508,7 @@ void SpriteImporterEditorGui::framePropertiesGui(const Project::ProjectFile& pro
                 }
             }
 
-            if (useGridLocation) {
+            if (!frame.locationOverride.has_value()) {
                 if (Cell("Grid Location", &frame.gridLocation, usize(UINT8_MAX, UINT8_MAX))) {
                     ListActions<AP::Frames_EditName>::selectedFieldEdited<&SI::Frame::gridLocation>(_data);
                 }

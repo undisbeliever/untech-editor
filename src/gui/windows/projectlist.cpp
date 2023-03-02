@@ -295,11 +295,13 @@ void ProjectListWindow::addResourceDialog()
 
         const auto& settings = addResourceSettings.at(_addMenuIndex);
 
-        const auto [dialogClosed, fn] = settings.createFile ? ImGui::SaveFileDialog("AddResource", settings.dialogTitle, settings.extension)
-                                                            : ImGui::OpenFileDialog("AddResource", settings.dialogTitle, settings.extension);
-        if (dialogClosed) {
+        const auto d = settings.createFile ? ImGui::SaveFileDialog("AddResource", settings.dialogTitle, settings.extension)
+                                           : ImGui::OpenFileDialog("AddResource", settings.dialogTitle, settings.extension);
+        const auto& closed = d.first;
+        const auto& fn = d.second;
+        if (closed) {
             if (fn) {
-                _addResourceFilename = *fn;
+                _addResourceFilename = fn.value();
                 _state = State::ADD_RESOURCE_CONFIRMED;
             }
             else {
@@ -395,7 +397,7 @@ void ProjectListWindow::addResource(Project::ProjectFile& projectFile)
 
 void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::vector<std::shared_ptr<AbstractEditorData>>& editors)
 {
-    if (_selectedIndex == std::nullopt
+    if (!_selectedIndex
         || _selectedIndex->type == ResourceType::ProjectSettings) {
 
         _state = State::SELECT_RESOURCE;

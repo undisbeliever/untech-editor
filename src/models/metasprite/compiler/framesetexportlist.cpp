@@ -58,6 +58,7 @@ processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& ani
             const idstring& nextAnimation = animation.nextAnimation;
 
             const auto nextIndex = frameSet.animations.indexOf(nextAnimation);
+            assert(nextIndex);
 
             ExportIndex toAdd = { unsigned(nextIndex.value()), ani.hFlip, ani.vFlip };
 
@@ -87,6 +88,7 @@ processStillFrames(const MS::FrameSet& frameSet,
             const auto& frameRef = aFrame.frame;
 
             const auto frameIndex = frameSet.frames.indexOf(frameRef.name);
+            assert(frameIndex);
 
             ExportIndex e = { unsigned(frameIndex.value()),
                               static_cast<bool>(frameRef.hFlip ^ ani.hFlip),
