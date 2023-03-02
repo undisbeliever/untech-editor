@@ -119,6 +119,7 @@ struct RoomScriptGui::AP {
     };
 };
 
+// cppcheck-suppress functionStatic
 bool RoomScriptGui::roomArgument(const char* label, std::u8string* value, const Project::ProjectFile& pf) const
 {
     bool edited = false;

@@ -9,6 +9,7 @@
 
 namespace UnTech::Snes {
 
+// cppcheck-suppress unusedFunction
 BitDepth toBitDepth(unsigned bd)
 {
     switch (bd) {

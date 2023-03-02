@@ -48,6 +48,7 @@ knownConditionTrueFalse:src/models/project/project-data.cpp
 
 # False positives (cppcheck cannot find the function caller)
 unusedFunction:src/models/common/*.cpp
+unusedFunction:src/gui/imgui.cpp
 
 # False positives
 unusedStructMember:src/cli/argparser.h

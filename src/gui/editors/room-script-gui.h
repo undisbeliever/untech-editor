@@ -51,7 +51,9 @@ public:
     void processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
 private:
+    // cppcheck-suppress functionStatic
     bool roomArgument(const char* label, std::u8string* value, const Project::ProjectFile& pf) const;
+
     bool roomAndRoomEntraceArguments(std::array<std::u8string, 2>& arguments, const Project::ProjectFile& pf);
     bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::u8string* value, const Project::ProjectFile& pf);
     bool scriptArguments(const Scripting::InstructionData& bc, std::array<std::u8string, 2>& arguments, const Project::ProjectFile& pf);

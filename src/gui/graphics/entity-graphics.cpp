@@ -50,6 +50,7 @@ static void drawInvalidSymbol(Image& image, const unsigned xPos, const unsigned 
     const rgba color1{ 255, 0, 0, 192 };
     const rgba color2{ 255, 0, 0, 32 };
 
+    // cppcheck-suppress variableScope
     bool lineToggle = false;
 
     for (const auto iy : range(yPos, yPos + height)) {

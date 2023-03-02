@@ -120,6 +120,7 @@ static inline bool validatePs(CompilerStatus& status, const PSI psIndex,
             valid = false;
         }
 
+        // cppcheck-suppress knownConditionTrueFalse
         const ResourceState state = valid ? ResourceState::Valid : ResourceState::Invalid;
 
         status.store(RT::ProjectSettings, index, state, std::move(errorList));
@@ -283,6 +284,8 @@ static inline bool compileList(CompilerStatus& status, const RT type, DataStore<
 
                     try {
                         data = compileFunction(*item, expandArg(args)..., errorList);
+
+                        // cppcheck-suppress knownConditionTrueFalse
                         state = data != nullptr ? ResourceState::Valid : ResourceState::Invalid;
                     }
                     catch (const std::exception& ex) {
