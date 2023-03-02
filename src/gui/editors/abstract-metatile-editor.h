@@ -31,7 +31,7 @@ protected:
     upoint_vectorset selectedTiles;
 
 public:
-    AbstractMetaTileEditorData(ItemIndex itemIndex);
+    explicit AbstractMetaTileEditorData(ItemIndex itemIndex);
 };
 
 class AbstractMetaTileEditorGui : public AbstractEditorGui {

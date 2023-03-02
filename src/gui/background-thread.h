@@ -46,7 +46,7 @@ private:
 
 public:
     // pf MUST NOT be nullptr
-    BackgroundThread(std::unique_ptr<Project::ProjectFile> pf);
+    explicit BackgroundThread(std::unique_ptr<Project::ProjectFile> pf);
 
     void markResourceUnchecked(ItemIndex index);
 

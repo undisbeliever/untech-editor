@@ -76,7 +76,7 @@ public:
     shared_mutex() = default;
     ~shared_mutex() = default;
 
-    shared_mutex(T d)
+    explicit shared_mutex(T d)
         : _mutex()
         , _data(std::move(d))
     {
@@ -204,7 +204,7 @@ private:
 public:
     ~shared_mutex() = default;
 
-    shared_mutex(std::unique_ptr<T>&& v)
+    explicit shared_mutex(std::unique_ptr<T>&& v)
         : _mutex{}
         , _data(std::move(v))
     {
