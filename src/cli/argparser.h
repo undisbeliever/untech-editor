@@ -159,6 +159,8 @@ namespace UnTech::ArgParser_Impl {
 // Printing
 // ========
 
+// NOLINTBEGIN(clang-diagnostic-unneeded-internal-declaration)
+
 [[noreturn]] static void error(const std::string_view msg)
 {
     std::cerr << msg << std::endl;
@@ -177,10 +179,12 @@ namespace UnTech::ArgParser_Impl {
     exit(EXIT_FAILURE);
 }
 
-static auto duplicateArgumentError(const std::string_view longName) -> void
+[[noreturn]] static auto duplicateArgumentError(const std::string_view longName) -> void
 {
     error("Duplicate argument --", longName);
 }
+
+// NOLINTEND(clang-diagnostic-unneeded-internal-declaration)
 
 template <class Config>
 static inline auto printVersion(const Config& config) -> void
