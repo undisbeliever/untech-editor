@@ -36,7 +36,7 @@ public:
     const std::optional<unsigned> frameId;
 
 public:
-    explicit InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, std::optional<unsigned> frameId = std::nullopt);
+    explicit InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, std::optional<unsigned> frameId_ = std::nullopt);
 
     [[nodiscard]] bool hasError() const { return !invalidTiles.empty(); }
     [[nodiscard]] size_t errorCount() const { return invalidTiles.size(); }
