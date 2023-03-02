@@ -64,8 +64,8 @@ public:
     ~ExternalFileList() = default;
 
     // Allow moving
-    ExternalFileList(ExternalFileList&&) = default;
-    ExternalFileList& operator=(ExternalFileList&& other) = default;
+    ExternalFileList(ExternalFileList&&) noexcept = default;
+    ExternalFileList& operator=(ExternalFileList&& other) noexcept = default;
 
     ExternalFileList(const ExternalFileList&) = delete;
     ExternalFileList& operator=(const ExternalFileList& other) = delete;
