@@ -54,7 +54,7 @@ void showMessage(const std::u8string& title, const char* message)
 
 void processGui()
 {
-    state.access([&](auto& s) {
+    state.access([&](MessageBoxState& s) {
         if (s.messages.empty()) {
             return;
         }
