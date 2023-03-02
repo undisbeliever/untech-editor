@@ -82,12 +82,12 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
     const auto& image = ImageCache::loadPngImage(input.imageFilename);
     assert(image);
 
-    const auto [paletteIndex, paletteData] = projectDataStore.indexAndDataFor(input.conversionPlette);
-    if (!paletteData) {
+    const auto paletteIndexAndData = projectDataStore.indexAndDataFor(input.conversionPlette);
+    if (!paletteIndexAndData) {
         err.addErrorString(u8"Cannot find palette: ", input.conversionPlette);
         return nullptr;
     }
-    const auto& palette = paletteData->conversionPalette;
+    const auto& palette = paletteIndexAndData->second->conversionPalette;
 
     const unsigned lastColor = (input.firstPalette + input.nPalettes) * Snes::colorsForBitDepth(input.bitDepth);
     if (lastColor > palette.size()) {
@@ -107,7 +107,7 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
     auto ret = std::make_shared<BackgroundImageData>();
 
     ret->bitDepth = input.bitDepth;
-    ret->conversionPaletteIndex = *paletteIndex;
+    ret->conversionPaletteIndex = paletteIndexAndData->first;
 
     Snes::TilesetInserter8px staticTilesetInserter(ret->tiles);
 

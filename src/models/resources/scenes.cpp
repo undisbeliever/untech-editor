@@ -457,12 +457,14 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     }
 
     case LayerType::BackgroundImage: {
-        const auto [index, bi] = projectData.backgroundImages.indexAndDataFor(layer);
+        const auto indexAndData = projectData.backgroundImages.indexAndDataFor(layer);
 
-        if (!bi) {
+        if (!indexAndData) {
             addError(u8"Cannot find background image", layer);
             break;
         }
+        const auto& index = indexAndData->first;
+        const auto& bi = indexAndData->second;
 
         // ::SHOULDDO add warning if palette conversion colours do not match::
 
@@ -471,7 +473,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
             break;
         }
 
-        out.layerIndex = index.value();
+        out.layerIndex = index;
         out.tileSize = bi->tilesetDataSize();
         out.nMaps = bi->nTilemaps();
         out.mapHorizontalMirroring = bi->tilemapHorizontalMirroring();
@@ -480,19 +482,21 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     }
 
     case LayerType::MetaTileTileset: {
-        const auto [index, mt] = projectData.metaTileTilesets.indexAndDataFor(layer);
+        const auto indexAndData = projectData.metaTileTilesets.indexAndDataFor(layer);
 
-        if (!mt) {
+        if (!indexAndData) {
             addError(u8"Cannot find MetaTile Tileset", layer);
             break;
         }
+        const auto& index = indexAndData->first;
+        const auto& mt = indexAndData->second;
 
         if (mt->animatedTileset.bitDepth != bitDepth) {
             addError(u8"Invalid bit depth, expected ", bitDepthUint, u8" got ", unsigned(mt->animatedTileset.bitDepth));
             break;
         }
 
-        out.layerIndex = index.value();
+        out.layerIndex = index;
         out.tileSize = mt->animatedTileset.vramTileSize();
 
         // The tilemap is fixed for MetaTile Tilesets
@@ -546,11 +550,13 @@ static SceneData readSceneData(const SceneInput& scene, const unsigned sceneInde
     const SceneSettingsInput& sceneSettings = resourceScenes.settings.at(nimIt->second);
     out.sceneSettings = nimIt->second;
 
-    const auto [palIndex, palData] = projectData.palettes.indexAndDataFor(scene.palette);
-    if (!palIndex) {
+    const auto palIndexAndData = projectData.palettes.indexAndDataFor(scene.palette);
+    if (palIndexAndData) {
+        out.palette = palIndexAndData->first;
+    }
+    else {
         addError(u8"Cannot find palette ", scene.palette);
     }
-    out.palette = palIndex;
 
     out.mtTileset = {};
     out.vramUsed = 0;

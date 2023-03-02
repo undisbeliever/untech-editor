@@ -8,6 +8,7 @@
 
 #include "models/common/idstring.h"
 #include "models/common/mutex_wrapper.h"
+#include <gsl/pointers>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -73,7 +74,7 @@ public:
     [[nodiscard]] size_t size() const;
 
     // May return nullptr
-    [[nodiscard]] std::pair<std::optional<size_t>, std::shared_ptr<const T>> indexAndDataFor(const idstring& id) const;
+    [[nodiscard]] std::optional<std::pair<size_t, gsl::not_null<std::shared_ptr<const T>>>> indexAndDataFor(const idstring& id) const;
     [[nodiscard]] std::shared_ptr<const T> at(unsigned index) const;
 };
 

@@ -61,9 +61,9 @@ size_t DataStore<T>::size() const
 }
 
 template <typename T>
-std::pair<std::optional<size_t>, std::shared_ptr<const T>> DataStore<T>::indexAndDataFor(const idstring& id) const
+std::optional<std::pair<size_t, gsl::not_null<std::shared_ptr<const T>>>> DataStore<T>::indexAndDataFor(const idstring& id) const
 {
-    return data.template read_and_return_index_and_const_shared_ptr<T>([&](const auto& d) -> std::pair<std::optional<size_t>, std::shared_ptr<const T>> {
+    return data.template read_and_return_index_and_const_shared_ptr<T>([&](const auto& d) -> std::optional<std::pair<size_t, gsl::not_null<std::shared_ptr<const T>>>> {
         const auto it = d.mapping.find(id);
         if (it != d.mapping.end()) {
             const size_t index = it->second;
@@ -71,7 +71,7 @@ std::pair<std::optional<size_t>, std::shared_ptr<const T>> DataStore<T>::indexAn
                 return std::pair{ index, d.data.at(index).second };
             }
         }
-        return std::pair{ std::nullopt, nullptr };
+        return std::nullopt;
     });
 }
 

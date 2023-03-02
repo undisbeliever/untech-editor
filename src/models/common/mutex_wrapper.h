@@ -7,6 +7,7 @@
 #pragma once
 
 #include <concepts>
+#include <gsl/pointers>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -183,7 +184,7 @@ public:
 
     // Returning a size_t and a std::shared_ptr<const U> from T is safe
     template <typename U, typename Function>
-    std::pair<std::optional<size_t>, std::shared_ptr<const U>> read_and_return_index_and_const_shared_ptr(Function f) const
+    std::optional<std::pair<size_t, gsl::not_null<std::shared_ptr<const U>>>> read_and_return_index_and_const_shared_ptr(Function f) const
         requires std::invocable<Function, const T&>
     {
         std::lock_guard lock(_mutex);

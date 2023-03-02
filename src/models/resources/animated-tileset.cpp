@@ -343,15 +343,15 @@ convertAnimationFrames(const AnimationFramesInput& input,
 
     const usize mapSize(imgSize.width / 8, imgSize.height / 8);
 
-    const auto [paletteIndex, paletteData] = projectDataStore.indexAndDataFor(input.conversionPalette);
-    if (!paletteData) {
+    const auto paletteIndexAndData = projectDataStore.indexAndDataFor(input.conversionPalette);
+    if (!paletteIndexAndData) {
         err.addErrorString(u8"Cannot find palette: ", input.conversionPalette);
         return std::nullopt;
     }
 
-    ret.conversionPaletteIndex = *paletteIndex;
+    ret.conversionPaletteIndex = paletteIndexAndData->first;
 
-    const auto frameTiles = tilesFromFrameImages(input, paletteData->conversionPalette, err);
+    const auto frameTiles = tilesFromFrameImages(input, paletteIndexAndData->second->conversionPalette, err);
     if (initialErrorCount != err.errorCount()) {
         return std::nullopt;
     }

@@ -811,9 +811,14 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile&
 
     if (_data->paletteSel.selectedIndex() < mtTileset.palettes.size()) {
         const auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
-        const auto [palIndex, palData] = projectData.palettes.indexAndDataFor(paletteName);
+        const auto palIndexAndData = projectData.palettes.indexAndDataFor(paletteName);
 
-        _tilesetShader.setPaletteData(palData);
+        if (palIndexAndData) {
+            _tilesetShader.setPaletteData(palIndexAndData->second);
+        }
+        else {
+            _tilesetShader.setPaletteData(nullptr);
+        }
     }
 
     const auto mtData = projectData.metaTileTilesets.at(_data->itemIndex().index);
