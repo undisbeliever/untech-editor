@@ -353,7 +353,7 @@ void ProjectListWindow::processGui(const UnTech::Project::CompilerStatus& status
 }
 
 void ProjectListWindow::processPendingActions(Project::ProjectFile& projectFile,
-                                              std::vector<std::shared_ptr<AbstractEditorData>>& editors)
+                                              std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>>& editors)
 {
     switch (_state) {
     case State::SELECT_RESOURCE:
@@ -395,7 +395,8 @@ void ProjectListWindow::addResource(Project::ProjectFile& projectFile)
     }
 }
 
-void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::vector<std::shared_ptr<AbstractEditorData>>& editors)
+void ProjectListWindow::removeResource(Project::ProjectFile& projectFile,
+                                       std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>>& editors)
 {
     if (!_selectedIndex
         || _selectedIndex->type == ResourceType::ProjectSettings) {
@@ -407,7 +408,7 @@ void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::v
     // Backup old data
     {
         auto it = std::find_if(editors.begin(), editors.end(),
-                               [&](auto& e) { assert(e); return e->itemIndex() == *_selectedIndex; });
+                               [&](auto& e) { return e->itemIndex() == *_selectedIndex; });
         if (it != editors.end()) {
             _removedEditors.push_back(std::move(*it));
             editors.erase(it);
@@ -466,7 +467,6 @@ void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::v
 
     // Update indexes
     for (auto& e : editors) {
-        assert(e);
         if (e->itemIndex().type == _selectedIndex->type) {
             auto itemIndex = e->itemIndex();
             if (itemIndex.index > _selectedIndex->index) {

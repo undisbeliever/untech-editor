@@ -199,12 +199,13 @@ template <typename T>
 class shared_mutex<std::unique_ptr<T>> {
 private:
     mutable std::shared_mutex _mutex;
-    const std::unique_ptr<T> _data;
+    const gsl::not_null<std::unique_ptr<T>> _data;
 
 public:
     ~shared_mutex() = default;
 
-    explicit shared_mutex(std::unique_ptr<T>&& v)
+    // v must not be null
+    explicit shared_mutex(std::unique_ptr<T> v)
         : _mutex{}
         , _data(std::move(v))
     {

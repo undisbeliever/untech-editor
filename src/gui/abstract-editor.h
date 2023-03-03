@@ -9,6 +9,7 @@
 #include "item-index.h"
 #include "undostack.h"
 #include <filesystem>
+#include <gsl/pointers>
 #include <memory>
 #include <vector>
 
@@ -137,8 +138,9 @@ protected:
     void undoStackButtons();
 };
 
+// May return nullptr
 std::shared_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
 
-std::vector<std::shared_ptr<AbstractEditorGui>> createEditorGuis();
+std::vector<gsl::not_null<std::shared_ptr<AbstractEditorGui>>> createEditorGuis();
 
 }

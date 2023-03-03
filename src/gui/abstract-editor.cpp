@@ -56,8 +56,7 @@ void AbstractEditorGui::undoStackButtons()
     }
 }
 
-std::shared_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
-                                                 const UnTech::Project::ProjectFile& projectFile)
+std::shared_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile& projectFile)
 {
     using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 
@@ -123,27 +122,27 @@ std::shared_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
     return nullptr;
 }
 
-std::vector<std::shared_ptr<AbstractEditorGui>> createEditorGuis()
+std::vector<gsl::not_null<std::shared_ptr<AbstractEditorGui>>> createEditorGuis()
 {
     constexpr unsigned N_ELEMENTS = 14;
 
-    std::vector<std::shared_ptr<AbstractEditorGui>> ret;
+    std::vector<gsl::not_null<std::shared_ptr<AbstractEditorGui>>> ret;
     ret.reserve(N_ELEMENTS);
 
-    ret.push_back(std::make_shared<ProjectSettingsEditorGui>());
-    ret.push_back(std::make_shared<GameStateEditorGui>());
-    ret.push_back(std::make_shared<BytecodeEditorGui>());
-    ret.push_back(std::make_shared<InteractiveTilesEditorGui>());
-    ret.push_back(std::make_shared<ActionPointsEditorGui>());
-    ret.push_back(std::make_shared<EntityRomDataEditorGui>());
-    ret.push_back(std::make_shared<ScenesEditorGui>());
-    ret.push_back(std::make_shared<FrameSetExportOrderEditorGui>());
-    ret.push_back(std::make_shared<MetaSpriteEditorGui>());
-    ret.push_back(std::make_shared<SpriteImporterEditorGui>());
-    ret.push_back(std::make_shared<PaletteEditorGui>());
-    ret.push_back(std::make_shared<BackgroundImageEditorGui>());
-    ret.push_back(std::make_shared<MetaTileTilesetEditorGui>());
-    ret.push_back(std::make_shared<RoomEditorGui>());
+    ret.emplace_back(std::make_shared<ProjectSettingsEditorGui>());
+    ret.emplace_back(std::make_shared<GameStateEditorGui>());
+    ret.emplace_back(std::make_shared<BytecodeEditorGui>());
+    ret.emplace_back(std::make_shared<InteractiveTilesEditorGui>());
+    ret.emplace_back(std::make_shared<ActionPointsEditorGui>());
+    ret.emplace_back(std::make_shared<EntityRomDataEditorGui>());
+    ret.emplace_back(std::make_shared<ScenesEditorGui>());
+    ret.emplace_back(std::make_shared<FrameSetExportOrderEditorGui>());
+    ret.emplace_back(std::make_shared<MetaSpriteEditorGui>());
+    ret.emplace_back(std::make_shared<SpriteImporterEditorGui>());
+    ret.emplace_back(std::make_shared<PaletteEditorGui>());
+    ret.emplace_back(std::make_shared<BackgroundImageEditorGui>());
+    ret.emplace_back(std::make_shared<MetaTileTilesetEditorGui>());
+    ret.emplace_back(std::make_shared<RoomEditorGui>());
 
     assert(ret.size() == N_ELEMENTS);
 

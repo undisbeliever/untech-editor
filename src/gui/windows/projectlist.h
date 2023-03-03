@@ -8,6 +8,7 @@
 
 #include "gui/item-index.h"
 #include <filesystem>
+#include <gsl/pointers>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -63,7 +64,8 @@ public:
     {
         return _state == State::ADD_RESOURCE_CONFIRMED || _state == State::REMOVE_RESOURCE_CONFIRMED;
     }
-    void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::shared_ptr<AbstractEditorData>>& editors);
+    void processPendingActions(Project::ProjectFile& projectFile,
+                               std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>>& editors);
 
 private:
     void projectListWindow(const Project::CompilerStatus& status);
@@ -74,7 +76,8 @@ private:
     void addResource(UnTech::Project::ProjectFile& projectFile);
 
     [[nodiscard]] bool canRemoveSelectedIndex() const;
-    void removeResource(Project::ProjectFile& projectFile, std::vector<std::shared_ptr<AbstractEditorData>>& editors);
+    void removeResource(Project::ProjectFile& projectFile,
+                        std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>>& editors);
 };
 
 }

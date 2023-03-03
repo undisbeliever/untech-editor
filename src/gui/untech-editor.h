@@ -34,9 +34,9 @@ private:
     const std::filesystem::path _filename;
     const std::u8string _basename;
 
-    std::vector<std::shared_ptr<AbstractEditorGui>> _editorGuis;
+    std::vector<gsl::not_null<std::shared_ptr<AbstractEditorGui>>> _editorGuis;
 
-    std::vector<std::shared_ptr<AbstractEditorData>> _editors;
+    std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>> _editors;
 
     std::shared_ptr<AbstractEditorData> _currentEditor;
     std::shared_ptr<AbstractEditorGui> _currentEditorGui;
