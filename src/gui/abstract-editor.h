@@ -134,6 +134,8 @@ public:
 
     virtual void viewMenu();
 
+    [[nodiscard]] inline bool hasPendingUndoRedo() const { return undoClicked || redoClicked; }
+
 protected:
     void undoStackButtons();
 };

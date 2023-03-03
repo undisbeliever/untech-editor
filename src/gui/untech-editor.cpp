@@ -599,11 +599,13 @@ void UnTechEditor::processGui()
 void UnTechEditor::updateProjectFile()
 {
     if (_currentEditor) {
+        assert(_currentEditorGui);
+
         bool edited = false;
 
-        // ::TODO add requestStopCompiling to background thread::
+        if (_currentEditor->undoStack().hasPendingActions()
+            || _currentEditorGui->hasPendingUndoRedo()) {
 
-        if (_currentEditor->undoStack().hasPendingActions()) {
             _backgroundThread.tryWrite_pf([&](auto& pf) {
                 edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
             });
