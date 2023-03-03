@@ -68,7 +68,9 @@ std::optional<std::pair<size_t, gsl::not_null<std::shared_ptr<const T>>>> DataSt
         if (it != d.mapping.end()) {
             const size_t index = it->second;
             if (index < d.data.size()) {
-                return std::pair{ index, d.data.at(index).second };
+                if (const std::shared_ptr<const T>& p = d.data.at(index).second) {
+                    return std::pair{ index, p };
+                }
             }
         }
         return std::nullopt;
