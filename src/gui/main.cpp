@@ -26,13 +26,6 @@ static void setupGui(ImGuiIO& io)
     // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     ImGui::StyleColorsDark();
-
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        // Tweak window style so platform and regular windows looks the same
-        ImGuiStyle& style = ImGui::GetStyle();
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
 }
 
 #ifndef IMGUI_DISABLE_DEBUG_TOOLS
@@ -43,7 +36,7 @@ void metricsWindow()
     const auto& io = ImGui::GetIO();
 
     if (ImGui::IsKeyPressed(ImGuiKey_F12)) {
-        if (io.KeyMods == ImGuiModFlags_None) {
+        if (io.KeyMods == ImGuiMod_None) {
             showMetrics = !showMetrics;
         }
     }

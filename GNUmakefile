@@ -258,7 +258,7 @@ THIRD_PARTY_OBJS := $(THIRD_PARTY_LODEPNG) $(THIRD_PARTY_LZ4)
 
 THIRD_PARTY_IMGUI_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, imgui.o imgui_draw.o imgui_tables.o imgui_widgets.o imgui_stdlib.o)
 
-THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl.o)
+THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl2.o)
 IMGUI_CXXFLAGS              := -DIMGUI_IMPL_SDL_OPENGL -Isrc/vendor/gl3w/include
 IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui -Wno-deprecated-enum-enum-conversion
 

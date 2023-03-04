@@ -385,7 +385,7 @@ void UnTechEditor::processKeyboardShortcuts()
 {
     const auto& io = ImGui::GetIO();
 
-    if (io.KeyMods == ImGuiModFlags_Ctrl) {
+    if (io.KeyMods == ImGuiMod_Ctrl) {
         if (ImGui::IsKeyPressed(ImGuiKey_S, false)) {
             if (io.KeyShift) {
                 saveAll();
@@ -414,7 +414,7 @@ void UnTechEditor::processKeyboardShortcuts()
         }
     }
 
-    if (io.KeyMods == ImGuiModFlags_None) {
+    if (io.KeyMods == ImGuiMod_None) {
         if (ImGui::IsKeyPressed(ImGuiKey_GraveAccent, false)) {
             _showProjectListSidebar = !_showProjectListSidebar;
         }
@@ -530,7 +530,7 @@ void UnTechEditor::unsavedChangesOnExitPopup()
 void UnTechEditor::fullscreenBackgroundWindow()
 {
     constexpr auto windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar
-                                 | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoSavedSettings;
+                                 | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoSavedSettings;
 
     const auto* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);

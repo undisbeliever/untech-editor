@@ -96,7 +96,7 @@ void processGui()
     const float buttonSpacing = 32;
 
     if (ImGui::BeginPopupModal(windowTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        const ImVec2 viewportSize = ImGui::GetWindowViewport()->Size;
+        const ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
         const ImVec2 windowSize = ImGui::GetWindowSize();
         ImGui::SetWindowPos(ImVec2((viewportSize.x - windowSize.x) / 2, (viewportSize.y - windowSize.y) / 2));
 

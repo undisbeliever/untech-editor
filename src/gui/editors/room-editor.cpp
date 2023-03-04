@@ -634,8 +634,7 @@ void RoomEditorGui::entitiesDropdownWindow()
 
     constexpr float buttonSize = 64.0f;
 
-    constexpr auto windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar
-                                 | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings;
+    constexpr auto windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings;
 
     if (!_showEntitiesDropdownWindow) {
         return;

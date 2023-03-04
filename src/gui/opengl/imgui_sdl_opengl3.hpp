@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-// This file is based on `examples/example_sdl_opengl3/main.cpp`
+// This file is based on `examples/example_sdl2_opengl3/main.cpp`
 // from the Dear ImGui library.
 // https://github.com/ocornut/imgui
 // Licensed under the MIT License (MIT)
@@ -17,7 +17,7 @@
 #include "imgui_impl_opengl3.hpp"
 #include "opengl3.h"
 
-#include "vendor/imgui/backends/imgui_impl_sdl.h"
+#include "vendor/imgui/backends/imgui_impl_sdl2.h"
 #include "vendor/imgui/imgui.h"
 #include <SDL.h>
 #include <stdio.h>
@@ -34,8 +34,6 @@ public:
     inline void init(const char* window_title)
     {
         // Setup SDL
-        // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
-        // depending on whether SDL_INIT_GAMECONTROLLER is enabled or disabled.. updating to latest version of SDL is recommended!)
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
             printf("Error: %s\n", SDL_GetError());
             exit(EXIT_FAILURE);
@@ -125,17 +123,6 @@ public:
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // Update and Render additional Platform Windows
-        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
-            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-        }
 
         SDL_GL_SwapWindow(window);
     }
