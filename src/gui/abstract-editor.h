@@ -13,6 +13,10 @@
 #include <memory>
 #include <vector>
 
+#ifdef NDEBUG
+#error UnTech Editor requires assert checks
+#endif
+
 namespace UnTech {
 class AbstractError;
 class ErrorList;
