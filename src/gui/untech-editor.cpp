@@ -14,23 +14,21 @@
 #include "gui/windows/message-box.h"
 #include "gui/windows/projectlist.h"
 #include "models/common/imagecache.h"
-#include "models/common/u8strings.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
 
 std::shared_ptr<UnTechEditor> UnTechEditor::_instance = nullptr;
 
-UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, const std::filesystem::path& fn)
-    : _projectFile(std::move(pf))
-    , _projectData()
-    , _backgroundThread(_projectFile, _projectData)
+UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile> pf, const std::filesystem::path& fn)
+    : _backgroundThread(std::move(pf))
     , _filename(fn)
     , _basename(fn.filename().u8string())
     , _editorGuis(createEditorGuis())
     , _editors()
     , _currentEditor(nullptr)
     , _currentEditorGui(nullptr)
+    , _lastCompileId(UINT64_MAX)
     , _projectListWindow()
     , _projectListSidebar{ 280, 150, 500 }
     , _showProjectListSidebar(true)
@@ -111,22 +109,22 @@ void UnTechEditor::closeProject()
 // MUST ONLY be called by `updateProjectFile`
 void UnTechEditor::openEditor(const ItemIndex itemIndex)
 {
-    AbstractEditorData* editor = nullptr;
+    std::shared_ptr<AbstractEditorData> editor = nullptr;
 
     auto it = std::find_if(_editors.cbegin(), _editors.cend(),
                            [&](const auto& e) { return e->itemIndex() == itemIndex; });
     if (it != _editors.cend()) {
-        editor = it->get();
+        editor = *it;
     }
 
     if (editor == nullptr) {
         // Create editor
-        _projectFile.read([&](const auto& pf) {
+        _backgroundThread.read_pf([&](const auto& pf) {
             if (auto e = createEditor(itemIndex, pf)) {
                 if (e->loadDataFromProject(pf)) {
                     // itemIndex is valid
-                    editor = e.get();
-                    _editors.push_back(std::move(e));
+                    editor = e;
+                    _editors.push_back(e);
                 }
             }
         });
@@ -138,7 +136,7 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
         _currentEditor = editor;
         if (editor) {
             bool success = false;
-            _projectFile.read([&](const auto& pf) {
+            _backgroundThread.read_pf([&](const auto& pf) {
                 success = editor->loadDataFromProject(pf);
             });
 
@@ -146,7 +144,7 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
                 unsigned counter = 0;
                 for (auto& eg : _editorGuis) {
                     if (eg->setEditorData(_currentEditor)) {
-                        _currentEditorGui = eg.get();
+                        _currentEditorGui = eg;
                         counter++;
                     }
                 }
@@ -180,15 +178,21 @@ void UnTechEditor::closeEditor()
 
     _currentEditor = nullptr;
     _currentEditorGui = nullptr;
+
+    // Ensure `AbstractEditorGui::resourceCompiled` is called on the next frame.
+    _lastCompileId = UINT64_MAX;
 }
 
 bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
 {
     assert(editor);
-    assert(editor->hasPendingActions() == false);
+
+    // Silence a [assertWithSideEffect] cppcheck warning
+    const auto& const_undoStack = _currentEditor->undoStack();
+    assert(const_undoStack.hasPendingActions() == false);
 
     // ::TODO is this necessary? ::
-    _projectFile.read([&](const auto& pf) {
+    _backgroundThread.read_pf([&](const auto& pf) {
         bool dataLoaded = editor->loadDataFromProject(pf);
         assert(dataLoaded);
     });
@@ -196,7 +200,7 @@ bool UnTechEditor::saveEditor(AbstractExternalFileEditorData* editor)
     assert(editor->filename().empty() == false);
     try {
         editor->saveFile();
-        editor->markClean();
+        editor->undoStack().markClean();
         return true;
     }
     catch (const std::exception& ex) {
@@ -212,13 +216,13 @@ bool UnTechEditor::saveProjectFile()
     forceProcessEditorActions();
 
     try {
-        _projectFile.read([&](const auto& pf) {
+        _backgroundThread.read_pf([&](const auto& pf) {
             UnTech::Project::saveProjectFile(pf, _filename);
         });
 
         for (auto& editor : _editors) {
-            if (dynamic_cast<AbstractExternalFileEditorData*>(editor.get()) == nullptr) {
-                editor->markClean();
+            if (dynamic_cast<AbstractExternalFileEditorData*>(editor.get().get()) == nullptr) {
+                editor->undoStack().markClean();
             }
         }
         _projectListWindow.markClean();
@@ -235,7 +239,7 @@ void UnTechEditor::saveCurrentEditor()
     if (_currentEditor) {
         forceProcessEditorActions();
 
-        if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor)) {
+        if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor.get())) {
             saveEditor(e);
         }
         else {
@@ -249,15 +253,17 @@ bool UnTechEditor::saveAll()
     forceProcessEditorActions();
 
     if (_currentEditor) {
-        assert(_currentEditor->hasPendingActions() == false);
+        // Silence a [assertWithSideEffect] cppcheck warning
+        const auto& undoStack = _currentEditor->undoStack();
+        assert(undoStack.hasPendingActions() == false);
     }
 
     bool ok = true;
     bool projectFileDirty = !_projectListWindow.isClean();
 
     for (auto& editor : _editors) {
-        if (!editor->isClean()) {
-            if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(editor.get())) {
+        if (!editor->undoStack().isClean()) {
+            if (auto* e = dynamic_cast<AbstractExternalFileEditorData*>(editor.get().get())) {
                 saveEditor(e);
             }
             else {
@@ -276,7 +282,7 @@ bool UnTechEditor::saveAll()
 void UnTechEditor::invalidateImageCache()
 {
     ImageCache::invalidateImageCache();
-    _backgroundThread.markAllResourcesInvalid();
+    _backgroundThread.markResourceListMovedOrResized();
     if (_currentEditorGui) {
         _currentEditorGui->resetState();
     }
@@ -330,8 +336,8 @@ void UnTechEditor::processMenu()
     }
 
     if (ImGui::BeginMenu("Edit")) {
-        const bool canUndo = _currentEditor && _currentEditor->canUndo();
-        const bool canRedo = _currentEditor && _currentEditor->canRedo();
+        const bool canUndo = _currentEditor && _currentEditor->undoStack().canUndo();
+        const bool canRedo = _currentEditor && _currentEditor->undoStack().canRedo();
 
         if (ImGui::MenuItem("Undo", "Ctrl+Z", false, canUndo)) {
             if (_currentEditorGui) {
@@ -424,8 +430,8 @@ void UnTechEditor::requestExitEditor()
 
     bool projectFileClean = _projectListWindow.isClean();
     for (auto& e : _editors) {
-        if (!e->isClean()) {
-            if (auto* ee = dynamic_cast<AbstractExternalFileEditorData*>(e.get())) {
+        if (!e->undoStack().isClean()) {
+            if (auto* ee = dynamic_cast<AbstractExternalFileEditorData*>(e.get().get())) {
                 files.push_back(ee->filename().lexically_relative(parentPath).u8string());
             }
             else {
@@ -537,7 +543,7 @@ void UnTechEditor::fullscreenBackgroundWindow()
             auto s = splitterSidebarLeft("plSplitter", &_projectListSidebar);
 
             ImGui::BeginChild("ProjectList", s.first, false);
-            _projectListWindow.processGui(_projectData);
+            _projectListWindow.processGui(_backgroundThread.compilerStatus());
             ImGui::EndChild();
 
             editorSize = s.second;
@@ -548,8 +554,8 @@ void UnTechEditor::fullscreenBackgroundWindow()
 
             ImGui::SameLine();
             ImGui::BeginChild(_currentEditorGui->childWindowStrId, editorSize, false);
-            _projectFile.read([&](const auto& pf) {
-                _currentEditorGui->processGui(pf, _projectData);
+            _backgroundThread.read_pf([&](const auto& pf) {
+                _currentEditorGui->processGui(pf, _backgroundThread.projectData());
             });
             ImGui::EndChild();
         }
@@ -562,10 +568,21 @@ void UnTechEditor::processGui()
     fullscreenBackgroundWindow();
 
     if (_currentEditor) {
-        processErrorListWindow(_projectData, _currentEditor);
+        const auto& itemIndex = _currentEditor->itemIndex();
 
-        _projectFile.read([&](const auto& pf) {
-            _currentEditorGui->processExtraWindows(pf, _projectData);
+        _backgroundThread.compilerStatus().readResourceState(
+            itemIndex.type, itemIndex.index,
+            [&](const auto& rs) {
+                if (rs.compileId != _lastCompileId) {
+                    _lastCompileId = rs.compileId;
+                    _currentEditorGui->resourceCompiled(rs.errorList);
+                }
+
+                processErrorListWindow(_currentEditor.get(), rs.state, rs.errorList);
+            });
+
+        _backgroundThread.read_pf([&](const auto& pf) {
+            _currentEditorGui->processExtraWindows(pf, _backgroundThread.projectData());
         });
     }
 
@@ -574,7 +591,7 @@ void UnTechEditor::processGui()
     unsavedChangesOnExitPopup();
 
     if (_currentEditor) {
-        _currentEditor->processEditorActions(_currentEditorGui);
+        _currentEditor->undoStack().processEditorActions(_currentEditorGui.get());
         _currentEditor->updateSelection();
     }
 }
@@ -582,37 +599,37 @@ void UnTechEditor::processGui()
 void UnTechEditor::updateProjectFile()
 {
     if (_currentEditor) {
+        assert(_currentEditorGui);
+
         bool edited = false;
 
-        // ::TODO add requestStopCompiling to background thread::
+        if (_currentEditor->undoStack().hasPendingActions()
+            || _currentEditorGui->hasPendingUndoRedo()) {
 
-        _projectFile.tryWrite([&](auto& pf) {
-            edited = _currentEditor->processPendingProjectActions(pf);
-
-            if (_currentEditorGui) {
-                edited |= processUndoStack(_currentEditorGui, _currentEditor, pf);
-            }
-        });
+            _backgroundThread.tryWrite_pf([&](auto& pf) {
+                edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
+            });
+        }
 
         if (edited) {
-            _backgroundThread.markResourceInvalid(_currentEditor->itemIndex());
+            _backgroundThread.markResourceUnchecked(_currentEditor->itemIndex());
         }
     }
 
     if (_projectListWindow.hasPendingActions()) {
         closeEditor();
 
-        _projectFile.write([&](auto& pf) {
+        _backgroundThread.write_pf([&](auto& pf) {
             _projectListWindow.processPendingActions(pf, _editors);
         });
 
-        _backgroundThread.markAllResourcesInvalid();
+        _backgroundThread.markResourceListMovedOrResized();
     }
 
-    if (_projectListWindow.selectedIndex()) {
-        const auto index = *_projectListWindow.selectedIndex();
-        if (_currentEditor == nullptr || _currentEditor->itemIndex() != index) {
-            openEditor(index);
+    const auto selectedIndex = _projectListWindow.selectedIndex();
+    if (selectedIndex) {
+        if (_currentEditor == nullptr || _currentEditor->itemIndex() != selectedIndex.value()) {
+            openEditor(selectedIndex.value());
         }
     }
     else {
@@ -629,144 +646,16 @@ void UnTechEditor::forceProcessEditorActions()
     if (_currentEditor) {
         bool edited = false;
 
-        _currentEditor->processEditorActions(_currentEditorGui);
-
-        _projectFile.write([&](auto& pf) {
-            edited = _currentEditor->processPendingProjectActions(pf);
+        _backgroundThread.write_pf([&](auto& pf) {
+            edited |= processUndoStack(_currentEditor.get(), _currentEditorGui.get(), pf);
         });
 
         if (edited) {
-            _backgroundThread.markResourceInvalid(_currentEditor->itemIndex());
+            _backgroundThread.markResourceUnchecked(_currentEditor->itemIndex());
         }
 
         _currentEditor->updateSelection();
     }
-}
-
-void BackgroundThread::run()
-{
-    try {
-        while (threadActive) {
-            pendingAction = false;
-
-            isProcessing = true;
-
-            {
-                std::unique_lock lock(mutex);
-
-                if (markAllResourcesInvalidFlag) {
-                    projectFile.read([&](const auto& pf) {
-                        static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
-
-                        projectData.clearAndPopulateNamesAndDependencies(pf);
-                    });
-
-                    markResourceInvalidQueue.clear();
-                    markAllResourcesInvalidFlag = false;
-                }
-
-                if (!markResourceInvalidQueue.empty()) {
-                    for (auto& r : markResourceInvalidQueue) {
-                        projectData.markResourceInvalid(r.type, r.index);
-
-                        // ::TODO add separate quque for updating dependencies::
-                        // ::: and add flag in EditorUndoAction to mark when dependencies changes::
-                        projectFile.read([&](const auto& pf) {
-                            static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
-                            projectData.updateDependencyGraph(pf, r.type, r.index);
-                        });
-                    }
-
-                    markResourceInvalidQueue.clear();
-                }
-            }
-
-            if (!projectDataValid.test_and_set()) {
-                projectFile.read([&](auto& pf) {
-                    static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
-
-                    projectData.compileAll_NoEarlyExit(pf);
-
-                    processEntityGraphics(pf, projectData);
-                });
-            }
-
-            isProcessing = false;
-
-            std::unique_lock lock(mutex);
-            cv.wait(lock, [&]() { return pendingAction || !threadActive; });
-        }
-    }
-    catch (const std::exception& ex) {
-        MsgBox::showMessage(u8"An exception occurred when compiling a resource",
-                            stringBuilder(convert_old_string(ex.what()),
-                                          u8"\n\n\nThis should not happen."
-                                          u8"\n\nThe resource compiler is now disabled."));
-
-        projectData.markAllResourcesInvalid();
-    }
-
-    isProcessing = false;
-}
-
-BackgroundThread::BackgroundThread(Project::ProjectFileMutex& pf, Project::ProjectData& pd)
-    : projectFile(pf)
-    , projectData(pd)
-    , thread()
-    , mutex()
-    , cv()
-    , threadActive(true)
-    , pendingAction(false)
-    , isProcessing(false)
-    , projectDataValid(false)
-    , markAllResourcesInvalidFlag(true)
-    , markResourceInvalidQueue()
-{
-    thread = std::thread(&BackgroundThread::run, this);
-}
-
-BackgroundThread::~BackgroundThread()
-{
-    // Request stop thread
-    {
-        std::lock_guard lock(mutex);
-
-        // ::TODO set requestStopCompiling flag::
-        threadActive = false;
-    }
-    cv.notify_all();
-
-    if (thread.joinable()) {
-        thread.join();
-    }
-
-    assert(isProcessing == false);
-}
-
-void BackgroundThread::markAllResourcesInvalid()
-{
-    {
-        std::lock_guard lock(mutex);
-
-        markAllResourcesInvalidFlag = true;
-
-        projectDataValid.clear();
-        pendingAction = true;
-    }
-    cv.notify_all();
-}
-
-void BackgroundThread::markResourceInvalid(const ItemIndex index)
-{
-    {
-        std::lock_guard lock(mutex);
-
-        markResourceInvalidQueue.push_back(index);
-
-        projectDataValid.clear();
-        pendingAction = true;
-    }
-    cv.notify_all();
 }
 
 }

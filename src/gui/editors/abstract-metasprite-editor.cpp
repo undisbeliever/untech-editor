@@ -22,16 +22,12 @@ bool AbstractMetaSpriteEditorGui::showActionPoints = true;
 void AbstractMetaSpriteEditorGui::resetState()
 {
     _exportOrderValid = false;
-}
 
-void AbstractMetaSpriteEditorGui::setMetaSpriteData(AbstractMetaSpriteEditorData* data)
-{
     _animationState.resetState();
     _animationTimer.stop();
 
-    if (data) {
-        _animationState.animationIndex = data->animationsSel.selectedIndex();
-    }
+    // Reset animation preview on the next `animationPreviewWindow()` call.
+    prevAnimationIndex = INT_MAX;
 }
 
 void AbstractMetaSpriteEditorGui::viewMenu()

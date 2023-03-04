@@ -35,14 +35,14 @@ class ScenesEditorGui final : public AbstractEditorGui {
 private:
     using AP = ScenesEditorData::AP;
 
-    ScenesEditorData* _data;
+    std::shared_ptr<ScenesEditorData> _data;
 
     SplitterBarState _topbar;
 
 public:
     ScenesEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 

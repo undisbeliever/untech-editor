@@ -8,13 +8,14 @@
 
 #include "gui/item-index.h"
 #include <filesystem>
+#include <gsl/pointers>
 #include <memory>
 #include <optional>
 #include <vector>
 
 namespace UnTech::Project {
-class ProjectData;
 struct ProjectFile;
+class CompilerStatus;
 }
 
 namespace UnTech::Gui {
@@ -38,7 +39,7 @@ class ProjectListWindow {
 private:
     State _state = State::SELECT_RESOURCE;
     std::optional<ItemIndex> _selectedIndex;
-    std::vector<std::unique_ptr<AbstractEditorData>> _removedEditors;
+    std::vector<std::shared_ptr<AbstractEditorData>> _removedEditors;
 
     // Selected index in the "Add Resource" menu
     unsigned _addMenuIndex = 0;
@@ -57,16 +58,17 @@ public:
     void markClean() { _clean = true; }
 
     void processMenu();
-    void processGui(const Project::ProjectData& projectData);
+    void processGui(const Project::CompilerStatus& status);
 
     [[nodiscard]] bool hasPendingActions() const
     {
         return _state == State::ADD_RESOURCE_CONFIRMED || _state == State::REMOVE_RESOURCE_CONFIRMED;
     }
-    void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
+    void processPendingActions(Project::ProjectFile& projectFile,
+                               std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>>& editors);
 
 private:
-    void projectListWindow(const Project::ProjectData& projectData);
+    void projectListWindow(const Project::CompilerStatus& status);
 
     void addResourceDialog();
     void confirmRemovePopup();
@@ -74,7 +76,8 @@ private:
     void addResource(UnTech::Project::ProjectFile& projectFile);
 
     [[nodiscard]] bool canRemoveSelectedIndex() const;
-    void removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
+    void removeResource(Project::ProjectFile& projectFile,
+                        std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>>& editors);
 };
 
 }

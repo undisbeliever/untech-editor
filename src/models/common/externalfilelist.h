@@ -63,10 +63,12 @@ public:
     ExternalFileList() = default;
     ~ExternalFileList() = default;
 
+    // Allow moving
+    ExternalFileList(ExternalFileList&&) noexcept = default;
+    ExternalFileList& operator=(ExternalFileList&& other) noexcept = default;
+
     ExternalFileList(const ExternalFileList&) = delete;
-    ExternalFileList(ExternalFileList&&) = delete;
     ExternalFileList& operator=(const ExternalFileList& other) = delete;
-    ExternalFileList& operator=(ExternalFileList&& other) = delete;
 
     size_type size() const { return _list.size(); }
 
@@ -92,15 +94,20 @@ public:
         return std::nullopt;
     }
 
-    // returns INT_MAX if name is not found
-    size_type indexOf(const idstring& name) const
+    std::optional<size_type> indexOf(const idstring& name) const
     {
         for (const auto [i, item] : const_enumerate(_list)) {
             if (item.value && item.value->name == name) {
                 return i;
             }
         }
-        return INT_MAX;
+        return std::nullopt;
+    }
+
+    [[nodiscard]] bool contains(const idstring& name) const
+    {
+        return std::any_of(_list.begin(), _list.end(),
+                           [&](const auto& i) { return i.value && i.value->name == name; });
     }
 
     Item& item(size_type index) { return _list.at(index); }

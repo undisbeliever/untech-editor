@@ -434,12 +434,10 @@ MetaSpriteEditorGui::MetaSpriteEditorGui()
 {
 }
 
-bool MetaSpriteEditorGui::setEditorData(AbstractEditorData* data)
+bool MetaSpriteEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    _data = dynamic_cast<MetaSpriteEditorData*>(data);
-    setMetaSpriteData(_data);
-
-    return _data;
+    _data = std::dynamic_pointer_cast<MetaSpriteEditorData>(data);
+    return _data != nullptr;
 }
 
 void MetaSpriteEditorGui::resetState()
@@ -842,7 +840,7 @@ void MetaSpriteEditorGui::tilesetButtons()
             }
         };
 
-        _data->startMacro();
+        _data->undoStack().startMacro();
         if (_data->smallTilesetSel.hasSelection()) {
             ListActions<AP::SmallTileset>::editList(_data, EditListAction::REMOVE);
             tileRemoved(_data->smallTilesetSel.selectedIndex(), ObjectSize::SMALL);
@@ -851,7 +849,7 @@ void MetaSpriteEditorGui::tilesetButtons()
             ListActions<AP::LargeTileset>::editList(_data, EditListAction::REMOVE);
             tileRemoved(_data->largeTilesetSel.selectedIndex(), ObjectSize::LARGE);
         }
-        _data->endMacro();
+        _data->undoStack().endMacro();
     }
 }
 
@@ -894,7 +892,7 @@ void MetaSpriteEditorGui::drawTileset(const char* label, typename TilesetPolicy:
         return;
     }
 
-    SingleSelection& sel = _data->*TilesetPolicy::SelectionPtr;
+    SingleSelection& sel = (*_data).*(TilesetPolicy::SelectionPtr);
 
     const ImVec2 offset = ImGui::GetCursorScreenPos();
 
@@ -1252,7 +1250,7 @@ void MetaSpriteEditorGui::frameEditorGui()
                       &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
 
     if (_graphics.isEditingFinished()) {
-        _data->startMacro();
+        _data->undoStack().startMacro();
 
         if (_data->tileHitboxSel.isSelected()) {
             ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
@@ -1272,7 +1270,7 @@ void MetaSpriteEditorGui::frameEditorGui()
             ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::hurtbox>(_data);
         }
 
-        _data->endMacro();
+        _data->undoStack().endMacro();
     }
 
     Style::metaSpriteZoom.processMouseWheel();

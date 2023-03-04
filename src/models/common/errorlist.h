@@ -9,6 +9,7 @@
 #include "stringbuilder.h"
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace UnTech {
@@ -36,22 +37,27 @@ public:
     virtual void printIndented(StringStream& out) const;
 };
 
+template <typename T>
+    requires std::is_enum_v<T>
 struct GenericListError : public AbstractError {
 public:
+    const T type;
     const unsigned firstIndex;
     const unsigned childIndex;
 
-    GenericListError(unsigned pIndex, std::u8string&& message)
-        : AbstractError(std::move(message))
-        , firstIndex(pIndex)
-        , childIndex(0)
+    GenericListError(T type_, unsigned pIndex, std::u8string message)
+        : AbstractError{ std::move(message) }
+        , type{ type_ }
+        , firstIndex{ pIndex }
+        , childIndex{ 0 }
     {
     }
 
-    GenericListError(unsigned pIndex, unsigned cIndex, std::u8string&& message)
-        : AbstractError(std::move(message))
-        , firstIndex(pIndex)
-        , childIndex(cIndex)
+    GenericListError(T type_, unsigned pIndex, unsigned cIndex, std::u8string message)
+        : AbstractError{ std::move(message) }
+        , type{ type_ }
+        , firstIndex{ pIndex }
+        , childIndex{ cIndex }
     {
     }
 

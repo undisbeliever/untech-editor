@@ -35,13 +35,6 @@ public:
     void saveFile() const final;
     void errorDoubleClicked(const AbstractError*) final;
     void updateSelection() final;
-
-protected:
-    grid<uint8_t>& map() final;
-    void mapTilesPlaced(const urect r) final;
-
-    void selectedTilesetTilesChanged() final;
-    void selectedTilesChanged() final;
 };
 
 class MetaTileTilesetEditorGui final : public AbstractMetaTileEditorGui {
@@ -60,14 +53,13 @@ private:
         bool functionTableSame;
     };
 
-    MetaTileTilesetEditorData* _data;
+    std::shared_ptr<MetaTileTilesetEditorData> _data;
 
     usize _scratchpadSize;
     std::optional<TileProperties> _tileProperties;
 
     InvalidImageErrorGraphics _invalidTilesCommon;
     std::vector<InvalidImageErrorGraphics> _invalidTilesFrame;
-    unsigned _invalidTilesCompileId;
 
     SplitterBarState _sidebar;
     SplitterBarState _minimapRight_sidebar;
@@ -84,16 +76,24 @@ public:
 public:
     MetaTileTilesetEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 
     void processGui(const Project::ProjectFile& projectFile,
                     const Project::ProjectData& projectData) final;
 
+    void resourceCompiled(const ErrorList& errors) final;
+
     void viewMenu() final;
 
 protected:
+    [[nodiscard]] grid<uint8_t>& map() final;
+    void mapTilesPlaced(const urect r) final;
+
+    void selectedTilesetTilesChanged() final;
+    void selectedTilesChanged() final;
+
     void selectionChanged() final;
     [[nodiscard]] const std::array<idstring, 256>& tileFunctionTables() const final;
 
@@ -112,7 +112,6 @@ private:
 
     void updateMtTilesetShader(const Project::ProjectFile& projectFile,
                                const Project::ProjectData& projectData);
-    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

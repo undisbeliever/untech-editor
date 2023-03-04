@@ -283,7 +283,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
 
     for (const auto layerId : range(N_LAYERS)) {
         auto b = findFreeSpaceForwards(input.at(layerId).nTileBlocks, TILE_ALIGN);
-        if (b == std::nullopt) {
+        if (!b) {
             return std::nullopt;
         }
         layerBases.at(layerId).tiles = *b;
@@ -294,7 +294,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
     for (const auto layerId : range(N_LAYERS)) {
         // Search backwards through vram to increase the amount of free tiles available for BG 1 and BG 2
         auto b = findFreeSpaceBackwards(input.at(layerId).nTileBlocks, MAP_ALIGN);
-        if (b == std::nullopt) {
+        if (!b) {
             return std::nullopt;
         }
         layerBases.at(layerId).map = *b;
@@ -457,13 +457,14 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     }
 
     case LayerType::BackgroundImage: {
-        const auto index = projectData.backgroundImages().indexOf(layer);
-        const auto bi = projectData.backgroundImages().at(index);
+        const auto indexAndData = projectData.backgroundImages.indexAndDataFor(layer);
 
-        if (!bi) {
+        if (!indexAndData) {
             addError(u8"Cannot find background image", layer);
             break;
         }
+        const auto& index = indexAndData->first;
+        const auto& bi = indexAndData->second;
 
         // ::SHOULDDO add warning if palette conversion colours do not match::
 
@@ -472,7 +473,7 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
             break;
         }
 
-        out.layerIndex = *index;
+        out.layerIndex = index;
         out.tileSize = bi->tilesetDataSize();
         out.nMaps = bi->nTilemaps();
         out.mapHorizontalMirroring = bi->tilemapHorizontalMirroring();
@@ -481,20 +482,21 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     }
 
     case LayerType::MetaTileTileset: {
-        const auto index = projectData.metaTileTilesets().indexOf(layer);
-        const auto mt = projectData.metaTileTilesets().at(layer);
+        const auto indexAndData = projectData.metaTileTilesets.indexAndDataFor(layer);
 
-        if (!mt) {
+        if (!indexAndData) {
             addError(u8"Cannot find MetaTile Tileset", layer);
             break;
         }
+        const auto& index = indexAndData->first;
+        const auto& mt = indexAndData->second;
 
         if (mt->animatedTileset.bitDepth != bitDepth) {
             addError(u8"Invalid bit depth, expected ", bitDepthUint, u8" got ", unsigned(mt->animatedTileset.bitDepth));
             break;
         }
 
-        out.layerIndex = *index;
+        out.layerIndex = index;
         out.tileSize = mt->animatedTileset.vramTileSize();
 
         // The tilemap is fixed for MetaTile Tilesets
@@ -507,6 +509,11 @@ static SceneLayerData getLayerSize(const unsigned layerIndex,
     case LayerType::TextConsole: {
         if (layer.isValid()) {
             addError(u8"Text Console layer must be blank");
+            break;
+        }
+        if (!bitDepth) {
+            addError(u8"Text Console layer is missing bitDepth");
+            break;
         }
 
         out.tileSize = 256 * Snes::snesTileSizeForBitdepth(bitDepth.value());
@@ -548,8 +555,11 @@ static SceneData readSceneData(const SceneInput& scene, const unsigned sceneInde
     const SceneSettingsInput& sceneSettings = resourceScenes.settings.at(nimIt->second);
     out.sceneSettings = nimIt->second;
 
-    out.palette = projectData.palettes().indexOf(scene.palette);
-    if (!out.palette) {
+    const auto palIndexAndData = projectData.palettes.indexAndDataFor(scene.palette);
+    if (palIndexAndData) {
+        out.palette = palIndexAndData->first;
+    }
+    else {
         addError(u8"Cannot find palette ", scene.palette);
     }
 
@@ -597,6 +607,8 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
         return nullptr;
     }
 
+    assert(sceneSettingsMap);
+
     auto out = std::make_shared<CompiledScenesData>();
 
     out->sceneSettings = compileSceneSettingsData(resourceScenes.settings, err);
@@ -607,7 +619,7 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
 
     for (auto [sceneIndex, scene] : const_enumerate(resourceScenes.scenes)) {
         out->scenes.emplace_back(
-            readSceneData(scene, sceneIndex, resourceScenes, *sceneSettingsMap, projectData, err));
+            readSceneData(scene, sceneIndex, resourceScenes, sceneSettingsMap.value(), projectData, err));
 
         const auto r = out->nameIndexMap.try_emplace(scene.name, sceneIndex);
         if (r.second == false) {
@@ -649,9 +661,9 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
         }
 
         if (scene.valid) {
-            assert(*scene.sceneSettings < UINT8_MAX);
-            assert(*scene.vramLayout < UINT8_MAX);
-            assert(*scene.palette < UINT8_MAX);
+            assert(scene.sceneSettings && scene.sceneSettings.value() < UINT8_MAX);
+            assert(scene.vramLayout && scene.vramLayout.value() < UINT8_MAX);
+            assert(scene.palette && scene.palette.value() < UINT8_MAX);
             for (const auto& l : scene.layers) {
                 assert(l.layerIndex < UINT8_MAX);
             }
@@ -663,10 +675,10 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
             auto sDataIt = sDataStart;
 
             // Must update CompiledScenesData::SCENE_FORMAT_VERSION if data format changes
-            *sDataIt++ = *scene.sceneSettings;   // Scene.settings
-            *sDataIt++ = *scene.vramLayout;      // Scene.vramLayout
-            *sDataIt++ = *scene.palette;         // Scene.palette
-            for (const auto& l : scene.layers) { // Scene.layers
+            *sDataIt++ = scene.sceneSettings.value(); // Scene.settings
+            *sDataIt++ = scene.vramLayout.value();    // Scene.vramLayout
+            *sDataIt++ = scene.palette.value();       // Scene.palette
+            for (const auto& l : scene.layers) {      // Scene.layers
                 *sDataIt++ = l.layerIndex;
             }
             assert(sDataIt == sDataStart + SCENE_DATA_ENTRY_SIZE);

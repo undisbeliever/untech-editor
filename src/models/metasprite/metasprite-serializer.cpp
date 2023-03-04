@@ -213,7 +213,7 @@ private:
 
         std::array<uint8_t, 32> data{};
 
-        xml.parseBase64ToByteArray(data);
+        xml.parseBase64ToFixedSizeBuffer(data);
 
         frameSet.palettes.push_back(Snes::readSnesPaletteData(data));
     }

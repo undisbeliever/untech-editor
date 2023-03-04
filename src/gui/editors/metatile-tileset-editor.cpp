@@ -137,7 +137,7 @@ void MetaTileTilesetEditorData::errorDoubleClicked(const AbstractError* error)
         switch (e->type) {
         case Type::TILE:
             selectedTilesetTiles.insert(e->firstIndex);
-            selectedTilesetTilesChanged();
+            tilePropertiesWindowValid = false;
 
             break;
         }
@@ -155,36 +155,22 @@ void MetaTileTilesetEditorData::updateSelection()
     paletteSel.update();
 }
 
-grid<uint8_t>& MetaTileTilesetEditorData::map()
+void MetaTileTilesetEditorGui::selectedTilesChanged()
 {
-    return data.scratchpad;
-}
+    assert(_data);
+    const auto& tileset = _data->data;
 
-void MetaTileTilesetEditorData::mapTilesPlaced(const urect r)
-{
-    assert(data.scratchpad.size().contains(r));
+    if (!_data->selectedTiles.empty()) {
+        const auto& scratchpad = tileset.scratchpad;
 
-    GridActions<AP::Scratchpad>::gridTilesPlaced(this, r);
-}
-
-void MetaTileTilesetEditorData::selectedTilesetTilesChanged()
-{
-    tilePropertiesWindowValid = false;
-}
-
-void MetaTileTilesetEditorData::selectedTilesChanged()
-{
-    if (!selectedTiles.empty()) {
-        const auto& scratchpad = data.scratchpad;
-
-        selectedTilesetTiles.clear();
-        for (const upoint& p : selectedTiles) {
+        _data->selectedTilesetTiles.clear();
+        for (const upoint& p : _data->selectedTiles) {
             if (p.x < scratchpad.width() && p.y < scratchpad.height()) {
-                selectedTilesetTiles.insert(scratchpad.at(p));
+                _data->selectedTilesetTiles.insert(scratchpad.at(p));
             }
         }
 
-        tilePropertiesWindowValid = false;
+        _data->tilePropertiesWindowValid = false;
     }
 }
 
@@ -193,7 +179,6 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
     , _data(nullptr)
     , _scratchpadSize()
     , _tileProperties(std::nullopt)
-    , _invalidTilesCompileId(0)
     , _sidebar{ 300, 200, 400 }
     , _minimapRight_sidebar{ 320, 280, 400 }
     , _minimapBottom_sidebar{ 320, 280, 400 }
@@ -204,10 +189,12 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
 {
 }
 
-bool MetaTileTilesetEditorGui::setEditorData(AbstractEditorData* data)
+bool MetaTileTilesetEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     AbstractMetaTileEditorGui::setEditorData(data);
-    return (_data = dynamic_cast<MetaTileTilesetEditorData*>(data));
+    _data = std::dynamic_pointer_cast<MetaTileTilesetEditorData>(data);
+
+    return _data != nullptr;
 }
 
 void MetaTileTilesetEditorGui::resetState()
@@ -218,7 +205,6 @@ void MetaTileTilesetEditorGui::resetState()
 
     setEditMode(EditMode::SelectTiles);
 
-    _invalidTilesCompileId = 0;
     _tilesetShaderImageFilenamesValid = false;
     _tileCollisionsValid = false;
     _interactiveTilesValid = false;
@@ -227,6 +213,28 @@ void MetaTileTilesetEditorGui::resetState()
 void MetaTileTilesetEditorGui::editorClosed()
 {
     AbstractMetaTileEditorGui::editorClosed();
+}
+
+grid<uint8_t>& MetaTileTilesetEditorGui::map()
+{
+    assert(_data);
+    return _data->data.scratchpad;
+}
+
+void MetaTileTilesetEditorGui::mapTilesPlaced(const urect r)
+{
+    assert(_data);
+    const auto& tileset = _data->data;
+
+    assert(tileset.scratchpad.size().contains(r));
+
+    GridActions<AP::Scratchpad>::gridTilesPlaced(_data, r);
+}
+
+void MetaTileTilesetEditorGui::selectedTilesetTilesChanged()
+{
+    assert(_data);
+    _data->tilePropertiesWindowValid = false;
 }
 
 void MetaTileTilesetEditorGui::propertiesGui(const Project::ProjectFile& projectFile)
@@ -709,7 +717,6 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
 
     updateMtTilesetShader(projectFile, projectData);
     updateMapAndProcessAnimations();
-    updateInvalidTileList(projectData);
 
     auto editorTabs = [&] {
         if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
@@ -801,12 +808,18 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile&
     auto& mtTileset = _data->data;
 
     if (_data->paletteSel.selectedIndex() < mtTileset.palettes.size()) {
-        auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
+        const auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
+        const auto palIndexAndData = projectData.palettes.indexAndDataFor(paletteName);
 
-        _tilesetShader.setPaletteData(projectData.palettes().at(paletteName));
+        if (palIndexAndData) {
+            _tilesetShader.setPaletteData(palIndexAndData->second);
+        }
+        else {
+            _tilesetShader.setPaletteData(nullptr);
+        }
     }
 
-    const auto mtData = projectData.metaTileTilesets().at(_data->itemIndex().index);
+    const auto mtData = projectData.metaTileTilesets.at(_data->itemIndex().index);
     if (mtData != _tilesetShader.tilesetData() || !_tilesetShaderImageFilenamesValid) {
         _tilesetShader.setTilesetData(mtTileset, mtData);
         _tilesetShaderImageFilenamesValid = true;
@@ -825,37 +838,31 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile&
     }
 }
 
-void MetaTileTilesetEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+void MetaTileTilesetEditorGui::resourceCompiled(const ErrorList& errors)
 {
+    assert(_data);
+
     using InvalidImageError = UnTech::Resources::InvalidImageError;
 
-    assert(_data);
-    const auto& mtTileset = _data->data;
+    _invalidTilesCommon.clear();
+    _invalidTilesFrame.resize(_data->data.animationFrames.frameImageFilenames.size());
+    for (auto& invalidTiles : _invalidTilesFrame) {
+        invalidTiles.clear();
+    }
 
-    projectData.metaTileTilesets().readResourceState(
-        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
-            if (status.compileId != _invalidTilesCompileId) {
-                _invalidTilesCompileId = status.compileId;
-                _invalidTilesCommon.clear();
-                _invalidTilesFrame.resize(mtTileset.animationFrames.frameImageFilenames.size());
-                for (auto& invalidTiles : _invalidTilesFrame) {
-                    invalidTiles.clear();
-                }
-
-                for (const auto& errorItem : status.errorList.list()) {
-                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
-                        if (imgErr->hasFrameId()) {
-                            if (imgErr->frameId < _invalidTilesFrame.size()) {
-                                _invalidTilesFrame.at(imgErr->frameId).append(*imgErr);
-                            }
-                        }
-                        else {
-                            _invalidTilesCommon.append(*imgErr);
-                        }
-                    }
+    for (const auto& errorItem : errors.list()) {
+        if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.get())) {
+            if (imgErr->frameId) {
+                const auto fid = imgErr->frameId.value();
+                if (fid < _invalidTilesFrame.size()) {
+                    _invalidTilesFrame.at(fid).append(*imgErr);
                 }
             }
-        });
+            else {
+                _invalidTilesCommon.append(*imgErr);
+            }
+        }
+    }
 }
 
 }

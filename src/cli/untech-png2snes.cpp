@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "helpers/commandlineparser.h"
+#include "argparser.h"
 #include "models/common/exceptions.h"
 #include "models/common/file.h"
 #include "models/common/indexedimage.h"
@@ -16,68 +16,75 @@
 
 using namespace UnTech;
 using namespace UnTech::Snes;
+using namespace UnTech::ArgParser;
 
-using OT = CommandLine::OptionType;
-const CommandLine::Config COMMAND_LINE_CONFIG = {
-    "UnTech png2snes",
-    "png file",
-    {
-        { 'b', "bpp", OT::UNSIGNED, true, {}, "bits per pixel" },
-        { 't', "tileset", OT::FILENAME, true, {}, "tileset output file" },
-        { 'm', "tilemap", OT::FILENAME, true, {}, "tilemap output file" },
-        { 'p', "palette", OT::FILENAME, true, {}, "palette output file" },
-        { '\0', "tile-offset", OT::UNSIGNED, false, 0U, "tilemap char offset" },
-        { '\0', "max-tiles", OT::UNSIGNED, false, 1024U, "maximum number of tiles" },
-        { '\0', "palette-offset", OT::UNSIGNED, false, 0U, "palette offset" },
-        { '\0', "max-palettes", OT::UNSIGNED, false, 8U, "maximum number of palettes" },
-        { '\0', "order", OT::UNSIGNED, false, 0U, "tilemap order" },
-        { 'v', "verbose", OT::BOOLEAN, false, {}, "verbose output" },
-        { '\0', "version", OT::VERSION, false, {}, "display version information" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
-    }
+struct Args {
+    std::filesystem::path inputFilename;
+
+    unsigned bpp;
+    std::filesystem::path tilesetFilename;
+    std::filesystem::path tilemapFilename;
+    std::filesystem::path paletteFilename;
+
+    unsigned tileOffset;
+    unsigned maxTiles;
+    unsigned paletteOffset;
+    unsigned maxPalettes;
+    unsigned tilemapOrder;
+
+    bool verbose;
 };
 
-int process(const CommandLine::Parser& args)
+// clang-format off
+constexpr static auto ARG_PARSER_CONFIG = argParserConfig(
+    "UnTech png2snes",
+    "png file",
+
+    RequiredArg<    &Args::bpp              >{  'b',    "bpp",              "bits per pixel",                       },
+    RequiredArg<    &Args::tilesetFilename  >{  't',    "tileset",          "tileset output file"                   },
+    RequiredArg<    &Args::tilemapFilename  >{  'm',    "tilemap",          "tilemap output file"                   },
+    RequiredArg<    &Args::paletteFilename  >{  'p',    "palette",          "palette output file"                   },
+    OptionalArg<    &Args::tileOffset       >{  '\0',   "tile-offset",      "maximum number of tiles",      0U      },
+    OptionalArg<    &Args::maxTiles         >{  '\0',   "max-tiles",        "maximum number of tiles",      1024U   },
+    OptionalArg<    &Args::paletteOffset    >{  '\0',   "palette-offset",   "palette offset",               0U      },
+    OptionalArg<    &Args::maxPalettes      >{  '\0',   "max-palettes",     "maximum number of palettes",   8U      },
+    OptionalArg<    &Args::tilemapOrder     >{  '\0',   "order",            "tilemap order",                0U      },
+    BooleanArg<     &Args::verbose          >{  'v',    "verbose",          "verbose output"                        }
+);
+// clang-format on
+
+static int process(const Args& args)
 {
-    const std::filesystem::path& inputFile = args.inputFilename();
-
-    const auto bitDepth = toBitDepthSpecial(args.options().at("bpp").uint());
-    const unsigned tileOffset = args.options().at("tile-offset").uint();
-    const unsigned maxTiles = args.options().at("max-tiles").uint();
-    const unsigned paletteOffset = args.options().at("palette-offset").uint();
-    const unsigned maxPalettes = args.options().at("max-palettes").uint();
-    const bool order = args.options().at("order").uint();
-
-    const bool verbose = args.options().at("verbose").boolean();
+    const auto bitDepth = toBitDepthSpecial(args.bpp);
 
     Image2Snes image2Snes(bitDepth);
-    image2Snes.setTileOffset(tileOffset);
-    image2Snes.setMaxTiles(maxTiles);
-    image2Snes.setPaletteOffset(paletteOffset);
-    image2Snes.setMaxPalettes(maxPalettes);
-    image2Snes.setOrder(order);
+    image2Snes.setTileOffset(args.tileOffset);
+    image2Snes.setMaxTiles(args.maxTiles);
+    image2Snes.setPaletteOffset(args.paletteOffset);
+    image2Snes.setMaxPalettes(args.maxPalettes);
+    image2Snes.setOrder(args.tilemapOrder);
 
-    const auto image = IndexedImage::loadPngImage_shared(inputFile);
+    const auto image = IndexedImage::loadPngImage_shared(args.inputFilename);
     assert(image);
 
     if (image->empty()) {
         throw runtime_error(image->errorString());
     }
 
-    if (verbose) {
+    if (args.verbose) {
         std::cout << "SETTINGS:\n"
-                  << "   Bit Depth:      " << unsigned(bitDepth) << "bpp\n"
-                  << "   Max Tiles:      " << maxTiles << '\n'
-                  << "   Tile Offset:    " << tileOffset << '\n';
+                  << "   Bit Depth:      " << args.bpp << "bpp\n"
+                  << "   Max Tiles:      " << args.maxTiles << '\n'
+                  << "   Tile Offset:    " << args.tileOffset << '\n';
 
         if (bitDepth <= Snes::BitDepthSpecial::BD_4BPP) {
             std::cout
-                << "   Max Palettes:   " << maxPalettes << '\n'
-                << "   Palette Offset: " << paletteOffset << '\n';
+                << "   Max Palettes:   " << args.maxPalettes << '\n'
+                << "   Palette Offset: " << args.paletteOffset << '\n';
         }
 
         std::cout << "\nINPUT:\n"
-                  << "   " << inputFile << '\n'
+                  << "   " << args.inputFilename << '\n'
                   << "   " << image->size().width << " x " << image->size().height << " px\n"
                   << "   " << image->palette().size() << " colors\n"
                   << std::endl;
@@ -85,7 +92,7 @@ int process(const CommandLine::Parser& args)
 
     image2Snes.process(*image);
 
-    if (verbose) {
+    if (args.verbose) {
         const auto& palette = image2Snes.palette();
         const auto& tileset = image2Snes.tileset();
         const auto& tilemap = image2Snes.tilemap();
@@ -104,13 +111,9 @@ int process(const CommandLine::Parser& args)
                   << std::endl;
     }
 
-    const std::filesystem::path& tilesetFile = args.options().at("tileset").path();
-    const std::filesystem::path& tilemapFile = args.options().at("tilemap").path();
-    const std::filesystem::path& paletteFile = args.options().at("palette").path();
-
-    File::atomicWrite(tilesetFile, image2Snes.tilesetSnesData());
-    File::atomicWrite(tilemapFile, image2Snes.tilemap().snesData());
-    File::atomicWrite(paletteFile, image2Snes.paletteSnesData());
+    File::atomicWrite(args.tilesetFilename, image2Snes.tilesetSnesData());
+    File::atomicWrite(args.tilemapFilename, image2Snes.tilemap().snesData());
+    File::atomicWrite(args.paletteFilename, image2Snes.paletteSnesData());
 
     return EXIT_SUCCESS;
 }
@@ -118,8 +121,7 @@ int process(const CommandLine::Parser& args)
 int main(int argc, const char* argv[])
 {
     try {
-        CommandLine::Parser args(COMMAND_LINE_CONFIG);
-        args.parse(argc, argv);
+        const Args args = parseProgramArguments(ARG_PARSER_CONFIG, argc, argv);
         return process(args);
     }
     catch (const std::exception& ex) {

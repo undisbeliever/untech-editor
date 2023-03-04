@@ -6,11 +6,9 @@
 
 #pragma once
 
+#include "background-thread.h"
 #include "item-index.h"
 #include "splitter.h"
-#include "gui/graphics/entity-graphics.h"
-#include "models/project/project-data.h"
-#include "models/project/project-file-mutex.h"
 #include "models/project/project.h"
 #include "windows/projectlist.h"
 #include <atomic>
@@ -27,62 +25,24 @@ class AbstractEditorData;
 class AbstractExternalFileEditorData;
 class AbstractEditorGui;
 
-class BackgroundThread {
-private:
-    UnTech::Project::ProjectFileMutex& projectFile;
-    UnTech::Project::ProjectData& projectData;
-
-    std::thread thread;
-
-    std::mutex mutex;
-    std::condition_variable cv;
-
-    std::atomic_bool threadActive;
-    std::atomic_bool pendingAction;
-
-    std::atomic_bool isProcessing;
-
-    std::atomic_flag projectDataValid;
-
-    std::atomic_bool markAllResourcesInvalidFlag;
-    std::vector<ItemIndex> markResourceInvalidQueue;
-
-public:
-    // Cannot copy or move BackgroundThread
-    BackgroundThread(const BackgroundThread&) = delete;
-    BackgroundThread& operator=(const BackgroundThread&) = delete;
-    BackgroundThread& operator=(BackgroundThread&&) = delete;
-    BackgroundThread(BackgroundThread&&) = delete;
-
-public:
-    BackgroundThread(UnTech::Project::ProjectFileMutex& pf,
-                     UnTech::Project::ProjectData& pd);
-    ~BackgroundThread();
-
-    void markAllResourcesInvalid();
-    void markResourceInvalid(ItemIndex index);
-
-private:
-    void run();
-};
-
 class UnTechEditor {
 private:
     static std::shared_ptr<UnTechEditor> _instance;
-
-    UnTech::Project::ProjectFileMutex _projectFile;
-    UnTech::Project::ProjectData _projectData;
 
     BackgroundThread _backgroundThread;
 
     const std::filesystem::path _filename;
     const std::u8string _basename;
 
-    std::vector<std::unique_ptr<AbstractEditorGui>> _editorGuis;
+    std::vector<gsl::not_null<std::shared_ptr<AbstractEditorGui>>> _editorGuis;
 
-    std::vector<std::unique_ptr<AbstractEditorData>> _editors;
-    AbstractEditorData* _currentEditor;
-    AbstractEditorGui* _currentEditorGui;
+    std::vector<gsl::not_null<std::shared_ptr<AbstractEditorData>>> _editors;
+
+    std::shared_ptr<AbstractEditorData> _currentEditor;
+    std::shared_ptr<AbstractEditorGui> _currentEditorGui;
+
+    // The last compileId read for the current resource
+    uint64_t _lastCompileId;
 
     ProjectListWindow _projectListWindow;
 
@@ -95,7 +55,8 @@ private:
     std::vector<std::u8string> _unsavedFilesList;
 
 private:
-    UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf,
+    // pf MUST NOT be nullptr
+    UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile> pf,
                  const std::filesystem::path& fn);
 
 public:

@@ -51,7 +51,7 @@ class SpriteImporterEditorGui final : public AbstractMetaSpriteEditorGui {
 private:
     using AP = SpriteImporterEditorData::AP;
 
-    SpriteImporterEditorData* _data;
+    std::shared_ptr<SpriteImporterEditorData> _data;
 
     AabbGraphics _graphics;
     Texture _imageTexture;
@@ -67,7 +67,7 @@ public:
 public:
     SpriteImporterEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 

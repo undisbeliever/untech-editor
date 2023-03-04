@@ -216,6 +216,20 @@ static void checkExportListSize(const FrameSetExportList& input, ErrorList& err)
 }
 
 static std::shared_ptr<FrameSetData>
+buildOutput(const MetaSprite::FrameSet& frameSet, const ActionPointMapping& actionPointMapping,
+            const FrameSetExportList& exportList, const TilesetLayout& tilesetLayout)
+{
+    auto out = std::make_shared<FrameSetData>();
+
+    out->tileset = processTileset(frameSet, tilesetLayout);
+    out->frames = processFrameList(exportList, out->tileset, actionPointMapping, frameSet);
+    out->animations = processAnimations(exportList, frameSet);
+    out->palettes = processPalettes(frameSet.palettes);
+
+    return out;
+}
+
+static std::shared_ptr<FrameSetData>
 compileFrameSet(const MetaSprite::FrameSet& frameSet,
                 const Project::ProjectFile& project, const ActionPointMapping& actionPointMapping,
                 ErrorList& errorList)
@@ -238,19 +252,13 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
     const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
     checkExportListSize(exportList, errorList);
 
-    auto out = std::make_shared<FrameSetData>();
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
 
-    out->tileset = processTileset(frameSet, tilesetLayout);
-    out->frames = processFrameList(exportList, out->tileset, actionPointMapping, frameSet);
-    out->animations = processAnimations(exportList, frameSet);
-    out->palettes = processPalettes(frameSet.palettes);
-
     if (errorList.errorCount() != oldErrorCount) {
-        out = nullptr;
+        return nullptr;
     }
 
-    return out;
+    return buildOutput(frameSet, actionPointMapping, exportList, tilesetLayout);
 }
 
 std::shared_ptr<const FrameSetData>

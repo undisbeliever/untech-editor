@@ -41,8 +41,21 @@ inline TilesetType smallestFixedTilesetType(unsigned tilesetSize)
 
 inline bool isFixedTilesetType(const TilesetType tt)
 {
-    static_assert(TilesetType::ONE_TILE_FIXED < TilesetType::ONE_TILE);
-    return tt < TilesetType::ONE_TILE;
+    switch (tt) {
+    case TilesetType::ONE_TILE_FIXED:
+    case TilesetType::TWO_TILES_FIXED:
+    case TilesetType::ONE_ROW_FIXED:
+    case TilesetType::TWO_ROWS_FIXED:
+        return true;
+
+    case TilesetType::ONE_TILE:
+    case TilesetType::TWO_TILES:
+    case TilesetType::ONE_ROW:
+    case TilesetType::TWO_ROWS:
+        return false;
+    }
+
+    abort();
 }
 
 inline uint8_t tilesetTypeRomValue(const TilesetType tt)

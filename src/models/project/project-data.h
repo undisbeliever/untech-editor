@@ -6,14 +6,10 @@
 
 #pragma once
 
-#include "models/common/errorlist.h"
 #include "models/common/idstring.h"
-#include "models/common/optional_ref.h"
-#include "models/enums.h"
-#include <array>
+#include "models/common/mutex_wrapper.h"
+#include <gsl/pointers>
 #include <memory>
-#include <optional>
-#include <shared_mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -59,334 +55,71 @@ struct RoomData;
 namespace UnTech::Project {
 
 struct ProjectFile;
-class ProjectData;
 
-enum class ResourceState {
-    Unchecked,
-    Valid,
-    Invalid,
-    Missing,
-};
-
-struct ResourceStatus {
-    ResourceState state = ResourceState::Unchecked;
-    std::u8string name;
-    ErrorList errorList;
-
-    // Increases every time the resource has been compiled.
-    // 0 if the resource state is UnChecked.
-    unsigned compileId = 0;
-};
-
-class ResourceListStatus {
-protected:
-    mutable std::shared_mutex _mutex;
-
-    const std::u8string _typeNameSingle;
-    const std::u8string _typeNamePlural;
-
-    unsigned _currentCompileId;
-
-    ResourceState _state;
-    std::vector<ResourceStatus> _resources;
-
-public:
-    ResourceListStatus(const ResourceListStatus&) = delete;
-    ResourceListStatus(ResourceListStatus&&) = delete;
-    ResourceListStatus& operator=(const ResourceListStatus&) = delete;
-    ResourceListStatus& operator=(ResourceListStatus&&) = delete;
-
-    ~ResourceListStatus() = default;
-
-public:
-    ResourceListStatus(std::u8string typeNameSingle, std::u8string typeNamePlural);
-
-    const std::u8string& typeNameSingle() const { return _typeNameSingle; }
-    const std::u8string& typeNamePlural() const { return _typeNamePlural; }
-
-    // Must include a lock in each function
-    // MUST NOT add a write functions in the header file
-
-    void clearAllAndResize(size_t size);
-
-    // Returns the old name and current name of the resource
-    std::pair<std::u8string, std::u8string> setStatus(unsigned index, ResourceStatus&& status);
-
-    void setStatusKeepName(unsigned index, ResourceStatus&& status);
-    void updateState();
-
-    void markAllUnchecked();
-    void markUnchecked(unsigned index);
-
-    template <typename ListT>
-    void clearAllAndPopulateNames(const ListT& list);
-
-    std::u8string name(unsigned index) const;
-    ResourceState state(unsigned index) const;
-    unsigned compileId(unsigned index) const;
-
-    ResourceState listState() const;
-
-    template <typename Function>
-    void readResourceListState(Function f) const
-    {
-        std::shared_lock lock(_mutex);
-
-        // Ensure `f` has read-only access to `_state` and `_resources`
-        const ResourceState& const_state = _state;
-        const std::vector<ResourceStatus>& const_resources = _resources;
-
-        f(const_state, const_resources);
-    }
-
-    template <typename Function>
-    void readResourceState(unsigned index, Function f) const
-    {
-        std::shared_lock lock(_mutex);
-
-        if (index < _resources.size()) {
-            // Ensure `f` has read-only access to `_resources`
-            const ResourceStatus& const_status = _resources.at(index);
-            f(const_status);
-        }
-    }
-};
-
+// This class is thread safe
 template <typename T>
-class DataStore final : public ResourceListStatus {
-    std::unordered_map<std::u8string, size_t> _mapping;
-    std::vector<std::shared_ptr<const T>> _data;
+class DataStore final {
+    struct Data {
+        std::unordered_map<idstring, size_t> mapping;
+        std::vector<std::pair<idstring, std::shared_ptr<const T>>> data;
+    };
+    shared_mutex<Data> data;
 
 public:
-    DataStore(std::u8string typeNameSingle, std::u8string typeNamePlural);
-
-    // MUST include a lock in each function
-    // MUST NOT implement a write functions in the header file
-
-    inline std::optional<unsigned> indexOf(const idstring& id) const
-    {
-        std::shared_lock lock(_mutex);
-
-        auto it = _mapping.find(id.str());
-        if (it != _mapping.end()) {
-            return it->second;
-        }
-        else {
-            return std::nullopt;
-        }
-    }
-
-    inline std::shared_ptr<const T> at(unsigned index) const
-    {
-        std::shared_lock lock(_mutex);
-
-        if (index < _data.size()) {
-            return _data.at(index);
-        }
-        else {
-            return {};
-        }
-    }
-
-    inline std::shared_ptr<const T> at(std::optional<unsigned> index) const
-    {
-        std::shared_lock lock(_mutex);
-
-        if (index) {
-            return at(index.value());
-        }
-        else {
-            return {};
-        }
-    }
-
-    inline std::shared_ptr<const T> at(const idstring& id) const
-    {
-        std::shared_lock lock(_mutex);
-
-        auto it = _mapping.find(id.str());
-        if (it != _mapping.end()) {
-            return at(it->second);
-        }
-        else {
-            return {};
-        }
-    }
-
-    size_t size() const
-    {
-        std::shared_lock lock(_mutex);
-
-        return _data.size();
-    }
-
     void clearAllAndResize(size_t size);
 
-    // Returns the old name and current name of the resource
-    std::pair<std::u8string, std::u8string> store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data);
+    // Returns true if name is unique
+    [[nodiscard]] bool store(const size_t index, const idstring& name, std::shared_ptr<const T>&& res_data);
+
+    [[nodiscard]] size_t size() const;
+
+    // May return nullptr
+    [[nodiscard]] std::optional<std::pair<size_t, gsl::not_null<std::shared_ptr<const T>>>> indexAndDataFor(const idstring& id) const;
+    [[nodiscard]] std::shared_ptr<const T> at(unsigned index) const;
 };
 
+// This class is thread safe
 class ProjectSettingsData {
 private:
-    mutable std::shared_mutex _mutex;
-
-    std::shared_ptr<const Scripting::GameStateData> _gameState;
-    std::shared_ptr<const Scripting::BytecodeMapping> _bytecode;
-    std::shared_ptr<const MetaSprite::ActionPointMapping> _actionPointMapping;
-    std::shared_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
-    std::shared_ptr<const Resources::CompiledScenesData> _scenes;
-    std::shared_ptr<const Entity::CompiledEntityRomData> _entityRomData;
-
-public:
-    // MUST include a lock in each function
-    // MUST NOT implement a write functions in the header file
-
-    std::shared_ptr<const Scripting::GameStateData> gameState() const
-    {
-        std::shared_lock lock(_mutex);
-        return _gameState;
-    }
-
-    std::shared_ptr<const Scripting::BytecodeMapping> bytecode() const
-    {
-        std::shared_lock lock(_mutex);
-        return _bytecode;
-    }
-
-    std::shared_ptr<const MetaSprite::ActionPointMapping> actionPointMapping() const
-    {
-        std::shared_lock lock(_mutex);
-        return _actionPointMapping;
-    }
-
-    std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const
-    {
-        std::shared_lock lock(_mutex);
-        return _interactiveTiles;
-    }
-
-    std::shared_ptr<const Resources::CompiledScenesData> scenes() const
-    {
-        std::shared_lock lock(_mutex);
-        return _scenes;
-    }
-
-    std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const
-    {
-        std::shared_lock lock(_mutex);
-        return _entityRomData;
-    }
-
-    void store(std::shared_ptr<const Scripting::GameStateData>&& data);
-    void store(std::shared_ptr<const Scripting::BytecodeMapping>&& data);
-    void store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& data);
-    void store(std::shared_ptr<const MetaTiles::InteractiveTilesData>&& data);
-    void store(std::shared_ptr<const Resources::CompiledScenesData>&& data);
-    void store(std::shared_ptr<const Entity::CompiledEntityRomData>&& data);
-};
-
-class ProjectDependencies {
-private:
-    struct Mappings {
-        std::vector<idstring> preresquite;
-
-        // Mapping of resource name -> indexes of items that depend on the name
-        std::unordered_multimap<std::u8string, unsigned> dependants;
+    struct Data {
+        std::shared_ptr<const Scripting::GameStateData> gameState;
+        std::shared_ptr<const Scripting::BytecodeMapping> bytecode;
+        std::shared_ptr<const MetaSprite::ActionPointMapping> actionPointMapping;
+        std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles;
+        std::shared_ptr<const Resources::CompiledScenesData> scenes;
+        std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData;
     };
-
-private:
-    mutable std::shared_mutex _mutex;
-
-    Mappings _exportOrder_frameSet;
-
-    Mappings _palette_backgroundImage;
-    Mappings _palette_metaTileTilesets;
+    shared_mutex<Data> data;
 
 public:
-    ProjectDependencies() = default;
+    ProjectSettingsData() = default;
 
-    void createDependencyGraph(const ProjectFile& project);
-    void updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index);
+    void store(std::shared_ptr<const Scripting::GameStateData>&& gameState);
+    void store(std::shared_ptr<const Scripting::BytecodeMapping>&& bytecode);
+    void store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& actionPointMapping);
+    void store(std::shared_ptr<const MetaTiles::InteractiveTilesData>&& interactiveTiles);
+    void store(std::shared_ptr<const Resources::CompiledScenesData>&& scenes);
+    void store(std::shared_ptr<const Entity::CompiledEntityRomData>&& entityRomData);
 
-    void markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index) const;
-    void markDependantsUnchecked(ProjectData& projectData, const ResourceType type, const std::u8string& oldName, const std::u8string& name);
+    [[nodiscard]] std::shared_ptr<const Scripting::GameStateData> gameState() const;
+    [[nodiscard]] std::shared_ptr<const Scripting::BytecodeMapping> bytecodeData() const;
+    [[nodiscard]] std::shared_ptr<const MetaSprite::ActionPointMapping> actionPointMapping() const;
+    [[nodiscard]] std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const;
+    [[nodiscard]] std::shared_ptr<const Resources::CompiledScenesData> scenes() const;
+    [[nodiscard]] std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const;
 };
 
-class ProjectData {
-private:
-    friend class ProjectDependencies;
+// This struct is thread safe
+struct ProjectData {
+    // ALL FIELDS in this class MUST BE thread safe
 
-    ProjectDependencies _dependencies;
+    ProjectSettingsData projectSettingsData;
 
-    ResourceListStatus _projectSettingsStatus;
-    ResourceListStatus _frameSetExportOrderStatus;
-
-    ProjectSettingsData _projectSettingsData;
-
-    DataStore<UnTech::MetaSprite::Compiler::FrameSetData> _frameSets;
-    DataStore<Resources::PaletteData> _palettes;
-    DataStore<Resources::BackgroundImageData> _backgroundImages;
-    DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
-    DataStore<Rooms::RoomData> _rooms;
-
-    std::array<std::reference_wrapper<ResourceListStatus>, N_RESOURCE_TYPES> _resourceListStatuses;
-
-public:
-    ProjectData(const ProjectData&) = delete;
-    ProjectData(ProjectData&&) = delete;
-    ProjectData& operator=(const ProjectData&) = delete;
-    ProjectData& operator=(ProjectData&&) = delete;
-
-    ~ProjectData() = default;
-
-public:
-    ProjectData();
-
-    const auto& projectSettingsStatus() const { return _projectSettingsStatus; }
-    const auto& frameSetExportOrderStatus() const { return _frameSetExportOrderStatus; }
-
-    const DataStore<UnTech::MetaSprite::Compiler::FrameSetData>& frameSets() const { return _frameSets; }
-    const DataStore<Resources::PaletteData>& palettes() const { return _palettes; }
-    const DataStore<Resources::BackgroundImageData>& backgroundImages() const { return _backgroundImages; }
-    const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
-    const DataStore<Rooms::RoomData>& rooms() const { return _rooms; }
-
-    std::shared_ptr<const Scripting::GameStateData> gameState() const { return _projectSettingsData.gameState(); }
-    std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const { return _projectSettingsData.interactiveTiles(); }
-    std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _projectSettingsData.scenes(); }
-    std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _projectSettingsData.entityRomData(); }
-    std::shared_ptr<const Scripting::BytecodeMapping> bytecodeData() const { return _projectSettingsData.bytecode(); }
-
-    const ResourceListStatus& resourceListStatus(const ResourceType type) const { return _resourceListStatuses.at(static_cast<unsigned>(type)); }
-
-    // To be called when the resource list changes
-    void clearAndPopulateNamesAndDependencies(const ProjectFile& project);
-
-    void updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index);
-
-    void markAllResourcesInvalid();
-    void markResourceInvalid(const ResourceType type, const unsigned index);
-
-    bool compileAll_EarlyExit(const ProjectFile& project) { return compileAll(project, true); }
-    bool compileAll_NoEarlyExit(const ProjectFile& project) { return compileAll(project, false); }
-
-private:
-    bool compileAll(const ProjectFile& project, const bool earlyExit);
-
-    template <typename DataT, typename ConvertFunction, class InputT, typename... PreresquitesT>
-    bool compilePs(const ProjectSettingsIndex indexEnum, ConvertFunction convertFunction, const InputT& input, const PreresquitesT&... prerequisites);
-
-    template <typename ValidateFunction, class InputT>
-    bool validatePs(const ProjectSettingsIndex indexEnum, const ValidateFunction validateFunction, const InputT& input);
-
-    template <typename ValidateFunction, class InputT>
-    bool validateList(const ValidateFunction validateFunction, ResourceListStatus& statusList, const ResourceType type,
-                      const ExternalFileList<InputT>& inputList);
-
-    template <typename DataT, typename ConvertFunction, class InputListT, typename... PreresquitesT>
-    bool compileList(ConvertFunction convertFunction, DataStore<DataT>& dataStore, const ResourceType type,
-                     const InputListT& inputList,
-                     const PreresquitesT&... prerequisites);
+    DataStore<UnTech::MetaSprite::Compiler::FrameSetData> frameSets;
+    DataStore<Resources::PaletteData> palettes;
+    DataStore<Resources::BackgroundImageData> backgroundImages;
+    DataStore<MetaTiles::MetaTileTilesetData> metaTileTilesets;
+    DataStore<Rooms::RoomData> rooms;
 };
 
 }

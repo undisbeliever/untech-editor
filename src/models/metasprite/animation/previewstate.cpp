@@ -110,7 +110,7 @@ void PreviewState::nextAnimationFrame(const Animation& ani, const NamedList<Anim
             running = false;
         }
         else if (ani.nextAnimation.isValid()) {
-            animationIndex = animations.indexOf(ani.nextAnimation);
+            animationIndex = animations.indexOf(ani.nextAnimation).value_or(INT_MAX);
         }
     }
 }

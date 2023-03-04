@@ -79,9 +79,10 @@ ActionPointsEditorGui::ActionPointsEditorGui()
 {
 }
 
-bool ActionPointsEditorGui::setEditorData(AbstractEditorData* data)
+bool ActionPointsEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    return (_data = dynamic_cast<ActionPointsEditorData*>(data));
+    _data = std::dynamic_pointer_cast<ActionPointsEditorData>(data);
+    return _data != nullptr;
 }
 
 void ActionPointsEditorGui::resetState()

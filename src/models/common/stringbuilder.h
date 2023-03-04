@@ -30,7 +30,8 @@ struct hex {
         assert(value <= maxValue);
     }
 
-    constexpr explicit hex(uint16_t v) requires(N == 4)
+    constexpr explicit hex(uint16_t v)
+        requires(N == 4)
         : value(v)
     {
     }

@@ -89,7 +89,7 @@ inline std::vector<TileAndPalette> tilesFromImage(const Image& image, const Snes
         for (unsigned x = 0; x < iSize.width; x += TS) {
             bool s = extractTileAndPalette(*tileIt, image, x, y, palette, colorsPerPalette, firstPalette, nPalettes);
             if (!s) {
-                err.emplace_back(TS, x, y, InvalidTileReason::NO_PALETTE_FOUND);
+                err.push_back({ TS, x, y, InvalidTileReason::NO_PALETTE_FOUND });
             }
             tileIt++;
         }

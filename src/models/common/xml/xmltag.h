@@ -75,21 +75,6 @@ private:
         nAttributes++;
     }
 
-    // Returns a value > MAX_ATTRUBUTES if aName not found
-    [[nodiscard]] inline unsigned findAttributeIndex(const std::u8string_view aName) const
-    {
-        assert(nAttributes <= MAX_ATTRIBUTES);
-
-        for (const unsigned i : range(nAttributes)) {
-            if (attrNames.at(i) == aName) {
-                return i;
-            }
-        }
-
-        static_assert(INT_MAX > MAX_ATTRIBUTES);
-        return INT_MAX;
-    }
-
     // NOTE: Does not unescape any `&` characters in the attribute value.
     [[nodiscard]] inline std::u8string_view getAttribute_rawValue(const std::u8string_view aName) const
     {
@@ -102,6 +87,19 @@ private:
         }
 
         throw xml_error(*this, aName, u8"Missing attribute");
+    }
+
+    // NOTE: Does not unescape any `&` characters in the attribute value.
+    [[nodiscard]] inline std::optional<std::u8string_view> getOptionalAttribute_rawValue(const std::u8string_view aName) const
+    {
+        assert(nAttributes <= MAX_ATTRIBUTES);
+
+        for (const unsigned i : range(nAttributes)) {
+            if (attrNames.at(i) == aName) {
+                return attrRawValues.at(i);
+            }
+        }
+        return std::nullopt;
     }
 
 public:
@@ -127,13 +125,21 @@ public:
 
     [[nodiscard]] inline std::u8string getAttributeOrEmpty(const std::u8string_view aName) const
     {
-        const auto i = findAttributeIndex(aName);
-
-        if (i < MAX_ATTRIBUTES) {
-            return unescapeXmlString(attrRawValues.at(i));
+        if (const auto r = getOptionalAttribute_rawValue(aName)) {
+            return unescapeXmlString(*r);
         }
         else {
             return {};
+        }
+    }
+
+    [[nodiscard]] inline std::optional<std::u8string> getOptionalAttribute(const std::u8string_view aName) const
+    {
+        if (auto r = getOptionalAttribute_rawValue(aName)) {
+            return unescapeXmlString(*r);
+        }
+        else {
+            return std::nullopt;
         }
     }
 
@@ -152,12 +158,9 @@ public:
 
     [[nodiscard]] inline idstring getAttributeOptionalId(const std::u8string_view aName) const
     {
-        const auto i = findAttributeIndex(aName);
-
-        if (i < MAX_ATTRIBUTES) {
-            // No need to escape value - only alnum and underscore characters are valid
-            auto id = idstring::fromString(attrRawValues.at(i));
-
+        // No need to escape value - only alnum and underscore characters are valid
+        if (const auto r = getOptionalAttribute_rawValue(aName)) {
+            auto id = idstring::fromString(*r);
             if (id.isValid()) {
                 return id;
             }
@@ -167,31 +170,6 @@ public:
         }
         else {
             return {};
-        }
-    }
-
-    template <class MapT>
-    inline idstring getAttributeUniqueId(const std::u8string_view aName,
-                                         const MapT& map) const
-    {
-        // No need to escape value - only alnum and underscore characters are valid
-        auto id = idstring::fromString(getAttribute_rawValue(aName));
-
-        if (map.contains(id)) {
-            throw xml_error(*this, aName, u8"id already exists");
-        }
-        return id;
-    }
-
-    [[nodiscard]] inline std::optional<std::u8string> getOptionalAttribute(const std::u8string_view aName) const
-    {
-        const auto i = findAttributeIndex(aName);
-
-        if (i < MAX_ATTRIBUTES) {
-            return unescapeXmlString(attrRawValues.at(i));
-        }
-        else {
-            return std::nullopt;
         }
     }
 
@@ -274,16 +252,12 @@ public:
 
     [[nodiscard]] inline bool getAttributeBoolean(const std::u8string_view aName, bool def = false) const
     {
-        const auto i = findAttributeIndex(aName);
-
-        if (i < MAX_ATTRIBUTES) {
-            // No need to escape value - "true" or "false" allowed here
-            const auto& value = attrRawValues.at(i);
-
-            if (value == u8"true") {
+        // No need to escape value - "true" or "false" allowed here
+        if (auto r = getOptionalAttribute_rawValue(aName)) {
+            if (r == u8"true") {
                 return true;
             }
-            else if (value == u8"false") {
+            else if (r == u8"false") {
                 return false;
             }
             else {
@@ -328,15 +302,16 @@ public:
     template <typename T>
     inline T getAttributeOptionalEnum(const std::u8string_view aName, const EnumMap<T>& enumMap, const T default_value) const
     {
-        const auto i = findAttributeIndex(aName);
-
-        if (i < MAX_ATTRIBUTES) {
-            // No need to escape value - "true" or "false" allowed here
-            const auto& value = attrRawValues.at(i);
-
-            auto eIt = enumMap.find(value);
-            if (eIt != enumMap.end()) {
-                return eIt->second;
+        // No need to escape value - only alnum, dash and underscore characters are valid
+        if (const auto rawValue = getOptionalAttribute_rawValue(aName)) {
+            if (!rawValue->empty()) {
+                auto eIt = enumMap.find(*rawValue);
+                if (eIt != enumMap.end()) {
+                    return eIt->second;
+                }
+                else {
+                    throw xml_error(*this, aName, u8"Invalid value");
+                }
             }
         }
         return default_value;

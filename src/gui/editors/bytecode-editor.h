@@ -33,12 +33,12 @@ class BytecodeEditorGui final : public AbstractEditorGui {
 private:
     using AP = BytecodeEditorData::AP;
 
-    BytecodeEditorData* _data;
+    std::shared_ptr<BytecodeEditorData> _data;
 
 public:
     BytecodeEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 

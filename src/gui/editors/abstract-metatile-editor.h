@@ -31,14 +31,7 @@ protected:
     upoint_vectorset selectedTiles;
 
 public:
-    AbstractMetaTileEditorData(ItemIndex itemIndex);
-
-protected:
-    virtual grid<uint8_t>& map() = 0;
-    virtual void mapTilesPlaced(const urect r) = 0;
-
-    virtual void selectedTilesChanged() = 0;
-    virtual void selectedTilesetTilesChanged() = 0;
+    explicit AbstractMetaTileEditorData(ItemIndex itemIndex);
 };
 
 class AbstractMetaTileEditorGui : public AbstractEditorGui {
@@ -71,7 +64,7 @@ public:
     };
 
 private:
-    AbstractMetaTileEditorData* _data;
+    std::shared_ptr<AbstractMetaTileEditorData> _data;
 
 protected:
     Shaders::MtTileset _tilesetShader;
@@ -95,7 +88,7 @@ public:
 public:
     AbstractMetaTileEditorGui(const char* strId);
 
-    bool setEditorData(AbstractEditorData* data) override;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) override;
     void resetState() override;
     void editorClosed() override;
 
@@ -104,6 +97,14 @@ public:
 protected:
     virtual void selectionChanged() = 0;
     [[nodiscard]] virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
+
+    // NOTE: AbstractMetaTileEditorGui will edit the map data returned by this function.
+    [[nodiscard]] virtual grid<uint8_t>& map() = 0;
+
+    virtual void mapTilesPlaced(const urect r) = 0;
+
+    virtual void selectedTilesChanged() = 0;
+    virtual void selectedTilesetTilesChanged() = 0;
 
     void showLayerButtons();
 

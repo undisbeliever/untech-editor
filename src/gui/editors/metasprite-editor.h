@@ -64,7 +64,7 @@ private:
     enum class PaletteState;
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
-    MetaSpriteEditorData* _data;
+    std::shared_ptr<MetaSpriteEditorData> _data;
 
     unsigned _colorSel;
     PaletteState _paletteState;
@@ -101,7 +101,7 @@ public:
 public:
     MetaSpriteEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 

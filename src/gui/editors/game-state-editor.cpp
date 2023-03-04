@@ -101,9 +101,10 @@ GameStateEditorGui::GameStateEditorGui()
 {
 }
 
-bool GameStateEditorGui::setEditorData(AbstractEditorData* data)
+bool GameStateEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    return (_data = dynamic_cast<GameStateEditorData*>(data));
+    _data = std::dynamic_pointer_cast<GameStateEditorData>(data);
+    return _data != nullptr;
 }
 
 void GameStateEditorGui::resetState()

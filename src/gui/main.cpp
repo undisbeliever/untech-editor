@@ -145,11 +145,10 @@ int main(int argc, const char** const argv)
 
         const auto arguments = std::span(argv, argc);
 
-        for (auto a : arguments) {
-            if (a == nullptr) {
-                std::cerr << "Invalid program arguments";
-                return EXIT_FAILURE;
-            }
+        const bool nullArgument = std::find(arguments.begin(), arguments.end(), nullptr) != arguments.end();
+        if (nullArgument) {
+            std::cerr << "Invalid program arguments";
+            return EXIT_FAILURE;
         }
 
         return run_main(arguments);

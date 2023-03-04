@@ -11,6 +11,7 @@
 #include "models/common/externalfilelist.h"
 #include "models/common/namedlist.h"
 #include "models/common/type-traits.h"
+#include <gsl/gsl>
 
 namespace UnTech::Gui {
 
@@ -78,30 +79,39 @@ struct EditorActions {
     using EditorT = typename ActionPolicy::EditorT;
     using EditorDataT = typename ActionPolicy::EditorDataT;
 
-    class BaseAction : public EditorUndoAction {
+    using NotNullEditorPtr = gsl::not_null<std::shared_ptr<EditorT>>;
+
+    class BaseAction : public UndoAction {
     protected:
-        EditorT* const editor;
+        const std::weak_ptr<EditorT> _editor;
 
     public:
         ~BaseAction() override = default;
 
     protected:
-        BaseAction(EditorT* editor)
-            : editor(editor)
+        BaseAction(const NotNullEditorPtr& editor)
+            : UndoAction()
+            , _editor(editor.get())
         {
-            assert(editor != nullptr);
         }
 
-        EditorDataT& getProjectData(Project::ProjectFile& projectFile) const
+        [[nodiscard]] inline NotNullEditorPtr getEditor() const
         {
-            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            auto e = _editor.lock();
+            assert(e != nullptr);
+            return e;
+        }
+
+        [[nodiscard]] EditorDataT& getProjectData(Project::ProjectFile& projectFile, EditorT& editor) const
+        {
+            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor.itemIndex());
             assert(data != nullptr);
             return *data;
         }
 
-        EditorDataT& getEditorData() const
+        [[nodiscard]] static EditorDataT& getEditorData(EditorT& editor)
         {
-            EditorDataT* data = ActionPolicy::getEditorData(*editor);
+            EditorDataT* data = ActionPolicy::getEditorData(editor);
             assert(data != nullptr);
             return *data;
         }
@@ -120,9 +130,9 @@ struct EditorActions {
         EditorDataT oldValue;
 
     public:
-        EditDataAction(EditorT* editor)
+        EditDataAction(const NotNullEditorPtr& editor)
             : BaseAction(editor)
-            , newValue(this->getEditorData())
+            , newValue(this->getEditorData(*editor))
         {
         }
         virtual ~EditDataAction() = default;
@@ -133,7 +143,9 @@ struct EditorActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            EditorDataT& projectData = this->getProjectData(projectFile);
+            auto e = this->getEditor();
+
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
 
             oldValue = projectData;
 
@@ -145,8 +157,10 @@ struct EditorActions {
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            EditorDataT& projectData = this->getProjectData(projectFile);
-            EditorDataT& editorData = this->getEditorData();
+            auto e = this->getEditor();
+
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
 
             projectData = oldValue;
             editorData = oldValue;
@@ -154,8 +168,10 @@ struct EditorActions {
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            EditorDataT& projectData = this->getProjectData(projectFile);
-            EditorDataT& editorData = this->getEditorData();
+            auto e = this->getEditor();
+
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
 
             projectData = newValue;
             editorData = newValue;
@@ -174,9 +190,9 @@ struct EditorActions {
         FieldT oldValue;
 
     public:
-        EditFieldAction(EditorT* editor)
+        EditFieldAction(const NotNullEditorPtr& editor)
             : BaseAction(editor)
-            , newValue((this->getEditorData()).*FieldPtr)
+            , newValue((this->getEditorData(*editor)).*FieldPtr)
         {
         }
         virtual ~EditFieldAction() = default;
@@ -187,7 +203,9 @@ struct EditorActions {
 
         virtual bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            EditorDataT& projectData = this->getProjectData(projectFile);
+            auto e = this->getEditor();
+
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
 
             oldValue = projectData.*FieldPtr;
 
@@ -199,8 +217,10 @@ struct EditorActions {
 
         virtual void undo(Project::ProjectFile& projectFile) const final
         {
-            EditorDataT& projectData = this->getProjectData(projectFile);
-            EditorDataT& editorData = this->getEditorData();
+            auto e = this->getEditor();
+
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
 
             projectData.*FieldPtr = oldValue;
             editorData.*FieldPtr = oldValue;
@@ -208,24 +228,26 @@ struct EditorActions {
 
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
-            EditorDataT& projectData = this->getProjectData(projectFile);
-            EditorDataT& editorData = this->getEditorData();
+            auto e = this->getEditor();
+
+            EditorDataT& projectData = this->getProjectData(projectFile, *e);
+            EditorDataT& editorData = this->getEditorData(*e);
 
             projectData.*FieldPtr = newValue;
             editorData.*FieldPtr = newValue;
         }
     };
 
-    static void editorDataEdited(EditorT* editor)
+    static void editorDataEdited(const NotNullEditorPtr& editor)
     {
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditDataAction>(editor));
     }
 
     template <auto FieldPtr>
-    static void fieldEdited(EditorT* editor)
+    static void fieldEdited(const NotNullEditorPtr& editor)
     {
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditFieldAction<FieldPtr>>(editor));
     }
 };
@@ -239,34 +261,43 @@ struct EditorFieldActions {
     static constexpr auto FieldPtr = ActionPolicy::FieldPtr;
     using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
-    class EditFieldAction : public EditorUndoAction {
+    using NotNullEditorPtr = gsl::not_null<std::shared_ptr<EditorT>>;
+
+    class EditFieldAction : public UndoAction {
     private:
-        EditorT* const editor;
+        const std::weak_ptr<EditorT> _editor;
 
         const FieldT newValue;
         // set by firstDo()
         FieldT oldValue;
 
-        FieldT& getProjectField(Project::ProjectFile& projectFile) const
+        [[nodiscard]] inline NotNullEditorPtr getEditor() const
         {
-            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            auto e = _editor.lock();
+            assert(e != nullptr);
+            return e;
+        }
+
+        [[nodiscard]] FieldT& getProjectField(Project::ProjectFile& projectFile, EditorT& editor) const
+        {
+            EditorDataT* data = ActionPolicy::getEditorData(projectFile, editor.itemIndex());
             assert(data != nullptr);
             return data->*FieldPtr;
         }
 
-        FieldT& getEditorField() const
+        [[nodiscard]] static FieldT& getEditorField(EditorT& editor)
         {
-            EditorDataT* data = ActionPolicy::getEditorData(*editor);
+            EditorDataT* data = ActionPolicy::getEditorData(editor);
             assert(data != nullptr);
             return data->*FieldPtr;
         }
 
     public:
-        EditFieldAction(EditorT* editor)
-            : editor(editor)
-            , newValue(this->getEditorField())
+        EditFieldAction(const NotNullEditorPtr& editor)
+            : UndoAction()
+            , _editor(editor.get())
+            , newValue(this->getEditorField(*editor))
         {
-            assert(editor != nullptr);
         }
         ~EditFieldAction() override = default;
 
@@ -281,7 +312,9 @@ struct EditorFieldActions {
 
         bool firstDo_projectFile(Project::ProjectFile& projectFile) final
         {
-            FieldT& projectData = this->getProjectField(projectFile);
+            auto e = getEditor();
+
+            FieldT& projectData = this->getProjectField(projectFile, *e);
 
             oldValue = projectData;
 
@@ -293,8 +326,10 @@ struct EditorFieldActions {
 
         void undo(Project::ProjectFile& projectFile) const final
         {
-            FieldT& projectData = this->getProjectField(projectFile);
-            FieldT& editorData = this->getEditorField();
+            auto e = getEditor();
+
+            FieldT& projectData = this->getProjectField(projectFile, *e);
+            FieldT& editorData = this->getEditorField(*e);
 
             projectData = oldValue;
             editorData = oldValue;
@@ -302,17 +337,19 @@ struct EditorFieldActions {
 
         void redo(Project::ProjectFile& projectFile) const final
         {
-            FieldT& projectData = this->getProjectField(projectFile);
-            FieldT& editorData = this->getEditorField();
+            auto e = getEditor();
+
+            FieldT& projectData = this->getProjectField(projectFile, *e);
+            FieldT& editorData = this->getEditorField(*e);
 
             projectData = newValue;
             editorData = newValue;
         }
     };
 
-    static void fieldEdited(EditorT* editor)
+    static void fieldEdited(const NotNullEditorPtr& editor)
     {
-        editor->addAction(
+        editor->undoStack().addAction(
             std::make_unique<EditFieldAction>(editor));
     }
 };

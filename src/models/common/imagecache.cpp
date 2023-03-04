@@ -5,6 +5,7 @@
  */
 
 #include "imagecache.h"
+#include "mutex_wrapper.h"
 #include <cassert>
 #include <mutex>
 #include <unordered_map>
@@ -18,8 +19,7 @@ class ImageCachePrivate {
     using ImageCacheMap_t = std::unordered_map<std::filesystem::path::string_type, const std::shared_ptr<const Image>>;
 
 private:
-    std::mutex mutex;
-    ImageCacheMap_t cache;
+    mutex<ImageCacheMap_t> _cache;
 
     static const std::shared_ptr<const Image> BLANK_IMAGE;
 
@@ -35,8 +35,6 @@ public:
 
     const std::shared_ptr<const Image> loadPngImage(const std::filesystem::path& filename)
     {
-        std::lock_guard<std::mutex> guard(mutex);
-
         if (filename.empty()) {
             return BLANK_IMAGE;
         }
@@ -47,26 +45,26 @@ public:
             return BLANK_IMAGE;
         }
 
-        const auto& fn = abs.native();
+        return _cache.access_and_return_const_shared_ptr<Image>([&](auto& cache) {
+            const auto& fn = abs.native();
 
-        auto it = cache.find(fn);
-        if (it != cache.end()) {
-            return it->second;
-        }
-        else {
-            std::shared_ptr<Image> image = Image::loadPngImage_shared(abs);
-            assert(image);
+            auto it = cache.find(fn);
+            if (it != cache.end()) {
+                return it->second;
+            }
+            else {
+                std::shared_ptr<const Image> image = Image::loadPngImage_shared(abs);
+                assert(image);
 
-            cache.insert({ fn, image });
+                cache.insert({ fn, image });
 
-            return image;
-        }
+                return image;
+            }
+        });
     }
 
     void invalidateFilename(const std::filesystem::path& filename)
     {
-        std::lock_guard<std::mutex> guard(mutex);
-
         std::error_code ec;
         const auto abs = std::filesystem::absolute(filename, ec);
         if (ec) {
@@ -75,17 +73,19 @@ public:
 
         const auto& fn = abs.native();
 
-        auto it = cache.find(fn);
-        if (it != cache.end()) {
-            cache.erase(it);
-        }
+        _cache.access([&](auto& cache) {
+            auto it = cache.find(fn);
+            if (it != cache.end()) {
+                cache.erase(it);
+            }
+        });
     }
 
     void invalidateImageCache()
     {
-        std::lock_guard<std::mutex> guard(mutex);
-
-        cache.clear();
+        _cache.access([&](auto& cache) {
+            cache.clear();
+        });
     }
 };
 

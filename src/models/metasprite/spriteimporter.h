@@ -130,8 +130,6 @@ struct Frame {
     CollisionBox hitbox;
     CollisionBox hurtbox;
 
-    [[nodiscard]] usize minimumViableSize(const FrameSetGrid& grid) const;
-
     [[nodiscard]] urect frameLocation(const FrameSetGrid& grid) const
     {
         if (!locationOverride) {

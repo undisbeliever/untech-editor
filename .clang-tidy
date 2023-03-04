@@ -56,8 +56,8 @@ HeaderFilterRegex:      ''
 FormatStyle:            file
 
 CheckOptions:
-  # `EditorUndoAction` requires a virtual (default) destructor and does not have a constructor.
-  # (This setting also effects `EditorUndoAction` subclasses, which do not have copy/move constructors)
+  # `UndoAction` requires a virtual (default) destructor and does not have a constructor.
+  # (This setting also effects `UndoAction` subclasses, which do not have copy/move constructors)
   - key:             cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
     value:           true
 ...

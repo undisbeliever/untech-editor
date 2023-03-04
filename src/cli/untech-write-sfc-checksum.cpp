@@ -4,10 +4,9 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "helpers/commandlineparser.h"
+#include "argparser.h"
 #include "models/common/exceptions.h"
 #include "models/common/file.h"
-#include "models/common/string.h"
 #include "models/common/u8strings.h"
 #include "models/snes/cartridge.h"
 #include <cstdlib>
@@ -16,25 +15,33 @@
 
 using namespace UnTech;
 using namespace UnTech::Snes::Cartridge;
+using namespace UnTech::ArgParser;
 
-using OT = CommandLine::OptionType;
-const CommandLine::Config COMMAND_LINE_CONFIG = {
-    "UnTech Write Sfc Header Utility",
-    "sfc file",
-    {
-        { 0, "lorom", OT::BOOLEAN, false, {}, "LoROM mapping" },
-        { 0, "hirom", OT::BOOLEAN, false, {}, "HiROM mapping" },
-        { 'v', "verbose", OT::BOOLEAN, false, {}, "verbose output" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
-    }
+struct Args {
+    std::filesystem::path inputFilename;
+
+    bool lorom;
+    bool hirom;
+    bool verbose;
 };
 
-static MemoryMap getMemoryMap(const CommandLine::Parser& args)
+// clang-format off
+constexpr static auto ARG_PARSER_CONFIG = argParserConfig(
+    "UnTech Write Sfc Header Utility",
+    "sfc file",
+
+    BooleanArg< &Args::lorom   >{  '\0',   "lorom",    "LoROM mapping"  },
+    BooleanArg< &Args::hirom   >{  '\0',   "hirom",    "HiROM mapping"  },
+    BooleanArg< &Args::verbose >{  'v',    "verbose",  "verbose output" }
+);
+// clang-format on
+
+static MemoryMap getMemoryMap(const Args& args)
 {
-    if (args.options().at("lorom").boolean()) {
+    if (args.lorom && args.hirom == false) {
         return MemoryMap::LOROM;
     }
-    else if (args.options().at("hirom").boolean()) {
+    else if (args.hirom && args.lorom == false) {
         return MemoryMap::HIROM;
     }
     else {
@@ -42,17 +49,16 @@ static MemoryMap getMemoryMap(const CommandLine::Parser& args)
     }
 }
 
-int process(const CommandLine::Parser& args)
+int process(const Args& args)
 {
     static const std::filesystem::path sfcExtension(".sfc");
 
-    const std::filesystem::path& filename = args.inputFilename();
+    const std::filesystem::path& filename = args.inputFilename;
+    const bool verbose = args.verbose;
 
     if (filename.extension() != sfcExtension) {
         throw runtime_error(u8"Invalid file extension, expected a .sfc file");
     }
-
-    bool verbose = args.options().at("verbose").boolean();
 
     const MemoryMap memoryMap = getMemoryMap(args);
 
@@ -95,8 +101,7 @@ int process(const CommandLine::Parser& args)
 int main(int argc, const char* argv[])
 {
     try {
-        CommandLine::Parser args(COMMAND_LINE_CONFIG);
-        args.parse(argc, argv);
+        const Args args = parseProgramArguments(ARG_PARSER_CONFIG, argc, argv);
         return process(args);
     }
     catch (const std::exception& ex) {

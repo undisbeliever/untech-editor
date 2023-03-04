@@ -10,7 +10,6 @@
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/graphics/entity-graphics.h"
 #include "gui/grid-actions.h"
-#include "gui/list-actions-variant.h"
 #include "gui/splitter.hpp"
 #include "gui/style.h"
 #include "models/common/iterators.h"
@@ -117,42 +116,6 @@ struct RoomEditorData::AP {
         }
     };
 
-    struct TempScriptFlags final : public Room {
-        using ListT = std::vector<idstring>;
-        using ListArgsT = std::tuple<>;
-        using SelectionT = MultipleSelection;
-
-        constexpr static size_t MAX_SIZE = MultipleSelection::MAX_SIZE;
-
-        constexpr static auto SelectionPtr = &EditorT::tempScriptFlagsSel;
-
-        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.roomScripts.tempFlags; }
-    };
-
-    struct TempScriptWords final : public Room {
-        using ListT = std::vector<idstring>;
-        using ListArgsT = std::tuple<>;
-        using SelectionT = MultipleSelection;
-
-        constexpr static size_t MAX_SIZE = MultipleSelection::MAX_SIZE;
-
-        constexpr static auto SelectionPtr = &EditorT::tempScriptWordsSel;
-
-        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.roomScripts.tempWords; }
-    };
-
-    struct Scripts final : public Room {
-        using ListT = NamedList<Scripting::Script>;
-        using ListArgsT = std::tuple<>;
-        using SelectionT = SingleSelection;
-
-        constexpr static size_t MAX_SIZE = UnTech::Rooms::MAX_N_SCRIPTS;
-
-        constexpr static auto SelectionPtr = &EditorT::scriptsSel;
-
-        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.roomScripts.scripts; }
-    };
-
     struct ScriptTriggers final : public Room {
         using ListT = std::vector<UnTech::Rooms::ScriptTrigger>;
         using ListArgsT = std::tuple<>;
@@ -163,52 +126,6 @@ struct RoomEditorData::AP {
         constexpr static auto SelectionPtr = &EditorT::scriptTriggersSel;
 
         static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.scriptTriggers; }
-    };
-
-    struct ScriptStatements final : public Room {
-        using ListT = std::vector<Scripting::ScriptNode>;
-        using ListArgsT = std::tuple<NodeSelection::ParentIndexT>;
-        using SelectionT = NodeSelection;
-        using ParentActionPolicy = RoomEditorData::AP::Scripts;
-
-        constexpr static size_t MAX_SIZE = NodeSelection::MAX_SIZE;
-
-        constexpr static auto SelectionPtr = &EditorT::scriptStatementsSel;
-
-        static ListT* getList(EditorDataT& data, const NodeSelection::ParentIndexT& parentIndex)
-        {
-            ListT* parent = nullptr;
-
-            if (parentIndex.front() < data.roomScripts.scripts.size()) {
-                parent = &data.roomScripts.scripts.at(parentIndex.front()).statements;
-            }
-            else {
-                parent = &data.roomScripts.startupScript.statements;
-            }
-
-            // parent node index data format: eiii iiii iiii iiii (i = list index, e = else branch)
-            for (const auto& node : skip_first_element(parentIndex)) {
-                const unsigned i = node & 0x7fff;
-                const bool elseFlag = node & 0x8000;
-
-                if (i >= parent->size()) {
-                    return parent;
-                }
-                Scripting::ScriptNode& statement = parent->at(i);
-
-                if (std::get_if<UnTech::Scripting::Statement>(&statement)) {
-                    return parent;
-                }
-                if (auto* s = std::get_if<UnTech::Scripting::IfStatement>(&statement)) {
-                    parent = !elseFlag ? &s->thenStatements : &s->elseStatements;
-                }
-                if (auto* s = std::get_if<UnTech::Scripting::WhileStatement>(&statement)) {
-                    parent = &s->statements;
-                }
-            }
-
-            return parent;
-        }
     };
 };
 
@@ -443,30 +360,6 @@ void RoomEditorData::updateSelection()
     scriptStatementsSel.update();
 }
 
-grid<uint8_t>& RoomEditorData::map()
-{
-    return data.map;
-}
-
-void RoomEditorData::mapTilesPlaced(const urect r)
-{
-    assert(data.map.size().contains(r));
-
-    GridActions<AP::Map>::gridTilesPlaced(this, r);
-}
-
-void RoomEditorData::selectedTilesetTilesChanged()
-{
-    selectedTiles.clear();
-    selectedScratchpadTiles.clear();
-}
-
-void RoomEditorData::selectedTilesChanged()
-{
-    selectedTilesetTiles.clear();
-    selectedScratchpadTiles.clear();
-}
-
 void RoomEditorData::selectedScratchpadTilesChanged()
 {
     selectedTiles.clear();
@@ -483,6 +376,7 @@ void RoomEditorData::clearSelectedTiles()
 RoomEditorGui::RoomEditorGui()
     : AbstractMetaTileEditorGui("##Room editor")
     , _data(nullptr)
+    , _roomScriptGui()
     , _scratchpadTilemap()
     , _tileFunctionTables()
     , _mapSize()
@@ -490,7 +384,6 @@ RoomEditorGui::RoomEditorGui()
     , _entityTexture()
     , _entityGraphics(nullptr)
     , _scenesData(nullptr)
-    , _invalidTilesCompileId(0)
     , _sidebar{ 360, 300, 300 }
     , _minimapRight_sidebar{ 350, 280, 400 }
     , _minimapRight_bottombar{ 350, 100, 100 }
@@ -504,10 +397,14 @@ RoomEditorGui::RoomEditorGui()
 {
 }
 
-bool RoomEditorGui::setEditorData(AbstractEditorData* data)
+bool RoomEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
     AbstractMetaTileEditorGui::setEditorData(data);
-    return (_data = dynamic_cast<RoomEditorData*>(data));
+    _data = std::dynamic_pointer_cast<RoomEditorData>(data);
+
+    _roomScriptGui.setEditorData(_data);
+
+    return _data != nullptr;
 }
 
 void RoomEditorGui::resetState()
@@ -515,8 +412,6 @@ void RoomEditorGui::resetState()
     AbstractMetaTileEditorGui::resetState();
 
     setEditMode(EditMode::SelectObjects);
-
-    _invalidTilesCompileId = 0;
 
     _mtTilesetValid = false;
     _scenesData = nullptr;
@@ -527,6 +422,38 @@ void RoomEditorGui::resetState()
 void RoomEditorGui::editorClosed()
 {
     AbstractMetaTileEditorGui::editorClosed();
+}
+
+grid<uint8_t>& RoomEditorGui::map()
+{
+    assert(_data);
+    return _data->data.map;
+}
+
+void RoomEditorGui::mapTilesPlaced(const urect r)
+{
+    assert(_data);
+    const auto& room = _data->data;
+
+    assert(room.map.size().contains(r));
+
+    GridActions<AP::Map>::gridTilesPlaced(_data, r);
+}
+
+void RoomEditorGui::selectedTilesetTilesChanged()
+{
+    assert(_data);
+
+    _data->selectedTiles.clear();
+    _data->selectedScratchpadTiles.clear();
+}
+
+void RoomEditorGui::selectedTilesChanged()
+{
+    assert(_data);
+
+    _data->selectedTilesetTiles.clear();
+    _data->selectedScratchpadTiles.clear();
 }
 
 constexpr static std::array<const char8_t*, RM::MAX_ENTITY_GROUPS + 4> entityGroupText{
@@ -1040,13 +967,13 @@ void RoomEditorGui::editorGui()
         entityDropTarget(drawList);
 
         if (_graphics.isEditingFinished()) {
-            _data->startMacro();
+            _data->undoStack().startMacro();
 
             ListActions<AP::Entrances>::selectedItemsEdited(_data);
             ListActions<AP::EntityEntries>::selectedItemsEdited(_data);
             ListActions<AP::ScriptTriggers>::selectedItemsEdited(_data);
 
-            _data->endMacro();
+            _data->undoStack().endMacro();
         }
 
         Style::roomEditorZoom.processMouseWheel();
@@ -1079,7 +1006,6 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
     updateMapAndProcessAnimations();
     updateEntityGraphics();
     updateTilesetData(projectFile, projectData);
-    updateInvalidTileList(projectData);
 
     splitterSidebarRight(
         "##splitter", &_sidebar,
@@ -1143,7 +1069,8 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("Script Editor")) {
-                    scriptsGui(projectFile, projectData);
+                    _roomScriptGui.processGui(projectFile, projectData);
+
                     ImGui::EndTabItem();
                 }
                 ImGui::EndTabBar();
@@ -1213,7 +1140,7 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     assert(_data);
     auto& room = _data->data;
 
-    const auto scenes = projectData.scenes();
+    const auto scenes = projectData.projectSettingsData.scenes();
     if (_scenesData != scenes) {
         _scenesData = scenes;
         _mtTilesetValid = false;
@@ -1223,13 +1150,13 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         return;
     }
 
-    unsigned tilesetIndex = INT_MAX;
-    unsigned paletteIndex = INT_MAX;
+    std::optional<unsigned> tilesetIndex{};
+    std::optional<unsigned> paletteIndex{};
 
     if (scenes) {
         if (auto s = scenes->findScene(room.scene)) {
-            tilesetIndex = s->mtTileset.value_or(INT_MAX);
-            paletteIndex = s->palette.value_or(INT_MAX);
+            tilesetIndex = s->mtTileset;
+            paletteIndex = s->palette;
         }
     }
     else {
@@ -1250,15 +1177,18 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         }
     }
 
-    _tilesetShader.setPaletteData(projectData.palettes().at(paletteIndex));
+    const auto palData = paletteIndex ? projectData.palettes.at(paletteIndex.value())
+                                      : nullptr;
 
-    const auto mtData = projectData.metaTileTilesets().at(tilesetIndex);
+    const auto mtData = tilesetIndex ? projectData.metaTileTilesets.at(tilesetIndex.value())
+                                     : nullptr;
+
+    _tilesetShader.setPaletteData(palData);
+
     const bool mtDataChanged = mtData != _tilesetShader.tilesetData();
-
     if (mtDataChanged || !mtData) {
-        auto tileset = tilesetIndex < projectFile.metaTileTilesets.size()
-                           ? projectFile.metaTileTilesets.at(tilesetIndex)
-                           : std::nullopt;
+        const auto tileset = tilesetIndex ? projectFile.metaTileTilesets.at(tilesetIndex.value())
+                                          : std::nullopt;
 
         if (tileset) {
             _scratchpad = tileset->scratchpad;
@@ -1287,666 +1217,17 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     _mtTilesetValid = true;
 }
 
-void RoomEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+void RoomEditorGui::resourceCompiled(const ErrorList& errors)
 {
     assert(_data);
 
-    projectData.rooms().readResourceState(
-        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
-            if (status.compileId != _invalidTilesCompileId) {
-                _invalidTilesCompileId = status.compileId;
-                _invalidTiles.clear();
+    _invalidTiles.clear();
 
-                for (const auto& errorItem : status.errorList.list()) {
-                    if (auto* tileErr = dynamic_cast<const Rooms::InvalidRoomTilesError*>(errorItem.get())) {
-                        _invalidTiles.append(*tileErr);
-                    }
-                }
-            }
-        });
-}
-
-// Room Scripts
-// ============
-
-class RoomScriptGuiVisitor {
-    using AP = RoomEditorData::AP;
-
-private:
-    RoomEditorData* const data;
-    const Scripting::BytecodeMapping& bcMapping;
-    const Project::ProjectFile& projectFile;
-
-    unsigned depth{ 0 };
-
-    std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> parentIndex;
-    unsigned index{ 0 };
-
-    constexpr static std::array<const char*, 2> argLabels = { "##Arg1", "##Arg2" };
-
-    bool openAddMenu{ false };
-    static std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> addMenuParentIndex;
-
-    const ImVec4 disabledColor;
-
-    constexpr static float INDENT_SPACING = 30;
-
-public:
-    RoomScriptGuiVisitor(RoomEditorData* d,
-                         const Scripting::BytecodeMapping& mapping,
-                         const Project::ProjectFile& projectFile)
-        : data(d)
-        , bcMapping(mapping)
-        , projectFile(projectFile)
-        , parentIndex()
-        , disabledColor(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled))
-    {
-        assert(data != nullptr);
-    }
-
-    void processGui(Scripting::Script& script, const unsigned scriptId)
-    {
-        ImGui::PushItemWidth((ImGui::GetWindowWidth() - 30) / 4);
-
-        processStatements_root(script.statements, scriptId);
-
-        ImGui::PopItemWidth();
-
-        processAddMenu();
-
-        assert(depth == 0);
-    }
-
-    bool roomArgument(const char* label, std::u8string* value) const
-    {
-        bool edited = false;
-
-        if (ImGui::BeginCombo(label, u8Cast(*value))) {
-            for (const auto& item : projectFile.rooms) {
-                if (item.value && item.value->name.isValid()) {
-                    const auto& roomName = item.value->name;
-                    if (ImGui::Selectable(u8Cast(roomName), roomName.str() == *value)) {
-                        *value = roomName.str();
-                        edited = true;
-                    }
-                }
-            }
-
-            ImGui::EndCombo();
-        }
-
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::Text("Room");
-            ImGui::EndTooltip();
-        }
-
-        return edited;
-    }
-
-    template <typename F>
-    static bool roomEntranceArgument(const char* label, std::u8string* value, F roomGetter)
-    {
-        bool edited = false;
-
-        if (ImGui::BeginCombo(label, u8Cast(*value))) {
-            if (const auto r = roomGetter()) {
-                for (const auto& en : r->entrances) {
-                    if (en.name.isValid()) {
-                        if (ImGui::Selectable(u8Cast(en.name), en.name.str() == *value)) {
-                            *value = en.name.str();
-                            edited = true;
-                        }
-                    }
-                }
-            }
-
-            ImGui::EndCombo();
-        }
-
-        if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::Text("Room Entrance");
-            ImGui::EndTooltip();
-        }
-
-        return edited;
-    }
-
-    bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::u8string* value)
-    {
-        using Type = Scripting::ArgumentType;
-
-        bool edited = false;
-
-        switch (type) {
-        case Type::Unused: {
-        } break;
-
-        case Type::Flag:
-        case Type::Word:
-        case Type::ImmediateU16:
-        case Type::RoomScript:
-        case Type::EntityGroup: {
-            ImGui::SameLine();
-            edited = Cell(label, value);
-
-            if (ImGui::IsItemHovered()) {
-                ImGui::BeginTooltip();
-
-                switch (type) {
-                case Type::Unused:
-                    break;
-
-                case Type::Flag:
-                    ImGui::TextUnformatted(u8"Flag");
-                    break;
-
-                case Type::Word:
-                    ImGui::TextUnformatted(u8"Word");
-                    break;
-
-                case Type::ImmediateU16:
-                    ImGui::TextUnformatted(u8"Immediate U16");
-                    break;
-
-                case Type::RoomScript:
-                    ImGui::TextUnformatted(u8"Room Script");
-                    break;
-
-                case Type::EntityGroup:
-                    ImGui::TextUnformatted(u8"Entity Group");
-                    break;
-
-                case Type::Room:
-                    ImGui::TextUnformatted(u8"Room");
-                    break;
-
-                case Type::RoomEntrance:
-                    ImGui::TextUnformatted(u8"Room Entrance");
-                    break;
-                }
-
-                ImGui::EndTooltip();
-            }
-        } break;
-
-        case Type::Room: {
-            edited = roomArgument(label, value);
-        } break;
-
-        case Type::RoomEntrance: {
-            edited = roomEntranceArgument(label, value,
-                                          [this]() { return &data->data; });
-        } break;
-        }
-
-        return edited;
-    }
-
-    bool roomAndRoomEntraceArguments(std::array<std::u8string, 2>& arguments)
-    {
-        bool edited = false;
-
-        ImGui::SameLine();
-        edited |= roomArgument(argLabels.at(0), &arguments.at(0));
-
-        ImGui::SameLine();
-        edited |= roomEntranceArgument(argLabels.at(1), &arguments.at(1),
-                                       [&]() { return projectFile.rooms.find(idstring::fromString(arguments.at(0))); });
-
-        return edited;
-    }
-
-    bool scriptArguments(const Scripting::InstructionData& bc, std::array<std::u8string, 2>& arguments)
-    {
-        constexpr std::array<Scripting::ArgumentType, 2> loadRoomArgs = { Scripting::ArgumentType::Room, Scripting::ArgumentType::RoomEntrance };
-
-        if (bc.arguments == loadRoomArgs) {
-            return roomAndRoomEntraceArguments(arguments);
-        }
-        else {
-            bool edited = false;
-
-            assert(bc.arguments.size() == arguments.size());
-            for (const auto i : range(arguments.size())) {
-                edited |= statementArgument(argLabels.at(i), bc.arguments.at(i), &arguments.at(i));
-            }
-
-            return edited;
+    for (const auto& errorItem : errors.list()) {
+        if (auto* tileErr = dynamic_cast<const Rooms::InvalidRoomTilesError*>(errorItem.get())) {
+            _invalidTiles.append(*tileErr);
         }
     }
-
-    void operator()(Scripting::Statement& statement)
-    {
-        bool edited = false;
-
-        edited |= Cell("##Name", &statement.opcode, bcMapping.instructionNames);
-
-        auto it = bcMapping.instructions.find(statement.opcode);
-        if (it != bcMapping.instructions.end()) {
-            const auto& bc = it->second;
-
-            edited |= scriptArguments(bc, statement.arguments);
-        }
-
-        if (edited) {
-            ListActions<AP::ScriptStatements>::itemEdited(data, parentIndex, index);
-        }
-    }
-
-    void operator()(Scripting::IfStatement& s)
-    {
-        ImGui::TextUnformatted(u8"if ");
-        ImGui::SameLine();
-
-        const bool edited = condition(&s.condition);
-        if (edited) {
-            ListActionsVariant<AP::ScriptStatements>::variantFieldEdited<&Scripting::IfStatement::condition>(data, parentIndex, index);
-        }
-
-        processChildStatements(s.thenStatements, s.elseStatements);
-    }
-
-    void operator()(Scripting::WhileStatement& s)
-    {
-        ImGui::TextUnformatted(u8"while ");
-        ImGui::SameLine();
-
-        const bool edited = condition(&s.condition);
-        if (edited) {
-            ListActionsVariant<AP::ScriptStatements>::variantFieldEdited<&Scripting::WhileStatement::condition>(data, parentIndex, index);
-        }
-
-        processChildStatements(s.statements);
-    }
-
-    void operator()(Scripting::Comment& comment)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, Style::commentColor());
-
-        bool edited = false;
-
-        ImGui::TextUnformatted(u8"//");
-        ImGui::SameLine();
-
-        ImGui::SetNextItemWidth(-1);
-        edited |= Cell("##Text", &comment.text);
-
-        if (edited) {
-            ListActions<AP::ScriptStatements>::itemEdited(data, parentIndex, index);
-        }
-
-        ImGui::PopStyleColor();
-    }
-
-private:
-    bool condition(Scripting::Conditional* c)
-    {
-        bool edited = false;
-
-        ImGui::SetNextItemWidth(75);
-        edited |= Cell("##type", &c->type);
-        if (edited) {
-            switch (c->type) {
-            case Scripting::ConditionalType::Flag:
-                c->comparison = Scripting::ComparisonType::Set;
-                c->value.clear();
-                break;
-
-            case Scripting::ConditionalType::Word:
-                c->comparison = Scripting::ComparisonType::Equal;
-                break;
-            }
-        }
-
-        ImGui::SameLine();
-        edited |= Cell("##var", &c->variable);
-
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(75);
-        edited |= Cell("##comp", &c->comparison, c->type);
-
-        switch (c->type) {
-        case Scripting::ConditionalType::Flag:
-            break;
-
-        case Scripting::ConditionalType::Word:
-            ImGui::SameLine();
-            edited |= Cell("##value", &c->value);
-            break;
-        }
-
-        return edited;
-    }
-
-    void openProcessMenu()
-    {
-        addMenuParentIndex = parentIndex;
-        openAddMenu = true;
-    }
-
-    // ::TODO use menu to add statements anywhere::
-    void processAddMenu()
-    {
-        using namespace UnTech::Scripting;
-
-        if (openAddMenu) {
-            ImGui::OpenPopup("Add To Script Menu");
-        }
-
-        if (ImGui::BeginPopup("Add To Script Menu")) {
-            if (ImGui::BeginMenu("Statement")) {
-                bool menuPressed = false;
-                Scripting::Statement newStatement;
-
-                for (auto& i : bcMapping.instructionNames) {
-                    if (ImGui::MenuItem(u8Cast(i))) {
-                        newStatement.opcode = i;
-                        menuPressed = true;
-                    }
-                }
-
-                if (menuPressed) {
-                    ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, newStatement);
-                }
-
-                ImGui::EndMenu();
-            }
-
-            if (addMenuParentIndex.back() == UINT16_MAX) {
-                // addMenuParentIndex is not at the maximum depth
-
-                if (ImGui::BeginMenu("If")) {
-                    auto addIfStatement = [&](const ConditionalType type, const ComparisonType comp) {
-                        IfStatement newStatement;
-                        newStatement.condition.type = type;
-                        newStatement.condition.comparison = comp;
-                        ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, newStatement);
-                    };
-
-                    if (ImGui::MenuItem("If flag set")) {
-                        addIfStatement(ConditionalType::Flag, ComparisonType::Set);
-                    }
-                    if (ImGui::MenuItem("If flag clear")) {
-                        addIfStatement(ConditionalType::Flag, ComparisonType::Clear);
-                    }
-                    if (ImGui::MenuItem("If word ==")) {
-                        addIfStatement(ConditionalType::Word, ComparisonType::Equal);
-                    }
-                    if (ImGui::MenuItem("If word !=")) {
-                        addIfStatement(ConditionalType::Word, ComparisonType::NotEqual);
-                    }
-                    if (ImGui::MenuItem("If word <")) {
-                        addIfStatement(ConditionalType::Word, ComparisonType::LessThan);
-                    }
-                    if (ImGui::MenuItem("If word >=")) {
-                        addIfStatement(ConditionalType::Word, ComparisonType::GreaterThanEqual);
-                    }
-
-                    ImGui::EndMenu();
-                }
-
-                if (ImGui::BeginMenu("While")) {
-                    auto addWhileStatement = [&](const ConditionalType type, const ComparisonType comp) {
-                        WhileStatement newStatement;
-                        newStatement.condition.type = type;
-                        newStatement.condition.comparison = comp;
-                        ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, newStatement);
-                    };
-
-                    if (ImGui::MenuItem("While flag set")) {
-                        addWhileStatement(ConditionalType::Flag, ComparisonType::Set);
-                    }
-                    if (ImGui::MenuItem("While flag clear")) {
-                        addWhileStatement(ConditionalType::Flag, ComparisonType::Clear);
-                    }
-                    if (ImGui::MenuItem("While word ==")) {
-                        addWhileStatement(ConditionalType::Word, ComparisonType::Equal);
-                    }
-                    if (ImGui::MenuItem("While word !=")) {
-                        addWhileStatement(ConditionalType::Word, ComparisonType::NotEqual);
-                    }
-                    if (ImGui::MenuItem("While word <")) {
-                        addWhileStatement(ConditionalType::Word, ComparisonType::LessThan);
-                    }
-                    if (ImGui::MenuItem("While word >=")) {
-                        addWhileStatement(ConditionalType::Word, ComparisonType::GreaterThanEqual);
-                    }
-
-                    ImGui::EndMenu();
-                }
-            }
-
-            if (ImGui::MenuItem("Comment")) {
-                ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, Scripting::Comment{});
-            }
-
-            ImGui::EndPopup();
-        }
-    }
-
-    void processStatements_afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements)
-    {
-        auto& sel = data->scriptStatementsSel;
-
-        const bool isParentSelected = parentIndex == sel.parentIndex();
-
-        // Save index - prevents an infinite loop
-        const unsigned oldIndex = index;
-
-        const float selSpacing = ImGui::GetCursorPosX() + INDENT_SPACING;
-
-        for (auto [i, s] : enumerate(statements)) {
-            index = i;
-
-            ImGui::PushID(index);
-
-            ImGui::PushStyleColor(ImGuiCol_Text, disabledColor);
-            const std::u8string label = stringBuilder(index);
-            if (ImGui::Selectable(u8Cast(label), isParentSelected && index == sel.selectedIndex(), ImGuiSelectableFlags_AllowItemOverlap)) {
-                sel.setSelected(parentIndex, index);
-            }
-            ImGui::PopStyleColor();
-
-            ImGui::SameLine(selSpacing);
-            std::visit(*this, s);
-
-            ImGui::PopID();
-        }
-
-        // restore index
-        index = oldIndex;
-    }
-
-    void processStatements_root(std::vector<Scripting::ScriptNode>& statements, const unsigned scriptId)
-    {
-        depth = 0;
-        parentIndex.fill(0xffff);
-        parentIndex.front() = scriptId;
-        index = scriptId;
-
-        processStatements_afterParentIndexUpdated(statements);
-
-        if (ImGui::Button("Add")) {
-            openProcessMenu();
-        }
-    }
-
-    void processChildStatements(std::vector<Scripting::ScriptNode>& statements)
-    {
-        if (depth + 1 >= parentIndex.size()) {
-            ImGui::TextUnformatted(u8"ERROR: MAXIMUM DEPTH REACHED");
-            return;
-        }
-        depth++;
-        parentIndex.at(depth) = index & 0x7fff;
-
-        ImGui::Indent(INDENT_SPACING);
-
-        processStatements_afterParentIndexUpdated(statements);
-
-        if (ImGui::Button("Add")) {
-            openProcessMenu();
-        }
-
-        ImGui::Unindent(INDENT_SPACING);
-
-        parentIndex.at(depth) = NodeSelection::NO_SELECTION;
-        depth--;
-    }
-
-    void processChildStatements(std::vector<Scripting::ScriptNode>& thenStatements, std::vector<Scripting::ScriptNode>& elseStatements)
-    {
-        if (depth + 1 >= parentIndex.size()) {
-            ImGui::TextUnformatted(u8"ERROR: MAXIMUM DEPTH REACHED");
-            return;
-        }
-        depth++;
-        parentIndex.at(depth) = index & 0x7fff;
-
-        ImGui::Indent(INDENT_SPACING);
-
-        processStatements_afterParentIndexUpdated(thenStatements);
-
-        if (ImGui::Button("Add")) {
-            openProcessMenu();
-        }
-
-        // set else flag in parentIndex.
-        parentIndex.at(depth) |= 0x8000;
-
-        if (!elseStatements.empty()) {
-            ImGui::TextUnformatted(u8"else");
-
-            processStatements_afterParentIndexUpdated(elseStatements);
-
-            if (ImGui::Button("Add##Else")) {
-                openProcessMenu();
-            }
-        }
-        else {
-            if (ImGui::Button("Add Else")) {
-                openProcessMenu();
-            }
-        }
-
-        ImGui::Unindent(INDENT_SPACING);
-
-        parentIndex.at(depth) = NodeSelection::NO_SELECTION;
-        depth--;
-    }
-};
-
-std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::addMenuParentIndex;
-
-template <typename AP>
-static void tempVariableList(const char* strId, RoomEditorData* data, const float outerHeight)
-{
-    apTable<AP>(
-        strId, data,
-        std::to_array({ "Name" }),
-        ImVec2(0.0f, outerHeight),
-
-        [&](auto& var) { return Cell("##name", &var); });
-}
-
-void RoomEditorGui::scriptsGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
-{
-    assert(_data);
-    auto& roomScripts = _data->data.roomScripts;
-
-    ImGui::BeginChild("Temp-Vars", ImVec2(200, 0), true);
-    {
-        const float tableHeight = (ImGui::GetContentRegionAvail().y - 125) / 2;
-
-        ImGui::TextUnformatted(u8"Temporary Flags:\n"
-                               "(cleared on room load)");
-
-        tempVariableList<AP::TempScriptFlags>("Flags", _data, tableHeight);
-
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        ImGui::TextUnformatted(u8"Temporary Words:\n"
-                               "(reset to 0 on room load)");
-
-        tempVariableList<AP::TempScriptWords>("Words", _data, tableHeight);
-    }
-    ImGui::EndChild();
-    ImGui::SameLine();
-
-    ImGui::BeginChild("Sidebar", ImVec2(200, 0), true);
-    {
-        auto& sel = _data->scriptsSel;
-
-        ListButtons<AP::Scripts>(_data);
-
-        ImGui::BeginChild("struct-list");
-
-        if (ImGui::Selectable("##Startup_Script", !sel.hasSelection(), ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
-            sel.clearSelection();
-        }
-        ImGui::SameLine();
-        ImGui::TextUnformatted(u8"Startup Script");
-
-        for (auto [i, script] : enumerate(roomScripts.scripts)) {
-            ImGui::PushID(i);
-
-            ImGui::Selectable("##sel", &sel, i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);
-            ImGui::SameLine();
-            ImGui::TextUnformatted(script.name);
-
-            ImGui::PopID();
-        }
-        ImGui::EndChild();
-    }
-    ImGui::EndChild();
-
-    ImGui::SameLine();
-
-    ImGui::BeginChild("Script");
-
-    const auto bcMapping = projectData.bytecodeData();
-    if (bcMapping) {
-        const bool isStartupScript = _data->scriptsSel.selectedIndex() >= roomScripts.scripts.size();
-        const unsigned scriptId = !isStartupScript ? _data->scriptsSel.selectedIndex() : NodeSelection::NO_SELECTION;
-        Scripting::Script& script = !isStartupScript ? roomScripts.scripts.at(scriptId) : roomScripts.startupScript;
-
-        if (!isStartupScript) {
-            if (Cell("Name", &script.name)) {
-                // NOTE: Cannot edit the startup script using the AP::Scripts Action Policy.
-                ListActions<AP::Scripts>::selectedFieldEdited<
-                    &Scripting::Script::name>(_data);
-            }
-        }
-        else {
-            ImGui::TextUnformatted(u8"Startup Script.\n"
-                                   "This script will be started automatically on room load.\n"
-                                   "The gameloop will not start until this script has finished execution.\n"
-                                   "Start_Script will not activate a script until after the startup script ends.");
-        }
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        ListButtons<AP::ScriptStatements>(_data);
-        ImGui::Spacing();
-
-        ImGui::BeginChild("Scroll");
-
-        RoomScriptGuiVisitor sgVisitor(_data, *bcMapping, projectFile);
-        sgVisitor.processGui(script, scriptId);
-
-        ImGui::EndChild();
-    }
-    else {
-        ImGui::TextUnformatted(u8"\n\n"
-                               "ERROR: Cannot view script: Missing bytecode data.");
-    }
-
-    ImGui::EndChild();
 }
 
 }

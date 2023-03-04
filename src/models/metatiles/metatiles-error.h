@@ -13,43 +13,11 @@ namespace UnTech::MetaTiles {
 enum class TilesetErrorType {
     TILE,
 };
-
-class TilesetError : public GenericListError {
-public:
-    const TilesetErrorType type;
-
-    TilesetError(const TilesetErrorType type, unsigned pIndex, std::u8string&& message)
-        : GenericListError(pIndex, std::move(message))
-        , type(type)
-    {
-    }
-
-    TilesetError(const TilesetErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
-        : GenericListError(pIndex, cIndex, std::move(message))
-        , type(type)
-    {
-    }
-};
+using TilesetError = GenericListError<TilesetErrorType>;
 
 enum class InteractiveTilesErrorType {
     FUNCTION_TABLE,
 };
-
-class InteractiveTilesError : public GenericListError {
-public:
-    const InteractiveTilesErrorType type;
-
-    InteractiveTilesError(const InteractiveTilesErrorType type, unsigned pIndex, std::u8string&& message)
-        : GenericListError(pIndex, std::move(message))
-        , type(type)
-    {
-    }
-
-    InteractiveTilesError(const InteractiveTilesErrorType type, unsigned pIndex, unsigned cIndex, std::u8string&& message)
-        : GenericListError(pIndex, cIndex, std::move(message))
-        , type(type)
-    {
-    }
-};
+using InteractiveTilesError = GenericListError<InteractiveTilesErrorType>;
 
 }

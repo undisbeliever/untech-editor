@@ -463,7 +463,7 @@ void SameLineWithSeparator()
 {
     constexpr float thickness = 1.0f;
 
-    ImGuiContext& g = *GImGui;
+    const ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
     if (window->SkipItems)
         return;

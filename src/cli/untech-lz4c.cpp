@@ -4,42 +4,44 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "helpers/commandlineparser.h"
+#include "argparser.h"
 #include "models/common/file.h"
 #include "models/lz4/lz4.h"
 #include <cstdlib>
 #include <iostream>
 
 using namespace UnTech;
+using namespace UnTech::ArgParser;
 
-using OT = CommandLine::OptionType;
-const CommandLine::Config COMMAND_LINE_CONFIG = {
+struct Args {
+    std::filesystem::path inputFilename;
+
+    std::filesystem::path outputFilename;
+    unsigned limit;
+    bool verbose;
+};
+
+// clang-format off
+constexpr static auto ARG_PARSER_CONFIG = argParserConfig(
     "UnTech LZ4 HC block compressor."
     "\nWARNING: This compressor uses a modified block frame and is incompatible with the lz4 standard.",
 
     "input file",
-    {
-        { 'o', "output", OT::FILENAME, true, {}, "output file" },
-        { 'l', "limit", OT::UNSIGNED, false, 0xffffU, "limit output file size in bytes" },
-        { 'v', "verbose", OT::BOOLEAN, false, {}, "verbose output" },
-        { '\0', "version", OT::VERSION, false, {}, "display version information" },
-        { 'h', "help", OT::HELP, false, {}, "display this help message" },
-    }
-};
 
-int process(const CommandLine::Parser& args)
+    RequiredArg< &Args::outputFilename  >{  'o',    "output",   "output file"                               },
+    OptionalArg< &Args::limit           >{  'l',    "limit",    "limit output file size in bytes",  0xffffU },
+    BooleanArg<  &Args::verbose         >{  'v',    "verbose",  "verbose output"                            }
+);
+// clang-format on
+
+int process(const Args& args)
 {
-    const std::filesystem::path& inputFilename = args.inputFilename();
-    const std::filesystem::path& outputFilename = args.options().at("output").path();
-    const unsigned limit = args.options().at("limit").uint();
-    const bool verbose = args.options().at("verbose").boolean();
+    const auto input = File::readBinaryFile(args.inputFilename, 4 * 1024 * 1024);
+    const auto out = lz4HcCompress(input, args.limit);
 
-    const auto input = File::readBinaryFile(inputFilename, 4 * 1024 * 1024);
-    const auto out = lz4HcCompress(input, limit);
+    File::atomicWrite(args.outputFilename, out);
 
-    File::atomicWrite(outputFilename, out);
-
-    if (verbose) {
+    if (args.verbose) {
         double percent = (double)out.size() / (double)input.size() * 100;
 
         std::cout << "Compressed " << input.size() << " bytes into " << out.size() << " bytes"
@@ -53,8 +55,7 @@ int process(const CommandLine::Parser& args)
 int main(int argc, const char* argv[])
 {
     try {
-        CommandLine::Parser args(COMMAND_LINE_CONFIG);
-        args.parse(argc, argv);
+        const Args args = parseProgramArguments(ARG_PARSER_CONFIG, argc, argv);
         return process(args);
     }
     catch (const std::exception& ex) {

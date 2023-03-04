@@ -7,6 +7,7 @@
 #pragma once
 
 #include "entityromdata-error.h"
+#include "entityromdata.h"
 
 namespace UnTech::Entity {
 

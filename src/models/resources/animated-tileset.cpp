@@ -89,7 +89,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(
         unsigned palette = getPalette(0, tileId);
         for (const auto frameId : range(nFrames)) {
             if (getPalette(frameId, tileId) != palette) {
-                invalidTiles.emplace_back(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, InvalidTileReason::NOT_SAME_PALETTE);
+                invalidTiles.push_back({ TS, unsigned(tileId % tileWidth) * TS, unsigned(tileId / tileWidth) * TS, InvalidTileReason::NOT_SAME_PALETTE });
                 break;
             }
         }
@@ -343,16 +343,15 @@ convertAnimationFrames(const AnimationFramesInput& input,
 
     const usize mapSize(imgSize.width / 8, imgSize.height / 8);
 
-    auto paletteIndex = projectDataStore.indexOf(input.conversionPalette);
-    auto paletteData = projectDataStore.at(paletteIndex);
-    if (!paletteData) {
+    const auto paletteIndexAndData = projectDataStore.indexAndDataFor(input.conversionPalette);
+    if (!paletteIndexAndData) {
         err.addErrorString(u8"Cannot find palette: ", input.conversionPalette);
         return std::nullopt;
     }
 
-    ret.conversionPaletteIndex = *paletteIndex;
+    ret.conversionPaletteIndex = paletteIndexAndData->first;
 
-    const auto frameTiles = tilesFromFrameImages(input, paletteData->conversionPalette, err);
+    const auto frameTiles = tilesFromFrameImages(input, paletteIndexAndData->second->conversionPalette, err);
     if (initialErrorCount != err.errorCount()) {
         return std::nullopt;
     }

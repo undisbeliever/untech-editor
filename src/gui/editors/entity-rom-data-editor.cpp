@@ -206,9 +206,10 @@ EntityRomDataEditorGui::EntityRomDataEditorGui()
 {
 }
 
-bool EntityRomDataEditorGui::setEditorData(AbstractEditorData* data)
+bool EntityRomDataEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    return (_data = dynamic_cast<EntityRomDataEditorData*>(data));
+    _data = std::dynamic_pointer_cast<EntityRomDataEditorData>(data);
+    return _data != nullptr;
 }
 
 void EntityRomDataEditorGui::resetState()
@@ -351,7 +352,7 @@ void EntityRomDataEditorGui::entityEntriesGui(const char8_t* text, const Project
 
     NamedListSidebar<ActionPolicy>(_data);
 
-    SelectionT& sel = _data->*ActionPolicy::SelectionPtr;
+    SelectionT& sel = (*_data).*(ActionPolicy::SelectionPtr);
     NamedList<EntityRomEntry>* list = ActionPolicy::getList(entityRomData);
 
     ImGui::SameLine();
@@ -495,17 +496,17 @@ std::vector<unsigned> EntityRomDataEditorGui::generateStructChain(const idstring
     std::vector<unsigned> items;
     items.reserve(8);
 
-    unsigned sIndex = entityRomData.structs.indexOf(name);
-    while (sIndex < entityRomData.structs.size()) {
+    auto sIndex = entityRomData.structs.indexOf(name);
+    while (sIndex) {
         const bool containsParent = std::find(items.begin(), items.end(), sIndex) != items.end();
         if (containsParent) {
             items.clear();
             return items;
         }
 
-        items.push_back(sIndex);
+        items.push_back(sIndex.value());
 
-        const auto& st = entityRomData.structs.at(sIndex);
+        const auto& st = entityRomData.structs.at(sIndex.value());
         sIndex = entityRomData.structs.indexOf(st.parent);
     }
 

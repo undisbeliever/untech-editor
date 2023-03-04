@@ -107,19 +107,11 @@ public:
     /** returns the base64 data at the current cursor */
     std::vector<uint8_t> parseBase64OfUnknownSize();
 
-    /** returns the base64 data at the current cursor, throws xml_error if size of data != size */
+    /** returns the base64 data at the current cursor.  Throws xml_error if base64 data size != expectedSize */
     std::vector<uint8_t> parseBase64OfKnownSize(const size_t expectedSize);
 
-    /** reads the base64 data into a byte array, throws xml_error if size of data != size of array. */
-    template <size_t N>
-    void parseBase64ToByteArray(std::array<uint8_t, N>& data)
-    {
-        const size_t bytesDecoded = Base64::decodeToBuffer(data, parseText());
-
-        if (bytesDecoded != data.size()) {
-            throw xml_error(*this, stringBuilder(u8"Invalid data size. Got ", bytesDecoded, u8" bytes, expected ", data.size(), u8"."));
-        }
-    }
+    /** decodes base64 text into buffer.  Throws xml_error if base64 data size != `buffer.size()`. */
+    void parseBase64ToFixedSizeBuffer(std::span<uint8_t> buffer);
 
     /** This method will skip over any child/sibling text/tags in order to close the current tag */
     void parseCloseTag();

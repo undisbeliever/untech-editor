@@ -14,7 +14,7 @@
 namespace UnTech::Gui {
 
 template <typename ActionPolicy>
-void ListButtons(typename ActionPolicy::EditorT* editor)
+void ListButtons(const std::shared_ptr<typename ActionPolicy::EditorT>& editor)
 {
     assert(editor != nullptr);
 
@@ -54,7 +54,7 @@ void ListButtons(typename ActionPolicy::EditorT* editor)
 }
 
 template <typename ActionPolicy>
-bool CombinedListButtons_AddButton(typename ActionPolicy::EditorT* editor)
+bool CombinedListButtons_AddButton(const std::shared_ptr<typename ActionPolicy::EditorT>& editor)
 {
     bool changed = false;
 
@@ -77,7 +77,7 @@ bool CombinedListButtons_AddButton(typename ActionPolicy::EditorT* editor)
 }
 
 template <typename... ActionPolicy, typename EditorT>
-void CombinedListButtons(const char* idStr, EditorT* editor)
+void CombinedListButtons(const char* idStr, const std::shared_ptr<EditorT>& editor)
 {
     assert(editor != nullptr);
 
@@ -86,51 +86,51 @@ void CombinedListButtons(const char* idStr, EditorT* editor)
     (CombinedListButtons_AddButton<ActionPolicy>(editor), ...);
 
     if (ImGui::ButtonWithTooltip("C", "Clone Selected")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::CLONE)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("R##Remove", "Remove Selected")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("RT", "Raise to Top")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE_TO_TOP)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("R##Raise", "Raise")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("L", "Lower")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
     ImGui::SameLine();
 
     if (ImGui::ButtonWithTooltip("LB", "Lower to Bottom")) {
-        editor->startMacro();
+        editor->undoStack().startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER_TO_BOTTOM)), ...);
-        editor->endMacro();
+        editor->undoStack().endMacro();
     }
 
     ImGui::PopID();
 }
 
 template <class ActionPolicy>
-void NamedListSidebar(typename ActionPolicy::EditorT* editor, float width = 200)
+void NamedListSidebar(const std::shared_ptr<typename ActionPolicy::EditorT>& editor, float width = 200)
 {
     using Actions = ListActions<ActionPolicy>;
     using SelectionT = typename ActionPolicy::SelectionT;
@@ -144,7 +144,7 @@ void NamedListSidebar(typename ActionPolicy::EditorT* editor, float width = 200)
         ImGui::BeginChild("struct-list");
 
         if (list) {
-            SelectionT& sel = editor->*ActionPolicy::SelectionPtr;
+            SelectionT& sel = (*editor).*(ActionPolicy::SelectionPtr);
 
             for (auto [i, item] : enumerate(*list)) {
                 ImGui::PushID(i);

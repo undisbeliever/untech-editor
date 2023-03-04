@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "room-script-gui.h"
 #include "gui/editors/abstract-metatile-editor.h"
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/graphics/invalid-room-tile-graphics.h"
@@ -21,7 +22,7 @@ struct EntityGraphics;
 class RoomEditorData final : public AbstractMetaTileEditorData {
 private:
     friend class RoomEditorGui;
-    friend class RoomScriptGuiVisitor;
+    friend class RoomScriptGui;
     struct AP;
 
 public:
@@ -50,12 +51,6 @@ public:
     void updateSelection() final;
 
 protected:
-    grid<uint8_t>& map() final;
-    void mapTilesPlaced(const urect r) final;
-
-    void selectedTilesetTilesChanged() final;
-    void selectedTilesChanged() final;
-
     void selectedScratchpadTilesChanged();
     void clearSelectedTiles();
 };
@@ -64,7 +59,9 @@ class RoomEditorGui final : public AbstractMetaTileEditorGui {
 private:
     using AP = RoomEditorData::AP;
 
-    RoomEditorData* _data;
+    std::shared_ptr<RoomEditorData> _data;
+
+    RoomScriptGui _roomScriptGui;
 
     Shaders::MtTilemap _scratchpadTilemap;
 
@@ -82,7 +79,6 @@ private:
     grid<uint8_t> _scratchpad;
 
     InvalidRoomTileGraphics _invalidTiles;
-    unsigned _invalidTilesCompileId;
 
     SplitterBarState _sidebar;
     SplitterBarState _minimapRight_sidebar;
@@ -110,7 +106,7 @@ public:
 public:
     RoomEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 
@@ -120,9 +116,17 @@ public:
     void processExtraWindows(const Project::ProjectFile& projectFile,
                              const Project::ProjectData& projectData) final;
 
+    void resourceCompiled(const ErrorList& errors) final;
+
     void viewMenu() final;
 
 protected:
+    [[nodiscard]] grid<uint8_t>& map() final;
+    void mapTilesPlaced(const urect r) final;
+
+    void selectedTilesetTilesChanged() final;
+    void selectedTilesChanged() final;
+
     void selectionChanged() final;
 
     [[nodiscard]] const std::array<idstring, 256>& tileFunctionTables() const final;
@@ -132,7 +136,6 @@ private:
     void scratchpadGui();
 
     void editorGui();
-    void scriptsGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     void entityTextureWindow();
 
@@ -145,7 +148,6 @@ private:
     void updateEntityGraphics();
     void updateTilesetData(const Project::ProjectFile& projectFile,
                            const Project::ProjectData& projectData);
-    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

@@ -19,7 +19,7 @@ class ErrorList;
 class StringStream;
 }
 namespace UnTech::Project {
-class ProjectData;
+struct ProjectData;
 }
 
 namespace UnTech::Resources {

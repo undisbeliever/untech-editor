@@ -167,7 +167,7 @@ static bool validateScriptTriggers(const std::vector<ScriptTrigger>& scriptTrigg
 
     for (auto [i, st] : const_enumerate(scriptTriggers)) {
         if (st.script.isValid()) {
-            if (!room.roomScripts.scripts.find(st.script)) {
+            if (!room.roomScripts.scripts.contains(st.script)) {
                 addStError(i, u8"Cannot find script: ", st.script);
             }
         }
@@ -563,9 +563,9 @@ static bool validate(const RoomInput& input,
 
     std::shared_ptr<const MetaTiles::MetaTileTilesetData> tileset;
 
-    if (auto sceneData = compiledScenes.findScene(input.scene)) {
-        if (sceneData->mtTileset) {
-            tileset = metaTilesData.at(sceneData->mtTileset);
+    if (const auto sceneData = compiledScenes.findScene(input.scene)) {
+        if (const auto mt = sceneData->mtTileset) {
+            tileset = metaTilesData.at(mt.value());
         }
         else {
             addError(u8"Scene ", input.scene, u8" does not have a MetaTile layer");
@@ -780,8 +780,7 @@ compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& ro
             buildArray([&](auto& st) { return input.tileIndex(st.aabb.internalBottomRight()) + 1; });
 
             buildArray([&](auto& st) -> uint16_t {
-                auto scriptId = input.roomScripts.scripts.indexOf(st.script);
-                assert(scriptId < input.roomScripts.scripts.size());
+                uint16_t scriptId = input.roomScripts.scripts.indexOf(st.script).value();
 
                 if (st.once) {
                     scriptId |= ONCE_FLAG;

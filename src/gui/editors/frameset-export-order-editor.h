@@ -39,12 +39,12 @@ class FrameSetExportOrderEditorGui final : public AbstractEditorGui {
 private:
     using AP = FrameSetExportOrderEditorData::AP;
 
-    FrameSetExportOrderEditorData* _data;
+    std::shared_ptr<FrameSetExportOrderEditorData> _data;
 
 public:
     FrameSetExportOrderEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 

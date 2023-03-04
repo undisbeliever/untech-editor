@@ -282,12 +282,10 @@ SpriteImporterEditorGui::SpriteImporterEditorGui()
 {
 }
 
-bool SpriteImporterEditorGui::setEditorData(AbstractEditorData* data)
+bool SpriteImporterEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    _data = dynamic_cast<SpriteImporterEditorData*>(data);
-    setMetaSpriteData(_data);
-
-    return _data;
+    _data = std::dynamic_pointer_cast<SpriteImporterEditorData>(data);
+    return _data != nullptr;
 }
 
 void SpriteImporterEditorGui::resetState()
@@ -510,7 +508,7 @@ void SpriteImporterEditorGui::framePropertiesGui(const Project::ProjectFile& pro
                 }
             }
 
-            if (useGridLocation) {
+            if (!frame.locationOverride.has_value()) {
                 if (Cell("Grid Location", &frame.gridLocation, usize(UINT8_MAX, UINT8_MAX))) {
                     ListActions<AP::Frames_EditName>::selectedFieldEdited<&SI::Frame::gridLocation>(_data);
                 }
@@ -844,7 +842,7 @@ void SpriteImporterEditorGui::frameEditorGui()
                       &_data->tileHitboxSel, &_data->shieldSel, &_data->hitboxSel, &_data->hurtboxSel);
 
     if (_graphics.isEditingFinished()) {
-        _data->startMacro();
+        _data->undoStack().startMacro();
 
         ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
         ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
@@ -861,7 +859,7 @@ void SpriteImporterEditorGui::frameEditorGui()
             ListActions<AP::Frames>::selectedFieldEdited<&SI::Frame::hurtbox>(_data);
         }
 
-        _data->endMacro();
+        _data->undoStack().endMacro();
     }
 
     Style::spriteImporterZoom.processMouseWheel();

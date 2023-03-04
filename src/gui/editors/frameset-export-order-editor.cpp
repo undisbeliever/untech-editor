@@ -157,9 +157,10 @@ FrameSetExportOrderEditorGui::FrameSetExportOrderEditorGui()
 {
 }
 
-bool FrameSetExportOrderEditorGui::setEditorData(AbstractEditorData* data)
+bool FrameSetExportOrderEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    return (_data = dynamic_cast<FrameSetExportOrderEditorData*>(data));
+    _data = std::dynamic_pointer_cast<FrameSetExportOrderEditorData>(data);
+    return _data != nullptr;
 }
 
 void FrameSetExportOrderEditorGui::resetState()
@@ -179,7 +180,7 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label, const ImVec
     using AltAP = std::conditional_t<std::is_same_v<ExportNameAP, AP::Frames>, AP::FrameAlternatives, AP::AnimationsAlternatives>;
     using OtherNameAP = std::conditional_t<!std::is_same_v<ExportNameAP, AP::Frames>, AP::Frames, AP::Animations>;
 
-    SingleSelection& sel = _data->*ExportNameAP::SelectionPtr;
+    SingleSelection& sel = (*_data).*(ExportNameAP::SelectionPtr);
 
     assert(_data);
     auto& exportOrder = _data->data;
@@ -237,7 +238,7 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label, const ImVec
                 [&](auto* altSel, auto index) {
                     if (ImGui::Selectable(&sel, altSel, enIndex, index)) {
                         // unselect the other items
-                        (_data->*OtherNameAP::SelectionPtr).clearSelection();
+                        ((*_data).*(OtherNameAP::SelectionPtr)).clearSelection();
                     }
                 },
 

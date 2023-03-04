@@ -35,11 +35,11 @@ EntityGraphics::EntityGraphics(const usize& imageSize)
 }
 
 EntityGraphicsStore::EntityGraphicsStore()
-    : _mutex()
-    , _data(blankEntityGraphics())
-    , _entityRomDataCompileId(UINT_MAX)
+    : _state()
 {
-    assert(_data);
+    _state.access([](auto& s) {
+        s.data = blankEntityGraphics();
+    });
 }
 
 static void drawInvalidSymbol(Image& image, const unsigned xPos, const unsigned yPos, const unsigned width, const unsigned height)
@@ -50,6 +50,7 @@ static void drawInvalidSymbol(Image& image, const unsigned xPos, const unsigned 
     const rgba color1{ 255, 0, 0, 192 };
     const rgba color2{ 255, 0, 0, 32 };
 
+    // cppcheck-suppress variableScope
     bool lineToggle = false;
 
     for (const auto iy : range(yPos, yPos + height)) {
@@ -146,20 +147,21 @@ static std::optional<EntityFrame> findMetaSprite(const Entity::EntityRomEntry& e
                                                  const Project::ProjectFile& projectFile,
                                                  const Project::ProjectData& projectData)
 {
-    auto frameSetIndex = projectData.frameSets().indexOf(entry.frameSetId);
+    const auto indexAndData = projectData.frameSets.indexAndDataFor(entry.frameSetId);
 
-    if (!frameSetIndex) {
+    if (!indexAndData) {
         return std::nullopt;
     }
 
-    if (const auto fs = projectData.frameSets().at(entry.frameSetId)) {
-        if (fs->msFrameSet) {
-            return entityFrame(entry, *fs->msFrameSet, fs);
-        }
+    const auto& frameSetIndex = indexAndData->first;
+    const auto& fs = indexAndData->second;
+
+    if (fs->msFrameSet) {
+        return entityFrame(entry, *fs->msFrameSet, fs);
     }
 
     if (frameSetIndex < projectFile.frameSets.size()) {
-        const auto& fsf = projectFile.frameSets.at(*frameSetIndex);
+        const auto& fsf = projectFile.frameSets.at(frameSetIndex);
         if (fsf.msFrameSet) {
             return entityFrame(entry, *fsf.msFrameSet, nullptr);
         }
@@ -321,11 +323,10 @@ packEntityFrames(const std::vector<EntityFrame>& entityFrames)
 }
 
 void processEntityGraphics(const Project::ProjectFile& projectFile,
-                           const Project::ProjectData& projectData)
+                           const Project::ProjectData& projectData,
+                           const uint64_t entityRomDataCompileId)
 {
-    const auto erdCompileId = projectData.projectSettingsStatus().compileId(unsigned(ProjectSettingsIndex::EntityRomData));
-
-    if (erdCompileId == entityGraphicsStore.getEntityRomDataCompileId()) {
+    if (entityRomDataCompileId == entityGraphicsStore.getEntityRomDataCompileId()) {
         return;
     }
 
@@ -334,7 +335,7 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
     const auto [packingNodes, textureSize] = packEntityFrames(entityFrames);
 
     if (textureSize.height > MAX_TEXTURE_SIZE) {
-        entityGraphicsStore.set(blankEntityGraphics(), erdCompileId);
+        entityGraphicsStore.set(blankEntityGraphics(), entityRomDataCompileId);
         return;
     }
 
@@ -414,7 +415,7 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
         }
     }
 
-    entityGraphicsStore.set(std::move(eg), erdCompileId);
+    entityGraphicsStore.set(std::move(eg), entityRomDataCompileId);
 }
 
 }

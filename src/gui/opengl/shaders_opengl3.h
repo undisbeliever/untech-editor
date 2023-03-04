@@ -25,7 +25,7 @@ struct PaletteData;
 
 namespace UnTech::Project {
 struct ProjectFile;
-class ProjectData;
+struct ProjectData;
 }
 
 namespace UnTech::Gui::Shaders {

@@ -52,9 +52,10 @@ compileGameState(const GameState& input,
     }
 
     const auto roomId = rooms.indexOf(input.startingRoom);
-    unsigned entranceId = INT_MAX;
-    if (roomId < rooms.size()) {
-        if (const auto room = rooms.at(roomId)) {
+    std::optional<size_t> entranceId{};
+
+    if (roomId) {
+        if (const auto room = rooms.at(roomId.value())) {
             entranceId = room->entrances.indexOf(input.startingEntrance);
         }
     }
@@ -65,15 +66,15 @@ compileGameState(const GameState& input,
     else if (!input.startingEntrance.isValid()) {
         addError(u8"Missing startingEntrance");
     }
-    else if (roomId > UINT8_MAX) {
+    else if (!roomId) {
         addError(u8"Cannot find room: ", input.startingRoom);
     }
-    else if (entranceId > UINT8_MAX) {
+    else if (!entranceId) {
         addError(u8"Cannot find room entrance: ", input.startingEntrance);
     }
 
-    const unsigned playerId = entityRomData.players.indexOf(input.startingPlayer);
-    if (playerId > UINT8_MAX) {
+    const auto playerId = entityRomData.players.indexOf(input.startingPlayer);
+    if (!playerId) {
         addError(u8"Cannot find player: ", input.startingPlayer);
     }
 
@@ -119,9 +120,9 @@ compileGameState(const GameState& input,
 
         it = ret->initialGameState.begin() + 2 * GameState::MAX_WORDS;
 
-        *it++ = roomId;
-        *it++ = entranceId;
-        *it++ = playerId;
+        *it++ = roomId.value_or(0xff);
+        *it++ = entranceId.value_or(0xff);
+        *it++ = playerId.value_or(0xff);
 
         assert(it == ret->initialGameState.end());
     }

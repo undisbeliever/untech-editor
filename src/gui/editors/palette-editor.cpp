@@ -71,9 +71,10 @@ PaletteEditorGui::PaletteEditorGui()
 {
 }
 
-bool PaletteEditorGui::setEditorData(AbstractEditorData* data)
+bool PaletteEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    return (_data = dynamic_cast<PaletteEditorData*>(data));
+    _data = std::dynamic_pointer_cast<PaletteEditorData>(data);
+    return _data != nullptr;
 }
 
 void PaletteEditorGui::resetState()

@@ -9,6 +9,7 @@
 #include "models/common/errorlist.h"
 #include <cassert>
 #include <climits>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -20,32 +21,10 @@ enum class InvalidTileReason : unsigned {
     TOO_MANY_COLORS
 };
 struct InvalidImageTile {
-    unsigned frameId;
     unsigned size;
     unsigned x;
     unsigned y;
     InvalidTileReason reason;
-
-    InvalidImageTile(unsigned frameId, unsigned size, unsigned x, unsigned y, InvalidTileReason reason)
-        : frameId(frameId)
-        , size(size)
-        , x(x)
-        , y(y)
-        , reason(reason)
-    {
-        assert(frameId < INT_MAX);
-        assert(size > 0);
-    }
-
-    InvalidImageTile(unsigned size, unsigned x, unsigned y, InvalidTileReason reason)
-        : frameId(0)
-        , size(size)
-        , x(x)
-        , y(y)
-        , reason(reason)
-    {
-        assert(size > 0);
-    }
 };
 
 class InvalidImageError : public AbstractError {
@@ -54,12 +33,11 @@ public:
 
 public:
     const std::vector<InvalidImageTile> invalidTiles;
-    const unsigned frameId;
+    const std::optional<unsigned> frameId;
 
 public:
-    explicit InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, unsigned frameId_ = UINT_MAX);
+    explicit InvalidImageError(std::vector<InvalidImageTile>&& invalidTiles_, std::optional<unsigned> frameId_ = std::nullopt);
 
-    [[nodiscard]] bool hasFrameId() const { return frameId <= INT_MAX; }
     [[nodiscard]] bool hasError() const { return !invalidTiles.empty(); }
     [[nodiscard]] size_t errorCount() const { return invalidTiles.size(); }
 

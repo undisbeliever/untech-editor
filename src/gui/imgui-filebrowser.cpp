@@ -162,10 +162,11 @@ bool InputPngImageFilename(const char* label, std::filesystem::path* path)
         openOpenDialog(id, u8"Select PNG Image", u8".png");
     }
 
-    const auto [closed, fn] = processOpenDialog(id);
+    const auto d = processOpenDialog(id);
+    const auto& fn = d.second;
     if (fn) {
         if (*path != fn) {
-            *path = *fn;
+            *path = fn.value();
             pathEdited = true;
         }
     }

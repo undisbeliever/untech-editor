@@ -254,7 +254,7 @@ static bool validate(const EntityFunctionTable& input, const unsigned ftIndex, c
     }
 
     if (input.exportOrder.isValid()) {
-        if (not project.frameSetExportOrders.find(input.exportOrder)) {
+        if (not project.frameSetExportOrders.contains(input.exportOrder)) {
             addError(u8"Cannot find FrameSet Export Order ", input.exportOrder);
         }
     }
@@ -297,7 +297,7 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
 
     if (input.initialProjectileId.isValid()) {
         const auto& projectiles = project.entityRomData.projectiles;
-        if (not projectiles.find(input.initialProjectileId)) {
+        if (not projectiles.contains(input.initialProjectileId)) {
             addError(u8"Unable to find projectile ", input.initialProjectileId);
         }
     }
@@ -382,7 +382,7 @@ static bool validate(const EntityRomEntry& input, const EntityType entityType, c
     return valid;
 }
 
-bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
+static bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -417,7 +417,7 @@ bool validateListIds(const std::vector<idstring>& listIds, ErrorList& err)
     return valid;
 }
 
-StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err)
+static StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err)
 {
     std::vector<unsigned> toProcess(structs.size());
     {
@@ -698,7 +698,7 @@ static void processEntry(const EntityType entityType,
                                        [&](auto& fs) { return fs.name() == entry.frameSetId; })
                           - frameSets.begin();
 
-    unsigned initialProjectileId = std::min<unsigned>(0xff, projectiles.indexOf(entry.initialProjectileId));
+    unsigned initialProjectileId = projectiles.indexOf(entry.initialProjectileId).value_or(0xff);
     unsigned initialListId = entityType != EntityType::PLAYER ? std::find(listIds.begin(), listIds.end(), entry.initialListId) - listIds.begin()
                                                               : 0xff;
 

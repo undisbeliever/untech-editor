@@ -33,12 +33,12 @@ class InteractiveTilesEditorGui final : public AbstractEditorGui {
 private:
     using AP = InteractiveTilesEditorData::AP;
 
-    InteractiveTilesEditorData* _data;
+    std::shared_ptr<InteractiveTilesEditorData> _data;
 
 public:
     InteractiveTilesEditorGui();
 
-    bool setEditorData(AbstractEditorData* data) final;
+    bool setEditorData(const std::shared_ptr<AbstractEditorData>& data) final;
     void resetState() final;
     void editorClosed() final;
 

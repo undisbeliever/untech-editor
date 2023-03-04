@@ -318,17 +318,19 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui(const char* strId)
 {
 }
 
-bool AbstractMetaTileEditorGui::setEditorData(AbstractEditorData* data)
+bool AbstractMetaTileEditorGui::setEditorData(const std::shared_ptr<AbstractEditorData>& data)
 {
-    return (_data = dynamic_cast<AbstractMetaTileEditorData*>(data));
+    _data = std::dynamic_pointer_cast<AbstractMetaTileEditorData>(data);
+    return _data != nullptr;
 }
 
 void AbstractMetaTileEditorGui::resetSelectorState()
 {
     assert(_data);
+    const auto& mapData = map();
 
     tilesetSelector.reset(_data->selectedTilesetTiles, usize(TILESET_WIDTH, TILESET_HEIGHT));
-    editableTilesSelector.reset(_data->selectedTiles, _data->map().size());
+    editableTilesSelector.reset(_data->selectedTiles, mapData.size());
     scratchpadTilesSelector.reset();
 }
 
@@ -495,7 +497,7 @@ void AbstractMetaTileEditorGui::drawTileset(const Geometry& geo)
         if (_currentEditMode == EditMode::SelectTiles) {
             setEditMode(EditMode::PlaceTiles);
         }
-        _data->selectedTilesetTilesChanged();
+        selectedTilesetTilesChanged();
         selectionChanged();
     }
 }
@@ -522,7 +524,7 @@ void AbstractMetaTileEditorGui::minimapGui(const char* label)
     assert(_data);
 
     if (!_tilemap.empty()) {
-        const auto& mapData = _data->map();
+        const auto& mapData = map();
 
         const auto geo = invisibleButtonAndMapGeometryAutoZoom(label, _tilemap.gridSize());
 
@@ -533,13 +535,11 @@ void AbstractMetaTileEditorGui::minimapGui(const char* label)
 
         const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, _tilemap.gridSize());
         if (sc) {
-            const auto& map = _data->map();
-
-            createTileCursor(map, _data->selectedTiles);
+            createTileCursor(mapData, _data->selectedTiles);
             if (_currentEditMode == EditMode::SelectTiles) {
                 setEditMode(EditMode::PlaceTiles);
             }
-            _data->selectedTilesChanged();
+            selectedTilesChanged();
             selectionChanged();
         }
     }
@@ -610,9 +610,7 @@ void AbstractMetaTileEditorGui::drawSelection(const upoint_vectorset& selection,
 
 ImVec2 AbstractMetaTileEditorGui::drawAndEditMap(const char* strId, const ImVec2 zoom)
 {
-    assert(_data);
-
-    const auto& mapData = _data->map();
+    const auto& mapData = map();
 
     const auto geo = invisibleButtonAndMapGeometry(strId, mapData.size(), zoom);
     drawAndEditMap(geo);
@@ -622,9 +620,7 @@ ImVec2 AbstractMetaTileEditorGui::drawAndEditMap(const char* strId, const ImVec2
 
 ImVec2 AbstractMetaTileEditorGui::drawAndEditMap(const AabbGraphics& graphics)
 {
-    assert(_data);
-
-    const auto& mapData = _data->map();
+    const auto& mapData = map();
 
     const auto& zoom = graphics.zoom();
 
@@ -651,7 +647,7 @@ void AbstractMetaTileEditorGui::drawAndEditMap(const Geometry& geo)
         return;
     }
 
-    const auto& mapData = _data->map();
+    const auto& mapData = map();
 
     drawTilemap(_tilemap, geo);
 
@@ -670,11 +666,9 @@ void AbstractMetaTileEditorGui::drawAndEditMap(const Geometry& geo)
 
         const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, _tilemap.gridSize());
         if (sc) {
-            const auto& map = _data->map();
-
-            createTileCursor(map, _data->selectedTiles);
+            createTileCursor(mapData, _data->selectedTiles);
             // Do not change mode in the editor
-            _data->selectedTilesChanged();
+            selectedTilesChanged();
             selectionChanged();
         }
         break;
@@ -740,8 +734,6 @@ void AbstractMetaTileEditorGui::processEditMode(const Geometry& geo)
 
 void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, const point& cursorPos, const Geometry& geo)
 {
-    assert(_data);
-
     if (_tilemap.empty() || tiles.empty()) {
         return;
     }
@@ -813,16 +805,14 @@ void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, con
 
 void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const point cursorPos)
 {
-    assert(_data);
-
-    auto& map = _data->map();
-    if (map.empty() || tiles.empty()) {
+    auto& mapData = map();
+    if (mapData.empty() || tiles.empty()) {
         return;
     }
 
     assert(tiles.width() < INT_MAX && tiles.height() < INT_MAX);
 
-    const rect mapBounds(0, 0, map.width(), map.height());
+    const rect mapBounds(0, 0, mapData.width(), mapData.height());
 
     // Get draw tile cursor boundary
     unsigned tiles_x1 = clamp<int>(cursorPos.x, mapBounds.left(), mapBounds.right());
@@ -846,8 +836,8 @@ void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const po
                 if (tileId < N_METATILES) {
                     int mapX = cursorPos.x + int(x);
                     if (mapX >= mapBounds.left() && mapX < mapBounds.right()) {
-                        if (map.at(mapX, mapY) != tileId) {
-                            map.at(mapX, mapY) = tileId;
+                        if (mapData.at(mapX, mapY) != tileId) {
+                            mapData.at(mapX, mapY) = tileId;
                             changed = true;
                         }
                     }
@@ -861,7 +851,7 @@ void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const po
     assert(it == tiles.cend());
 
     if (changed) {
-        _tilemap.setMapData(map);
+        _tilemap.setMapData(mapData);
 
         if (_cursor.mapDirty) {
             // Expand _cursor.modifiedTiles
@@ -891,10 +881,8 @@ void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const po
 
 void AbstractMetaTileEditorGui::commitPlacedTiles()
 {
-    assert(_data);
-
     if (_cursor.mapDirty) {
-        _data->mapTilesPlaced(_cursor.modifiedTiles);
+        mapTilesPlaced(_cursor.modifiedTiles);
         _cursor.mapDirty = false;
     }
     _cursor.currentlyEditing = false;
@@ -1069,7 +1057,7 @@ void AbstractMetaTileEditorGui::createTileCursorFromScratchpad(const grid<uint8_
 void AbstractMetaTileEditorGui::updateMapAndProcessAnimations()
 {
     if (!_tilemapValid) {
-        _tilemap.setMapData(_data->map());
+        _tilemap.setMapData(map());
 
         _tilemapValid = true;
     }

@@ -311,13 +311,18 @@ std::vector<uint8_t> XmlReader::parseBase64OfUnknownSize()
 
 std::vector<uint8_t> XmlReader::parseBase64OfKnownSize(const size_t expectedSize)
 {
-    auto data = parseBase64OfUnknownSize();
-
-    if (data.size() != expectedSize) {
-        throw xml_error(*this, stringBuilder(u8"Invalid data size. Got ", data.size(), u8" bytes, expected ", expectedSize, u8"."));
-    }
-
+    std::vector<uint8_t> data(expectedSize);
+    parseBase64ToFixedSizeBuffer(data);
     return data;
+}
+
+void XmlReader::parseBase64ToFixedSizeBuffer(std::span<uint8_t> buffer)
+{
+    const auto decoded = Base64::decodeToBuffer(buffer, parseText());
+
+    if (decoded != buffer.size()) {
+        throw xml_error(*this, stringBuilder(u8"Invalid data size. Got ", decoded, u8" bytes, expected ", buffer.size(), u8"."));
+    }
 }
 
 void XmlReader::parseCloseTag()
