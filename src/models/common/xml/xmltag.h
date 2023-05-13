@@ -278,7 +278,14 @@ public:
         }
 
         // Must escape attribute value
-        auto path = std::filesystem::u8path(getAttribute(aName));
+        const auto a = getAttribute(aName);
+
+        // ::ANNOY std::filesystem::u8path() is deprecated in C++20::
+        // ::TODO confirm this does what I want in Windows:;
+        static_assert(__cplusplus >= 202002L);
+        static_assert(std::is_same_v<decltype(a), const std::u8string>);
+        auto path = std::filesystem::path(a);
+
         if (path.empty()) {
             throw xml_error(*this, aName, u8"Expected filename");
         }
