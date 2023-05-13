@@ -21,7 +21,7 @@ constexpr std::u8string_view UNTECH_ABOUT_TEXT
 constexpr std::u8string_view THIRD_PARTY_LIBS
     = u8"\nLodePNG"
       u8"\n\thttp://lodev.org/lodepng/"
-      u8"\n\tCopyright (c) 2005-2022 Lode Vandevenne"
+      u8"\n\tCopyright (c) 2005-2023 Lode Vandevenne"
       u8"\n\tzlib License, https://github.com/lvandeve/lodepng/blob/master/LICENSE"
       u8"\n"
       u8"\nLZ4 Library"
