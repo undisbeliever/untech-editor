@@ -7,7 +7,6 @@
 [submodule "src/vendor/imgui"]
 	path = src/vendor/imgui
 	url = https://github.com/ocornut/imgui.git
-	branch = docking
 [submodule "src/vendor/imgui-filebrowser"]
 	path = src/vendor/imgui-filebrowser
 	url = https://github.com/AirGuanZ/imgui-filebrowser.git
