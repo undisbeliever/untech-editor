@@ -13,10 +13,9 @@
 // Use gl3w in both imgui and my openGL code
 #define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 
-#include "imgui_impl_opengl3.h"
-#include "imgui_impl_opengl3.hpp"
 #include "opengl3.h"
 
+#include "vendor/imgui/backends/imgui_impl_opengl3.h"
 #include "vendor/imgui/backends/imgui_impl_sdl2.h"
 #include "vendor/imgui/imgui.h"
 #include <SDL.h>

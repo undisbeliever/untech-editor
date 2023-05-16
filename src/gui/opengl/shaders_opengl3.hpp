@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "imgui_impl_opengl3.h"
 #include "shaders_opengl3.h"
 #include "gui/graphics/tilecollisionimage.h"
 #include "gui/style.h"
@@ -550,11 +549,71 @@ void cleanup()
     g_initialized = false;
 }
 
+static bool setupGlScissor(const ImDrawCmd* pcmd, const ImDrawData* draw_data)
+{
+    // Code taken from `ImGui_ImplOpenGL3_RenderDrawData()` in `imgui_impl_opengl3.cpp` from Dear ImGui.
+    // https://github.com/ocornut/imgui
+    // Licensed under the MIT License (MIT)
+    // Copyright (c) 2014-2022 Omar Cornut
+    // https://github.com/ocornut/imgui/blob/master/LICENSE.txt
+
+    int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
+    int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
+    if (fb_width <= 0 || fb_height <= 0)
+        return false;
+
+    const ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
+    const ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+    // Project scissor/clipping rectangles into framebuffer space
+    const ImVec2 clip_min((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+    const ImVec2 clip_max((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
+    if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+        return false;
+
+    // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
+    glScissor((int)clip_min.x, (int)((float)fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y));
+
+    return true;
+}
+
+static void setupProjectionMatrix(const GLint attribLocationProjMtx, const ImDrawData* draw_data)
+{
+    // Code taken from `ImGui_ImplOpenGL3_SetupRenderState()` in `imgui_impl_opengl3.cpp` from Dear ImGui.
+    // https://github.com/ocornut/imgui
+    // Licensed under the MIT License (MIT)
+    // Copyright (c) 2014-2022 Omar Cornut
+    // https://github.com/ocornut/imgui/blob/master/LICENSE.txt
+
+    float L = draw_data->DisplayPos.x;
+    float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+    float T = draw_data->DisplayPos.y;
+    float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+
+    // clang-format off
+    const float ortho_projection[4][4] =
+    {
+        { 2.0f/(R-L),   0.0f,         0.0f,   0.0f },
+        { 0.0f,         2.0f/(T-B),   0.0f,   0.0f },
+        { 0.0f,         0.0f,        -1.0f,   0.0f },
+        { (R+L)/(L-R),  (T+B)/(B-T),  0.0f,   1.0f },
+    };
+    // clang-format on
+    glUniformMatrix4fv(attribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
+}
+
 void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd)
 {
     using namespace Gui::Shaders::Tilemap;
 
     const RenderData* data = static_cast<RenderData*>(pcmd->UserCallbackData);
+
+    const ImDrawData* drawData = ImGui::GetDrawData();
+
+    const bool onscreen = setupGlScissor(pcmd, drawData);
+    if (!onscreen) {
+        return;
+    }
 
     glUseProgram(g_shaderHandle);
 
@@ -569,7 +628,7 @@ void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd)
 
     glUniform2f(g_uniformMapSize, data->mapSize.x, data->mapSize.y);
 
-    glUniformMatrix4fv(g_uniformProjMtx, 1, GL_FALSE, ImGui_Projection_Matrix.data());
+    setupProjectionMatrix(g_uniformProjMtx, drawData);
 
     const float vertices[] = {
         // Position,        UV
