@@ -14,6 +14,7 @@
 #include "models/common/bit.h"
 #include "models/common/imagecache.h"
 #include "models/metasprite/metasprite-error.h"
+#include "vendor/imgui/imgui.h"
 #include <algorithm>
 #include <unordered_set>
 
@@ -363,9 +364,7 @@ void SpriteImporterEditorGui::frameSetPropertiesGui(const Project::ProjectFile& 
                     ImGui::PopStyleColor(2);
 
                     if (ImGui::IsItemHovered()) {
-                        ImGui::BeginTooltip();
-                        ImGui::TextUnformatted(str);
-                        ImGui::EndTooltip();
+                        ImGui::ShowTooltip(str);
                     }
                 }
 
@@ -693,9 +692,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
         for (auto [i, obj] : reverse_enumerate(frame->objects)) {
             _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), Style::frameObjectOutlineColor, &_data->frameObjectsSel, i);
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
-                ImGui::Text("Object %u", unsigned(i));
-                ImGui::EndTooltip();
+                ImGui::ShowTooltipFmt("Object %u", unsigned(i));
             }
         }
     }
@@ -704,9 +701,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
         if (showFlag && box->exists) {
             _graphics.addRect(drawList, &box->aabb, outlineColor, sel, 1);
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(toolTip);
-                ImGui::EndTooltip();
+                ImGui::ShowTooltip(toolTip);
             }
         }
     };
@@ -720,14 +715,12 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
             _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_data->actionPointsSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
                 if (ap.type.isValid()) {
-                    ImGui::Text("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
+                    ImGui::ShowTooltipFmt("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
                 }
                 else {
-                    ImGui::Text("Action Point %u", unsigned(i));
+                    ImGui::ShowTooltipFmt("Action Point %u", unsigned(i));
                 }
-                ImGui::EndTooltip();
             }
         }
     }
@@ -792,9 +785,7 @@ void SpriteImporterEditorGui::frameEditorGui()
 
             for (auto [frameIndex, frame] : const_enumerate(frames)) {
                 if (frame.frameLocation(fs.grid).contains(mousePos)) {
-                    ImGui::BeginTooltip();
-                    ImGui::TextUnformatted(frame.name);
-                    ImGui::EndTooltip();
+                    ImGui::ShowTooltip(frame.name);
 
                     if (mouseDoubleClicked) {
                         _data->framesSel.setSelected(frameIndex);

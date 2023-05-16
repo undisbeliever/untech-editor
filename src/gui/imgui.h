@@ -153,4 +153,10 @@ void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, cons
 
 void SameLineWithSeparator();
 
+// These functions will append the text to the tooltip (unlike SetToolTip which overrides the previous tooltip).
+void ShowTooltip(const char* text);
+void ShowTooltip(const std::u8string_view text);
+inline void ShowTooltip(const UnTech::idstring& text) { ShowTooltip(text.str()); };
+void ShowTooltipFmt(const char* fmt, ...) IM_FMTARGS(1);
+
 }

@@ -1147,9 +1147,7 @@ void MetaSpriteEditorGui::frameEditorGui()
         static_assert(backgroundColorNames.size() == backgroundColors.size());
         ImGui::Combo("##BgColor", &_selectedEditorBgColor, backgroundColorNames.data(), backgroundColorNames.size());
         if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::TextUnformatted(u8"Background Color");
-            ImGui::EndTooltip();
+            ImGui::ShowTooltip(u8"Background Color");
         }
 
         ImGui::SameLine(0.0f, 12.0f);
@@ -1206,9 +1204,7 @@ void MetaSpriteEditorGui::frameEditorGui()
             _graphics.addSquareImage(drawList, &obj.location, obj.sizePx(), textureId, uv0, uv1, Style::frameObjectOutlineColor, &_data->frameObjectsSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
-                ImGui::Text("Object %u", unsigned(i));
-                ImGui::EndTooltip();
+                ImGui::ShowTooltipFmt("Object %u", unsigned(i));
             }
         }
     }
@@ -1217,9 +1213,7 @@ void MetaSpriteEditorGui::frameEditorGui()
         if (showFlag && box->exists) {
             _graphics.addRect(drawList, &box->aabb, outlineColor, sel, 1);
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(toolTip);
-                ImGui::EndTooltip();
+                ImGui::ShowTooltip(toolTip);
             }
         }
     };
@@ -1233,14 +1227,12 @@ void MetaSpriteEditorGui::frameEditorGui()
             _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_data->actionPointsSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
                 if (ap.type.isValid()) {
-                    ImGui::Text("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
+                    ImGui::ShowTooltipFmt("Action Point %u (%s)", unsigned(i), u8Cast(ap.type));
                 }
                 else {
-                    ImGui::Text("Action Point %u", unsigned(i));
+                    ImGui::ShowTooltipFmt("Action Point %u", unsigned(i));
                 }
-                ImGui::EndTooltip();
             }
         }
     }

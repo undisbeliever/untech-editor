@@ -527,9 +527,7 @@ void MetaTileTilesetEditorGui::tilePropertiesGui(const Project::ProjectFile& pro
                 edited = true;
             }
             if (ImGui::IsItemHovered()) {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(toolTip);
-                ImGui::EndTooltip();
+                ImGui::ShowTooltip(toolTip);
             }
         };
         button("No Collisions", TC::EMPTY);
@@ -593,9 +591,7 @@ void MetaTileTilesetEditorGui::tilePropertiesGui(const Project::ProjectFile& pro
                 edited = true;
             }
             if (ImGui::IsItemHovered()) {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(toolTips.at(i));
-                ImGui::EndTooltip();
+                ImGui::ShowTooltip(toolTips.at(i));
             }
 
             if (sel || !allSame) {

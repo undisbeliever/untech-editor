@@ -139,9 +139,7 @@ bool RoomScriptGui::roomArgument(const char* label, std::u8string* value, const 
     }
 
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::Text("Room");
-        ImGui::EndTooltip();
+        ImGui::ShowTooltip(u8"Room");
     }
 
     return edited;
@@ -168,9 +166,7 @@ static bool roomEntranceArgument(const char* label, std::u8string* value, F room
     }
 
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::Text("Room Entrance");
-        ImGui::EndTooltip();
+        ImGui::ShowTooltip(u8"Room Entrance");
     }
 
     return edited;
@@ -209,42 +205,38 @@ bool RoomScriptGui::statementArgument(const char* label, const Scripting::Argume
         edited = Cell(label, value);
 
         if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-
             switch (type) {
             case Type::Unused:
                 break;
 
             case Type::Flag:
-                ImGui::TextUnformatted(u8"Flag");
+                ImGui::ShowTooltip(u8"Flag");
                 break;
 
             case Type::Word:
-                ImGui::TextUnformatted(u8"Word");
+                ImGui::ShowTooltip(u8"Word");
                 break;
 
             case Type::ImmediateU16:
-                ImGui::TextUnformatted(u8"Immediate U16");
+                ImGui::ShowTooltip(u8"Immediate U16");
                 break;
 
             case Type::RoomScript:
-                ImGui::TextUnformatted(u8"Room Script");
+                ImGui::ShowTooltip(u8"Room Script");
                 break;
 
             case Type::EntityGroup:
-                ImGui::TextUnformatted(u8"Entity Group");
+                ImGui::ShowTooltip(u8"Entity Group");
                 break;
 
             case Type::Room:
-                ImGui::TextUnformatted(u8"Room");
+                ImGui::ShowTooltip(u8"Room");
                 break;
 
             case Type::RoomEntrance:
-                ImGui::TextUnformatted(u8"Room Entrance");
+                ImGui::ShowTooltip(u8"Room Entrance");
                 break;
             }
-
-            ImGui::EndTooltip();
         }
     } break;
 

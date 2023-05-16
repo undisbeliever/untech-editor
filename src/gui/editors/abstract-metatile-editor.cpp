@@ -433,9 +433,7 @@ void AbstractMetaTileEditorGui::tilesetInteractiveTilesTooltip(const AbstractMet
 
             const auto& iTile = tileFunctionTables().at(tileId);
             if (iTile.isValid()) {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(iTile);
-                ImGui::EndTooltip();
+                ImGui::ShowTooltip(iTile);
             }
         }
     }
@@ -453,9 +451,7 @@ void AbstractMetaTileEditorGui::interactiveTilesTooltip(const grid<uint8_t>& map
 
             const auto& iTile = tileFunctionTables().at(tileId);
             if (iTile.isValid()) {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(iTile);
-                ImGui::EndTooltip();
+                ImGui::ShowTooltip(iTile);
             }
         }
     }
@@ -909,11 +905,12 @@ void AbstractMetaTileEditorGui::animationButtons()
         _animationTimer.playPause();
     }
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextUnformatted(u8"Pause/Play Animations");
-        ImGui::Text("Tileset Frame: %u", unsigned(_tilesetShader.tilesetFrame()));
-        ImGui::Text("Palette Frame: %u", unsigned(_tilesetShader.paletteFrame()));
-        ImGui::EndTooltip();
+        if (ImGui::BeginTooltip()) {
+            ImGui::TextUnformatted(u8"Pause/Play Animations");
+            ImGui::Text("Tileset Frame: %u", unsigned(_tilesetShader.tilesetFrame()));
+            ImGui::Text("Palette Frame: %u", unsigned(_tilesetShader.paletteFrame()));
+            ImGui::EndTooltip();
+        }
     }
     ImGui::SameLine();
 

@@ -38,44 +38,45 @@ static void invalidRoomTileTooltip(const InvalidRoomTileGraphics::Tile& tile)
         return;
     }
 
-    ImGui::BeginTooltip();
+    if (ImGui::BeginTooltip()) {
 
-    ImGui::Text("Invalid room tile (%d, %d)", tile.rect.x1 / METATILE_SIZE_PX, tile.rect.y1 / METATILE_SIZE_PX);
-    ImGui::Spacing();
+        ImGui::Text("Invalid room tile (%d, %d)", tile.rect.x1 / METATILE_SIZE_PX, tile.rect.y1 / METATILE_SIZE_PX);
+        ImGui::Spacing();
 
-    static_assert(sizeof(tile.reasonBits) > 1);
-    static_assert(std::is_same_v<decltype(tile.reasonBits), decltype(Rooms::InvalidRoomTile::reasonBits)>);
+        static_assert(sizeof(tile.reasonBits) > 1);
+        static_assert(std::is_same_v<decltype(tile.reasonBits), decltype(Rooms::InvalidRoomTile::reasonBits)>);
 
-    if (tile.reasonBits & IRT::NO_EMPTY_TILE_ABOVE_DOWN_SLOPE) {
-        ImGui::Bullet();
-        ImGui::TextUnformatted(u8"Expected an empty tile above a down slope");
-    }
-    if (tile.reasonBits & IRT::NO_FLOOR_BELOW_DOWN_SLOPE) {
-        ImGui::Bullet();
-        ImGui::TextUnformatted(u8"Expected a floor tile below a down slope");
-    }
-    if (tile.reasonBits & IRT::NO_CEILING_ABOVE_UP_SLOPE) {
-        ImGui::Bullet();
-        ImGui::TextUnformatted(u8"Expected a ceiling tile above an up slope");
-    }
-    if (tile.reasonBits & IRT::NO_EMPTY_TILE_BELOW_UP_SLOPE) {
-        ImGui::Bullet();
-        ImGui::TextUnformatted(u8"Expected an empty tile below an up slope");
-    }
-    if (tile.reasonBits & IRT::INVALID_TILE_ON_THE_LEFT) {
-        ImGui::Bullet();
-        ImGui::TextUnformatted(u8"Invalid tile to the left");
-    }
-    if (tile.reasonBits & IRT::INVALID_TILE_ON_THE_RIGHT) {
-        ImGui::Bullet();
-        ImGui::TextUnformatted(u8"Invalid tile to the right");
-    }
-    if (tile.reasonBits & IRT::SLOPE_ON_BORDER) {
-        ImGui::Bullet();
-        ImGui::TextUnformatted(u8"Cannot have a slope tile on the room border");
-    }
+        if (tile.reasonBits & IRT::NO_EMPTY_TILE_ABOVE_DOWN_SLOPE) {
+            ImGui::Bullet();
+            ImGui::TextUnformatted(u8"Expected an empty tile above a down slope");
+        }
+        if (tile.reasonBits & IRT::NO_FLOOR_BELOW_DOWN_SLOPE) {
+            ImGui::Bullet();
+            ImGui::TextUnformatted(u8"Expected a floor tile below a down slope");
+        }
+        if (tile.reasonBits & IRT::NO_CEILING_ABOVE_UP_SLOPE) {
+            ImGui::Bullet();
+            ImGui::TextUnformatted(u8"Expected a ceiling tile above an up slope");
+        }
+        if (tile.reasonBits & IRT::NO_EMPTY_TILE_BELOW_UP_SLOPE) {
+            ImGui::Bullet();
+            ImGui::TextUnformatted(u8"Expected an empty tile below an up slope");
+        }
+        if (tile.reasonBits & IRT::INVALID_TILE_ON_THE_LEFT) {
+            ImGui::Bullet();
+            ImGui::TextUnformatted(u8"Invalid tile to the left");
+        }
+        if (tile.reasonBits & IRT::INVALID_TILE_ON_THE_RIGHT) {
+            ImGui::Bullet();
+            ImGui::TextUnformatted(u8"Invalid tile to the right");
+        }
+        if (tile.reasonBits & IRT::SLOPE_ON_BORDER) {
+            ImGui::Bullet();
+            ImGui::TextUnformatted(u8"Cannot have a slope tile on the room border");
+        }
 
-    ImGui::EndTooltip();
+        ImGui::EndTooltip();
+    }
 }
 
 void InvalidRoomTileGraphics::draw(ImDrawList* drawList, const ImVec2& zoom, const ImVec2& screenOffset) const

@@ -670,9 +670,7 @@ void RoomEditorGui::entitiesDropdownWindow()
                 }
 
                 if (ImGui::IsItemHovered()) {
-                    ImGui::BeginTooltip();
-                    ImGui::TextUnformatted(eg.name);
-                    ImGui::EndTooltip();
+                    ImGui::ShowTooltip(eg.name);
                 }
 
                 ImGui::PopID();
@@ -806,9 +804,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
                                 &_data->entrancesSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
-                ImGui::Text("Extrance %u %s", unsigned(i), u8Cast(entrance.name));
-                ImGui::EndTooltip();
+                ImGui::ShowTooltipFmt("Extrance %u %s", unsigned(i), u8Cast(entrance.name));
             }
         }
     }
@@ -828,18 +824,19 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
                                         Style::entityFillColor, Style::entityOutlineColor, IM_COL32_WHITE,
                                         &childSel, i);
                     if (_graphics.isHoveredAndNotEditing()) {
-                        ImGui::BeginTooltip();
-                        ImGui::Text("Entity %u (%s)", unsigned(i), u8Cast(entity.entityId));
-                        ImGui::Indent();
-                        if (entity.name.isValid()) {
-                            ImGui::Text("Name: %s", u8Cast(entity.name));
+                        if (ImGui::BeginTooltip()) {
+                            ImGui::Text("Entity %u (%s)", unsigned(i), u8Cast(entity.entityId));
+                            ImGui::Indent();
+                            if (entity.name.isValid()) {
+                                ImGui::Text("Name: %s", u8Cast(entity.name));
+                            }
+                            ImGui::Text("Group: %u (%s)", unsigned(groupIndex), u8Cast(group.name));
+                            if (!entity.parameter.empty()) {
+                                ImGui::Text("Parameter: %s", u8Cast(entity.parameter));
+                            }
+                            ImGui::Unindent();
+                            ImGui::EndTooltip();
                         }
-                        ImGui::Text("Group: %u (%s)", unsigned(groupIndex), u8Cast(group.name));
-                        if (!entity.parameter.empty()) {
-                            ImGui::Text("Parameter: %s", u8Cast(entity.parameter));
-                        }
-                        ImGui::Unindent();
-                        ImGui::EndTooltip();
                     }
                 }
             }
@@ -864,14 +861,12 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
                                            &_data->scriptTriggersSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
-                ImGui::BeginTooltip();
                 if (!st.once) {
-                    ImGui::Text("Script Trigger %u: %s", unsigned(i), u8Cast(st.script));
+                    ImGui::ShowTooltipFmt("Script Trigger %u: %s", unsigned(i), u8Cast(st.script));
                 }
                 else {
-                    ImGui::Text("Script Trigger %u: %s (once)", unsigned(i), u8Cast(st.script));
+                    ImGui::ShowTooltipFmt("Script Trigger %u: %s (once)", unsigned(i), u8Cast(st.script));
                 }
-                ImGui::EndTooltip();
             }
         }
     }
@@ -890,18 +885,14 @@ void RoomEditorGui::editorGui()
         ImGui::SetNextItemWidth(180);
         ImGui::SingleSelectionNamedListCombo("##EntityGroupCombo", &_data->entityGroupsSel, room.entityGroups, true);
         if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::TextUnformatted(u8"Selected Entity Group");
-            ImGui::EndTooltip();
+            ImGui::ShowTooltip(u8"Selected Entity Group");
         }
         ImGui::SameLine(0.0f, 12.0f);
 
         ImGui::SetNextItemWidth(180);
         ImGui::SingleSelectionNamedListCombo("##PlayerId", &playerId, _entityGraphics->players, false);
         if (ImGui::IsItemHovered()) {
-            ImGui::BeginTooltip();
-            ImGui::TextUnformatted(u8"Player Entity");
-            ImGui::EndTooltip();
+            ImGui::ShowTooltip(u8"Player Entity");
         }
 
         undoStackButtons();

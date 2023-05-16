@@ -420,9 +420,7 @@ void EntityRomDataEditorGui::entityEntriesGui(const char8_t* text, const Project
                         edited |= Cell(u8Cast(label), &value);
 
                         if (ImGui::IsItemHovered() && !field.comment.empty()) {
-                            ImGui::BeginTooltip();
-                            ImGui::TextUnformatted(field.comment);
-                            ImGui::EndTooltip();
+                            ImGui::ShowTooltip(field.comment);
                         }
 
                         ImGui::PopID();

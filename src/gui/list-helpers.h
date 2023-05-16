@@ -65,9 +65,7 @@ bool CombinedListButtons_AddButton(const std::shared_ptr<typename ActionPolicy::
         changed = true;
     }
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::Text("Add %s", ActionPolicy::name);
-        ImGui::EndTooltip();
+        ImGui::ShowTooltip("Add %s", ActionPolicy::name);
     }
     ImGui::PopID();
 

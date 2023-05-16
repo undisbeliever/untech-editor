@@ -109,9 +109,7 @@ void Zoom::zoomCombo(const char* label)
         ImGui::EndCombo();
     }
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextUnformatted(u8"Zoom");
-        ImGui::EndTooltip();
+        ImGui::ShowTooltip(u8"Zoom");
     }
 }
 

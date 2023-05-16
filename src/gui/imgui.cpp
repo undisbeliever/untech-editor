@@ -9,6 +9,7 @@
 #include "selection.h"
 #include "models/common/stringbuilder.h"
 
+#include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_internal.h"
 
 #include "models/common/clamp.h"
@@ -415,9 +416,7 @@ bool ButtonWithTooltip(const char* label, const char* tooltip, const ImVec2& siz
 {
     bool pressed = ImGui::Button(label, size);
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextUnformatted(tooltip);
-        ImGui::EndTooltip();
+        ImGui::ShowTooltip(tooltip);
     }
 
     return pressed;
@@ -427,9 +426,7 @@ bool ToggledButtonWithTooltip(const char* label, bool selected, const char* tool
 {
     bool pressed = ImGui::ToggledButton(label, selected, size);
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextUnformatted(tooltip);
-        ImGui::EndTooltip();
+        ImGui::ShowTooltip(tooltip);
     }
 
     return pressed;
@@ -439,9 +436,7 @@ bool ToggledButtonWithTooltip(const char* label, bool* selected, const char* too
 {
     bool pressed = ImGui::ToggledButton(label, selected, size);
     if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::TextUnformatted(tooltip);
-        ImGui::EndTooltip();
+        ImGui::ShowTooltip(tooltip);
     }
 
     return pressed;
@@ -477,6 +472,35 @@ void SameLineWithSeparator()
     const float y2 = window->DC.CursorPos.y + window->DC.CurrLineSize.y;
 
     window->DrawList->AddLine(ImVec2(x, y1), ImVec2(x, y2), GetColorU32(ImGuiCol_Separator));
+}
+
+void ShowTooltip(const char* text)
+{
+    if (ImGui::BeginTooltip()) {
+        ImGui::TextUnformatted(text);
+        ImGui::EndTooltip();
+    }
+}
+
+void ShowTooltip(const std::u8string_view text)
+{
+    if (ImGui::BeginTooltip()) {
+        ImGui::TextUnformatted(text);
+        ImGui::EndTooltip();
+    }
+}
+
+void ShowTooltipFmt(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    if (ImGui::BeginTooltip()) {
+        ImGui::TextV(fmt, args);
+        ImGui::EndTooltip();
+    }
+
+    va_end(args);
 }
 
 }
