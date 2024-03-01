@@ -206,6 +206,13 @@ add_library(compiler OBJECT
 )
 
 
+# Test Utils
+# ==========
+
+add_executable(serializer-test src/test-utils/serializer-test.cpp)
+target_link_libraries(serializer-test PRIVATE common snes images compiler lodepng lz4)
+
+
 # CLI apps
 # ========
 
