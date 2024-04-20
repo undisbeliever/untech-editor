@@ -227,7 +227,7 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileset() const
 
     // Footer
     {
-        for (auto& chain : crumblingTiles) {
+        for (const auto& chain : crumblingTiles) {
             *outIt++ = chain.firstTileId;
             *outIt++ = chain.secondTileId;
             *outIt++ = chain.thirdTileId;

@@ -431,7 +431,7 @@ void UnTechEditor::requestExitEditor()
     bool projectFileClean = _projectListWindow.isClean();
     for (auto& e : _editors) {
         if (!e->undoStack().isClean()) {
-            if (auto* ee = dynamic_cast<AbstractExternalFileEditorData*>(e.get().get())) {
+            if (const auto* ee = dynamic_cast<AbstractExternalFileEditorData*>(e.get().get())) {
                 files.push_back(ee->filename().lexically_relative(parentPath).u8string());
             }
             else {

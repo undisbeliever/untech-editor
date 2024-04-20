@@ -30,7 +30,7 @@ public:
 
     void firstDo_editorData() const final
     {
-        for (auto& a : actions) {
+        for (const auto& a : actions) {
             a->firstDo_editorData();
         }
     }
@@ -61,7 +61,7 @@ public:
 
     void redo(Project::ProjectFile& projectFile) const final
     {
-        for (auto& a : actions) {
+        for (const auto& a : actions) {
             if (a) {
                 a->redo(projectFile);
             }
@@ -70,7 +70,7 @@ public:
 
     void notifyGui(AbstractEditorGui* gui) const final
     {
-        for (auto& a : actions) {
+        for (const auto& a : actions) {
             if (a) {
                 a->notifyGui(gui);
             }
