@@ -34,7 +34,7 @@ constexpr std::u8string_view THIRD_PARTY_LIBS
 constexpr std::u8string_view THIRD_PARTY_GUI_LIBS
     = u8"\nDear ImGui"
       u8"\n\thttps://github.com/ocornut/imgui"
-      u8"\n\tCopyright (c) 2014-2023 Omar Cornut"
+      u8"\n\tCopyright (c) 2014-2024 Omar Cornut"
       u8"\n\tMIT License, https://github.com/ocornut/imgui/blob/master/LICENSE.txt"
       u8"\n"
       u8"\nimgui-filebrowser"

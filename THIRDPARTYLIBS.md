@@ -13,7 +13,7 @@ directory:
    [BSD 2-Clause license](https://github.com/lz4/lz4/blob/dev/lib/LICENSE).
 
  * [Dear ImGui](https://github.com/ocornut/imgui) -
-   Copyright (c) 2014-2022 Omar Cornut,
+   Copyright (c) 2014-2024 Omar Cornut,
    [MIT License](https://github.com/ocornut/imgui/blob/master/LICENSE.txt).
 
  * [imgui-filebrowser](https://github.com/AirGuanZ/imgui-filebrowser) -

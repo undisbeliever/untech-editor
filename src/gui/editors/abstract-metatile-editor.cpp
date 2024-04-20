@@ -194,7 +194,7 @@ public:
         }
 
         if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
-            if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 bool notEmpty = !sel->empty();
 
                 sel->clear();
@@ -673,7 +673,7 @@ void AbstractMetaTileEditorGui::drawAndEditMap(const Geometry& geo)
     case EditMode::PlaceTiles: {
         // Common code for drawing modes
         if (ImGui::IsItemActive() || ImGui::IsItemHovered()) {
-            if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                 setEditMode(EditMode::SelectTiles);
             }
             else {

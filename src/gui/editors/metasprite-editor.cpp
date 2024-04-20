@@ -519,7 +519,7 @@ void MetaSpriteEditorGui::collisionBox(const char* label, MS::Frame& frame, Togg
     if (cb.exists) {
         ImGui::PushID(label);
 
-        ImGui::Selectable("##sel", sel, ImGuiSelectableFlags_AllowItemOverlap);
+        ImGui::Selectable("##sel", sel, ImGuiSelectableFlags_AllowOverlap);
         ImGui::SameLine(style.IndentSpacing * 2);
 
         ImGui::SetNextItemWidth(-1);

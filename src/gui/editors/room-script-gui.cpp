@@ -417,7 +417,7 @@ void RoomScriptGui::processStatements_afterParentIndexUpdated(std::vector<Script
 
         ImGui::PushStyleColor(ImGuiCol_Text, disabledColor);
         const std::u8string label = stringBuilder(index);
-        if (ImGui::Selectable(u8Cast(label), isParentSelected && index == sel.selectedIndex(), ImGuiSelectableFlags_AllowItemOverlap)) {
+        if (ImGui::Selectable(u8Cast(label), isParentSelected && index == sel.selectedIndex(), ImGuiSelectableFlags_AllowOverlap)) {
             sel.setSelected(parentIndex, index);
         }
         ImGui::PopStyleColor();
