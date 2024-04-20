@@ -106,7 +106,7 @@ public:
     auto operator<=>(const idstring& o) const = default;
 };
 
-inline idstring operator"" _id(const char8_t* str, const size_t size)
+inline idstring operator""_id(const char8_t* str, const size_t size)
 {
     auto id = idstring::fromString(std::u8string_view(str, size));
     assert(id.isValid());
