@@ -20,7 +20,6 @@ BreakConstructorInitializersBeforeComma: true
 ColumnLimit:     0
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
-Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 ExperimentalAutoDetectBinPacking: false
 IndentCaseLabels: false
