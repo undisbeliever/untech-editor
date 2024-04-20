@@ -16,7 +16,7 @@
 
 namespace UnTech {
 
-static_assert(sizeof(rgba) == 4, u8"rgba is the wrong size");
+static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
 
 static constexpr size_t MAX_IMAGE_PIXELS = 1024 * 1024;
 

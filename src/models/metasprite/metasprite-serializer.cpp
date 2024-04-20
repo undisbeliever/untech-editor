@@ -199,7 +199,7 @@ private:
 
         constexpr unsigned largeTileSize = Snes::snesTileSizeForBitdepth(Snes::BitDepth::BD_4BPP) * 4;
 
-        static_assert(largeTileSize == 128, u8"Bad assumption");
+        static_assert(largeTileSize == 128, "Bad assumption");
         if ((data.size() % largeTileSize) != 0) {
             throw xml_error(tag, u8"Large Tileset data must be a multiple of 128 bytes");
         }

@@ -243,7 +243,7 @@ private:
     }
 
     struct TileColors {
-        static_assert(sizeof(unsigned) >= sizeof(uint16_t), u8"Bad optimisation");
+        static_assert(sizeof(unsigned) >= sizeof(uint16_t), "Bad optimisation");
 
         constexpr static unsigned MAX_PALETTE_COLORS = 15;
 

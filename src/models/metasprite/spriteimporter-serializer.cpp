@@ -109,7 +109,7 @@ public:
         }
 
         if (tag.hasAttribute(u8"transparent")) {
-            static_assert(sizeof(unsigned) >= 3, u8"Unsigned value too small");
+            static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
 
             unsigned hex = tag.getAttributeUnsignedHex(u8"transparent");
 
@@ -346,7 +346,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     }
 
     if (frameSet.transparentColor.alpha == 0xff) {
-        static_assert(sizeof(unsigned) >= 3, u8"Unsigned value too small");
+        static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
 
         xml.writeTagAttributeHex6(u8"transparent", frameSet.transparentColor.rgb());
     }

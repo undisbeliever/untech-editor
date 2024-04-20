@@ -9,7 +9,7 @@
 
 namespace UnTech {
 
-static_assert(sizeof(rgba) == 4, u8"rgba is the wrong size");
+static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
 
 std::u8string rgba::rgbHexString() const
 {

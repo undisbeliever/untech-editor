@@ -101,8 +101,8 @@ static size_t checksumBlock(const std::vector<uint8_t>& data, size_t offset, siz
 
 uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 {
-    static_assert(sizeof(int) > sizeof(uint16_t) + 1, u8"int too small");
-    static_assert(INT_MAX > MAX_ROM_SIZE * 256, u8"int too small");
+    static_assert(sizeof(int) > sizeof(uint16_t) + 1, "int too small");
+    static_assert(INT_MAX > MAX_ROM_SIZE * 256, "int too small");
 
     if (rom.size() < MIN_ROM_SIZE) {
         throw runtime_error(u8"ROM is to small (minimum ", MIN_ROM_STRING, u8").");
@@ -132,7 +132,7 @@ uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
         part2 = checksumBlock(rom, part1Size, rom.size() - part1Size);
     }
 
-    static_assert(CHECKSUM_ADDR == CHECKSUM_COMPLEMENT_ADDR + 2, u8"assumption failed");
+    static_assert(CHECKSUM_ADDR == CHECKSUM_COMPLEMENT_ADDR + 2, "assumption failed");
     unsigned ccAddr = checksumCompelementAddress(memoryMap);
     const unsigned oldSum = checksumBlock(rom, ccAddr, 4);
 
