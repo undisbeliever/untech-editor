@@ -11,13 +11,9 @@
 #include "splitter.h"
 #include "models/project/project.h"
 #include "windows/projectlist.h"
-#include <atomic>
-#include <condition_variable>
 #include <filesystem>
 #include <memory>
-#include <optional>
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace UnTech::Gui {
