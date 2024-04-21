@@ -16,17 +16,17 @@ namespace UnTech::MetaSprite::Compiler {
 
 struct ExportIndex {
     // index into `MS::FrameSet::frames` or `MS::FrameSet::animations`
-    const unsigned fsIndex;
+    unsigned fsIndex;
 
-    const bool hFlip;
-    const bool vFlip;
+    bool hFlip;
+    bool vFlip;
 
     bool operator==(const ExportIndex&) const = default;
 };
 
 struct FrameSetExportList {
-    const std::vector<ExportIndex> animations;
-    const std::vector<ExportIndex> frames;
+    std::vector<ExportIndex> animations;
+    std::vector<ExportIndex> frames;
 };
 
 // NOTE: Can return an invalid FrameSetExportList

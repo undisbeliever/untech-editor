@@ -34,7 +34,7 @@ private:
     bool openAddMenu{ false };
     std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> addMenuParentIndex{};
 
-    const ImVec4 disabledColor;
+    ImVec4 disabledColor;
 
 public:
     explicit RoomScriptGui()

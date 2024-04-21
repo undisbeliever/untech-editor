@@ -20,13 +20,13 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 struct OverlappingObject {
-    const unsigned overObjectId;
-    const std::vector<unsigned> underObjectIds;
+    unsigned overObjectId;
+    std::vector<unsigned> underObjectIds;
 };
 
 struct OverlappingObjectFrame {
-    const unsigned frameIndex;
-    const std::vector<OverlappingObject> overlappingObjects;
+    unsigned frameIndex;
+    std::vector<OverlappingObject> overlappingObjects;
 };
 
 static void applyTilesetOutput(const Snes::TilesetInserterOutput& tio, MS::FrameObject& obj)

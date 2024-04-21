@@ -31,9 +31,9 @@ public:
     static_assert(SNES_TILE16_SIZE == 1 << TILE16_ADDR_SHIFT);
 
     struct TileBank {
-        const unsigned bankId;
-        const unsigned startingAddress;
-        const uint16_t startingTile16Addr;
+        unsigned bankId;
+        unsigned startingAddress;
+        uint16_t startingTile16Addr;
         std::vector<Snes::Tile16px> tiles;
 
         TileBank(unsigned bId, unsigned addr)
@@ -47,8 +47,9 @@ public:
         }
     };
 
-    const Project::MemoryMapSettings _memoryMap;
-    const unsigned _tilesPerBlock;
+private:
+    Project::MemoryMapSettings _memoryMap;
+    unsigned _tilesPerBlock;
     std::unordered_map<Snes::Tile16px, const uint16_t> _map;
     std::vector<TileBank> _tileBanks;
 

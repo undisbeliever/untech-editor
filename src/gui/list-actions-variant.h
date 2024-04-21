@@ -33,8 +33,8 @@ private:
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:
-        const index_type index;
-        const FieldT newValue;
+        index_type index;
+        FieldT newValue;
         // set by firstDo()
         FieldT oldValue;
 

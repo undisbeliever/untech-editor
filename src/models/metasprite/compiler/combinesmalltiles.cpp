@@ -23,8 +23,8 @@ struct TileGraphItem {
     // Graph of tileId => frame indexes that use that tile.
     // frames may be repeated if the same tile is used multiple times in the same frame (including flipped frames).
 
-    const unsigned tileId;
-    const std::vector<unsigned> frames;
+    unsigned tileId;
+    std::vector<unsigned> frames;
 
     TileGraphItem()
         : tileId(INVALID_SMALL_TILE)

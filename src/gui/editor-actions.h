@@ -82,8 +82,8 @@ struct EditorActions {
     using NotNullEditorPtr = gsl::not_null<std::shared_ptr<EditorT>>;
 
     class BaseAction : public UndoAction {
-    protected:
-        const std::weak_ptr<EditorT> _editor;
+    private:
+        std::weak_ptr<EditorT> _editor;
 
     public:
         ~BaseAction() override = default;
@@ -125,7 +125,7 @@ struct EditorActions {
 
     class EditDataAction final : public BaseAction {
     private:
-        const EditorDataT newValue;
+        EditorDataT newValue;
         // set by firstDo()
         EditorDataT oldValue;
 
@@ -185,7 +185,7 @@ struct EditorActions {
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:
-        const FieldT newValue;
+        FieldT newValue;
         // set by firstDo()
         FieldT oldValue;
 
@@ -265,9 +265,9 @@ struct EditorFieldActions {
 
     class EditFieldAction : public UndoAction {
     private:
-        const std::weak_ptr<EditorT> _editor;
+        std::weak_ptr<EditorT> _editor;
 
-        const FieldT newValue;
+        FieldT newValue;
         // set by firstDo()
         FieldT oldValue;
 

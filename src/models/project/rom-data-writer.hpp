@@ -27,16 +27,16 @@ class DataStore;
 class RomDataWriter {
 public:
     struct Constant {
-        const std::u8string name;
+        std::u8string name;
 
         // Same type that bass uses for constants
-        const int64_t value;
+        int64_t value;
     };
 
 private:
     struct DataItem {
-        const std::u8string name;
-        const unsigned address;
+        std::u8string name;
+        unsigned address;
 
         DataItem(std::u8string n, unsigned a)
             : name(std::move(n))
@@ -46,15 +46,15 @@ private:
     };
 
 private:
-    const MemoryMapSettings _memoryMap;
-    const unsigned _bankSize;
+    MemoryMapSettings _memoryMap;
+    unsigned _bankSize;
 
     const std::vector<Constant>& _constants;
     std::vector<RomBankData> _romBanks;
     std::vector<DataItem> _namedData;
     std::vector<Constant> _nameDataCounts;
-    const std::u8string _blockName;
-    const std::u8string _blockRodata;
+    std::u8string _blockName;
+    std::u8string _blockRodata;
 
 private:
     [[noreturn]] static void throwOutOfRomSpaceException(size_t size)
@@ -63,7 +63,7 @@ private:
     }
 
 public:
-    RomDataWriter(const MemoryMapSettings& memoryMap,
+    RomDataWriter(MemoryMapSettings memoryMap,
                   std::u8string blockName,
                   std::u8string blockRodata,
                   const std::vector<Constant>& constants)

@@ -16,8 +16,8 @@ namespace UnTech::Project {
 
 class RomBankData {
 private:
-    const unsigned _startingAddress;
-    const size_t _bankSize;
+    unsigned _startingAddress;
+    size_t _bankSize;
     std::vector<uint8_t> _data;
 
 public:

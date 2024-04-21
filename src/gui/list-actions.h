@@ -134,10 +134,8 @@ public:
 protected:
     class BaseAction : public UndoAction {
     private:
-        const std::weak_ptr<EditorT> _editor;
-
-    protected:
-        const ListArgsT listArgs;
+        std::weak_ptr<EditorT> _editor;
+        ListArgsT listArgs;
 
     public:
         ~BaseAction() override = default;
@@ -228,8 +226,8 @@ protected:
 private:
     class AddRemoveAction : public BaseAction {
     private:
-        const index_type index;
-        const value_type value;
+        index_type index;
+        value_type value;
 
     public:
         AddRemoveAction(const NotNullEditorPtr& editor,
@@ -384,8 +382,8 @@ private:
 private:
     class MoveAction final : public BaseAction {
     private:
-        const index_type fromIndex;
-        const index_type toIndex;
+        index_type fromIndex;
+        index_type toIndex;
 
         void moveItem(Project::ProjectFile& projectFile, EditorT& e, index_type from, index_type to) const
         {
@@ -451,7 +449,7 @@ private:
 private:
     class AddRemoveMultipleAction : public BaseAction {
     private:
-        const std::vector<std::pair<index_type, value_type>> _values;
+        std::vector<std::pair<index_type, value_type>> _values;
 
     public:
         // values vector must be sorted by index_type and not contain any duplicate indexes
@@ -611,8 +609,8 @@ private:
 private:
     class MoveMultipleAction : public BaseAction {
     private:
-        const std::vector<index_type> indexes;
-        const EditListAction direction;
+        std::vector<index_type> indexes;
+        EditListAction direction;
 
         template <typename FunctionT>
         void redo_helper(const index_type listSize, FunctionT move) const
@@ -823,8 +821,8 @@ private:
 protected:
     class EditItemAction final : public BaseAction {
     private:
-        const index_type index;
-        const value_type newValue;
+        index_type index;
+        value_type newValue;
         // set by firstDo()
         value_type oldValue;
 
@@ -903,8 +901,8 @@ protected:
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:
-        const index_type index;
-        const FieldT newValue;
+        index_type index;
+        FieldT newValue;
         // set by firstDo()
         FieldT oldValue;
 
@@ -978,8 +976,8 @@ protected:
 protected:
     class EditMultipleItemsAction final : public BaseAction {
     private:
-        const std::vector<index_type> _indexes;
-        const std::vector<value_type> _newValues;
+        std::vector<index_type> _indexes;
+        std::vector<value_type> _newValues;
         std::vector<value_type> _oldValues;
 
     private:
@@ -1057,7 +1055,7 @@ protected:
         using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
 
     private:
-        const std::vector<FieldT> _newValues;
+        std::vector<FieldT> _newValues;
         std::vector<FieldT> _oldValues;
 
     private:
@@ -1134,8 +1132,8 @@ protected:
         };
 
     private:
-        const std::weak_ptr<EditorT> _editor;
-        const std::vector<IndexAndValues> indexesAndNewValues;
+        std::weak_ptr<EditorT> _editor;
+        std::vector<IndexAndValues> indexesAndNewValues;
         std::vector<value_type> oldValues;
 
     private:

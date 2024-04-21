@@ -12,7 +12,7 @@ namespace UnTech {
 
 class StringParser {
 private:
-    const std::u8string _inputString;
+    std::u8string _inputString;
     std::u8string::const_iterator _pos;
     unsigned _lineNo;
 

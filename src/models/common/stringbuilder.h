@@ -20,7 +20,7 @@ template <unsigned N>
 struct hex {
     static_assert(N <= 8);
 
-    const uint32_t value;
+    uint32_t value;
 
     constexpr explicit hex(uint32_t v)
         : value(v)

@@ -138,8 +138,8 @@ public:
 template <typename It>
 class iterator_wrapper {
 private:
-    const It beginIt;
-    const It endIt;
+    It beginIt;
+    It endIt;
 
 public:
     explicit iterator_wrapper(It b, It e)

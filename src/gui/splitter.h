@@ -15,8 +15,8 @@ constexpr float SPLITTER_THICKNESS = 3.0f;
 
 struct SplitterBarState {
     float barSize;
-    const float minBarSize;
-    const float minOtherSize;
+    float minBarSize;
+    float minOtherSize;
 };
 
 std::pair<ImVec2, ImVec2> splitterSidebarLeft(const char* strId, SplitterBarState* state);

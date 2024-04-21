@@ -35,7 +35,7 @@ void concat(std::u8string& s, uint64_t value) { concat_int(s, value); }
 //  UnTech::StringBuilder::hex<0> has no padding
 void concat(std::u8string& s, const hex<0> value)
 {
-    static_assert(std::is_same_v<decltype(value.value), const uint32_t>);
+    static_assert(std::is_same_v<decltype(value.value), uint32_t>);
     static_assert(sizeof(char8_t) == sizeof(char));
 
     std::array<char, 8> buffer{};
@@ -55,7 +55,7 @@ void concat(std::u8string& s, const hex<0> value)
 template <unsigned N>
 void concat(std::u8string& s, const hex<N> value)
 {
-    static_assert(std::is_same_v<decltype(value.value), const uint32_t>);
+    static_assert(std::is_same_v<decltype(value.value), uint32_t>);
     static_assert(N == stringSize(hex<N>(uint32_t(0))));
 
     std::array<char8_t, N> buffer{};

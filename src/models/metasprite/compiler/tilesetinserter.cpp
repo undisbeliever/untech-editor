@@ -49,7 +49,7 @@ struct CharAttrPos {
     }
 
     uint16_t value;
-    const uint_fast8_t charSplitPoint;
+    uint_fast8_t charSplitPoint;
 };
 
 const std::array<uint16_t, 4> CharAttrPos::SMALL_TILE_OFFSETS = { 0x0000, 0x0001, 0x0010, 0x0011 };

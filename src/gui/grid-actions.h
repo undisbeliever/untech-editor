@@ -33,8 +33,8 @@ struct GridActions {
 
     class BaseAction : public UndoAction {
     private:
-        const std::weak_ptr<EditorT> _editor;
-        const ListArgsT listArgs;
+        std::weak_ptr<EditorT> _editor;
+        ListArgsT listArgs;
 
     public:
         ~BaseAction() override = default;
@@ -88,7 +88,7 @@ struct GridActions {
 
     class EditGridAction final : public BaseAction {
     private:
-        const GridT newGrid;
+        GridT newGrid;
         // set by firstDo()
         GridT oldGrid;
 
@@ -147,8 +147,8 @@ struct GridActions {
 
     class EditMultipleCellsAction final : public BaseAction {
     private:
-        const upoint position;
-        const GridT newValues;
+        upoint position;
+        GridT newValues;
         // set by firstDo()
         GridT oldValues;
 

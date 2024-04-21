@@ -36,8 +36,8 @@ public:
     static const unsigned ADDR_PER_LINE = 8;
 
 private:
-    const std::u8string _label;
-    const std::u8string _dataLabel;
+    std::u8string _label;
+    std::u8string _dataLabel;
     std::vector<uint32_t> _offsets;
 
 public:
@@ -121,7 +121,7 @@ public:
 class RomBinData {
 
 private:
-    const std::u8string _label;
+    std::u8string _label;
     std::vector<uint8_t> _data;
     bool _nullableType;
 

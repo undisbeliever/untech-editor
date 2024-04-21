@@ -25,12 +25,12 @@ class Image2SnesConverter {
     constexpr static unsigned MAX_N_TILES = 1024;
 
 private:
-    const unsigned colorsPerPalette;
-    const unsigned tileOffset;
-    const unsigned maxTiles;
-    const unsigned paletteOffset;
-    const unsigned maxPalettes;
-    const bool defaultOrder;
+    unsigned colorsPerPalette;
+    unsigned tileOffset;
+    unsigned maxTiles;
+    unsigned paletteOffset;
+    unsigned maxPalettes;
+    bool defaultOrder;
 
     // size of the image in tile maps.
     unsigned mapWidth{ 0 };

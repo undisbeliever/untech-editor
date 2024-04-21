@@ -13,7 +13,7 @@ namespace UnTech {
 
 class base_error : public std::exception {
 private:
-    const std::u8string message;
+    std::u8string message;
 
 public:
     template <typename... Args>

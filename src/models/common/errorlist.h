@@ -18,7 +18,7 @@ class StringStream;
 
 class AbstractError {
 public:
-    const std::u8string message;
+    std::u8string message;
     bool isWarning{ false };
 
 public:
@@ -41,9 +41,9 @@ template <typename T>
     requires std::is_enum_v<T>
 struct GenericListError : public AbstractError {
 public:
-    const T type;
-    const unsigned firstIndex;
-    const unsigned childIndex;
+    T type;
+    unsigned firstIndex;
+    unsigned childIndex;
 
     GenericListError(T type_, unsigned pIndex, std::u8string message)
         : AbstractError{ std::move(message) }

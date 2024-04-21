@@ -91,7 +91,7 @@ static std::shared_ptr<const EntityGraphics> blankEntityGraphics()
 // THREAD/MEMORY SAFETY: EntityFrame MUST NOT EXIST outside of `processEntityGraphics()`
 struct EntityFrame {
     // add fsData here to prevent frameSet/frame references from being invalidated if the MetaSprite is compiled again.
-    const std::shared_ptr<const MetaSprite::Compiler::FrameSetData> fsData;
+    std::shared_ptr<const MetaSprite::Compiler::FrameSetData> fsData;
 
     // It is safe to use a frameSet/frame reference as the ProjectFile is held behind a shared_mutex and cannot be edited
     // while the `processEntityGraphics()` is running.

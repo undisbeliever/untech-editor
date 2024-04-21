@@ -113,9 +113,9 @@ static unsigned addFrameSet(std::vector<UnTech::MetaSprite::FrameSetFile>& list,
 
 struct AddResourceSettings {
     // cppcheck-suppress unusedStructMember
-    const char8_t* const menuTitle;
-    const char8_t* const dialogTitle;
-    const char8_t* const extension;
+    const char8_t* menuTitle;
+    const char8_t* dialogTitle;
+    const char8_t* extension;
     bool createFile;
     ResourceType editorType;
 

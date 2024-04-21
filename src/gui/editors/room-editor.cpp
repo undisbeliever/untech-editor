@@ -161,7 +161,7 @@ static void selectScriptLine(NodeSelection& sel, const Scripting::Script& script
     using namespace UnTech::Scripting;
 
     struct Visitor {
-        const unsigned targetLineNo;
+        unsigned targetLineNo;
 
         unsigned lineNo = 0;
 
