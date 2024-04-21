@@ -101,32 +101,32 @@ template class DataStore<Rooms::RoomData>;
 
 void ProjectSettingsData::store(std::shared_ptr<const Scripting::GameStateData>&& gameState)
 {
-    return data.write([&](auto& d) { d.gameState = gameState; });
+    return data.write([&](auto& d) { d.gameState = std::move(gameState); });
 }
 
 void ProjectSettingsData::store(std::shared_ptr<const Scripting::BytecodeMapping>&& bytecode)
 {
-    return data.write([&](auto& d) { d.bytecode = bytecode; });
+    return data.write([&](auto& d) { d.bytecode = std::move(bytecode); });
 }
 
 void ProjectSettingsData::store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& actionPointMapping)
 {
-    return data.write([&](auto& d) { d.actionPointMapping = actionPointMapping; });
+    return data.write([&](auto& d) { d.actionPointMapping = std::move(actionPointMapping); });
 }
 
 void ProjectSettingsData::store(std::shared_ptr<const MetaTiles::InteractiveTilesData>&& interactiveTiles)
 {
-    return data.write([&](auto& d) { d.interactiveTiles = interactiveTiles; });
+    return data.write([&](auto& d) { d.interactiveTiles = std::move(interactiveTiles); });
 }
 
 void ProjectSettingsData::store(std::shared_ptr<const Resources::CompiledScenesData>&& scenes)
 {
-    return data.write([&](auto& d) { d.scenes = scenes; });
+    return data.write([&](auto& d) { d.scenes = std::move(scenes); });
 }
 
 void ProjectSettingsData::store(std::shared_ptr<const Entity::CompiledEntityRomData>&& entityRomData)
 {
-    return data.write([&](auto& d) { d.entityRomData = entityRomData; });
+    return data.write([&](auto& d) { d.entityRomData = std::move(entityRomData); });
 }
 
 std::shared_ptr<const Scripting::GameStateData> ProjectSettingsData::gameState() const

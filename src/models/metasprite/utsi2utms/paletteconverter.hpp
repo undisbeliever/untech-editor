@@ -151,7 +151,7 @@ static void validateUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const I
 }
 
 // Validate colorMap contains all the colors used in the colorSet
-static void validateColorMap(const ColorMapT& colorMap, const unsigned paletteId, vectorset<rgba>&& colorSet)
+static void validateColorMap(const ColorMapT& colorMap, const unsigned paletteId, vectorset<rgba> colorSet)
 {
     for (auto& it : colorMap) {
         colorSet.erase(it.first);
@@ -240,7 +240,7 @@ buildUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image, ve
 }
 
 static std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> buildAutomaticPalette(const rgba& transparentColor,
-                                                                                  vectorset<rgba>&& colors)
+                                                                                  const vectorset<rgba>& colors)
 {
     assert(colors.size() <= PALETTE_COLORS - 1);
 
@@ -272,7 +272,7 @@ static std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> buildPalette(const S
         return buildUserSuppliedPalettes(siFrameSet, image, std::move(colorSet));
     }
     else {
-        return buildAutomaticPalette(siFrameSet.transparentColor, std::move(colorSet));
+        return buildAutomaticPalette(siFrameSet.transparentColor, colorSet);
     }
 }
 
