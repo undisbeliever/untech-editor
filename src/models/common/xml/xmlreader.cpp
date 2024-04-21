@@ -125,7 +125,7 @@ std::unique_ptr<XmlReader> XmlReader::fromFile(const std::filesystem::path& file
 void XmlReader::parseDocument()
 {
     _input.reset();
-    _currentTag = std::u8string();
+    _currentTag = {};
     _tagStack = std::stack<std::u8string_view>();
     _inSelfClosingTag = false;
 
@@ -373,7 +373,7 @@ void XmlReader::parseCloseTag()
         _currentTag = _tagStack.top();
     }
     else {
-        _currentTag = std::u8string();
+        _currentTag = {};
     }
 }
 
