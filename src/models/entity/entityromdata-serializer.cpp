@@ -35,7 +35,7 @@ using namespace Xml;
 
 static void readEntityRomStruct(XmlReader& xml, const XmlTag& tag, NamedList<EntityRomStruct>& structs)
 {
-    assert(tag.name == u8"struct");
+    assert(tag.name() == u8"struct");
 
     structs.insert_back();
     EntityRomStruct& romStruct = structs.back();
@@ -45,7 +45,7 @@ static void readEntityRomStruct(XmlReader& xml, const XmlTag& tag, NamedList<Ent
     romStruct.comment = tag.getAttributeOrEmpty(u8"comment");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"struct-field") {
+        if (childTag.name() == u8"struct-field") {
             romStruct.fields.emplace_back(
                 StructField{
                     childTag.getAttributeOptionalId(u8"name"),
@@ -63,7 +63,7 @@ static void readEntityRomStruct(XmlReader& xml, const XmlTag& tag, NamedList<Ent
 
 static void readEntityFunctionTable(const XmlTag& tag, NamedList<EntityFunctionTable>& functionTables)
 {
-    assert(tag.name == u8"function-table");
+    assert(tag.name() == u8"function-table");
 
     functionTables.insert_back();
     EntityFunctionTable& ft = functionTables.back();
@@ -81,7 +81,7 @@ static void readEntityFunctionTable(const XmlTag& tag, NamedList<EntityFunctionT
 static void readEntityRomEntry(XmlReader& xml, const XmlTag& tag, const EntityType entityType,
                                NamedList<EntityRomEntry>& entries)
 {
-    assert(tag.name == u8"entry");
+    assert(tag.name() == u8"entry");
 
     entries.insert_back();
     EntityRomEntry& entry = entries.back();
@@ -98,7 +98,7 @@ static void readEntityRomEntry(XmlReader& xml, const XmlTag& tag, const EntityTy
     entry.defaultPalette = tag.getAttributeUnsigned(u8"palette");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"entry-field") {
+        if (childTag.name() == u8"entry-field") {
             idstring fieldFor = childTag.getAttributeId(u8"for");
             std::u8string fieldValue = childTag.getAttribute(u8"value");
 
@@ -119,7 +119,7 @@ static void readEntityRomEntries(XmlReader& xml, const EntityType entityType,
                                  NamedList<EntityRomEntry>& entries)
 {
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"entry") {
+        if (childTag.name() == u8"entry") {
             readEntityRomEntry(xml, childTag, entityType, entries);
         }
         else {
@@ -132,25 +132,25 @@ static void readEntityRomEntries(XmlReader& xml, const EntityType entityType,
 
 void readEntityRomData(XmlReader& xml, const XmlTag& tag, EntityRomData& entityRomData)
 {
-    assert(tag.name == u8"entity-rom-data");
+    assert(tag.name() == u8"entity-rom-data");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"listid") {
+        if (childTag.name() == u8"listid") {
             entityRomData.listIds.push_back(childTag.getAttributeOptionalId(u8"name"));
         }
-        else if (childTag.name == u8"struct") {
+        else if (childTag.name() == u8"struct") {
             readEntityRomStruct(xml, childTag, entityRomData.structs);
         }
-        else if (childTag.name == u8"function-table") {
+        else if (childTag.name() == u8"function-table") {
             readEntityFunctionTable(childTag, entityRomData.functionTables);
         }
-        else if (childTag.name == u8"entities") {
+        else if (childTag.name() == u8"entities") {
             readEntityRomEntries(xml, EntityType::ENTITY, entityRomData.entities);
         }
-        else if (childTag.name == u8"projectiles") {
+        else if (childTag.name() == u8"projectiles") {
             readEntityRomEntries(xml, EntityType::PROJECTILE, entityRomData.projectiles);
         }
-        else if (childTag.name == u8"players") {
+        else if (childTag.name() == u8"players") {
             readEntityRomEntries(xml, EntityType::PLAYER, entityRomData.players);
         }
         else {

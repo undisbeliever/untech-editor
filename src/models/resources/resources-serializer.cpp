@@ -38,7 +38,7 @@ static const EnumMap<Snes::BitDepth> bitDepthEnumMap = {
 
 void readPalette(const XmlTag& tag, NamedList<PaletteInput>& palettes)
 {
-    assert(tag.name == u8"palette");
+    assert(tag.name() == u8"palette");
 
     palettes.insert_back();
     auto& palette = palettes.back();
@@ -72,7 +72,7 @@ void writePalettes(XmlWriter& xml, const NamedList<PaletteInput>& palettes)
 
 void readBackgroundImage(const XmlTag& tag, NamedList<BackgroundImageInput>& backgroundImages)
 {
-    assert(tag.name == u8"background-image");
+    assert(tag.name() == u8"background-image");
 
     backgroundImages.insert_back();
     auto& bi = backgroundImages.back();
@@ -103,7 +103,7 @@ void writeBackgroundImages(XmlWriter& xml, const NamedList<BackgroundImageInput>
 
 void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const XmlTag& tag)
 {
-    assert(tag.name == u8"animation-frames");
+    assert(tag.name() == u8"animation-frames");
     assert(afi.frameImageFilenames.empty());
 
     afi.conversionPalette = tag.getAttributeOptionalId(u8"palette");
@@ -113,7 +113,7 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
     afi.addTransparentTile = tag.getAttributeBoolean(u8"add-transparent-tile");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"frame") {
+        if (childTag.name() == u8"frame") {
             afi.frameImageFilenames.emplace_back(childTag.getAttributeFilename(u8"image"));
         }
         else {
@@ -144,7 +144,7 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
 
 void readSceneSetting(const XmlTag& tag, NamedList<SceneSettingsInput>& sceneSettings)
 {
-    assert(tag.name == u8"scene-setting");
+    assert(tag.name() == u8"scene-setting");
 
     sceneSettings.insert_back();
     auto& ssi = sceneSettings.back();
@@ -175,7 +175,7 @@ void writeSceneSettings(XmlWriter& xml, const NamedList<SceneSettingsInput>& sce
 
 void readScene(const XmlTag& tag, NamedList<SceneInput>& scenes)
 {
-    assert(tag.name == u8"scene");
+    assert(tag.name() == u8"scene");
 
     scenes.insert_back();
     auto& scene = scenes.back();

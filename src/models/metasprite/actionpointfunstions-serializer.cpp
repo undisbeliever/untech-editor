@@ -13,7 +13,7 @@ namespace UnTech::MetaSprite {
 
 void readActionPointFunction(const XmlTag& tag, NamedList<ActionPointFunction>& actionPointList)
 {
-    assert(tag.name == u8"action-point-function");
+    assert(tag.name() == u8"action-point-function");
 
     actionPointList.insert_back();
     auto& ap = actionPointList.back();

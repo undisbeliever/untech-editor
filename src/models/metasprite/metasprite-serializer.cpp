@@ -43,7 +43,7 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
     try {
         const auto tag = xml.parseTag();
 
-        if (tag.name != u8"metasprite") {
+        if (tag.name() != u8"metasprite") {
             throw xml_error(xml, u8"Expected <metasprite> tag");
         }
         return readFrameSet(xml, tag);
@@ -81,7 +81,7 @@ private:
 public:
     inline void readFrameSet(const XmlTag& tag)
     {
-        assert(tag.name == u8"metasprite");
+        assert(tag.name() == u8"metasprite");
         assert(frameSet.frames.size() == 0);
 
         frameSet.name = tag.getAttributeId(u8"id");
@@ -92,19 +92,19 @@ public:
         }
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"frame") {
+            if (childTag.name() == u8"frame") {
                 readFrame(childTag);
             }
-            else if (childTag.name == u8"smalltileset") {
+            else if (childTag.name() == u8"smalltileset") {
                 readSmallTileset(childTag);
             }
-            else if (childTag.name == u8"largetileset") {
+            else if (childTag.name() == u8"largetileset") {
                 readLargeTileset(childTag);
             }
-            else if (childTag.name == u8"palette") {
+            else if (childTag.name() == u8"palette") {
                 readPalette(childTag);
             }
-            else if (childTag.name == u8"animation") {
+            else if (childTag.name() == u8"animation") {
                 Animation::readAnimation(xml, childTag, frameSet.animations);
             }
             else {
@@ -119,7 +119,7 @@ private:
     static void readCollisionBox(const XmlTag& tag, CollisionBox& box)
     {
         if (box.exists) {
-            throw xml_error(tag, stringBuilder(u8"Can only have one ", tag.name, u8" per frame"));
+            throw xml_error(tag, stringBuilder(u8"Can only have one ", tag.name(), u8" per frame"));
         }
 
         box.exists = true;
@@ -128,7 +128,7 @@ private:
 
     inline void readFrame(const XmlTag& tag)
     {
-        assert(tag.name == u8"frame");
+        assert(tag.name() == u8"frame");
 
         frameSet.frames.insert_back();
         Frame& frame = frameSet.frames.back();
@@ -137,7 +137,7 @@ private:
         frame.spriteOrder = tag.getAttributeUnsigned(u8"order", 0, frame.spriteOrder.MASK);
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"object") {
+            if (childTag.name() == u8"object") {
                 FrameObject obj;
 
                 obj.size = childTag.getAttributeEnum(u8"size", objectSizeEnumMap);
@@ -148,7 +148,7 @@ private:
 
                 frame.objects.push_back(obj);
             }
-            else if (childTag.name == u8"actionpoint") {
+            else if (childTag.name() == u8"actionpoint") {
                 ActionPoint ap;
 
                 ap.location = childTag.getAttributeMs8point();
@@ -156,16 +156,16 @@ private:
 
                 frame.actionPoints.push_back(ap);
             }
-            else if (childTag.name == u8"tilehitbox") {
+            else if (childTag.name() == u8"tilehitbox") {
                 readCollisionBox(childTag, frame.tileHitbox);
             }
-            else if (childTag.name == u8"shield") {
+            else if (childTag.name() == u8"shield") {
                 readCollisionBox(childTag, frame.shield);
             }
-            else if (childTag.name == u8"hitbox") {
+            else if (childTag.name() == u8"hitbox") {
                 readCollisionBox(childTag, frame.hitbox);
             }
-            else if (childTag.name == u8"hurtbox") {
+            else if (childTag.name() == u8"hurtbox") {
                 readCollisionBox(childTag, frame.hurtbox);
             }
             else {
@@ -178,7 +178,7 @@ private:
 
     inline void readSmallTileset(const XmlTag& tag)
     {
-        assert(tag.name == u8"smalltileset");
+        assert(tag.name() == u8"smalltileset");
 
         const auto data = xml.parseBase64OfUnknownSize();
 
@@ -193,7 +193,7 @@ private:
 
     inline void readLargeTileset(const XmlTag& tag)
     {
-        assert(tag.name == u8"largetileset");
+        assert(tag.name() == u8"largetileset");
 
         const auto data = xml.parseBase64OfUnknownSize();
 
@@ -209,7 +209,7 @@ private:
 
     inline void readPalette(const XmlTag& tag)
     {
-        assert(tag.name == u8"palette");
+        assert(tag.name() == u8"palette");
 
         std::array<uint8_t, 32> data{};
 

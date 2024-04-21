@@ -43,17 +43,17 @@ private:
 public:
     inline void readFrameSetExportOrder(const XmlTag& tag)
     {
-        assert(tag.name == u8"fsexportorder");
+        assert(tag.name() == u8"fsexportorder");
         assert(exportOrder.stillFrames.size() == 0);
         assert(exportOrder.animations.size() == 0);
 
         exportOrder.name = tag.getAttributeId(u8"name");
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"frame") {
+            if (childTag.name() == u8"frame") {
                 readExportName(childTag, exportOrder.stillFrames);
             }
-            else if (childTag.name == u8"animation") {
+            else if (childTag.name() == u8"animation") {
                 readExportName(childTag, exportOrder.animations);
             }
             else {
@@ -72,7 +72,7 @@ private:
         en.name = tag.getAttributeId(u8"id");
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"alt") {
+            if (childTag.name() == u8"alt") {
                 NameReference alt;
 
                 alt.name = childTag.getAttributeId(u8"name");
@@ -131,7 +131,7 @@ std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml
     try {
         const auto tag = xml.parseTag();
 
-        if (tag.name != u8"fsexportorder") {
+        if (tag.name() != u8"fsexportorder") {
             throw runtime_error(xml.filename(), u8": Not frame set export order file");
         }
 

@@ -18,7 +18,7 @@ const EnumMap<FrameSetFile::FrameSetType> frameSetTypeMap = {
 
 void readFrameSetFile(const XmlTag& tag, std::vector<FrameSetFile>& frameSets)
 {
-    assert(tag.name == u8"frameset");
+    assert(tag.name() == u8"frameset");
 
     frameSets.emplace_back();
     FrameSetFile& fs = frameSets.back();

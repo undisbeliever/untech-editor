@@ -17,13 +17,13 @@ namespace UnTech::Xml {
 
 xml_error::xml_error(const XmlTag& tag, const std::u8string_view message)
     : runtime_error(tag.generateErrorString(message))
-    , _filePath(tag.xml->filePath())
+    , _filePath(tag.filePath())
 {
 }
 
 xml_error::xml_error(const XmlTag& tag, const std::u8string_view aName, const std::u8string_view message)
     : runtime_error(tag.generateErrorString(aName, message))
-    , _filePath(tag.xml->filePath())
+    , _filePath(tag.filePath())
 {
 }
 
@@ -188,7 +188,7 @@ XmlTag XmlReader::parseTag()
 {
     XmlTag tag(this, parseTagStart(), lineNo());
 
-    if (tag.name.empty()) {
+    if (tag.name().empty()) {
         return tag;
     }
 
@@ -236,7 +236,7 @@ XmlTag XmlReader::parseTag()
             // end of tag
             _input.advance();
 
-            _tagStack.push(tag.name);
+            _tagStack.push(tag.name());
             return tag;
         }
         else {
@@ -437,12 +437,12 @@ inline std::u8string_view XmlReader::parseAttributeValue()
 
 std::u8string XmlTag::generateErrorString(const std::u8string_view msg) const
 {
-    return stringBuilder(xml->filename(), u8":", lineNo, u8" <", name, u8">: ", msg);
+    return stringBuilder(_xml->filename(), u8":", _lineNo, u8" <", _name, u8">: ", msg);
 }
 
 std::u8string XmlTag::generateErrorString(const std::u8string_view aName, const std::u8string_view msg) const
 {
-    return stringBuilder(xml->filename(), u8":", lineNo, u8" <", name, u8" ", aName, u8">: ", msg);
+    return stringBuilder(_xml->filename(), u8":", _lineNo, u8" <", _name, u8" ", aName, u8">: ", msg);
 }
 
 std::u8string XmlReader::generateErrorString(const std::u8string_view message) const

@@ -15,6 +15,7 @@
 #include "../iterators.h"
 #include "../ms8aabb.h"
 #include <climits>
+#include <gsl/pointers>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -29,16 +30,17 @@ public:
     }
 };
 
-struct XmlTag {
+class XmlTag {
     constexpr static unsigned MAX_ATTRIBUTES = 8;
 
-    const std::u8string_view name;
-    const XmlReader* xml;
-    const unsigned lineNo;
+private:
+    std::u8string_view _name;
+    gsl::not_null<XmlReader*> _xml;
+    unsigned _lineNo;
 
-    unsigned nAttributes;
-    std::array<std::u8string_view, MAX_ATTRIBUTES> attrNames;
-    std::array<std::u8string_view, MAX_ATTRIBUTES> attrRawValues;
+    unsigned _nAttributes;
+    std::array<std::u8string_view, MAX_ATTRIBUTES> _attrNames;
+    std::array<std::u8string_view, MAX_ATTRIBUTES> _attrRawValues;
 
 public:
     XmlTag() = delete;
@@ -51,13 +53,13 @@ public:
     // Allow return from function
     XmlTag(XmlTag&&) = default;
 
-    XmlTag(const XmlReader* xml, std::u8string_view tagName, unsigned lineNo)
-        : name(tagName)
-        , xml(xml)
-        , lineNo(lineNo)
-        , nAttributes(0)
-        , attrNames()
-        , attrRawValues()
+    XmlTag(gsl::not_null<XmlReader*> xml, std::u8string_view tagName, unsigned lineNo)
+        : _name(tagName)
+        , _xml(xml)
+        , _lineNo(lineNo)
+        , _nAttributes(0)
+        , _attrNames()
+        , _attrRawValues()
     {
     }
 
@@ -65,24 +67,24 @@ private:
     friend class UnTech::Xml::XmlReader;
     void addAttribute(const std::u8string_view aName, const std::u8string_view rawValue)
     {
-        if (nAttributes >= MAX_ATTRIBUTES) {
+        if (_nAttributes >= MAX_ATTRIBUTES) {
             throw xml_error(*this, u8"Too many attributes");
         }
 
-        attrNames.at(nAttributes) = aName;
-        attrRawValues.at(nAttributes) = rawValue;
+        _attrNames.at(_nAttributes) = aName;
+        _attrRawValues.at(_nAttributes) = rawValue;
 
-        nAttributes++;
+        _nAttributes++;
     }
 
     // NOTE: Does not unescape any `&` characters in the attribute value.
     [[nodiscard]] inline std::u8string_view getAttribute_rawValue(const std::u8string_view aName) const
     {
-        assert(nAttributes <= MAX_ATTRIBUTES);
+        assert(_nAttributes <= MAX_ATTRIBUTES);
 
-        for (const unsigned i : range(nAttributes)) {
-            if (attrNames.at(i) == aName) {
-                return attrRawValues.at(i);
+        for (const unsigned i : range(_nAttributes)) {
+            if (_attrNames.at(i) == aName) {
+                return _attrRawValues.at(i);
             }
         }
 
@@ -92,25 +94,29 @@ private:
     // NOTE: Does not unescape any `&` characters in the attribute value.
     [[nodiscard]] inline std::optional<std::u8string_view> getOptionalAttribute_rawValue(const std::u8string_view aName) const
     {
-        assert(nAttributes <= MAX_ATTRIBUTES);
+        assert(_nAttributes <= MAX_ATTRIBUTES);
 
-        for (const unsigned i : range(nAttributes)) {
-            if (attrNames.at(i) == aName) {
-                return attrRawValues.at(i);
+        for (const unsigned i : range(_nAttributes)) {
+            if (_attrNames.at(i) == aName) {
+                return _attrRawValues.at(i);
             }
         }
         return std::nullopt;
     }
 
 public:
-    operator bool() const { return !name.empty(); }
+    operator bool() const { return !_name.empty(); }
+
+    [[nodiscard]] const std::u8string_view& name() const { return _name; }
+
+    [[nodiscard]] const std::filesystem::path& filePath() const { return _xml->filePath(); }
 
     [[nodiscard]] bool hasAttribute(const std::u8string_view aName) const
     {
-        assert(nAttributes <= MAX_ATTRIBUTES);
+        assert(_nAttributes <= MAX_ATTRIBUTES);
 
-        for (const unsigned i : range(nAttributes)) {
-            if (attrNames.at(i) == aName) {
+        for (const unsigned i : range(_nAttributes)) {
+            if (_attrNames.at(i) == aName) {
                 return true;
             }
         }
@@ -271,7 +277,7 @@ public:
 
     [[nodiscard]] inline std::filesystem::path getAttributeFilename(const std::u8string_view aName) const
     {
-        const auto xmlPath = xml->filePath();
+        const auto xmlPath = _xml->filePath();
 
         if (xmlPath.empty()) {
             throw xml_error(*this, aName, u8"XML file has no path");

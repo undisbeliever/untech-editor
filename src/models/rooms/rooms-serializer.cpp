@@ -35,7 +35,7 @@ static const EnumMap<RoomEntranceOrientation> roomEntranceOrientationEnumMap = {
 
 static void readRoomEntrance(const XmlTag& tag, NamedList<RoomEntrance>& entrances)
 {
-    assert(tag.name == u8"entrance");
+    assert(tag.name() == u8"entrance");
 
     entrances.insert_back();
     RoomEntrance& en = entrances.back();
@@ -56,7 +56,7 @@ static void writeRoomEntrance(XmlWriter& xml, const RoomEntrance& entrance)
 
 static void readEntityGroup(XmlReader& xml, const XmlTag& tag, NamedList<EntityGroup>& entityGroups)
 {
-    assert(tag.name == u8"entity-group");
+    assert(tag.name() == u8"entity-group");
 
     entityGroups.insert_back();
     auto& eg = entityGroups.back();
@@ -64,7 +64,7 @@ static void readEntityGroup(XmlReader& xml, const XmlTag& tag, NamedList<EntityG
     eg.name = tag.getAttributeOptionalId(u8"name");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"entity") {
+        if (childTag.name() == u8"entity") {
             auto& e = eg.entities.emplace_back();
             e.name = childTag.getAttributeOptionalId(u8"name");
             e.entityId = childTag.getAttributeOptionalId(u8"entity");
@@ -99,7 +99,7 @@ static void writeEntityGroup(XmlWriter& xml, const EntityGroup& entityGroup)
 
 static void readScriptTrigger(const XmlTag& tag, std::vector<ScriptTrigger>& scriptTriggers)
 {
-    assert(tag.name == u8"script-trigger");
+    assert(tag.name() == u8"script-trigger");
 
     ScriptTrigger& st = scriptTriggers.emplace_back();
 
@@ -119,7 +119,7 @@ static void writeScriptTrigger(XmlWriter& xml, const ScriptTrigger& st)
 
 static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag& tag)
 {
-    if (tag.name != u8"room") {
+    if (tag.name() != u8"room") {
         throw xml_error(xml, u8"Not a Room file (expected <room> tag)");
     }
 
@@ -129,22 +129,22 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag& ta
     roomInput->scene = tag.getAttributeOptionalId(u8"scene");
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"map") {
+        if (childTag.name() == u8"map") {
             roomInput->map = MetaTiles::readMetaTileGrid(xml, childTag);
         }
-        else if (childTag.name == u8"entrance") {
+        else if (childTag.name() == u8"entrance") {
             readRoomEntrance(childTag, roomInput->entrances);
         }
-        else if (childTag.name == u8"entity-group") {
+        else if (childTag.name() == u8"entity-group") {
             readEntityGroup(xml, childTag, roomInput->entityGroups);
         }
-        else if (childTag.name == u8"script") {
+        else if (childTag.name() == u8"script") {
             Scripting::readScript(roomInput->roomScripts, xml, childTag);
         }
-        else if (childTag.name == u8"temp-script-variables") {
+        else if (childTag.name() == u8"temp-script-variables") {
             Scripting::readTempScriptVariables(roomInput->roomScripts, xml, childTag);
         }
-        else if (childTag.name == u8"script-trigger") {
+        else if (childTag.name() == u8"script-trigger") {
             readScriptTrigger(childTag, roomInput->scriptTriggers);
         }
         else {

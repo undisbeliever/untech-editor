@@ -52,7 +52,7 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
     try {
         const auto tag = xml.parseTag();
 
-        if (tag.name != u8"spriteimporter") {
+        if (tag.name() != u8"spriteimporter") {
             throw xml_error(xml, u8"Expected <spriteimporter> tag");
         }
         return readFrameSet(xml, tag);
@@ -92,7 +92,7 @@ private:
 public:
     inline void readFrameSet(const XmlTag& tag)
     {
-        assert(tag.name == u8"spriteimporter");
+        assert(tag.name() == u8"spriteimporter");
         assert(frameSet.frames.size() == 0);
 
         frameSet.name = tag.getAttributeId(u8"id");
@@ -121,16 +121,16 @@ public:
         }
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"grid") {
+            if (childTag.name() == u8"grid") {
                 readFrameSetGrid(childTag);
             }
-            else if (childTag.name == u8"palette") {
+            else if (childTag.name() == u8"palette") {
                 readPalette(childTag);
             }
-            else if (childTag.name == u8"frame") {
+            else if (childTag.name() == u8"frame") {
                 readFrame(childTag);
             }
-            else if (childTag.name == u8"animation") {
+            else if (childTag.name() == u8"animation") {
                 Animation::readAnimation(xml, childTag, frameSet.animations);
             }
             else {
@@ -144,7 +144,7 @@ public:
 private:
     inline void readFrameSetGrid(const XmlTag& tag)
     {
-        assert(tag.name == u8"grid");
+        assert(tag.name() == u8"grid");
 
         frameSet.grid.frameSize = tag.getAttributeUsize(u8"width", u8"height");
         frameSet.grid.offset = tag.getAttributeUpoint(u8"xoffset", u8"yoffset");
@@ -157,7 +157,7 @@ private:
     static void readCollisionBox(const XmlTag& tag, CollisionBox& box)
     {
         if (box.exists) {
-            throw xml_error(tag, stringBuilder(u8"Can only have one ", tag.name, u8" per frame"));
+            throw xml_error(tag, stringBuilder(u8"Can only have one ", tag.name(), u8" per frame"));
         }
 
         box.exists = true;
@@ -166,7 +166,7 @@ private:
 
     inline void readFrame(const XmlTag& tag)
     {
-        assert(tag.name == u8"frame");
+        assert(tag.name() == u8"frame");
 
         frameSet.frames.insert_back();
         Frame& frame = frameSet.frames.back();
@@ -178,16 +178,16 @@ private:
         }
 
         while (const auto childTag = xml.parseTag()) {
-            if (childTag.name == u8"gridlocation") {
+            if (childTag.name() == u8"gridlocation") {
                 frame.gridLocation = childTag.getAttributeUpoint();
             }
-            else if (childTag.name == u8"location") {
+            else if (childTag.name() == u8"location") {
                 frame.locationOverride = childTag.getAttributeUrect();
             }
-            else if (childTag.name == u8"origin") {
+            else if (childTag.name() == u8"origin") {
                 frame.originOverride = childTag.getAttributeUpoint();
             }
-            else if (childTag.name == u8"object") {
+            else if (childTag.name() == u8"object") {
                 FrameObject obj;
 
                 obj.size = childTag.getAttributeEnum(u8"size", objectSizeEnumMap);
@@ -196,7 +196,7 @@ private:
                 frame.objects.push_back(obj);
             }
 
-            else if (childTag.name == u8"actionpoint") {
+            else if (childTag.name() == u8"actionpoint") {
                 ActionPoint ap;
 
                 ap.location = childTag.getAttributeUpoint();
@@ -204,16 +204,16 @@ private:
 
                 frame.actionPoints.push_back(ap);
             }
-            else if (childTag.name == u8"tilehitbox") {
+            else if (childTag.name() == u8"tilehitbox") {
                 readCollisionBox(childTag, frame.tileHitbox);
             }
-            else if (childTag.name == u8"shield") {
+            else if (childTag.name() == u8"shield") {
                 readCollisionBox(childTag, frame.shield);
             }
-            else if (childTag.name == u8"hitbox") {
+            else if (childTag.name() == u8"hitbox") {
                 readCollisionBox(childTag, frame.hitbox);
             }
-            else if (childTag.name == u8"hurtbox") {
+            else if (childTag.name() == u8"hurtbox") {
                 readCollisionBox(childTag, frame.hurtbox);
             }
             else {
@@ -226,7 +226,7 @@ private:
 
     inline void readPalette(const XmlTag& tag)
     {
-        assert(tag.name == u8"palette");
+        assert(tag.name() == u8"palette");
 
         auto& palette = frameSet.palette;
 

@@ -22,7 +22,7 @@
 namespace UnTech::Xml {
 
 class XmlReader;
-struct XmlTag;
+class XmlTag;
 
 // NOTE: Will only unescape sequences created by `XmlWriter`
 std::u8string unescapeXmlString(const std::u8string_view xmlString);
@@ -37,7 +37,7 @@ public:
     [[nodiscard]] inline const std::filesystem::path& filePath() const { return _filePath; }
 
 private:
-    const std::filesystem::path _filePath;
+    std::filesystem::path _filePath;
 };
 
 /**
@@ -64,7 +64,7 @@ private:
 class XmlReader {
 
 private:
-    const std::filesystem::path _filePath;
+    std::filesystem::path _filePath;
     StringParser _input;
 
     std::stack<std::u8string_view> _tagStack;

@@ -24,7 +24,7 @@ void readAnimationFrame(const Xml::XmlTag& tag, AnimationFrame& aFrame);
 
 void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& animations)
 {
-    assert(tag.name == u8"animation");
+    assert(tag.name() == u8"animation");
 
     animations.insert_back();
     Animation& animation = animations.back();
@@ -40,7 +40,7 @@ void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& anim
     }
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"aframe") {
+        if (childTag.name() == u8"aframe") {
             animation.frames.emplace_back();
 
             AnimationFrame& aFrame = animation.frames.back();
@@ -56,7 +56,7 @@ void readAnimation(XmlReader& xml, const XmlTag& tag, NamedList<Animation>& anim
 
 inline void readAnimationFrame(const XmlTag& tag, AnimationFrame& aFrame)
 {
-    assert(tag.name == u8"aframe");
+    assert(tag.name() == u8"aframe");
 
     aFrame.frame.name = tag.getAttributeId(u8"frame");
     aFrame.frame.hFlip = tag.getAttributeBoolean(u8"hflip");

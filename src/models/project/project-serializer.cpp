@@ -29,7 +29,7 @@ static const EnumMap<MappingMode> mappingModeEnumMap = {
 
 static void readMemoryMapSettings(const XmlTag& tag, MemoryMapSettings& mmap)
 {
-    assert(tag.name == u8"memory-map");
+    assert(tag.name() == u8"memory-map");
 
     mmap.mode = tag.getAttributeEnum(u8"mode", mappingModeEnumMap);
     mmap.firstBank = tag.getAttributeUnsignedHex(u8"first-bank");
@@ -65,7 +65,7 @@ static void writeExternalFileList(XmlWriter& xml, const std::u8string& tagName,
 std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 {
     const auto tag = xml.parseTag();
-    if (tag.name != u8"project") {
+    if (tag.name() != u8"project") {
         throw xml_error(xml, u8"Not an untech-editor project (expected <project>");
     }
 
@@ -77,37 +77,37 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
     bool readRoomSettingsTag = false;
 
     while (const auto childTag = xml.parseTag()) {
-        if (childTag.name == u8"exportorder") {
+        if (childTag.name() == u8"exportorder") {
             readExternalFileList(childTag, project->frameSetExportOrders);
         }
-        else if (childTag.name == u8"frameset") {
+        else if (childTag.name() == u8"frameset") {
             MetaSprite::readFrameSetFile(childTag, project->frameSets);
         }
-        else if (childTag.name == u8"palette") {
+        else if (childTag.name() == u8"palette") {
             Resources::readPalette(childTag, project->palettes);
         }
-        else if (childTag.name == u8"background-image") {
+        else if (childTag.name() == u8"background-image") {
             Resources::readBackgroundImage(childTag, project->backgroundImages);
         }
-        else if (childTag.name == u8"metatile-tileset") {
+        else if (childTag.name() == u8"metatile-tileset") {
             readExternalFileList(childTag, project->metaTileTilesets);
         }
-        else if (childTag.name == u8"room-file") {
+        else if (childTag.name() == u8"room-file") {
             readExternalFileList(childTag, project->rooms);
         }
-        else if (childTag.name == u8"entity-rom-data") {
+        else if (childTag.name() == u8"entity-rom-data") {
             Entity::readEntityRomData(xml, childTag, project->entityRomData);
         }
-        else if (childTag.name == u8"action-point-function") {
+        else if (childTag.name() == u8"action-point-function") {
             MetaSprite::readActionPointFunction(childTag, project->actionPointFunctions);
         }
-        else if (childTag.name == u8"scene-setting") {
+        else if (childTag.name() == u8"scene-setting") {
             Resources::readSceneSetting(childTag, project->resourceScenes.settings);
         }
-        else if (childTag.name == u8"scene") {
+        else if (childTag.name() == u8"scene") {
             Resources::readScene(childTag, project->resourceScenes.scenes);
         }
-        else if (childTag.name == u8"memory-map") {
+        else if (childTag.name() == u8"memory-map") {
             if (readMemoryMapTag) {
                 throw xml_error(childTag, u8"Only one <memory-map> tag is allowed");
             }
@@ -115,13 +115,13 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
             readMemoryMapTag = true;
         }
         // NOLINTNEXTLINE(bugprone-branch-clone)
-        else if (childTag.name == u8"block-settings") {
+        else if (childTag.name() == u8"block-settings") {
             // block-settings has been removed, skip
         }
-        else if (childTag.name == u8"metatile-engine-settings") {
+        else if (childTag.name() == u8"metatile-engine-settings") {
             // metatile-engine-settings has been removed, skip
         }
-        else if (childTag.name == u8"game-state") {
+        else if (childTag.name() == u8"game-state") {
             if (readGameStateTag) {
                 throw xml_error(childTag, u8"Only one <game-state> tag is allowed");
             }
@@ -129,7 +129,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 
             Scripting::readGameState(project->gameState, xml, childTag);
         }
-        else if (childTag.name == u8"bytecode") {
+        else if (childTag.name() == u8"bytecode") {
             if (readBytecodeTag) {
                 throw xml_error(childTag, u8"Only one <bytecode> tag is allowed");
             }
@@ -137,10 +137,10 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 
             Scripting::readBytecode(project->bytecode, xml, childTag);
         }
-        else if (childTag.name == u8"interactive-tiles") {
+        else if (childTag.name() == u8"interactive-tiles") {
             MetaTiles::readInteractiveTiles(xml, childTag, project->interactiveTiles);
         }
-        else if (childTag.name == u8"room-settings") {
+        else if (childTag.name() == u8"room-settings") {
             if (readRoomSettingsTag) {
                 throw xml_error(childTag, u8"Only one <room-settings> tag is allowed");
             }
