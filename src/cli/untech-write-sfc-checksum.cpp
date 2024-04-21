@@ -85,7 +85,7 @@ int process(const Args& args)
         writeChecksum(filename, newChecksum, memoryMap);
 
         if (verbose) {
-            std::cout << "Wrote to " << filename << std::endl;
+            std::cout << "Wrote to " << filename << '\n';
         }
     }
     else {
@@ -105,8 +105,7 @@ int main(int argc, const char* argv[])
         return process(args);
     }
     catch (const std::exception& ex) {
-        std::cerr << "ERROR: "
-                  << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << '\n';
         return EXIT_FAILURE;
     }
 }

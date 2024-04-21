@@ -46,7 +46,7 @@ int process(const Args& args)
 
         std::cout << "Compressed " << input.size() << " bytes into " << out.size() << " bytes"
                   << " (" << percent << "%)"
-                  << std::endl;
+                  << '\n';
     }
 
     return EXIT_SUCCESS;
@@ -59,8 +59,7 @@ int main(int argc, const char* argv[])
         return process(args);
     }
     catch (const std::exception& ex) {
-        std::cerr << "ERROR: "
-                  << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << '\n';
         return EXIT_FAILURE;
     }
 }

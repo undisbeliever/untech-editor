@@ -147,7 +147,7 @@ int main(int argc, const char** const argv)
         return run_main(arguments);
     }
     catch (const std::exception& ex) {
-        std::cerr << "UNCAUGHT EXCEPTION: " << ex.what() << std::endl;
+        std::cerr << "UNCAUGHT EXCEPTION: " << ex.what() << '\n';
         return EXIT_FAILURE;
     }
 }

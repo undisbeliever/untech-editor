@@ -31,7 +31,7 @@ static void CheckShader(GLuint handle, const char* name)
     const bool valid = (GLboolean)status != GL_FALSE;
 
     if (!valid) {
-        std::cerr << "ERROR compiling " << name << std::endl;
+        std::cerr << "ERROR compiling " << name << '\n';
     }
 
     if (logLength > 1) {
@@ -39,10 +39,9 @@ static void CheckShader(GLuint handle, const char* name)
         glGetShaderInfoLog(handle, logLength, nullptr, message.data());
 
         if (valid) {
-            std::cerr << "INFO LOG for " << name << std::endl;
+            std::cerr << "INFO LOG for " << name << '\n';
         }
-        std::cerr << message.data()
-                  << std::endl;
+        std::cerr << message.data() << '\n';
     }
 }
 
@@ -57,7 +56,7 @@ static void CheckProgram(GLuint handle, const char* name)
     const bool valid = (GLboolean)status != GL_FALSE;
 
     if (!valid) {
-        std::cerr << "ERROR linking " << name << std::endl;
+        std::cerr << "ERROR linking " << name << '\n';
     }
 
     if (logLength > 1) {
@@ -65,10 +64,9 @@ static void CheckProgram(GLuint handle, const char* name)
         glGetProgramInfoLog(handle, logLength, nullptr, message.data());
 
         if (valid) {
-            std::cerr << "INFO LOG for " << name << std::endl;
+            std::cerr << "INFO LOG for " << name << '\n';
         }
-        std::cerr << message.data()
-                  << std::endl;
+        std::cerr << message.data() << '\n';
     }
 }
 
@@ -797,7 +795,7 @@ void MtTilemap::addToDrawList(ImDrawList* drawList, const ImVec2& pos, const ImV
     using namespace Tilemap;
 
     if (renderDataCount >= renderDataBuffer.size()) {
-        std::cerr << "Too many MtTilemap draw calls per frame" << std::endl;
+        std::cerr << "Too many MtTilemap draw calls per frame\n";
         return;
     }
 

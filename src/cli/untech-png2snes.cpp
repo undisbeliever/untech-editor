@@ -87,7 +87,7 @@ static int process(const Args& args)
                   << "   " << args.inputFilename << '\n'
                   << "   " << image->size().width << " x " << image->size().height << " px\n"
                   << "   " << image->palette().size() << " colors\n"
-                  << std::endl;
+                  << '\n';
     }
 
     image2Snes.process(*image);
@@ -108,7 +108,7 @@ static int process(const Args& args)
                   << "   " << nPalettes << ' ' << paletteString << '\n'
                   << "   " << tileset.size() << ' ' << tileString << '\n'
                   << "   " << tilemap.width() << " x " << tilemap.height() << ' ' << tilemapString
-                  << std::endl;
+                  << '\n';
     }
 
     File::atomicWrite(args.tilesetFilename, image2Snes.tilesetSnesData());
@@ -125,8 +125,7 @@ int main(int argc, const char* argv[])
         return process(args);
     }
     catch (const std::exception& ex) {
-        std::cerr << "ERROR: "
-                  << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << '\n';
         return EXIT_FAILURE;
     }
 }

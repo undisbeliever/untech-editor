@@ -57,8 +57,7 @@ int main(int argc, const char* argv[])
         return process(args);
     }
     catch (const std::exception& ex) {
-        std::cerr << "ERROR: "
-                  << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << '\n';
         return EXIT_FAILURE;
     }
 }

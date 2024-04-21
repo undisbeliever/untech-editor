@@ -163,19 +163,19 @@ namespace UnTech::ArgParser_Impl {
 
 [[noreturn]] static void error(const std::string_view msg)
 {
-    std::cerr << msg << std::endl;
+    std::cerr << msg << '\n';
     exit(EXIT_FAILURE);
 }
 
 [[noreturn]] static void error(const std::string_view msg1, const std::string_view msg2)
 {
-    std::cerr << msg1 << msg2 << std::endl;
+    std::cerr << msg1 << msg2 << '\n';
     exit(EXIT_FAILURE);
 }
 
 [[noreturn]] static void error(const std::string_view msg1, const std::string_view msg2, const std::string_view msg3)
 {
-    std::cerr << msg1 << msg2 << msg3 << std::endl;
+    std::cerr << msg1 << msg2 << msg3 << '\n';
     exit(EXIT_FAILURE);
 }
 
@@ -342,9 +342,9 @@ static inline auto printHelpText(const Config& config, const std::string_view ex
     });
 
     std::cout << "\n"
-              << "\n  --version                 display version information"
+                 "\n  --version                 display version information"
                  "\n  -h --help                 display this help message"
-              << std::endl;
+                 "\n";
 }
 
 //

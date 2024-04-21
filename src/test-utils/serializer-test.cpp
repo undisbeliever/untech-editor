@@ -69,12 +69,12 @@ static bool testSerializer(const std::filesystem::path& filename, Reader reader,
 
         nFilesPassed++;
         stdout_write(data->FILE_EXTENSION);
-        std::cout << " serializer passed: " << filename << std::endl;
+        std::cout << " serializer passed: " << filename << '\n';
         return true;
     }
     catch (const std::exception& ex) {
         nFilesFailed++;
-        std::cerr << "ERROR: " << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << '\n';
         return false;
     }
 }
@@ -166,11 +166,11 @@ bool testSerializer<Project::ProjectFile>(const std::filesystem::path& filename)
 
         nFilesPassed++;
         stdout_write(project->FILE_EXTENSION);
-        std::cout << " serializer passed: " << filename << std::endl;
+        std::cout << " serializer passed: " << filename << '\n';
     }
     catch (const std::exception& ex) {
         nFilesFailed++;
-        std::cerr << "ERROR: " << ex.what() << " FAILED" << std::endl;
+        std::cerr << "ERROR: " << ex.what() << " FAILED\n";
         return false;
     }
 
@@ -211,7 +211,7 @@ static bool testFilenameOfUnknownType(const std::filesystem::path& filePath)
 #undef TEST
 
     nFilesFailed++;
-    std::cerr << "ERROR: Unknown extension " << extension << std::endl;
+    std::cerr << "ERROR: Unknown extension " << extension << '\n';
     return false;
 }
 
@@ -224,11 +224,11 @@ static int process(const std::span<const char*> filenames)
     }
 
     if (nFilesPassed > 0) {
-        std::cout << nFilesPassed << " tests passed" << std::endl;
+        std::cout << nFilesPassed << " tests passed" << '\n';
     }
     if (nFilesFailed > 0) {
         success = false;
-        std::cerr << "ERROR " << nFilesFailed << " TESTS FAILED" << std::endl;
+        std::cerr << "ERROR " << nFilesFailed << " TESTS FAILED" << '\n';
     }
 
     return success ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -238,7 +238,7 @@ int main(int argc, const char* argv[])
 {
     try {
         if (argc <= 1) {
-            std::cerr << "ERROR: expected argument" << std::endl;
+            std::cerr << "ERROR: expected argument" << '\n';
             return EXIT_FAILURE;
         }
 
@@ -248,7 +248,7 @@ int main(int argc, const char* argv[])
         return process(arguments.subspan(1));
     }
     catch (const std::exception& ex) {
-        std::cerr << "ERROR: " << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << '\n';
         return EXIT_FAILURE;
     }
 }
