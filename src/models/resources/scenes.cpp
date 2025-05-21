@@ -87,9 +87,9 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
     return valid;
 }
 
-static void writeFunctionTable(const ResourceScenes& resourceScenes, const std::u8string_view function, StringStream& out)
+static void writeFunctionTable(const ResourceScenes& resourceScenes, const std::u8string_view function, const std::u8string_view codeBlock, StringStream& out)
 {
-    out.write(u8"code()\n",
+    out.write(codeBlock, u8"()\n",
               SceneSettingsData::FUNCTION_TABLE_LABEL, u8"_", function, u8":\n");
 
     for (const SceneSettingsInput& ssi : resourceScenes.settings) {
@@ -100,9 +100,9 @@ static void writeFunctionTable(const ResourceScenes& resourceScenes, const std::
 
 void writeSceneIncData(const ResourceScenes& resourceScenes, StringStream& out)
 {
-    writeFunctionTable(resourceScenes, u8"SetupPpu_dp2100", out);
-    writeFunctionTable(resourceScenes, u8"Process", out);
-    writeFunctionTable(resourceScenes, u8"VBlank_dp2100", out);
+    writeFunctionTable(resourceScenes, u8"SetupPpu_dp2100", u8"code", out);
+    writeFunctionTable(resourceScenes, u8"Process", u8"code", out);
+    writeFunctionTable(resourceScenes, u8"VBlank_dp2100", u8"farCode", out);
 
     out.write(u8"\n"
               u8"namespace Project.Scenes {\n");
@@ -114,7 +114,7 @@ void writeSceneIncData(const ResourceScenes& resourceScenes, StringStream& out)
     assert(i == resourceScenes.scenes.size());
     out.write(u8"}\n\n");
 }
-constexpr unsigned FUNCTION_TABLE_ELEMENT_SIZE = 2;
+constexpr unsigned FUNCTION_TABLE_ELEMENT_SIZE = 3;
 constexpr unsigned SCENE_SETTINGS_DATA_ELEMENT_SIZE = 3;
 static_assert(MAX_N_SCENE_SETTINGS == 255 / std::max(FUNCTION_TABLE_ELEMENT_SIZE, SCENE_SETTINGS_DATA_ELEMENT_SIZE));
 
@@ -706,7 +706,7 @@ compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectDa
 
     return out;
 }
-const int CompiledScenesData::SCENE_FORMAT_VERSION = 2;
+const int CompiledScenesData::SCENE_FORMAT_VERSION = 3;
 const std::u8string SceneSettingsData::DATA_LABEL(u8"Project.SceneSettingsData");
 const std::u8string SceneSettingsData::FUNCTION_TABLE_LABEL(u8"Project.SceneSettingsFunctionTable");
 const std::u8string SceneLayoutsData::DATA_LABEL(u8"Project.SceneLayoutData");
