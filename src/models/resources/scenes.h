@@ -25,7 +25,7 @@ struct ProjectData;
 namespace UnTech::Resources {
 
 constexpr unsigned N_LAYERS = 4;
-constexpr unsigned MAX_N_SCENE_SETTINGS = 42;
+constexpr unsigned MAX_N_SCENE_SETTINGS = 85;
 
 enum class BgMode {
     MODE_0,
