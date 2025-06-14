@@ -32,7 +32,7 @@ public:
     mutex& operator=(mutex&&) = delete;
 
     template <typename Function>
-        requires std::invocable<Function, T&>
+    requires std::invocable<Function, T&>
     void access(Function f)
     {
         std::lock_guard lock(_mutex);
@@ -47,8 +47,8 @@ public:
 
     // Returning a std::shared_ptr<const U> from T is safe
     template <typename U, typename Function>
-        requires std::invocable<Function, T&>
-    std::shared_ptr<const U> access_and_return_const_shared_ptr(Function f)
+    requires std::invocable<Function, T&>
+        std::shared_ptr<const U> access_and_return_const_shared_ptr(Function f)
     {
         std::lock_guard lock(_mutex);
 
@@ -57,7 +57,7 @@ public:
 
     // Returning an unsigned from T is safe
     template <typename Function>
-        requires std::invocable<Function, T&>
+    requires std::invocable<Function, T&>
     unsigned access_and_return_unsigned(Function f)
     {
         std::lock_guard lock(_mutex);
@@ -89,7 +89,7 @@ public:
     shared_mutex& operator=(shared_mutex&&) = delete;
 
     template <typename Function>
-        requires std::invocable<Function, const T&>
+    requires std::invocable<Function, const T&>
     void read(Function f) const
     {
         std::shared_lock lock(_mutex);
@@ -100,7 +100,7 @@ public:
     }
 
     template <typename Function>
-        requires std::invocable<Function, T&>
+    requires std::invocable<Function, T&>
     void write(Function f)
     {
         std::lock_guard lock(_mutex);
@@ -109,7 +109,7 @@ public:
     }
 
     template <typename Function>
-        requires std::invocable<Function, T&>
+    requires std::invocable<Function, T&>
     void tryWrite(Function f)
     {
         std::unique_lock lock(_mutex, std::try_to_lock);
@@ -126,8 +126,7 @@ public:
 
     // Returning a bool is safe
     template <typename Function>
-    bool write_and_return_bool(Function f)
-        requires std::invocable<Function, T&>
+    bool write_and_return_bool(Function f) requires std::invocable<Function, T&>
     {
         std::lock_guard lock(_mutex);
 
@@ -218,7 +217,7 @@ public:
     shared_mutex& operator=(shared_mutex&&) = delete;
 
     template <typename Function>
-        requires std::invocable<Function, const T&>
+    requires std::invocable<Function, const T&>
     void read(Function f) const
     {
         std::shared_lock lock(_mutex);
@@ -229,7 +228,7 @@ public:
     }
 
     template <typename Function>
-        requires std::invocable<Function, T&>
+    requires std::invocable<Function, T&>
     void write(Function f)
     {
         std::lock_guard lock(_mutex);
@@ -238,7 +237,7 @@ public:
     }
 
     template <typename Function>
-        requires std::invocable<Function, T&>
+    requires std::invocable<Function, T&>
     void tryWrite(Function f)
     {
         std::unique_lock lock(_mutex, std::try_to_lock);

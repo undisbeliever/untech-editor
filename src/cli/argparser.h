@@ -105,8 +105,7 @@ struct OptionalArg {
 };
 
 template <auto FieldPtr>
-    requires(std::is_same_v<typename remove_member_pointer<decltype(FieldPtr)>::type, std::filesystem::path>)
-struct OptionalArg<FieldPtr> {
+requires(std::is_same_v<typename remove_member_pointer<decltype(FieldPtr)>::type, std::filesystem::path>) struct OptionalArg<FieldPtr> {
     static_assert(std::is_member_object_pointer_v<decltype(FieldPtr)>);
 
     using OutputT = typename member_class<decltype(FieldPtr)>::type;
@@ -276,7 +275,7 @@ static inline auto printDefaultValue(const Arg&) -> void
 }
 
 template <class Arg>
-    requires requires { typename Arg::defaultValue; }
+requires requires { typename Arg::defaultValue; }
 static inline auto printDefaultValue(const Arg& arg) -> void
 {
     std::cout << " (default " << arg.defaultValue << ")";

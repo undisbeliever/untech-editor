@@ -42,8 +42,7 @@ static inline optional_ref<const T&> getItem(const std::vector<T>& list, const s
 }
 
 template <typename T>
-static inline const idstring& getItemName(const T& item)
-    requires std::is_same_v<decltype(item.name), idstring>
+static inline const idstring& getItemName(const T& item) requires std::is_same_v<decltype(item.name), idstring>
 {
     return item.name;
 }
@@ -65,8 +64,7 @@ static inline bool validateArg(const std::shared_ptr<const T>& arg)
 }
 
 template <typename T>
-static inline bool validateArg(const T&)
-    requires std::is_class_v<T>
+static inline bool validateArg(const T&) requires std::is_class_v<T>
 {
     return true;
 }
@@ -87,16 +85,14 @@ static inline const T& expandArg(const std::shared_ptr<const T>& arg)
 }
 
 template <typename T>
-static inline const T& expandArg(const T& arg)
-    requires std::is_class_v<T>
+static inline const T& expandArg(const T& arg) requires std::is_class_v<T>
 {
     return arg;
 }
 
 template <typename Function, typename... Args>
 static inline bool validatePs(CompilerStatus& status, const PSI psIndex,
-                              Function validateFunction, const Args&... args)
-    requires std::invocable<Function, const Args&..., ErrorList&>
+                              Function validateFunction, const Args&... args) requires std::invocable<Function, const Args&..., ErrorList&>
 {
     const auto index = size_t(psIndex);
 
@@ -135,8 +131,7 @@ static inline bool validatePs(CompilerStatus& status, const PSI psIndex,
 template <typename Function, typename... Args>
 static inline bool compilePs(CompilerStatus& status, const PSI psIndex,
                              ProjectSettingsData& dataStore,
-                             Function compileFunction, const Args&... args)
-    requires std::invocable<Function, const Args&..., ErrorList&>
+                             Function compileFunction, const Args&... args) requires std::invocable<Function, const Args&..., ErrorList&>
 {
     using ResultT = std::invoke_result_t<Function, const Args&..., ErrorList&>;
 

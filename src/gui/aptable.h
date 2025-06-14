@@ -140,7 +140,7 @@ inline bool Cell(const char* label, idstring* input, const ExternalFileList<T>& 
 }
 
 template <typename T>
-    requires std::is_enum_v<T>
+requires std::is_enum_v<T>
 inline bool Cell(const char* label, T* v)
 {
     return ImGui::EnumCombo(label, v);

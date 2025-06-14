@@ -16,7 +16,7 @@ namespace UnTech {
 // Once created, it cannot be changed or moved.
 // Intended for function return values.
 template <typename T>
-    requires std::is_lvalue_reference_v<T>
+requires std::is_lvalue_reference_v<T>
 class optional_ref {
     static_assert(std::is_lvalue_reference_v<T>);
 
@@ -51,8 +51,7 @@ public:
     }
 
     // cppcheck-suppress noExplicitConstructor
-    optional_ref(const std::unique_ptr<std::remove_const_t<value_type>>& v)
-        requires std::is_const_v<value_type>
+    optional_ref(const std::unique_ptr<std::remove_const_t<value_type>>& v) requires std::is_const_v<value_type>
         : _ptr(v.get())
     {
     }
