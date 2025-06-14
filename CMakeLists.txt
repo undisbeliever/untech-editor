@@ -20,7 +20,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # External dependencies
 find_package(SDL2 REQUIRED)
-find_package(GSL REQUIRED)
+find_package(Microsoft.GSL REQUIRED)
 
 
 # Compiler Flags
