@@ -22,7 +22,7 @@ const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 6;
 constexpr std::u8string_view BASE_ROM_STRUCT = u8"BaseEntityRomStruct";
 constexpr std::u8string_view ENTITY_ROM_STRUCT_NAMESPACE = u8"Project.EntityRomStructs";
 
-static const idstring baseRomStruct = u8"BASE_ROM_STRUCT"_id;
+static const idstring baseRomStruct = u8"BaseEntityRomStruct"_id;
 
 const std::unordered_set<idstring> INVALID_NAMES{
     u8"functionTable"_id,
