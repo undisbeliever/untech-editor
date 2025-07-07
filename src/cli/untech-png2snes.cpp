@@ -111,9 +111,9 @@ static int process(const Args& args)
                   << '\n';
     }
 
-    File::atomicWrite(args.tilesetFilename, image2Snes.tilesetSnesData());
-    File::atomicWrite(args.tilemapFilename, image2Snes.tilemap().snesData());
-    File::atomicWrite(args.paletteFilename, image2Snes.paletteSnesData());
+    File::writeFile(args.tilesetFilename, image2Snes.tilesetSnesData());
+    File::writeFile(args.tilemapFilename, image2Snes.tilemap().snesData());
+    File::writeFile(args.paletteFilename, image2Snes.paletteSnesData());
 
     return EXIT_SUCCESS;
 }

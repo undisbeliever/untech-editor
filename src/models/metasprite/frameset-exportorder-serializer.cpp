@@ -157,7 +157,7 @@ void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesyste
     XmlWriter xml(filename, u8"untech");
     writeFrameSetExportOrder(xml, eo);
 
-    File::atomicWrite(filename, xml.string_view());
+    File::writeFile(filename, xml.string_view());
 }
 
 }

@@ -8,6 +8,7 @@
 #include "models/common/exceptions.h"
 #include "models/common/string.h"
 #include "models/common/stringbuilder.h"
+#include "models/common/u8strings.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -15,21 +16,6 @@
 #include <iostream>
 #include <string>
 #include <system_error>
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#define PLATFORM_WINDOWS
-#endif
-
-#ifdef PLATFORM_WINDOWS
-#include <direct.h>
-#include <shlwapi.h>
-#include <windows.h>
-#else
-#include <cstdlib>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
 
 namespace UnTech::File {
 
@@ -134,148 +120,42 @@ std::u8string readUtf8TextFile(const std::filesystem::path& filePath)
 
 constexpr size_t MAX_ATOMIC_WRITE_SIZE = 256 * 1024 * 1024;
 
-#ifdef PLATFORM_WINDOWS
-void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byte> data)
+void writeFile(const std::filesystem::path& filePath, std::span<const std::byte> data)
 {
-    const size_t BLOCK_SIZE = 64 * 1024;
-
     if (data.size() > MAX_ATOMIC_WRITE_SIZE) {
         throw runtime_error(u8"Cannot save file: data is too large");
     }
 
-    // ::TODO properly test this function::
+    auto f = std::ofstream(filePath, std::ios::out | std::ios::binary);
 
-    // I could not find a function to create and open a temporary file in a given directory in windows.
-    // Instead we create a `~` temp file and throw an error if tmpFilename already exists.
-    const std::filesystem::path tmpFilename = std::filesystem::path(filePath).concat(L"~");
-
-    // open a new file for writing.
-    // error if file exists.
-    HANDLE hFile = CreateFileW(tmpFilename.c_str(), GENERIC_WRITE, 0, nullptr,
-                               CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
-
-    if (hFile == INVALID_HANDLE_VALUE) {
-        if (GetLastError() == ERROR_FILE_EXISTS) {
-            throw runtime_error(u8"Temporary file already exists: ", tmpFilename.u8string());
-        }
-        else {
-            throw runtime_error(u8"Cannot open temporary file ", tmpFilename.u8string());
-        }
+    if (!f) {
+        throw runtime_error(u8"Cannot open file: ", filePath.u8string());
     }
 
-    std::span<const std::byte> remaining = data;
-
-    while (!remaining.empty()) {
-        const DWORD toWrite = std::min(BLOCK_SIZE, remaining.size());
-        DWORD written = 0;
-
-        auto ret = WriteFile(hFile, remaining.data(), toWrite, &written, NULL);
-
-        if (ret == FALSE || written != toWrite) {
-            CloseHandle(hFile);
-            throw runtime_error(u8"Error writing file: ", tmpFilename.u8string());
-        }
-        static_assert(std::is_unsigned_v<decltype(written)>);
-        assert(written <= remaining.size());
-
-        remaining = remaining.subspan(written);
+    try {
+        f.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+        f.write(reinterpret_cast<const char*>(data.data()), data.size());
+        f.flush();
+        f.close();
     }
-
-    CloseHandle(hFile);
-
-    bool s = MoveFileExW(tmpFilename.c_str(), filePath.c_str(),
-                         MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
-    if (!s) {
-        throw runtime_error(u8"MoveFileEx failed.  Cannot rename '", tmpFilename.u8string(), u8"' to '", filePath.u8string(), u8"'");
+    catch (const std::system_error& ex) {
+        throw runtime_error(u8"Cannot write to ", filePath.u8string(), u8"\n", convert_old_string(ex.code().message()));
     }
 }
-#else
-void atomicWrite(const std::filesystem::path& filePath, std::span<const std::byte> data)
+
+void writeFile(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
 {
-    using namespace std::string_literals;
-
-    const size_t BLOCK_SIZE = 8 * 1024 * 1024;
-
-    if (data.size() > MAX_ATOMIC_WRITE_SIZE) {
-        throw runtime_error(u8"Cannot save file: data is too large");
-    }
-
-    // Temporary file will only be created if it does not exist.
-    const std::filesystem::path tmpFilename = std::filesystem::path(filePath).concat("~");
-
-    int mode = 0666;
-
-    // Using lstat to detect if the filename is a symbolic link
-    struct stat statbuf {};
-    if (::lstat(filePath.c_str(), &statbuf) == 0) {
-        if (S_ISLNK(statbuf.st_mode)) {
-            throw runtime_error(u8"Cannot write to a symbolic link: ", filePath.u8string());
-        }
-
-        // check if we can write to file
-        bool canWrite = ((getuid() == statbuf.st_uid) && (statbuf.st_mode & S_IWUSR))
-                        || ((getgid() == statbuf.st_gid) && (statbuf.st_mode & S_IWGRP))
-                        || (statbuf.st_mode & S_IWOTH);
-        if (!canWrite) {
-            throw runtime_error(u8"User can not write to ", filePath.u8string());
-        }
-
-        mode = statbuf.st_mode & 0777;
-    }
-
-    const auto fd = ::open(tmpFilename.c_str(), O_EXCL | O_CREAT | O_WRONLY | O_NOFOLLOW, mode);
-    if (fd < 0) {
-        throw std::system_error(errno, std::system_category(),
-                                "Cannot open file: " + tmpFilename.string());
-    }
-
-    std::span<const std::byte> remaining = data;
-
-    while (!remaining.empty()) {
-        const auto bytesToWrite = std::min(BLOCK_SIZE, remaining.size());
-
-        const auto done = ::write(fd, remaining.data(), bytesToWrite);
-        if (done < 0) {
-            auto err = errno;
-            ::close(fd);
-            throw std::system_error(err, std::system_category(),
-                                    "Cannot write to file: " + tmpFilename.string());
-        }
-        assert(done >= 0);
-        assert(size_t(done) <= remaining.size());
-
-        remaining = remaining.subspan(done);
-    }
-
-    int r{};
-
-    r = ::close(fd);
-    if (r != 0) {
-        throw std::system_error(errno, std::system_category(),
-                                "Cannot close file: " + tmpFilename.string());
-    }
-
-    r = ::rename(tmpFilename.c_str(), filePath.c_str());
-    if (r != 0) {
-        throw std::system_error(errno, std::system_category(),
-                                "Cannot rename '" + tmpFilename.string() + "' to '" + filePath.string() + "'");
-    }
-}
-#endif
-
-void atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
-{
-    atomicWrite(filePath, std::as_bytes(std::span{ data }));
+    writeFile(filePath, std::as_bytes(std::span{ data }));
 }
 
-void atomicWrite(const std::filesystem::path& filePath, const std::u8string& data)
+void writeFile(const std::filesystem::path& filePath, const std::u8string& data)
 {
-    atomicWrite(filePath, std::as_bytes(std::span{ data }));
+    writeFile(filePath, std::as_bytes(std::span{ data }));
 }
 
-void atomicWrite(const std::filesystem::path& filePath, const std::u8string_view data)
+void writeFile(const std::filesystem::path& filePath, const std::u8string_view data)
 {
-    atomicWrite(filePath, std::as_bytes(std::span{ data }));
+    writeFile(filePath, std::as_bytes(std::span{ data }));
 }
 
 }

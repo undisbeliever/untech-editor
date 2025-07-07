@@ -205,7 +205,7 @@ void saveRoomInput(const RoomInput& input, const std::filesystem::path& filename
     XmlWriter xml(filename, u8"untech", 128 * 1024);
     writeRoomInput(xml, input);
 
-    File::atomicWrite(filename, xml.string_view());
+    File::writeFile(filename, xml.string_view());
 }
 
 void readRoomSettings(RoomSettings& settings, const XmlTag& tag)

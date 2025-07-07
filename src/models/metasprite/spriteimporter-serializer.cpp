@@ -67,7 +67,7 @@ void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filenam
     XmlWriter xml(filename, u8"untech");
     writeFrameSet(xml, frameSet);
 
-    File::atomicWrite(filename, xml.string_view());
+    File::writeFile(filename, xml.string_view());
 }
 
 /*

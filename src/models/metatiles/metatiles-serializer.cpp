@@ -350,7 +350,7 @@ void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::file
     XmlWriter xml(filename, u8"untech", 128 * 1024);
     writeMetaTileTilesetInput(xml, input);
 
-    File::atomicWrite(filename, xml.string_view());
+    File::writeFile(filename, xml.string_view());
 }
 
 }

@@ -39,7 +39,7 @@ int process(const Args& args)
     const auto input = File::readBinaryFile(args.inputFilename, 4 * 1024 * 1024);
     const auto out = lz4HcCompress(input, args.limit);
 
-    File::atomicWrite(args.outputFilename, out);
+    File::writeFile(args.outputFilename, out);
 
     if (args.verbose) {
         double percent = (double)out.size() / (double)input.size() * 100;

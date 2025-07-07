@@ -55,8 +55,8 @@ int compile(const Args& args)
         return EXIT_FAILURE;
     }
 
-    File::atomicWrite(args.outputIncFilename, output->incData);
-    File::atomicWrite(args.outputBinFilename, output->binaryData);
+    File::writeFile(args.outputIncFilename, output->incData);
+    File::writeFile(args.outputBinFilename, output->binaryData);
 
     return EXIT_SUCCESS;
 }

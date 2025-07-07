@@ -209,7 +209,7 @@ void saveProjectFile(const ProjectFile& project, const std::filesystem::path& fi
     XmlWriter xml(filename, u8"untech", 64 * 1024);
     writeProjectFile(xml, project);
 
-    File::atomicWrite(filename, xml.string_view());
+    File::writeFile(filename, xml.string_view());
 }
 
 }

@@ -39,7 +39,7 @@ void ImageToTileset::convertAndSave(const IndexedImage& image, BitDepthSpecial b
 void ImageToTileset::writeTileset(const std::filesystem::path& filename) const
 {
     const std::vector<uint8_t> data = snesTileData(_tileset, _bitDepth);
-    File::atomicWrite(filename, data);
+    File::writeFile(filename, data);
 }
 
 void ImageToTileset::writePalette(const std::filesystem::path& filename) const
@@ -53,7 +53,7 @@ void ImageToTileset::writePalette(const std::filesystem::path& filename) const
     }
     assert(outIt == out.end());
 
-    File::atomicWrite(filename, out);
+    File::writeFile(filename, out);
 }
 
 void ImageToTileset::process(const IndexedImage& image)
