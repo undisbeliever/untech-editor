@@ -399,6 +399,8 @@ void EntityRomDataEditorGui::entityEntriesGui(const char8_t* text, const Project
                 ImGui::EndCombo();
             }
 
+            edited |= Cell("defaultPalette", &entry.defaultPalette);
+
             const auto functionTable = entityRomData.functionTables.find(entry.functionTable);
             if (functionTable) {
                 const auto structChain = generateStructChain(functionTable->entityStruct);
