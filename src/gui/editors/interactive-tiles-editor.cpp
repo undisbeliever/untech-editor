@@ -102,6 +102,8 @@ void InteractiveTilesEditorGui::interactiveTilesGui()
 
     ImGui::TextUnformatted(u8"Interactive Tiles:");
 
+    ListButtons<AP::FunctionTables>(_data);
+
     constexpr auto columnNames = std::to_array({ "Name", "Tint" });
 
     if (beginApTable("Table", columnNames)) {
