@@ -21,7 +21,7 @@ namespace UnTech::Project {
 using RT = ResourceType;
 using PSI = ProjectSettingsIndex;
 
-static constexpr idstring BLANK_IDSTRING{};
+static const idstring BLANK_IDSTRING{};
 
 template <typename T>
 static inline optional_ref<const T&> getItem(const NamedList<T>& list, const size_t index)

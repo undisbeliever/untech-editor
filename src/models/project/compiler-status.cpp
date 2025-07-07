@@ -307,7 +307,7 @@ static inline void updateDependencies(std::array<CompilerStatus::ListData, N_RES
 [[nodiscard]] static const idstring& getName(const ProjectFile& pf, const ResourceType type, const size_t index)
 {
 
-    static constexpr idstring BLANK_IDSTRING{};
+    static const idstring BLANK_IDSTRING{};
 
     using RT = ResourceType;
 
