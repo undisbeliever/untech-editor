@@ -300,7 +300,7 @@ inline std::optional<uint8_t> SceneLayoutsData::addLayout(const std::array<Scene
 
     for (const auto layerId : range(N_LAYERS)) {
         // Search backwards through vram to increase the amount of free tiles available for BG 1 and BG 2
-        auto b = findFreeSpaceBackwards(input.at(layerId).nTileBlocks, MAP_ALIGN);
+        auto b = findFreeSpaceBackwards(input.at(layerId).nMapBlocks, MAP_ALIGN);
         if (!b) {
             return std::nullopt;
         }
