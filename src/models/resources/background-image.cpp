@@ -193,22 +193,42 @@ unsigned BackgroundImageData::tilemapDataSize() const
 
 static void convertBackgroundMap(std::vector<uint8_t>& out, const grid<Snes::TilemapEntry>& grid, unsigned xOffset, unsigned yOffset)
 {
-    const size_t startIndex = out.size();
-    out.resize(out.size() + BG_MAP_DATA_SIZE, 0);
-
     const unsigned endX = std::min<unsigned>(BG_MAP_WIDTH, grid.width() - xOffset);
     const unsigned endY = std::min<unsigned>(BG_MAP_HEIGHT, grid.height() - yOffset);
 
-    auto it = out.begin() + startIndex;
-    for (const auto y : range(endY)) {
-        for (const auto x : range(endX)) {
-            const auto& tm = grid.at(x + xOffset, y + yOffset);
+    assert(endX * endY * 2 <= BG_MAP_DATA_SIZE);
 
-            *it++ = tm.data & 0xff;
-            *it++ = (tm.data >> 8) & 0xff;
+    const size_t startIndex = out.size();
+    out.resize(out.size() + BG_MAP_DATA_SIZE, 0);
+
+    if (endX == BG_MAP_WIDTH && endY == BG_MAP_HEIGHT) {
+        auto it = out.begin() + startIndex;
+
+        for (const auto y : range(endY)) {
+            for (const auto x : range(endX)) {
+                const auto& tm = grid.at(x + xOffset, y + yOffset);
+
+                *it++ = tm.data & 0xff;
+                *it++ = (tm.data >> 8) & 0xff;
+            }
+        }
+        assert(it == out.end());
+    }
+    else {
+        for (const auto y : range(endY)) {
+            auto it = out.begin() + startIndex + y * BG_MAP_WIDTH * 2;
+            auto endIt = it + (endX * 2);
+
+            for (const auto x : range(endX)) {
+                const auto& tm = grid.at(x + xOffset, y + yOffset);
+
+                *it++ = tm.data & 0xff;
+                *it++ = (tm.data >> 8) & 0xff;
+            }
+
+            assert(it == endIt);
         }
     }
-    assert(it == out.end());
 }
 
 const int BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION = 1;
@@ -227,7 +247,7 @@ std::vector<uint8_t> BackgroundImageData::exportSnesData() const
 
     // tileMaps
     for (unsigned y = 0; y < tileMap.height(); y += 32) {
-        for (unsigned x = 0; x < tileMap.height(); x += 32) {
+        for (unsigned x = 0; x < tileMap.width(); x += 32) {
             convertBackgroundMap(mapAndTileData, tileMap, x, y);
         }
     }
