@@ -14,7 +14,7 @@ namespace UnTech::MetaSprite::Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-const int CompiledRomData::METASPRITE_FORMAT_VERSION = 41;
+const int CompiledRomData::METASPRITE_FORMAT_VERSION = 42;
 
 CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
     : tileData(memoryMap)
@@ -31,6 +31,16 @@ CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
     , frameSetData(u8"Project.MS_FrameSetData")
 
 {
+    // Populate collisionBoxData with a blank collision box so
+    // a null `BaseEntity.MetaSprite.collisionBoxes` does not collide
+    // with a MetaTile.
+    //
+    // This occurs in the first entity frame as `MoveEntityAndProcessTileCollisions`
+    // is called before animations are processed.
+    std::array<uint8_t, 16> blank{};
+    blank.fill(0xff);
+
+    collisionBoxData.addData_Index(blank);
 }
 
 static IndexPlusOne
