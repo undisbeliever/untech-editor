@@ -130,7 +130,7 @@ convertPalette(const PaletteInput& input, ErrorList& err)
         extractPalette(pf, frameId + firstFrame);
     }
 
-    if (input.skipFirstFrame) {
+    if (!input.skipFirstFrame) {
         ret->conversionPalette = ret->paletteFrames.front();
     }
     else {
