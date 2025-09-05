@@ -79,7 +79,7 @@ static bool validate(const SceneSettingsInput& input, const unsigned index, Erro
         addError(u8"Invalid setting ", input.name, u8": Cannot have more than one text layer");
     }
 
-    unsigned nAnimatedLayers = layerTypeCount.at(unsigned(LayerType::BackgroundImage));
+    unsigned nAnimatedLayers = layerTypeCount.at(unsigned(LayerType::MetaTileTileset));
     if (nAnimatedLayers > 1) {
         addError(u8"Invalid setting ", input.name, u8": Cannot have more than one animated layer (MetaTiles are animated)");
     }
