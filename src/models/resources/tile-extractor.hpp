@@ -26,7 +26,7 @@ inline bool extractTile8px(Snes::Tile8px& tile,
 {
     const static unsigned TS = tile.TILE_SIZE;
 
-    assert(x + TS <= image.size().width && x + TS <= image.size().height);
+    assert(x + TS <= image.size().width && y + TS <= image.size().height);
 
     for (const auto ty : range(TS)) {
         auto imgBits = image.scanline(y + ty).subspan(x, TS);
